@@ -1,0 +1,1632 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>บันทึกการจ่ายยาควบคุม — OPD</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap');
+
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+
+:root {
+  --navy: #0B1F3A;
+  --navy-mid: #162D4E;
+  --navy-light: #1E3A5F;
+  --blue: #2563EB;
+  --blue-light: #EFF6FF;
+  --teal: #0D9488;
+  --teal-light: #F0FDFA;
+  --amber: #D97706;
+  --amber-light: #FFFBEB;
+  --red: #DC2626;
+  --red-light: #FEF2F2;
+  --green: #16A34A;
+  --green-light: #F0FDF4;
+  --gray-50: #F8FAFC;
+  --gray-100: #F1F5F9;
+  --gray-200: #E2E8F0;
+  --gray-300: #CBD5E1;
+  --gray-400: #94A3B8;
+  --gray-500: #64748B;
+  --gray-600: #475569;
+  --gray-700: #334155;
+  --gray-800: #1E293B;
+  --gray-900: #0F172A;
+  --white: #FFFFFF;
+  --r: 8px;
+  --r-lg: 12px;
+  --r-xl: 16px;
+  --shadow-sm: 0 1px 2px rgba(0,0,0,0.06);
+  --shadow: 0 1px 3px rgba(0,0,0,0.08),0 1px 2px rgba(0,0,0,0.04);
+  --shadow-md: 0 4px 12px rgba(0,0,0,0.08);
+}
+
+body {
+  font-family: 'Sarabun', sans-serif;
+  background: var(--gray-50);
+  color: var(--gray-800);
+  min-height: 100vh;
+  font-size: 15px;
+}
+
+/* ── Layout ── */
+.app { display: flex; flex-direction: column; min-height: 100vh; }
+
+.topbar {
+  background: var(--navy);
+  padding: 0 28px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 60px;
+  flex-shrink: 0;
+}
+.topbar-left { display: flex; align-items: center; gap: 12px; }
+.topbar-logo {
+  width: 32px; height: 32px; background: var(--teal);
+  border-radius: 8px;
+  display: flex; align-items: center; justify-content: center;
+}
+.topbar-logo svg { width: 18px; height: 18px; }
+.topbar-title { font-size: 15px; font-weight: 600; color: var(--white); letter-spacing: 0.01em; }
+.topbar-sub { font-size: 12px; color: rgba(255,255,255,0.45); margin-top: 1px; }
+.topbar-clock {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 13px; color: rgba(255,255,255,0.5);
+}
+
+/* Tabs */
+.tabs {
+  background: var(--white);
+  border-bottom: 1px solid var(--gray-200);
+  padding: 0 28px;
+  display: flex; gap: 0;
+}
+.tab-btn {
+  padding: 14px 20px;
+  font-size: 14px; font-weight: 500;
+  color: var(--gray-500);
+  border: none; background: none; cursor: pointer;
+  border-bottom: 2px solid transparent;
+  transition: all 0.15s;
+  font-family: 'Sarabun', sans-serif;
+  display: flex; align-items: center; gap: 6px;
+}
+.tab-btn:hover { color: var(--gray-800); }
+.tab-btn.active { color: var(--navy); border-bottom-color: var(--teal); }
+.tab-badge {
+  background: var(--teal); color: white;
+  font-size: 11px; font-weight: 600;
+  padding: 1px 6px; border-radius: 99px;
+  min-width: 20px; text-align: center;
+}
+
+.main { flex: 1; padding: 24px 28px 48px; max-width: 1100px; width: 100%; margin: 0 auto; }
+
+/* Panels */
+.panel { display: none; }
+.panel.active { display: block; }
+
+/* ── Form ── */
+.form-card {
+  background: var(--white);
+  border: 1px solid var(--gray-200);
+  border-radius: var(--r-xl);
+  padding: 24px;
+  box-shadow: var(--shadow);
+  margin-bottom: 20px;
+}
+.form-section-title {
+  font-size: 11px; font-weight: 700;
+  text-transform: uppercase; letter-spacing: 0.08em;
+  color: var(--gray-400); margin-bottom: 16px;
+}
+.form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+.form-grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 14px; }
+.field { display: flex; flex-direction: column; gap: 5px; }
+.field.full { grid-column: 1 / -1; }
+label { font-size: 13px; font-weight: 500; color: var(--gray-600); }
+label span.req { color: var(--red); margin-left: 2px; }
+
+input[type="text"],
+input[type="date"],
+input[type="time"],
+input[type="number"],
+select,
+textarea {
+  width: 100%;
+  height: 40px;
+  padding: 0 12px;
+  border: 1.5px solid var(--gray-200);
+  border-radius: var(--r);
+  font-size: 14px;
+  font-family: 'Sarabun', sans-serif;
+  color: var(--gray-900);
+  background: var(--white);
+  outline: none;
+  transition: border-color 0.15s, box-shadow 0.15s;
+  appearance: none; -webkit-appearance: none;
+}
+textarea { height: 72px; padding: 10px 12px; resize: vertical; }
+select {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%2394A3B8' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+  background-repeat: no-repeat; background-position: right 10px center; padding-right: 32px;
+}
+input:focus, select:focus, textarea:focus {
+  border-color: var(--teal);
+  box-shadow: 0 0 0 3px rgba(13,148,136,0.12);
+}
+
+.drug-unit { font-size: 12px; color: var(--gray-400); margin-top: 3px; }
+
+/* Submit */
+.btn-submit {
+  width: 100%;
+  height: 48px;
+  background: var(--navy);
+  color: var(--white);
+  font-size: 15px; font-weight: 600;
+  font-family: 'Sarabun', sans-serif;
+  border: none; border-radius: var(--r-lg);
+  cursor: pointer;
+  transition: background 0.15s, transform 0.1s;
+  display: flex; align-items: center; justify-content: center; gap: 8px;
+  margin-top: 4px;
+}
+.btn-submit:hover { background: var(--navy-light); }
+.btn-submit:active { transform: scale(0.99); }
+
+.success-toast {
+  display: none;
+  align-items: center; gap: 10px;
+  background: var(--green-light);
+  border: 1px solid #86EFAC;
+  border-radius: var(--r);
+  padding: 12px 16px;
+  font-size: 13px; color: var(--green);
+  margin-bottom: 16px;
+  animation: fadeIn 0.2s ease;
+}
+.success-toast.show { display: flex; }
+
+@keyframes fadeIn { from { opacity:0; transform:translateY(-6px); } to { opacity:1; transform:translateY(0); } }
+
+/* ── Log Table ── */
+.log-toolbar {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-bottom: 16px; gap: 12px; flex-wrap: wrap;
+}
+.log-search {
+  flex: 1; min-width: 200px; max-width: 320px;
+  height: 38px; padding: 0 12px 0 36px;
+  border: 1.5px solid var(--gray-200);
+  border-radius: var(--r);
+  font-size: 14px; font-family: 'Sarabun', sans-serif;
+  color: var(--gray-900); background: var(--white);
+  outline: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%2394A3B8' stroke-width='2'%3E%3Ccircle cx='11' cy='11' r='8'/%3E%3Cpath d='m21 21-4.35-4.35'/%3E%3C/svg%3E");
+  background-repeat: no-repeat; background-position: 10px center;
+  transition: border-color 0.15s;
+}
+.log-search:focus { border-color: var(--teal); outline: none; }
+
+.log-filter {
+  height: 38px; padding: 0 10px 0 12px;
+  border: 1.5px solid var(--gray-200);
+  border-radius: var(--r);
+  font-size: 13px; font-family: 'Sarabun', sans-serif;
+  color: var(--gray-700); background: var(--white);
+  cursor: pointer; outline: none;
+  appearance: none; -webkit-appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%2394A3B8' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+  background-repeat: no-repeat; background-position: right 8px center; padding-right: 28px;
+  transition: border-color 0.15s;
+}
+.log-filter:focus { border-color: var(--teal); }
+
+.btn-export {
+  height: 38px; padding: 0 16px;
+  background: var(--teal); color: white;
+  font-size: 13px; font-weight: 600;
+  font-family: 'Sarabun', sans-serif;
+  border: none; border-radius: var(--r);
+  cursor: pointer;
+  display: flex; align-items: center; gap: 6px;
+  transition: background 0.15s;
+  white-space: nowrap;
+}
+.btn-export:hover { background: #0F766E; }
+
+.table-wrap {
+  background: var(--white);
+  border: 1px solid var(--gray-200);
+  border-radius: var(--r-xl);
+  overflow: hidden;
+  box-shadow: var(--shadow);
+}
+table { width: 100%; border-collapse: collapse; }
+thead { background: var(--gray-50); }
+th {
+  padding: 11px 14px;
+  text-align: left;
+  font-size: 11px; font-weight: 700;
+  text-transform: uppercase; letter-spacing: 0.06em;
+  color: var(--gray-400);
+  border-bottom: 1px solid var(--gray-200);
+  white-space: nowrap;
+}
+td {
+  padding: 12px 14px;
+  font-size: 13px; color: var(--gray-700);
+  border-bottom: 1px solid var(--gray-100);
+  vertical-align: middle;
+}
+tr:last-child td { border-bottom: none; }
+tr:hover td { background: var(--gray-50); }
+
+.drug-pill {
+  display: inline-block;
+  padding: 3px 9px;
+  border-radius: 99px;
+  font-size: 12px; font-weight: 600;
+  background: var(--navy); color: white;
+  white-space: nowrap;
+}
+.drug-pill.opioid { background: #7C3AED; }
+.drug-pill.sedative { background: #0369A1; }
+.drug-pill.stimulant { background: #B45309; }
+.drug-pill.decongestant { background: #0F766E; }
+
+.qty-text { font-family: 'IBM Plex Mono', monospace; font-weight: 500; color: var(--gray-900); }
+.pharmacist-text { font-weight: 500; color: var(--navy); }
+.hn-text { font-family: 'IBM Plex Mono', monospace; font-size: 12px; color: var(--gray-500); }
+
+.btn-delete {
+  background: none; border: none; cursor: pointer;
+  color: var(--gray-300); padding: 4px 6px; border-radius: 6px;
+  transition: all 0.15s; font-size: 14px;
+}
+.btn-delete:hover { background: var(--red-light); color: var(--red); }
+
+.empty-state {
+  text-align: center; padding: 48px 24px;
+  color: var(--gray-400);
+}
+.empty-state svg { width: 40px; height: 40px; margin-bottom: 12px; opacity: 0.3; }
+.empty-state p { font-size: 14px; }
+
+/* ── Dashboard ── */
+.dash-date-bar {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-bottom: 20px; flex-wrap: wrap; gap: 12px;
+}
+.dash-date-bar h2 { font-size: 18px; font-weight: 600; color: var(--gray-900); }
+.date-filter-wrap { display: flex; align-items: center; gap: 8px; }
+.date-filter-wrap label { font-size: 13px; color: var(--gray-500); }
+.date-filter-wrap input[type="date"] {
+  height: 36px; padding: 0 10px; font-size: 13px;
+  border: 1.5px solid var(--gray-200); border-radius: var(--r);
+  font-family: 'Sarabun', sans-serif; width: auto;
+}
+
+.stat-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 20px; }
+.stat-card {
+  background: var(--white);
+  border: 1px solid var(--gray-200);
+  border-radius: var(--r-lg);
+  padding: 16px 18px;
+  box-shadow: var(--shadow-sm);
+}
+.stat-label { font-size: 12px; color: var(--gray-400); font-weight: 500; margin-bottom: 6px; }
+.stat-value { font-size: 28px; font-weight: 700; color: var(--gray-900); font-family: 'IBM Plex Mono', monospace; line-height: 1; }
+.stat-sub { font-size: 12px; color: var(--gray-400); margin-top: 4px; }
+
+.drug-summary-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; margin-bottom: 20px; }
+
+.drug-summary-card {
+  background: var(--white);
+  border: 1px solid var(--gray-200);
+  border-radius: var(--r-lg);
+  padding: 16px;
+  box-shadow: var(--shadow-sm);
+}
+.dscard-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
+.dscard-name { font-size: 13px; font-weight: 600; color: var(--gray-800); }
+.dscard-count {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 22px; font-weight: 500; color: var(--navy); margin-bottom: 2px;
+}
+.dscard-unit { font-size: 12px; color: var(--gray-400); }
+.dscard-bar-bg { height: 4px; background: var(--gray-100); border-radius: 99px; overflow: hidden; margin-top: 10px; }
+.dscard-bar { height: 4px; background: var(--teal); border-radius: 99px; transition: width 0.4s; }
+.dscard-patients { margin-top: 10px; }
+.dscard-patient-row {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 5px 0; border-bottom: 1px solid var(--gray-100);
+  font-size: 12px;
+}
+.dscard-patient-row:last-child { border-bottom: none; }
+.dscard-hn { color: var(--gray-400); font-family: 'IBM Plex Mono', monospace; font-size: 11px; }
+.dscard-pt-name { color: var(--gray-700); font-weight: 500; }
+.dscard-pt-qty { font-family: 'IBM Plex Mono', monospace; font-weight: 500; color: var(--gray-900); font-size: 12px; }
+
+/* ── Inventory ── */
+.inv-type-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 16px; }
+.inv-type-btn {
+  padding: 14px 12px; border-radius: var(--r-lg);
+  border: 2px solid var(--gray-200); background: var(--white);
+  cursor: pointer; text-align: center; transition: all 0.15s;
+  font-family: 'Sarabun', sans-serif;
+}
+.inv-type-btn:hover { border-color: var(--gray-300); background: var(--gray-50); }
+.inv-type-btn.selected-in { border-color: var(--teal); background: var(--teal-light); }
+.inv-type-btn.selected-out { border-color: var(--red); background: var(--red-light); }
+.inv-type-icon { font-size: 20px; margin-bottom: 4px; }
+.inv-type-label { font-size: 13px; font-weight: 600; color: var(--gray-700); }
+.inv-type-sub { font-size: 11px; color: var(--gray-400); margin-top: 2px; }
+.inv-type-btn.selected-in .inv-type-label { color: var(--teal); }
+.inv-type-btn.selected-out .inv-type-label { color: var(--red); }
+
+.stock-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 16px; }
+.stock-card {
+  background: var(--white); border: 1px solid var(--gray-200);
+  border-radius: var(--r-lg); padding: 14px 12px;
+  box-shadow: var(--shadow-sm); position: relative; overflow: hidden;
+}
+.stock-card.low { border-color: #FCA5A5; background: #FFF5F5; }
+.stock-card.zero { border-color: var(--red); background: var(--red-light); }
+.stock-drug { font-size: 12px; font-weight: 600; color: var(--gray-600); margin-bottom: 6px; line-height: 1.3; }
+.stock-qty { font-family: 'IBM Plex Mono', monospace; font-size: 26px; font-weight: 500; color: var(--gray-900); line-height: 1; }
+.stock-unit { font-size: 11px; color: var(--gray-400); margin-top: 3px; }
+.stock-badge {
+  position: absolute; top: 10px; right: 10px;
+  font-size: 10px; font-weight: 700; padding: 2px 7px;
+  border-radius: 99px; text-transform: uppercase; letter-spacing: 0.04em;
+}
+.badge-low { background: #FEF3C7; color: #92400E; }
+.badge-zero { background: var(--red-light); color: var(--red); }
+.badge-ok { background: var(--green-light); color: #166534; }
+
+.inv-hist-table { width: 100%; border-collapse: collapse; }
+.inv-hist-table th {
+  padding: 9px 12px; text-align: left; font-size: 11px; font-weight: 700;
+  text-transform: uppercase; letter-spacing: 0.06em; color: var(--gray-400);
+  border-bottom: 1px solid var(--gray-200); background: var(--gray-50);
+}
+.inv-hist-table td { padding: 10px 12px; font-size: 13px; border-bottom: 1px solid var(--gray-100); }
+tr:last-child td { border-bottom: none; }
+.txn-in { color: var(--teal); font-weight: 600; }
+.txn-out { color: var(--red); font-weight: 600; }
+.inv-filter-bar { display: flex; gap: 10px; margin-bottom: 14px; flex-wrap: wrap; align-items: center; }
+
+.no-data { text-align: center; padding: 32px; color: var(--gray-400); font-size: 14px; }
+/* ── Login Overlay ── */
+.login-overlay {
+  position: fixed; inset: 0; z-index: 9999;
+  background: var(--navy);
+  display: flex; align-items: center; justify-content: center;
+}
+.login-box {
+  background: var(--white);
+  border-radius: var(--r-xl);
+  padding: 36px 32px 32px;
+  width: 100%; max-width: 360px;
+  box-shadow: 0 24px 64px rgba(0,0,0,0.4);
+  text-align: center;
+}
+.login-logo {
+  width: 48px; height: 48px; background: var(--teal);
+  border-radius: 14px; display: flex; align-items: center; justify-content: center;
+  margin: 0 auto 18px;
+}
+.login-logo svg { width: 26px; height: 26px; }
+.login-title { font-size: 17px; font-weight: 600; color: var(--gray-900); margin-bottom: 6px; }
+.login-sub { font-size: 13px; color: var(--gray-400); margin-bottom: 24px; }
+.login-input {
+  width: 100%; height: 48px; padding: 0 16px;
+  border: 2px solid var(--gray-200); border-radius: var(--r);
+  font-size: 18px; font-family: 'IBM Plex Mono',monospace;
+  text-align: center; letter-spacing: 0.3em;
+  outline: none; margin-bottom: 10px;
+  transition: border-color 0.15s;
+}
+.login-input:focus { border-color: var(--teal-mid); }
+.login-input.error { border-color: var(--red); animation: shake 0.3s ease; }
+@keyframes shake {
+  0%,100%{transform:translateX(0)} 25%{transform:translateX(-8px)} 75%{transform:translateX(8px)}
+}
+.login-error { font-size: 12px; color: var(--red); margin-bottom: 12px; min-height: 18px; }
+.login-btn {
+  width: 100%; height: 46px;
+  background: var(--navy); color: white;
+  font-size: 14px; font-weight: 600;
+  font-family: 'Sarabun', sans-serif;
+  border: none; border-radius: var(--r);
+  cursor: pointer; transition: background 0.15s;
+}
+.login-btn:hover { background: var(--navy-light); }
+.login-footer { font-size: 11px; color: var(--gray-400); margin-top: 16px; }
+
+/* ── Auth badge in topbar ── */
+.auth-badge {
+  display: flex; align-items: center; gap: 8px;
+  font-size: 12px; color: rgba(255,255,255,0.6);
+}
+.auth-name { color: rgba(255,255,255,0.85); font-weight: 500; }
+.logout-btn {
+  background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.15);
+  color: rgba(255,255,255,0.7); font-size: 11px;
+  font-family: 'Sarabun', sans-serif;
+  padding: 4px 10px; border-radius: 6px; cursor: pointer;
+  transition: background 0.15s;
+}
+.logout-btn:hover { background: rgba(255,255,255,0.15); }
+.auth-tab { display: none; }
+</style>
+</head>
+<body>
+
+<!-- Login Overlay -->
+<div class="login-overlay" id="login-overlay">
+  <div class="login-box">
+    <div class="login-logo">
+      <svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+        <rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/>
+      </svg>
+    </div>
+    <div class="login-title">บันทึกการจ่ายยาควบคุม</div>
+    <div class="login-sub">กรอก Password เพื่อเข้าใช้งาน</div>
+    <input type="password" class="login-input" id="login-input"
+      placeholder="••••••" maxlength="20"
+      onkeydown="if(event.key==='Enter')doLogin()">
+    <div class="login-error" id="login-error"></div>
+    <button class="login-btn" onclick="doLogin()">เข้าสู่ระบบ</button>
+    <div class="login-footer">
+      หรือ <span style="color:var(--teal);cursor:pointer;font-weight:500;" onclick="viewDashboardOnly()">ดู Dashboard โดยไม่ต้อง login →</span>
+    </div>
+  </div>
+</div>
+
+<div class="app">
+
+  <!-- Top bar -->
+  <div class="topbar">
+    <div class="topbar-left">
+      <div class="topbar-logo">
+        <svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M9 3H5a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2V5a2 2 0 00-2-2h-4"/>
+          <path d="M9 3a2 2 0 004 0"/>
+          <path d="M12 12v4M10 14h4"/>
+        </svg>
+      </div>
+      <div>
+        <div class="topbar-title">บันทึกการจ่ายยาควบคุม</div>
+        <div class="topbar-sub">OPD Pharmacy · Narcotic Drug Log</div>
+      </div>
+    </div>
+    <div class="topbar-clock" id="topbar-clock"></div>
+    <div class="auth-badge" id="auth-badge" style="display:none;">
+      <span class="auth-name" id="auth-name">ผู้ใช้งาน</span>
+      <button class="logout-btn" onclick="doLogout()">ออกจากระบบ</button>
+    </div>
+  </div>
+
+  <!-- Tabs -->
+  <div class="tabs">
+    <button class="tab-btn auth-tab" onclick="switchTab('form',this)">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+      บันทึกการจ่ายยา
+    </button>
+    <button class="tab-btn auth-tab" onclick="switchTab('log',this)">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2"/><rect x="9" y="3" width="6" height="4" rx="2"/></svg>
+      Log ทั้งหมด
+      <span class="tab-badge" id="log-count-badge">0</span>
+    </button>
+    <button class="tab-btn active" id="tab-dashboard" onclick="switchTab('dashboard',this)">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+      Dashboard จ่ายยา
+    </button>
+    <button class="tab-btn auth-tab" onclick="switchTab('inventory',this)">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4"/></svg>
+      คลังยา
+    </button>
+    <button class="tab-btn" id="tab-stockdash" onclick="switchTab('stockdash',this)">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+      Dashboard คลัง
+    </button>
+  </div>
+
+  <div class="main">
+
+    <!-- ═══ FORM PANEL ═══ -->
+    <div class="panel active" id="panel-form">
+      <div class="success-toast" id="success-toast">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#16A34A" stroke-width="2.5"><path d="M20 6L9 17l-5-5"/></svg>
+        บันทึกการจ่ายยาเรียบร้อยแล้ว
+      </div>
+
+      <div class="form-card">
+        <div class="form-section-title">ข้อมูลการจ่ายยา</div>
+        <div class="form-grid" style="margin-bottom:14px;">
+          <div class="field">
+            <label for="f-date">วันที่<span class="req">*</span></label>
+            <input type="date" id="f-date">
+          </div>
+          <div class="field">
+            <label for="f-time">เวลา<span class="req">*</span></label>
+            <input type="time" id="f-time">
+          </div>
+        </div>
+
+        <div class="form-grid" style="margin-bottom:14px;">
+          <div class="field">
+            <label for="f-hn">HN<span class="req">*</span></label>
+            <input type="text" id="f-hn" placeholder="เช่น 00005">
+          </div>
+          <div class="field">
+            <label for="f-patient">ชื่อ-นามสกุลผู้ป่วย<span class="req">*</span></label>
+            <input type="text" id="f-patient" placeholder="เช่น นาย ก. ใจดี">
+          </div>
+        </div>
+
+        <div class="field" style="margin-bottom:14px;">
+          <label for="f-pid">เลขบัตรประชาชน 13 หลัก<span class="req">*</span></label>
+          <input type="text" id="f-pid" placeholder="x-xxxx-xxxxx-xx-x" maxlength="17" inputmode="numeric"
+            oninput="this.value=this.value.replace(/[^0-9]/g,'').slice(0,13); validatePID()"
+            onpaste="setTimeout(()=>{this.value=this.value.replace(/[^0-9]/g,'').slice(0,13);validatePID();},0)">
+          <div id="pid-hint" style="font-size:12px;margin-top:3px;"></div>
+        </div>
+
+        <div class="form-grid-3" style="margin-bottom:14px;">
+          <div class="field" style="grid-column: span 2;">
+            <label for="f-drug">ชื่อยา<span class="req">*</span></label>
+            <select id="f-drug" onchange="updateUnit()">
+              <option value="">— เลือกยา —</option>
+              <optgroup label="Opioid Analgesics">
+                <option value="Morphine inj" data-unit="amp" data-cat="opioid">Morphine inj</option>
+                <option value="Pethidine inj" data-unit="amp" data-cat="opioid">Pethidine inj</option>
+                <option value="Fentanyl inj" data-unit="amp" data-cat="opioid">Fentanyl inj</option>
+                <option value="Fentanyl patch" data-unit="patch" data-cat="opioid">Fentanyl patch</option>
+                <option value="MST 10 mg" data-unit="เม็ด" data-cat="opioid">MST 10 mg</option>
+                <option value="MO IR 10 mg" data-unit="เม็ด" data-cat="opioid">MO IR 10 mg</option>
+                <option value="Morphine syrup" data-unit="ขวด" data-cat="opioid">Morphine syrup</option>
+              </optgroup>
+              <optgroup label="Sedative/Anesthetic">
+                <option value="Ketamine inj" data-unit="amp" data-cat="sedative">Ketamine inj</option>
+                <option value="Midazolam inj" data-unit="amp" data-cat="sedative">Midazolam inj</option>
+              </optgroup>
+              <optgroup label="Stimulant">
+                <option value="Methylphenidate tab" data-unit="เม็ด" data-cat="stimulant">Methylphenidate tab</option>
+              </optgroup>
+              <optgroup label="Decongestant">
+                <option value="Pseudoephedrine 60 mg tab" data-unit="เม็ด" data-cat="decongestant">Pseudoephedrine 60 mg tab</option>
+              </optgroup>
+            </select>
+          </div>
+          <div class="field">
+            <label for="f-qty">จำนวน<span class="req">*</span></label>
+            <input type="number" id="f-qty" placeholder="0" min="0.1" step="any">
+            <div class="drug-unit" id="drug-unit-hint"></div>
+          </div>
+        </div>
+
+        <div class="field" style="margin-bottom:14px;">
+          <label for="f-pharmacist">ชื่อผู้จ่ายยา<span class="req">*</span></label>
+          <select id="f-pharmacist">
+            <option value="">— เลือกผู้จ่ายยา —</option>
+            <optgroup label="เภสัชกร (ภญ.)">
+              <option>ภญ.นัยนา</option>
+              <option>ภญ.วนิดา</option>
+              <option>ภญ.อัญชลี</option>
+              <option>ภญ.ยุพิน</option>
+              <option>ภญ.กรรณิกา</option>
+            </optgroup>
+            <optgroup label="เจ้าพนักงานเภสัชกรรม (จพ.)">
+              <option>จพ.วิภารัตน์</option>
+              <option>จพ.ปุญญพัฒน์</option>
+              <option>จพ.ธนารักษ์</option>
+              <option>จพ.สรัล</option>
+            </optgroup>
+          </select>
+        </div>
+
+        <div class="field" style="margin-bottom:20px;">
+          <label for="f-note">หมายเหตุ (ถ้ามี)</label>
+          <textarea id="f-note" placeholder="บันทึกเพิ่มเติม..."></textarea>
+        </div>
+
+        <button class="btn-submit" onclick="submitForm()">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v14a2 2 0 01-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+          บันทึกการจ่ายยา
+        </button>
+      </div>
+    </div>
+
+    <!-- ═══ LOG PANEL ═══ -->
+    <div class="panel" id="panel-log">
+      <div class="log-toolbar">
+        <input class="log-search" type="text" id="log-search" placeholder="ค้นหา HN, ชื่อผู้ป่วย, ยา..." oninput="renderLog()">
+        <select class="log-filter" id="log-filter-drug" onchange="renderLog()">
+          <option value="">ยาทุกชนิด</option>
+          <option>Morphine inj</option>
+          <option>Pethidine inj</option>
+          <option>Fentanyl inj</option>
+          <option>Fentanyl patch</option>
+          <option>MST 10 mg</option>
+          <option>MO IR 10 mg</option>
+          <option>Morphine syrup</option>
+          <option>Ketamine inj</option>
+          <option>Midazolam inj</option>
+          <option>Methylphenidate tab</option>
+          <option>Pseudoephedrine 60 mg tab</option>
+        </select>
+        <input type="date" id="log-filter-date" style="height:38px;padding:0 10px;border:1.5px solid var(--gray-200);border-radius:var(--r);font-size:13px;font-family:'Sarabun',sans-serif;width:auto;outline:none;" onchange="renderLog()">
+        <button class="btn-export" onclick="exportCSV()">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+          Export CSV
+        </button>
+      </div>
+
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>วันที่ / เวลา</th>
+              <th>HN</th>
+              <th>เลขบัตรประชาชน</th>
+              <th>ชื่อผู้ป่วย</th>
+              <th>ยา</th>
+              <th>จำนวน</th>
+              <th>เภสัชกร</th>
+              <th>หมายเหตุ</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody id="log-tbody"></tbody>
+        </table>
+        <div class="empty-state" id="log-empty" style="display:none;">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2"/><rect x="9" y="3" width="6" height="4" rx="2"/></svg>
+          <p>ยังไม่มีรายการจ่ายยา</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══ DASHBOARD PANEL ═══ -->
+    <div class="panel" id="panel-dashboard">
+      <div class="dash-date-bar">
+        <h2 id="dash-title">สรุปการจ่ายยาวันนี้</h2>
+        <div class="date-filter-wrap">
+          <label>แสดงข้อมูลวันที่:</label>
+          <input type="date" id="dash-date-filter" onchange="renderDashboard()">
+        </div>
+      </div>
+
+      <div class="stat-grid">
+        <div class="stat-card">
+          <div class="stat-label">รายการทั้งหมดวันนี้</div>
+          <div class="stat-value" id="dash-total">0</div>
+          <div class="stat-sub">รายการ</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">ชนิดยาที่จ่าย</div>
+          <div class="stat-value" id="dash-drug-types">0</div>
+          <div class="stat-sub">ชนิด</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">ผู้ป่วยทั้งหมด</div>
+          <div class="stat-value" id="dash-patients">0</div>
+          <div class="stat-sub">ราย</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">เภสัชกรที่จ่าย</div>
+          <div class="stat-value" id="dash-pharmacists">0</div>
+          <div class="stat-sub">คน</div>
+        </div>
+      </div>
+
+      <div class="drug-summary-grid" id="drug-summary-grid">
+        <div class="no-data" style="grid-column:1/-1;">ยังไม่มีข้อมูลสำหรับวันที่เลือก</div>
+      </div>
+    </div>
+
+    <!-- ═══ INVENTORY FORM PANEL ═══ -->
+    <div class="panel" id="panel-inventory">
+      <div class="success-toast" id="inv-success-toast">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#16A34A" stroke-width="2.5"><path d="M20 6L9 17l-5-5"/></svg>
+        <span id="inv-toast-msg">บันทึกเรียบร้อยแล้ว</span>
+      </div>
+
+      <div class="form-card">
+        <div class="form-section-title">ประเภทรายการ</div>
+        <div class="inv-type-grid" style="grid-template-columns:1fr 1fr 1fr;">
+          <div class="inv-type-btn" id="itype-buy" onclick="selectInvType('buy')">
+            <div class="inv-type-icon">📦</div>
+            <div class="inv-type-label">รับเข้าจากการซื้อ อย.</div>
+            <div class="inv-type-sub">เพิ่มยาเข้าคลัง</div>
+          </div>
+          <div class="inv-type-btn" id="itype-return" onclick="selectInvType('return')">
+            <div class="inv-type-icon">↩️</div>
+            <div class="inv-type-label">รับคืนจากผู้ป่วย</div>
+            <div class="inv-type-sub">เพิ่มยาเข้าคลัง</div>
+          </div>
+          <div class="inv-type-btn" id="itype-destroy" onclick="selectInvType('destroy')">
+            <div class="inv-type-icon">🗑️</div>
+            <div class="inv-type-label">หมดอายุ / แตก / เสื่อมสภาพ</div>
+            <div class="inv-type-sub">ลดยาออกจากคลัง</div>
+          </div>
+        </div>
+
+        <div class="form-grid" style="margin-bottom:14px;">
+          <div class="field">
+            <label for="i-date">วันที่<span class="req">*</span></label>
+            <input type="date" id="i-date">
+          </div>
+          <div class="field">
+            <label for="i-time">เวลา<span class="req">*</span></label>
+            <input type="time" id="i-time">
+          </div>
+        </div>
+
+        <div class="form-grid" style="margin-bottom:14px;">
+          <div class="field">
+            <label for="i-drug">ชื่อยา<span class="req">*</span></label>
+            <select id="i-drug" onchange="updateInvUnit()">
+              <option value="">— เลือกยา —</option>
+              <optgroup label="Opioid Analgesics">
+                <option value="Morphine inj">Morphine inj</option>
+                <option value="Pethidine inj">Pethidine inj</option>
+                <option value="Fentanyl inj">Fentanyl inj</option>
+                <option value="Fentanyl patch">Fentanyl patch</option>
+                <option value="MST 10 mg">MST 10 mg</option>
+                <option value="MO IR 10 mg">MO IR 10 mg</option>
+                <option value="Morphine syrup">Morphine syrup</option>
+              </optgroup>
+              <optgroup label="Sedative/Anesthetic">
+                <option value="Ketamine inj">Ketamine inj</option>
+                <option value="Midazolam inj">Midazolam inj</option>
+              </optgroup>
+              <optgroup label="Stimulant">
+                <option value="Methylphenidate tab">Methylphenidate tab</option>
+              </optgroup>
+              <optgroup label="Decongestant">
+                <option value="Pseudoephedrine 60 mg tab">Pseudoephedrine 60 mg tab</option>
+              </optgroup>
+            </select>
+          </div>
+          <div class="field">
+            <label for="i-qty">จำนวน<span class="req">*</span></label>
+            <input type="number" id="i-qty" placeholder="0" min="0.1" step="any">
+            <div class="drug-unit" id="i-unit-hint"></div>
+          </div>
+        </div>
+
+        <div class="field" style="margin-bottom:14px;">
+          <label for="i-pharmacist">ชื่อผู้บันทึก<span class="req">*</span></label>
+          <select id="i-pharmacist">
+            <option value="">— เลือกผู้บันทึก —</option>
+            <optgroup label="เภสัชกร (ภญ.)">
+              <option>ภญ.นัยนา</option>
+              <option>ภญ.วนิดา</option>
+              <option>ภญ.อัญชลี</option>
+              <option>ภญ.ยุพิน</option>
+              <option>ภญ.กรรณิกา</option>
+            </optgroup>
+            <optgroup label="เจ้าพนักงานเภสัชกรรม (จพ.)">
+              <option>จพ.วิภารัตน์</option>
+              <option>จพ.ปุญญพัฒน์</option>
+              <option>จพ.ธนารักษ์</option>
+              <option>จพ.สรัล</option>
+            </optgroup>
+          </select>
+        </div>
+
+        <div class="field" style="margin-bottom:20px;">
+          <label for="i-note">หมายเหตุ</label>
+          <textarea id="i-note" placeholder="เช่น เลขที่ใบสั่งซื้อ, ชื่อผู้ป่วยที่รับคืน..."></textarea>
+        </div>
+
+        <button class="btn-submit" onclick="submitInventory()">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v14a2 2 0 01-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+          บันทึกรายการคลังยา
+        </button>
+      </div>
+    </div>
+
+    <!-- ═══ STOCK DASHBOARD PANEL ═══ -->
+    <div class="panel" id="panel-stockdash">
+      <div class="dash-date-bar" style="margin-bottom:20px;">
+        <h2>Dashboard คลังยา</h2>
+        <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+          <button onclick="loadInventory()" style="height:36px;padding:0 14px;background:var(--teal);color:white;border:none;border-radius:var(--r);font-size:13px;font-family:Sarabun,sans-serif;cursor:pointer;display:flex;align-items:center;gap:6px;">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 102.13-9.36L1 10"/></svg>
+            Refresh
+          </button>
+          <button onclick="exportInvCSV()" style="height:36px;padding:0 14px;background:var(--navy);color:white;border:none;border-radius:var(--r);font-size:13px;font-family:Sarabun,sans-serif;cursor:pointer;display:flex;align-items:center;gap:6px;">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+            Export CSV
+          </button>
+        </div>
+      </div>
+
+      <!-- Stock summary cards -->
+      <div class="stock-grid" id="stock-grid">
+        <div class="no-data" style="grid-column:1/-1;">กำลังโหลดข้อมูลคลัง...</div>
+      </div>
+
+      <!-- Movement history -->
+      <div class="form-card" style="margin-top:8px;">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;">
+          <div class="form-section-title" style="margin-bottom:0;">ประวัติความเคลื่อนไหว</div>
+        </div>
+        <div class="inv-filter-bar">
+          <select id="inv-filter-drug" onchange="renderInvHistory()" style="height:36px;padding:0 10px;border:1.5px solid var(--gray-200);border-radius:var(--r);font-size:13px;font-family:Sarabun,sans-serif;background:white;outline:none;appearance:none;-webkit-appearance:none;background-image:url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%2394A3B8' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E\");background-repeat:no-repeat;background-position:right 8px center;padding-right:28px;">
+            <option value="">ยาทุกชนิด</option>
+            <option>Morphine inj</option><option>Pethidine inj</option>
+            <option>Fentanyl inj</option><option>Fentanyl patch</option>
+            <option>MST 10 mg</option><option>MO IR 10 mg</option>
+            <option>Morphine syrup</option><option>Ketamine inj</option>
+            <option>Midazolam inj</option><option>Methylphenidate tab</option>
+            <option>Pseudoephedrine 60 mg tab</option>
+          </select>
+          <select id="inv-filter-type" onchange="renderInvHistory()" style="height:36px;padding:0 10px;border:1.5px solid var(--gray-200);border-radius:var(--r);font-size:13px;font-family:Sarabun,sans-serif;background:white;outline:none;appearance:none;-webkit-appearance:none;background-image:url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%2394A3B8' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E\");background-repeat:no-repeat;background-position:right 8px center;padding-right:28px;">
+            <option value="">ทุกประเภท</option>
+            <option value="buy">รับเข้าจากซื้อ</option>
+            <option value="return">รับคืนจากผู้ป่วย</option>
+            <option value="dispense">จ่ายให้ผู้ป่วย</option>
+            <option value="destroy">หมดอายุ/แตก/เสื่อม</option>
+          </select>
+        </div>
+        <div class="table-wrap">
+          <table class="inv-hist-table">
+            <thead>
+              <tr>
+                <th>วันที่ / เวลา</th>
+                <th>ประเภท</th>
+                <th>ยา</th>
+                <th>จำนวน</th>
+                <th>ผู้บันทึก</th>
+                <th>หมายเหตุ</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody id="inv-hist-tbody"></tbody>
+          </table>
+          <div class="empty-state" id="inv-hist-empty" style="display:none;">
+            <p>ยังไม่มีรายการความเคลื่อนไหว</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /main -->
+</div><!-- /app -->
+
+<script>
+// ─── CONFIG — วาง URL ของ Web App ที่นี่หลัง Deploy ───
+const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxTtFx4xqqYE-qUULiIoZL7QXOtn92zv6fx_um6ZMsPZKlva5ot-wgm7VRiC5DDR28J/exec';
+
+// ─── Auth State ───
+let isAuthenticated = false;
+
+async function doLogin() {
+  const input = document.getElementById('login-input');
+  const errorEl = document.getElementById('login-error');
+  const pw = input.value.trim();
+  if (!pw) { showLoginError('กรุณากรอก Password'); return; }
+
+  const btn = document.querySelector('.login-btn');
+  btn.textContent = 'กำลังตรวจสอบ...'; btn.disabled = true;
+
+  try {
+    const res = await fetch(SCRIPT_URL + '?action=checkPassword&pw=' + encodeURIComponent(pw));
+    const data = await res.json();
+    if (data.ok) {
+      isAuthenticated = true;
+      document.getElementById('login-overlay').style.display = 'none';
+      document.getElementById('auth-badge').style.display = 'flex';
+      document.getElementById('topbar-clock').style.display = 'none';
+      // แสดง tab ที่ต้อง login
+      document.querySelectorAll('.auth-tab').forEach(t => t.style.display = 'flex');
+      // สลับไป tab บันทึกการจ่ายยา
+      document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+      document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+      document.getElementById('panel-form').classList.add('active');
+      document.querySelector('.auth-tab').classList.add('active');
+      errorEl.textContent = '';
+      input.value = '';
+    } else {
+      showLoginError('Password ไม่ถูกต้อง');
+    }
+  } catch(e) {
+    showLoginError('เชื่อมต่อไม่ได้ — ตรวจสอบ internet');
+  }
+  btn.textContent = 'เข้าสู่ระบบ'; btn.disabled = false;
+}
+
+function showLoginError(msg) {
+  const el = document.getElementById('login-error');
+  const input = document.getElementById('login-input');
+  el.textContent = msg;
+  input.classList.add('error');
+  setTimeout(() => input.classList.remove('error'), 400);
+  input.value = ''; input.focus();
+}
+
+function doLogout() {
+  if (!confirm('ออกจากระบบ?')) return;
+  isAuthenticated = false;
+  // ซ่อน auth tabs กลับ
+  document.querySelectorAll('.auth-tab').forEach(t => { t.style.display = 'none'; t.classList.remove('active'); });
+  // กลับไป dashboard
+  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('panel-dashboard').classList.add('active');
+  document.getElementById('tab-dashboard').classList.add('active');
+  renderDashboard();
+  document.getElementById('auth-badge').style.display = 'none';
+  document.getElementById('topbar-clock').style.display = 'block';
+}
+
+function viewDashboardOnly() {
+  document.getElementById('login-overlay').style.display = 'none';
+  // แสดงแค่ dashboard panels ไม่แสดง auth tabs
+  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('panel-dashboard').classList.add('active');
+  document.getElementById('tab-dashboard').classList.add('active');
+  renderDashboard();
+}
+
+function requireAuth(fn) {
+  if (!isAuthenticated) {
+    showStatus('⚠ กรุณา login ก่อนใช้งาน', 'error');
+    document.getElementById('login-overlay').style.display = 'flex';
+    return false;
+  }
+  return true;
+}
+
+// ─── State ───
+let logs = [];
+
+const DRUG_CATS = {
+  'Morphine inj':'opioid','Pethidine inj':'opioid','Fentanyl inj':'opioid',
+  'Fentanyl patch':'opioid','MST 10 mg':'opioid','MO IR 10 mg':'opioid',
+  'Morphine syrup':'opioid','Ketamine inj':'sedative','Midazolam inj':'sedative',
+  'Methylphenidate tab':'stimulant','Pseudoephedrine 60 mg tab':'decongestant'
+};
+const DRUG_UNITS = {
+  'Morphine inj':'amp','Pethidine inj':'amp','Fentanyl inj':'amp',
+  'Fentanyl patch':'patch','MST 10 mg':'เม็ด','MO IR 10 mg':'เม็ด',
+  'Morphine syrup':'ขวด','Ketamine inj':'amp','Midazolam inj':'amp',
+  'Methylphenidate tab':'เม็ด','Pseudoephedrine 60 mg tab':'เม็ด'
+};
+
+// ─── API helpers ───
+function showStatus(msg, type) {
+  // type: 'loading' | 'error' | 'success'
+  let bar = document.getElementById('status-bar');
+  if (!bar) {
+    bar = document.createElement('div');
+    bar.id = 'status-bar';
+    bar.style.cssText = 'position:fixed;bottom:20px;left:50%;transform:translateX(-50%);padding:10px 20px;border-radius:8px;font-size:13px;font-family:Sarabun,sans-serif;z-index:9999;box-shadow:0 4px 12px rgba(0,0,0,0.15);transition:opacity 0.3s;';
+    document.body.appendChild(bar);
+  }
+  const colors = { loading:'#1E3A5F', error:'#DC2626', success:'#16A34A' };
+  bar.style.background = colors[type] || '#1E3A5F';
+  bar.style.color = 'white';
+  bar.style.opacity = '1';
+  bar.textContent = msg;
+  if (type !== 'loading') {
+    setTimeout(() => { bar.style.opacity = '0'; }, 3000);
+  }
+}
+
+async function apiCall(payload) {
+  if (!SCRIPT_URL || SCRIPT_URL === 'YOUR_GOOGLE_APPS_SCRIPT_URL_HERE') {
+    showStatus('⚠ กรุณาใส่ SCRIPT_URL ในไฟล์ก่อนใช้งาน', 'error');
+    throw new Error('SCRIPT_URL not configured');
+  }
+  const res = await fetch(SCRIPT_URL, {
+    method: 'POST',
+    body: JSON.stringify(payload),
+    headers: { 'Content-Type': 'text/plain' }
+  });
+  return await res.json();
+}
+
+async function loadLogs() {
+  showStatus('⏳ กำลังโหลดข้อมูล...', 'loading');
+  try {
+    const res = await fetch(SCRIPT_URL);
+    const data = await res.json();
+    if (data.ok) {
+      logs = data.entries || [];
+      renderLog();
+      renderDashboard();
+      updateBadge();
+      document.getElementById('status-bar').style.opacity = '0';
+    } else {
+      showStatus('❌ โหลดข้อมูลไม่ได้: ' + (data.error || ''), 'error');
+    }
+  } catch(e) {
+    showStatus('❌ เชื่อมต่อ Google Sheets ไม่ได้ — ตรวจสอบ SCRIPT_URL', 'error');
+  }
+}
+
+// ─── Init defaults ───
+window.onload = () => {
+  const now = new Date();
+  document.getElementById('f-date').value = toDateStr(now);
+  document.getElementById('f-time').value = toTimeStr(now);
+  document.getElementById('dash-date-filter').value = toDateStr(now);
+  initInvForm();
+  updateClock();
+  setInterval(updateClock, 1000);
+  loadLogs();
+  loadInventory();
+  setInterval(() => { loadLogs(); loadInventory(); }, 30000);
+};
+
+function toDateStr(d) {
+  return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+}
+function toTimeStr(d) {
+  return String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0');
+}
+function updateClock() {
+  const n = new Date();
+  document.getElementById('topbar-clock').textContent = toDateStr(n).split('-').reverse().join('/') + ' · ' + toTimeStr(n);
+}
+
+// ─── Tabs ───
+function switchTab(tab, btn) {
+  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('panel-'+tab).classList.add('active');
+  if (btn) btn.classList.add('active');
+  if (tab === 'dashboard') renderDashboard();
+  if (tab === 'log') renderLog();
+  if (tab === 'stockdash') { renderStockDash(); renderInvHistory(); }
+}
+
+// ─── PID validation ───
+function validatePID() {
+  const val = document.getElementById('f-pid').value;
+  const hint = document.getElementById('pid-hint');
+  if (val.length === 0) { hint.textContent = ''; return false; }
+  if (val.length < 13) {
+    hint.style.color = 'var(--amber)';
+    hint.textContent = 'กรอกให้ครบ 13 หลัก (' + val.length + '/13)';
+    return false;
+  }
+  hint.style.color = 'var(--green)';
+  hint.textContent = '✓ ครบ 13 หลัก';
+  return true;
+}
+function updateUnit() {
+  const sel = document.getElementById('f-drug');
+  const opt = sel.options[sel.selectedIndex];
+  const unit = opt.getAttribute('data-unit') || '';
+  document.getElementById('drug-unit-hint').textContent = unit ? 'หน่วย: ' + unit : '';
+}
+
+// ─── Submit ───
+async function submitForm() {
+  if (!requireAuth()) return;
+  const date = document.getElementById('f-date').value;
+  const time = document.getElementById('f-time').value;
+  const hn = document.getElementById('f-hn').value.trim();
+  const patient = document.getElementById('f-patient').value.trim();
+  const pid = document.getElementById('f-pid').value.trim();
+  const drug = document.getElementById('f-drug').value;
+  const qty = document.getElementById('f-qty').value;
+  const pharmacist = document.getElementById('f-pharmacist').value;
+  const note = document.getElementById('f-note').value.trim();
+
+  if (!date||!time||!hn||!patient||!pid||!drug||!qty||!pharmacist) {
+    alert('กรุณากรอกข้อมูลที่จำเป็นให้ครบถ้วน (*)');
+    return;
+  }
+  if (pid.length !== 13) {
+    alert('เลขบัตรประชาชนต้องครบ 13 หลัก');
+    return;
+  }
+
+  const entry = {
+    id: Date.now(),
+    date, time, hn, patient, pid, drug,
+    qty: parseFloat(qty),
+    unit: DRUG_UNITS[drug] || '',
+    cat: DRUG_CATS[drug] || '',
+    pharmacist, note
+  };
+
+  // Disable button while saving
+  const btn = document.querySelector('.btn-submit');
+  btn.disabled = true;
+  btn.textContent = 'กำลังบันทึก...';
+  showStatus('⏳ กำลังบันทึกลง Google Sheets...', 'loading');
+
+  try {
+    const res = await apiCall({ action: 'add', entry });
+    if (res.ok) {
+      // Add to local state immediately for real-time feel
+      logs.unshift(entry);
+
+      // Reset form
+      document.getElementById('f-hn').value = '';
+      document.getElementById('f-patient').value = '';
+      document.getElementById('f-pid').value = '';
+      document.getElementById('pid-hint').textContent = '';
+      document.getElementById('f-drug').value = '';
+      document.getElementById('f-qty').value = '';
+      document.getElementById('f-pharmacist').value = '';
+      document.getElementById('f-note').value = '';
+      document.getElementById('drug-unit-hint').textContent = '';
+      const now = new Date();
+      document.getElementById('f-date').value = toDateStr(now);
+      document.getElementById('f-time').value = toTimeStr(now);
+
+      showStatus('✓ บันทึกเรียบร้อยแล้ว', 'success');
+
+      // Toast
+      const toast = document.getElementById('success-toast');
+      toast.classList.add('show');
+      setTimeout(() => toast.classList.remove('show'), 3000);
+
+      renderLog();
+      renderDashboard();
+      updateBadge();
+    } else {
+      showStatus('❌ บันทึกไม่สำเร็จ: ' + (res.error || ''), 'error');
+    }
+  } catch(e) {
+    showStatus('❌ เชื่อมต่อไม่ได้ — ตรวจสอบ internet', 'error');
+  }
+
+  btn.disabled = false;
+  btn.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v14a2 2 0 01-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg> บันทึกการจ่ายยา';
+}
+
+// ─── Render log ───
+function renderLog() {
+  updateBadge();
+  const search = document.getElementById('log-search').value.toLowerCase();
+  const filterDrug = document.getElementById('log-filter-drug').value;
+  const filterDate = document.getElementById('log-filter-date').value;
+
+  let filtered = logs.filter(r => {
+    const matchSearch = !search ||
+      r.hn.toLowerCase().includes(search) ||
+      r.patient.toLowerCase().includes(search) ||
+      r.drug.toLowerCase().includes(search) ||
+      r.pharmacist.toLowerCase().includes(search);
+    const matchDrug = !filterDrug || r.drug === filterDrug;
+    const matchDate = !filterDate || normalizeDate(r.date) === filterDate;
+    return matchSearch && matchDrug && matchDate;
+  });
+
+  const tbody = document.getElementById('log-tbody');
+  const empty = document.getElementById('log-empty');
+
+  if (filtered.length === 0) {
+    tbody.innerHTML = '';
+    empty.style.display = 'block';
+    return;
+  }
+  empty.style.display = 'none';
+
+  tbody.innerHTML = filtered.map(r => `
+    <tr>
+      <td><span style="font-family:'IBM Plex Mono',monospace;font-size:12px;">${normalizeDate(r.date).split('-').reverse().join('/')}</span><br><span style="font-size:12px;color:var(--gray-400);">${r.time} น.</span></td>
+      <td><span class="hn-text">${r.hn}</span></td>
+      <td><span class="hn-text">${r.pid || '—'}</span></td>
+      <td style="font-weight:500;color:var(--gray-800);">${r.patient}</td>
+      <td><span class="drug-pill ${r.cat}">${r.drug}</span></td>
+      <td><span class="qty-text">${r.qty} ${r.unit}</span></td>
+      <td><span class="pharmacist-text">${r.pharmacist}</span></td>
+      <td style="color:var(--gray-400);font-size:12px;max-width:140px;word-break:break-word;">${r.note || '—'}</td>
+      <td><button class="btn-delete" onclick="deleteLog(${r.id})" title="ลบรายการ">✕</button></td>
+    </tr>
+  `).join('');
+}
+
+async function deleteLog(id) {
+  if (!requireAuth()) return;
+  if (!confirm('ยืนยันการลบรายการนี้?')) return;
+  showStatus('⏳ กำลังลบ...', 'loading');
+  try {
+    const res = await apiCall({ action: 'delete', id });
+    if (res.ok) {
+      logs = logs.filter(r => r.id !== id);
+      showStatus('✓ ลบเรียบร้อยแล้ว', 'success');
+      renderLog();
+      renderDashboard();
+    } else {
+      showStatus('❌ ลบไม่สำเร็จ', 'error');
+    }
+  } catch(e) {
+    showStatus('❌ เชื่อมต่อไม่ได้', 'error');
+  }
+}
+
+function updateBadge() {
+  document.getElementById('log-count-badge').textContent = logs.length;
+}
+
+// ─── Export CSV ───
+function exportCSV() {
+  const filterDate = document.getElementById('log-filter-date').value;
+  const filterDrug = document.getElementById('log-filter-drug').value;
+  const search = document.getElementById('log-search').value.toLowerCase();
+
+  let data = logs.filter(r => {
+    const matchSearch = !search ||
+      r.hn.toLowerCase().includes(search) ||
+      r.patient.toLowerCase().includes(search) ||
+      r.drug.toLowerCase().includes(search) ||
+      r.pharmacist.toLowerCase().includes(search);
+    const matchDrug = !filterDrug || r.drug === filterDrug;
+    const matchDate = !filterDate || r.date === filterDate;
+    return matchSearch && matchDrug && matchDate;
+  });
+
+  const header = ['วันที่','เวลา','HN','ชื่อผู้ป่วย','ชื่อยา','จำนวน','หน่วย','เภสัชกร','หมายเหตุ'];
+  const rows = data.map(r => [
+    r.date.split('-').reverse().join('/'),
+    r.time,
+    r.hn,
+    `"${r.patient}"`,
+    `"${r.drug}"`,
+    r.qty,
+    r.unit,
+    `"${r.pharmacist}"`,
+    `"${r.note || ''}"`
+  ].join(','));
+
+  const bom = '\uFEFF';
+  const csv = bom + header.join(',') + '\n' + rows.join('\n');
+  const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  const dateStr = filterDate || toDateStr(new Date());
+  a.download = `narcotic_log_${dateStr}.csv`;
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+function normalizeDate(val) {
+  if (!val) return '';
+  if (typeof val === 'string') {
+    // Already YYYY-MM-DD
+    if (/^\d{4}-\d{2}-\d{2}$/.test(val)) return val;
+    // DD/MM/YYYY → YYYY-MM-DD
+    if (/^\d{2}\/\d{2}\/\d{4}$/.test(val)) {
+      const [d, m, y] = val.split('/');
+      return `${y}-${m}-${d}`;
+    }
+    // Try parsing as date string
+    const d = new Date(val);
+    if (!isNaN(d)) return toDateStr(d);
+    return val;
+  }
+  // Date object
+  if (val instanceof Date) return toDateStr(val);
+  return String(val);
+}
+
+// ─── Dashboard ───
+function renderDashboard() {
+  const dateFilter = document.getElementById('dash-date-filter').value;
+  const today = toDateStr(new Date());
+  const isToday = dateFilter === today || !dateFilter;
+  const targetDate = dateFilter || today;
+
+  document.getElementById('dash-title').textContent = isToday
+    ? 'สรุปการจ่ายยาวันนี้'
+    : 'สรุปการจ่ายยาวันที่ ' + targetDate.split('-').reverse().join('/');
+
+  const dayLogs = logs.filter(r => normalizeDate(r.date) === targetDate);
+
+  document.getElementById('dash-total').textContent = dayLogs.length;
+  document.getElementById('dash-drug-types').textContent = new Set(dayLogs.map(r=>r.drug)).size;
+  document.getElementById('dash-patients').textContent = new Set(dayLogs.map(r=>r.hn)).size;
+  document.getElementById('dash-pharmacists').textContent = new Set(dayLogs.map(r=>r.pharmacist)).size;
+
+  const grid = document.getElementById('drug-summary-grid');
+
+  if (dayLogs.length === 0) {
+    grid.innerHTML = '<div class="no-data" style="grid-column:1/-1;">ยังไม่มีข้อมูลสำหรับวันที่เลือก</div>';
+    return;
+  }
+
+  // Group by drug
+  const drugMap = {};
+  dayLogs.forEach(r => {
+    if (!drugMap[r.drug]) drugMap[r.drug] = { total: 0, unit: r.unit, patients: [] };
+    drugMap[r.drug].total += r.qty;
+    drugMap[r.drug].patients.push({ hn: r.hn, name: r.patient, qty: r.qty, unit: r.unit, by: r.pharmacist });
+  });
+
+  const maxTotal = Math.max(...Object.values(drugMap).map(d => d.total));
+
+  grid.innerHTML = Object.entries(drugMap).map(([drug, data]) => {
+    const barPct = maxTotal > 0 ? (data.total / maxTotal * 100).toFixed(0) : 0;
+    const cat = DRUG_CATS[drug] || '';
+    const patRows = data.patients.map(p =>
+      `<div class="dscard-patient-row">
+        <span><span class="dscard-hn">${p.hn}</span> <span class="dscard-pt-name">${p.name}</span></span>
+        <span class="dscard-pt-qty">${p.qty} ${p.unit} <span style="color:var(--gray-400);font-weight:400;">/ ${p.by}</span></span>
+      </div>`
+    ).join('');
+
+    return `<div class="drug-summary-card">
+      <div class="dscard-header">
+        <span class="drug-pill ${cat}" style="font-size:12px;">${drug}</span>
+      </div>
+      <div class="dscard-count">${Number.isInteger(data.total) ? data.total : data.total.toFixed(1)}</div>
+      <div class="dscard-unit">${data.unit} · ${data.patients.length} รายการ</div>
+      <div class="dscard-bar-bg"><div class="dscard-bar" style="width:${barPct}%"></div></div>
+      <div class="dscard-patients">${patRows}</div>
+    </div>`;
+  }).join('');
+}// ═══════════════════════════════════════
+// ─── INVENTORY MODULE ───
+// ═══════════════════════════════════════
+let invLogs = [];
+let selectedInvType = '';
+
+const INV_TYPE_LABELS = {
+  buy: 'รับเข้าจากซื้อ อย.',
+  return: 'รับคืนจากผู้ป่วย',
+  dispense: 'จ่ายให้ผู้ป่วย',
+  destroy: 'หมดอายุ/แตก/เสื่อม'
+};
+const INV_DIRECTION = { buy: 1, return: 1, dispense: -1, destroy: -1 };
+
+function selectInvType(type) {
+  selectedInvType = type;
+  ['buy','return','destroy'].forEach(t => {
+    const el = document.getElementById('itype-'+t);
+    el.classList.remove('selected-in','selected-out');
+  });
+  const dir = INV_DIRECTION[type];
+  document.getElementById('itype-'+type).classList.add(dir === 1 ? 'selected-in' : 'selected-out');
+}
+
+function updateInvUnit() {
+  const drug = document.getElementById('i-drug').value;
+  const unit = DRUG_UNITS[drug] || '';
+  document.getElementById('i-unit-hint').textContent = unit ? 'หน่วย: ' + unit : '';
+}
+
+async function loadInventory() {
+  showStatus('⏳ กำลังโหลดคลังยา...', 'loading');
+  try {
+    const res = await fetch(SCRIPT_URL + '?action=invGetAll');
+    const data = await res.json();
+    if (data.ok) {
+      invLogs = data.entries || [];
+      renderStockDash();
+      renderInvHistory();
+      document.getElementById('status-bar').style.opacity = '0';
+    } else {
+      showStatus('❌ โหลดข้อมูลคลังไม่ได้', 'error');
+    }
+  } catch(e) {
+    showStatus('❌ เชื่อมต่อไม่ได้', 'error');
+  }
+}
+
+async function submitInventory() {
+  if (!requireAuth()) return;
+  if (!selectedInvType) { alert('กรุณาเลือกประเภทรายการก่อน'); return; }
+  const date = document.getElementById('i-date').value;
+  const time = document.getElementById('i-time').value;
+  const drug = document.getElementById('i-drug').value;
+  const qty = document.getElementById('i-qty').value;
+  const pharmacist = document.getElementById('i-pharmacist').value;
+  const note = document.getElementById('i-note').value.trim();
+
+  if (!date||!time||!drug||!qty||!pharmacist) {
+    alert('กรุณากรอกข้อมูลที่จำเป็นให้ครบถ้วน');
+    return;
+  }
+
+  const entry = {
+    id: Date.now(),
+    date, time,
+    type: selectedInvType,
+    drug,
+    qty: parseFloat(qty),
+    unit: DRUG_UNITS[drug] || '',
+    direction: INV_DIRECTION[selectedInvType],
+    pharmacist,
+    note
+  };
+
+  const btn = document.querySelector('#panel-inventory .btn-submit');
+  btn.disabled = true;
+  btn.textContent = 'กำลังบันทึก...';
+  showStatus('⏳ กำลังบันทึก...', 'loading');
+
+  try {
+    const res = await apiCall({ action: 'invAdd', entry });
+    if (res.ok) {
+      invLogs.unshift(entry);
+      // Reset
+      document.getElementById('i-drug').value = '';
+      document.getElementById('i-qty').value = '';
+      document.getElementById('i-note').value = '';
+      document.getElementById('i-unit-hint').textContent = '';
+      selectedInvType = '';
+      ['buy','return','destroy'].forEach(t => {
+        document.getElementById('itype-'+t).classList.remove('selected-in','selected-out');
+      });
+      const now = new Date();
+      document.getElementById('i-date').value = toDateStr(now);
+      document.getElementById('i-time').value = toTimeStr(now);
+
+      showStatus('✓ บันทึกคลังยาเรียบร้อยแล้ว', 'success');
+      const toast = document.getElementById('inv-success-toast');
+      document.getElementById('inv-toast-msg').textContent = 'บันทึก' + INV_TYPE_LABELS[entry.type] + ' ' + entry.qty + ' ' + entry.unit + ' เรียบร้อยแล้ว';
+      toast.classList.add('show');
+      setTimeout(() => toast.classList.remove('show'), 3000);
+    } else {
+      showStatus('❌ บันทึกไม่สำเร็จ: ' + (res.error||''), 'error');
+    }
+  } catch(e) {
+    showStatus('❌ เชื่อมต่อไม่ได้', 'error');
+  }
+  btn.disabled = false;
+  btn.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v14a2 2 0 01-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg> บันทึกรายการคลังยา';
+}
+
+// ─── คำนวณยอดคงเหลือ ───
+function calcStock() {
+  const stockMap = {};
+  const DRUGS = Object.keys(DRUG_UNITS);
+  DRUGS.forEach(d => { stockMap[d] = 0; });
+
+  // รวม dispense จาก narcotic log ด้วย (จ่ายให้ผู้ป่วย = ลดคลัง)
+  logs.forEach(r => {
+    if (stockMap[r.drug] !== undefined) {
+      stockMap[r.drug] -= r.qty;
+    }
+  });
+
+  // รวม inventory transactions
+  invLogs.forEach(r => {
+    if (stockMap[r.drug] !== undefined) {
+      stockMap[r.drug] += r.direction * r.qty;
+    }
+  });
+  return stockMap;
+}
+
+// ─── Render stock dashboard ───
+function renderStockDash() {
+  const stock = calcStock();
+  const grid = document.getElementById('stock-grid');
+  const entries = Object.entries(stock);
+
+  if (entries.every(([,v]) => v === 0) && invLogs.length === 0 && logs.length === 0) {
+    grid.innerHTML = '<div class="no-data" style="grid-column:1/-1;">ยังไม่มีข้อมูลคลัง — เริ่มบันทึกรับยาเข้าได้เลย</div>';
+    return;
+  }
+
+  grid.innerHTML = entries.map(([drug, qty]) => {
+    const unit = DRUG_UNITS[drug] || '';
+    const isZero = qty <= 0;
+    const isLow = qty > 0 && qty <= 5;
+    const cardClass = isZero ? 'zero' : isLow ? 'low' : '';
+    const badgeClass = isZero ? 'badge-zero' : isLow ? 'badge-low' : 'badge-ok';
+    const badgeText = isZero ? 'หมด' : isLow ? 'ใกล้หมด' : 'ปกติ';
+    return `<div class="stock-card ${cardClass}">
+      <span class="stock-badge ${badgeClass}">${badgeText}</span>
+      <div class="stock-drug">${drug}</div>
+      <div class="stock-qty">${qty < 0 ? '<span style="color:var(--red)">'+qty+'</span>' : qty}</div>
+      <div class="stock-unit">${unit}</div>
+    </div>`;
+  }).join('');
+}
+
+// ─── Render inventory history ───
+function renderInvHistory() {
+  const filterDrug = document.getElementById('inv-filter-drug').value;
+  const filterType = document.getElementById('inv-filter-type').value;
+
+  // รวม narcotic log dispense events ด้วย
+  const dispenseEvents = logs.map(r => ({
+    id: r.id, date: r.date, time: r.time,
+    type: 'dispense', drug: r.drug, qty: r.qty,
+    unit: r.unit, direction: -1,
+    pharmacist: r.pharmacist,
+    note: 'HN ' + r.hn + ' ' + r.patient,
+    fromLog: true
+  }));
+
+  let combined = [...invLogs, ...dispenseEvents].sort((a,b) => {
+    const da = normalizeDate(a.date) + (a.time||'');
+    const db = normalizeDate(b.date) + (b.time||'');
+    return db.localeCompare(da);
+  });
+
+  if (filterDrug) combined = combined.filter(r => r.drug === filterDrug);
+  if (filterType) combined = combined.filter(r => r.type === filterType);
+
+  const tbody = document.getElementById('inv-hist-tbody');
+  const empty = document.getElementById('inv-hist-empty');
+
+  if (combined.length === 0) {
+    tbody.innerHTML = '';
+    empty.style.display = 'block';
+    return;
+  }
+  empty.style.display = 'none';
+
+  tbody.innerHTML = combined.map(r => {
+    const isIn = r.direction === 1;
+    const sign = isIn ? '+' : '−';
+    const cls = isIn ? 'txn-in' : 'txn-out';
+    const typeLabel = INV_TYPE_LABELS[r.type] || r.type;
+    const delBtn = r.fromLog ? '' : `<button class="btn-delete" onclick="deleteInvLog(${r.id})" title="ลบ">✕</button>`;
+    return `<tr>
+      <td><span style="font-family:'IBM Plex Mono',monospace;font-size:12px;">${normalizeDate(r.date).split('-').reverse().join('/')}</span><br><span style="font-size:12px;color:var(--gray-400);">${r.time||''} น.</span></td>
+      <td><span style="font-size:12px;padding:3px 8px;border-radius:99px;background:${isIn?'var(--teal-light)':'var(--red-light)'};color:${isIn?'var(--teal)':'var(--red)'};">${typeLabel}</span></td>
+      <td style="font-size:13px;font-weight:500;">${r.drug}</td>
+      <td><span class="${cls}" style="font-family:'IBM Plex Mono',monospace;">${sign}${r.qty} ${r.unit||''}</span></td>
+      <td style="font-size:13px;">${r.pharmacist||'—'}</td>
+      <td style="font-size:12px;color:var(--gray-400);max-width:160px;word-break:break-word;">${r.note||'—'}</td>
+      <td>${delBtn}</td>
+    </tr>`;
+  }).join('');
+}
+
+async function deleteInvLog(id) {
+  if (!confirm('ยืนยันการลบรายการนี้?')) return;
+  showStatus('⏳ กำลังลบ...', 'loading');
+  try {
+    const res = await apiCall({ action: 'invDelete', id });
+    if (res.ok) {
+      invLogs = invLogs.filter(r => r.id !== id);
+      showStatus('✓ ลบเรียบร้อย', 'success');
+      renderStockDash();
+      renderInvHistory();
+    } else showStatus('❌ ลบไม่สำเร็จ', 'error');
+  } catch(e) { showStatus('❌ เชื่อมต่อไม่ได้', 'error'); }
+}
+
+function exportInvCSV() {
+  const header = ['วันที่','เวลา','ประเภท','ชื่อยา','จำนวน','หน่วย','ผู้บันทึก','หมายเหตุ'];
+  const rows = invLogs.map(r => [
+    normalizeDate(r.date).split('-').reverse().join('/'),
+    r.time,
+    INV_TYPE_LABELS[r.type]||r.type,
+    `"${r.drug}"`,
+    (r.direction===1?'+':'-') + r.qty,
+    r.unit,
+    `"${r.pharmacist}"`,
+    `"${r.note||''}"`
+  ].join(','));
+  const bom = '\uFEFF';
+  const csv = bom + header.join(',') + '\n' + rows.join('\n');
+  const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = `inventory_log_${toDateStr(new Date())}.csv`;
+  a.click();
+}
+
+// ── Init inventory date/time defaults ──
+function initInvForm() {
+  const now = new Date();
+  document.getElementById('i-date').value = toDateStr(now);
+  document.getElementById('i-time').value = toTimeStr(now);
+}
+</script>
+</body>
+</html>
