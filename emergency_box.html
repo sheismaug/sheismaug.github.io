@@ -1,0 +1,2628 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Emergency Box System</title>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai+Looped:wght@300;400;500;600;700&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+/* ============================================================
+   GLOBAL
+   ============================================================ */
+:root {
+  --bg: #0a0f1e;
+  --surface: #111827;
+  --surface2: #1a2235;
+  --border: rgba(255,255,255,0.08);
+  --text: #f0f4ff;
+  --muted: #6b7a99;
+  --ok: #10b981;
+  --warning: #f59e0b;
+  --critical: #ef4444;
+  --accent: #3b82f6;
+  --accent-refer: #10b981;
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+h1, h2, h3,
+.landing-title,
+.page-title,
+.lcard-title,
+.drug-name,
+.box-label,
+.auth-title,
+.modal h3,
+.popup h3,
+.report-section h2,
+.admin-section h2 {
+  font-family: 'DM Sans', 'IBM Plex Sans Thai Looped', sans-serif;
+}
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'IBM Plex Sans Thai Looped', sans-serif;
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+body::before {
+  content: '';
+  position: fixed; inset: 0;
+  background-image:
+    linear-gradient(rgba(255,255,255,0.02) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255,255,255,0.02) 1px, transparent 1px);
+  background-size: 40px 40px;
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* Page system */
+.page {
+  display: none;
+  min-height: 100vh;
+  padding: 24px;
+  padding-bottom: 100px;
+  position: relative;
+  z-index: 1;
+  animation: fadeUp 0.35s ease;
+}
+.page.active { display: block; }
+
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(14px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ============================================================
+   SHARED COMPONENTS
+   ============================================================ */
+.topbar {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-bottom: 24px;
+  flex-wrap: wrap;
+}
+
+.back-btn {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  color: var(--muted);
+  padding: 8px 16px;
+  border-radius: 10px;
+  cursor: pointer;
+  font-family: 'IBM Plex Sans Thai Looped', sans-serif;
+  font-size: 14px;
+  transition: all 0.2s;
+  white-space: nowrap;
+}
+.back-btn:hover { color: var(--text); border-color: rgba(255,255,255,0.2); }
+
+.page-title { flex: 1; font-size: 20px; font-weight: 700; }
+.page-title small {
+  display: block;
+  font-size: 11px;
+  color: var(--muted);
+  font-family: 'DM Sans', sans-serif;
+  font-weight: 400;
+  margin-top: 3px;
+  letter-spacing: 0.05em;
+}
+
+.btn-primary {
+  background: var(--accent);
+  color: white;
+  border: none;
+  padding: 11px 20px;
+  border-radius: 11px;
+  font-family: 'IBM Plex Sans Thai Looped', sans-serif;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: opacity 0.2s;
+  white-space: nowrap;
+}
+.btn-primary:hover { opacity: 0.85; }
+.btn-primary:disabled { opacity: 0.4; cursor: not-allowed; }
+.btn-primary.success { background: var(--ok); }
+.btn-primary.danger  { background: var(--critical); }
+.btn-primary.full    { width: 100%; padding: 15px; font-size: 16px; border-radius: 14px; }
+
+.btn-secondary {
+  background: var(--surface2);
+  color: var(--muted);
+  border: 1px solid var(--border);
+  padding: 11px 20px;
+  border-radius: 11px;
+  font-family: 'IBM Plex Sans Thai Looped', sans-serif;
+  font-size: 15px;
+  cursor: pointer;
+}
+
+.form-group { margin-bottom: 16px; }
+.form-group label { display: block; font-size: 13px; color: var(--muted); margin-bottom: 6px; }
+.form-group input,
+.form-group select {
+  width: 100%;
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  color: var(--text);
+  padding: 11px 14px;
+  border-radius: 11px;
+  font-family: 'IBM Plex Sans Thai Looped', sans-serif;
+  font-size: 15px;
+  outline: none;
+  transition: border-color 0.2s;
+}
+.form-group input:focus,
+.form-group select:focus { border-color: var(--accent); }
+.form-group select option { background: var(--surface2); }
+
+.form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+
+.section-label {
+  font-family: 'DM Sans', sans-serif;
+  font-size: 10px;
+  letter-spacing: 0.12em;
+  color: var(--muted);
+  text-transform: uppercase;
+  margin: 20px 0 12px;
+}
+
+/* Modal */
+.modal-overlay {
+  display: none;
+  position: fixed; inset: 0;
+  background: rgba(0,0,0,0.65);
+  backdrop-filter: blur(5px);
+  z-index: 500;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+}
+.modal-overlay.show { display: flex; }
+
+.modal {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 22px;
+  padding: 26px;
+  width: 100%;
+  max-width: 480px;
+  animation: slideUp 0.3s ease;
+}
+.modal h3 { font-size: 18px; margin-bottom: 18px; }
+.modal-actions { display: flex; gap: 10px; margin-top: 18px; }
+
+@keyframes slideUp {
+  from { transform: translateY(28px); opacity: 0; }
+  to   { transform: translateY(0); opacity: 1; }
+}
+
+/* Toast */
+.toast {
+  position: fixed;
+  bottom: 24px; left: 50%;
+  transform: translateX(-50%) translateY(80px);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  color: var(--text);
+  padding: 12px 22px;
+  border-radius: 40px;
+  font-size: 14px;
+  font-weight: 600;
+  z-index: 1000;
+  transition: transform 0.3s ease;
+  white-space: nowrap;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+}
+.toast.show { transform: translateX(-50%) translateY(0); }
+.toast.ok   { border-color: var(--ok); color: var(--ok); }
+.toast.err  { border-color: var(--critical); color: var(--critical); }
+
+/* ============================================================
+   PAGE 1: LANDING
+   ============================================================ */
+#page-landing {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  text-align: center;
+  min-height: unset;
+  padding: clamp(40px, 10vh, 80px) 24px 40px;
+}
+
+#page-landing.staff-mode {
+  padding-top: 32px;
+}
+
+.landing-header { margin-bottom: 28px; }
+.landing-logo {
+  font-family: 'DM Sans', sans-serif;
+  font-size: 10px;
+  letter-spacing: 0.3em;
+  color: var(--muted);
+  margin-bottom: 14px;
+}
+.landing-title { font-size: clamp(26px, 6vw, 40px); font-weight: 700; line-height: 1.2; }
+.landing-title span { color: var(--accent); }
+
+.alert-banner {
+  display: none;
+  border-radius: 12px;
+  padding: 12px 20px;
+  margin-bottom: 28px;
+  font-size: 14px;
+  text-align: center;
+  width: 100%;
+  max-width: 600px;
+}
+.alert-banner.show { display: block; }
+.alert-banner.crit { background: rgba(239,68,68,0.1); border: 1px solid rgba(239,68,68,0.3); color: #fca5a5; }
+.alert-banner.warn { background: rgba(245,158,11,0.1); border: 1px solid rgba(245,158,11,0.3); color: #fcd34d; }
+
+.landing-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 18px;
+  width: 100%;
+  max-width: 620px;
+}
+
+.landing-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  padding: 32px 24px;
+  cursor: pointer;
+  transition: all 0.28s ease;
+  position: relative;
+  overflow: hidden;
+  text-align: left;
+}
+.landing-card::before {
+  content: '';
+  position: absolute; inset: 0;
+  opacity: 0;
+  transition: opacity 0.28s;
+  border-radius: 20px;
+}
+.landing-card.hospital::before { background: rgba(59,130,246,0.1); }
+.landing-card.refer::before    { background: rgba(16,185,129,0.1); }
+.landing-card:hover { transform: translateY(-4px); }
+.landing-card.hospital:hover { box-shadow: 0 0 0 1px var(--accent), 0 20px 50px rgba(59,130,246,0.15); }
+.landing-card.refer:hover    { box-shadow: 0 0 0 1px var(--ok), 0 20px 50px rgba(16,185,129,0.15); }
+.landing-card:hover::before { opacity: 1; }
+
+.lcard-badge {
+  font-family: 'DM Sans', sans-serif;
+  font-size: 10px;
+  padding: 3px 9px;
+  border-radius: 20px;
+  font-weight: 700;
+  display: inline-block;
+  margin-bottom: 18px;
+}
+.landing-card.hospital .lcard-badge { background: rgba(59,130,246,0.15); color: var(--accent); }
+.landing-card.refer .lcard-badge    { background: rgba(16,185,129,0.15); color: var(--ok); }
+
+.lcard-icon  { font-size: 44px; margin-bottom: 14px; display: block; }
+.lcard-title { font-size: 18px; font-weight: 700; margin-bottom: 6px; line-height: 1.3; }
+.lcard-desc  { font-size: 13px; color: var(--muted); line-height: 1.6; margin-bottom: 20px; }
+.lcard-arrow { font-size: 13px; color: var(--muted); transition: gap 0.2s; display: flex; align-items: center; gap: 6px; }
+.landing-card:hover .lcard-arrow { gap: 10px; }
+
+.lcard-alert {
+  position: absolute;
+  top: 18px; right: 18px;
+  width: 10px; height: 10px;
+  border-radius: 50%;
+  background: var(--critical);
+  animation: pulse 1.5s ease infinite;
+  display: none;
+}
+.lcard-alert.show { display: block; }
+
+.landing-footer {
+  margin-top: 40px;
+  font-size: 12px;
+  color: var(--muted);
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+.landing-footer a { color: var(--accent); cursor: pointer; font-size: 13px; }
+
+@keyframes pulse {
+  0%,100% { box-shadow: 0 0 0 3px rgba(239,68,68,0.2); }
+  50%      { box-shadow: 0 0 0 6px rgba(239,68,68,0.08); }
+}
+
+/* ============================================================
+   PAGE 2: DASHBOARD
+   ============================================================ */
+.summary-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 10px;
+  margin-bottom: 24px;
+}
+@media (max-width: 480px) { .summary-grid { grid-template-columns: repeat(2, 1fr); } }
+
+.stat-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 14px;
+  text-align: center;
+}
+.stat-num {
+  font-family: 'DM Sans', sans-serif;
+  font-size: 26px;
+  font-weight: 700;
+  line-height: 1;
+}
+.stat-lbl { font-size: 11px; color: var(--muted); margin-top: 5px; }
+.stat-card.ok   .stat-num { color: var(--ok); }
+.stat-card.warn .stat-num { color: var(--warning); }
+.stat-card.crit .stat-num { color: var(--critical); }
+
+.boxes-grid {
+  display: grid;
+  gap: 14px;
+  /* default — override by JS */
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+}
+
+.box-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  padding: 32px 28px;
+  cursor: pointer;
+  transition: all 0.25s;
+  position: relative;
+  overflow: hidden;
+  animation: fadeUp 0.4s ease both;
+  display: flex;
+  flex-direction: column;
+  min-height: 220px;
+}
+.box-card:hover { transform: translateY(-4px); }
+.box-card.ok:hover       { box-shadow: 0 0 0 1px var(--ok),       0 20px 50px rgba(16,185,129,0.12); }
+.box-card.warning:hover  { box-shadow: 0 0 0 1px var(--warning),  0 20px 50px rgba(245,158,11,0.12); }
+.box-card.critical:hover { box-shadow: 0 0 0 1px var(--critical), 0 20px 50px rgba(239,68,68,0.14); }
+
+.box-card::after {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 4px;
+  border-radius: 20px 20px 0 0;
+}
+.box-card.ok::after       { background: var(--ok); }
+.box-card.warning::after  { background: var(--warning); }
+.box-card.critical::after { background: var(--critical); animation: blink 1.4s ease infinite; }
+
+.box-icon  { font-size: 52px; margin-bottom: 16px; display: block; transition: transform 0.2s; }
+.box-card:hover .box-icon { transform: scale(1.08); }
+.box-id    { font-family: 'DM Sans', sans-serif; font-size: 11px; color: var(--muted); margin-bottom: 6px; letter-spacing: 0.05em; }
+.box-label { font-size: 22px; font-weight: 700; margin-bottom: 14px; line-height: 1.2; }
+
+.box-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  font-weight: 700;
+  padding: 5px 12px;
+  border-radius: 20px;
+  margin-bottom: 10px;
+}
+.box-card.ok .box-status       { background: rgba(16,185,129,0.1); color: var(--ok); }
+.box-card.warning .box-status  { background: rgba(245,158,11,0.1); color: var(--warning); }
+.box-card.critical .box-status { background: rgba(239,68,68,0.1); color: var(--critical); }
+
+.box-refill { margin-top: 4px; font-size: 13px; color: var(--muted); }
+.box-refill strong { color: var(--warning); }
+
+.empty-state { text-align: center; padding: 60px 20px; color: var(--muted); grid-column: 1/-1; }
+.empty-icon  { font-size: 44px; margin-bottom: 14px; }
+
+@keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.35} }
+
+/* ============================================================
+   PAGE 3: BOX DETAIL
+   ============================================================ */
+.tabs {
+  display: flex;
+  gap: 4px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 4px;
+  margin-bottom: 20px;
+  overflow-x: auto;
+}
+.tab-btn {
+  flex: 1;
+  min-width: 90px;
+  padding: 10px 14px;
+  border: none;
+  background: transparent;
+  color: var(--muted);
+  border-radius: 10px;
+  cursor: pointer;
+  font-family: 'IBM Plex Sans Thai Looped', sans-serif;
+  font-size: 14px;
+  font-weight: 600;
+  transition: all 0.2s;
+  white-space: nowrap;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.tab-btn.active { background: var(--surface2); color: var(--text); }
+.tab-btn.staff-only { display: none; }
+.is-staff .tab-btn.staff-only { display: flex; }
+
+.tab-panel { display: none; }
+.tab-panel.active { display: block; animation: fadeUp 0.3s ease; }
+
+/* Drug cards */
+.drug-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  margin-bottom: 10px;
+  overflow: hidden;
+  animation: fadeUp 0.3s ease both;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+.drug-card:hover {
+  border-color: rgba(255,255,255,0.15);
+  box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+}
+.drug-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 18px;
+  cursor: pointer;
+  border-radius: 16px;
+  transition: background 0.15s;
+}
+.drug-header:hover { background: rgba(255,255,255,0.04); }
+.drug-icon-box {
+  width: 38px; height: 38px;
+  border-radius: 10px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 17px; flex-shrink: 0;
+}
+.drug-icon-box.ok       { background: rgba(16,185,129,0.12); }
+.drug-icon-box.warning  { background: rgba(245,158,11,0.12); }
+.drug-icon-box.critical { background: rgba(239,68,68,0.12); }
+
+.drug-name { font-size: 15px; font-weight: 700; }
+.drug-unit { font-size: 12px; color: var(--muted); }
+.drug-qty-wrap { text-align: right; flex-shrink: 0; }
+.drug-qty {
+  font-family: 'DM Sans', sans-serif;
+  font-size: 17px; font-weight: 700;
+}
+.drug-qty.ok       { color: var(--ok); }
+.drug-qty.warning  { color: var(--warning); }
+.drug-qty.critical { color: var(--critical); }
+.drug-qty-max { font-size: 10px; color: var(--muted); }
+.refill-badge {
+  background: rgba(245,158,11,0.1);
+  color: var(--warning);
+  font-size: 10px; font-weight: 700;
+  padding: 2px 7px; border-radius: 20px;
+  margin-top: 3px; display: inline-block;
+}
+
+.lot-list { border-top: 1px solid var(--border); display: none; }
+.lot-list.open { display: block; }
+
+.lot-row {
+  display: flex; align-items: center; gap: 12px;
+  padding: 11px 18px;
+  border-bottom: 1px solid var(--border);
+  transition: background 0.2s;
+}
+.lot-row:last-child { border-bottom: none; }
+.lot-row:hover { background: var(--surface2); }
+
+.lot-check {
+  width: 22px; height: 22px;
+  border: 2px solid var(--border);
+  border-radius: 6px;
+  cursor: pointer; flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center;
+  transition: all 0.2s;
+}
+.lot-check.checked { background: var(--accent); border-color: var(--accent); }
+.lot-check.checked::after { content: '✓'; color: white; font-size: 12px; font-weight: 700; }
+
+.lot-info { flex: 1; }
+.lot-id  { font-family: 'DM Sans', sans-serif; font-size: 11px; color: var(--muted); }
+.lot-exp { font-size: 13px; margin-top: 2px; }
+.lot-exp.warning  { color: var(--warning); }
+.lot-exp.critical { color: var(--critical); font-weight: 700; }
+
+.lot-qty-badge {
+  font-family: 'DM Sans', sans-serif;
+  font-size: 12px; font-weight: 700;
+  padding: 4px 10px; border-radius: 8px;
+  background: var(--surface2);
+}
+
+/* Ward toggle */
+.ward-toggle { display: flex; gap: 8px; }
+.ward-btn {
+  flex: 1; padding: 11px;
+  border: 1px solid var(--border);
+  background: var(--surface2);
+  color: var(--muted);
+  border-radius: 11px; cursor: pointer;
+  font-family: 'IBM Plex Sans Thai Looped', sans-serif;
+  font-size: 14px; font-weight: 600;
+  transition: all 0.2s;
+}
+.ward-btn.active.er  { background: rgba(239,68,68,0.12); border-color: var(--critical); color: var(--critical); }
+.ward-btn.active.ipd { background: rgba(59,130,246,0.12); border-color: var(--accent); color: var(--accent); }
+
+/* Refill group (new per-unit design) */
+.refill-group {
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 14px;
+  margin-bottom: 12px;
+}
+
+.refill-group-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+
+.refill-group-header select {
+  flex: 1;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  color: var(--text);
+  padding: 9px 12px;
+  border-radius: 10px;
+  font-family: 'IBM Plex Sans Thai Looped', sans-serif;
+  font-size: 14px;
+  outline: none;
+}
+
+.refill-group-header select:focus { border-color: var(--accent); }
+
+.refill-unit-label {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  margin-bottom: 6px;
+  padding: 0 2px;
+}
+
+.refill-unit-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr 64px 28px;
+  gap: 8px;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.refill-unit-row input {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  color: var(--text);
+  padding: 9px 12px;
+  border-radius: 10px;
+  font-family: 'IBM Plex Sans Thai Looped', sans-serif;
+  font-size: 14px;
+  outline: none;
+  width: 100%;
+  transition: border-color 0.2s;
+}
+.refill-unit-row input:focus { border-color: var(--accent); }
+
+.remove-unit-btn {
+  background: none;
+  border: none;
+  color: var(--muted);
+  cursor: pointer;
+  font-size: 15px;
+  padding: 4px;
+  line-height: 1;
+  transition: color 0.15s;
+}
+.remove-unit-btn:hover { color: var(--critical); }
+
+.add-unit-btn {
+  width: 100%;
+  padding: 8px;
+  background: transparent;
+  border: 1px dashed rgba(59,130,246,0.3);
+  color: var(--accent);
+  border-radius: 9px;
+  cursor: pointer;
+  font-family: 'IBM Plex Sans Thai Looped', sans-serif;
+  font-size: 13px;
+  margin-top: 4px;
+  transition: all 0.15s;
+}
+.add-unit-btn:hover { background: rgba(59,130,246,0.06); border-color: var(--accent); }
+
+.date-input-wrap {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 6px 8px;
+  transition: border-color 0.2s;
+}
+.date-input-wrap:focus-within { border-color: var(--accent); }
+
+.date-input-wrap input[type="number"] {
+  background: transparent;
+  border: none;
+  color: var(--text);
+  font-family: 'IBM Plex Sans Thai Looped', sans-serif;
+  font-size: 14px;
+  outline: none;
+  padding: 3px 2px;
+  -moz-appearance: textfield;
+  text-align: center;
+}
+.date-input-wrap input[type="number"]::-webkit-inner-spin-button,
+.date-input-wrap input[type="number"]::-webkit-outer-spin-button { -webkit-appearance: none; }
+
+.ru-dd   { width: 28px; }
+.ru-mm   { width: 28px; }
+.ru-yyyy { width: 44px; }
+
+.date-sep { color: var(--muted); font-size: 14px; font-weight: 600; }
+
+.ru-exp-hidden {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+  width: 0; height: 0;
+}
+
+.cal-btn {
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 7px;
+  cursor: pointer;
+  font-size: 16px;
+  padding: 3px 6px;
+  margin-left: 2px;
+  transition: background 0.15s;
+  line-height: 1;
+}
+.cal-btn:hover { background: rgba(59,130,246,0.15); border-color: var(--accent); }
+
+/* Refill item (old - keep for builder) */
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 16px;
+  margin-bottom: 10px;
+  position: relative;
+}
+.remove-item-btn {
+  position: absolute; top: 12px; right: 12px;
+  background: none; border: none;
+  color: var(--muted); cursor: pointer; font-size: 16px; padding: 4px;
+}
+.add-item-btn {
+  width: 100%; padding: 12px;
+  background: transparent;
+  border: 1px dashed var(--border);
+  color: var(--muted); border-radius: 12px;
+  cursor: pointer; font-family: 'IBM Plex Sans Thai Looped', sans-serif;
+  font-size: 14px; transition: all 0.2s; margin-bottom: 16px;
+}
+.add-item-btn:hover { border-color: var(--accent); color: var(--accent); }
+
+/* Fixed bottom action */
+.bottom-action {
+  position: fixed;
+  bottom: 0; left: 0; right: 0;
+  padding: 16px 24px;
+  background: linear-gradient(to top, var(--bg) 70%, transparent);
+  z-index: 100;
+}
+
+/* Popup */
+.popup-overlay {
+  display: none;
+  position: fixed; inset: 0;
+  background: rgba(0,0,0,0.7);
+  backdrop-filter: blur(6px);
+  z-index: 600;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+}
+.popup-overlay.show { display: flex; }
+.popup {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 22px;
+  padding: 26px;
+  width: 100%; max-width: 480px;
+  animation: slideUp 0.3s ease;
+}
+.popup h3 { font-size: 19px; margin-bottom: 6px; }
+.popup p  { color: var(--muted); margin-bottom: 16px; font-size: 14px; }
+.summary-box {
+  background: var(--surface2);
+  border-radius: 12px;
+  padding: 14px;
+  margin-bottom: 18px;
+}
+.summary-row {
+  display: flex; justify-content: space-between;
+  padding: 5px 0; font-size: 14px;
+}
+.summary-row strong { color: var(--warning); }
+.popup-actions { display: flex; gap: 10px; }
+
+/* ============================================================
+   PAGE 4: REPORT
+   ============================================================ */
+.report-section {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 18px;
+  padding: 20px;
+  margin-bottom: 18px;
+  animation: fadeUp 0.4s ease both;
+}
+.report-section h2 { font-size: 16px; font-weight: 700; margin-bottom: 14px; }
+
+.alert-row {
+  display: flex; align-items: center; gap: 12px;
+  padding: 11px 0;
+  border-bottom: 1px solid var(--border);
+}
+.alert-row:last-child { border-bottom: none; }
+.alert-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+.alert-dot.critical { background: var(--critical); box-shadow: 0 0 6px var(--critical); }
+.alert-dot.warning  { background: var(--warning); }
+.alert-info { flex: 1; }
+.alert-drug { font-size: 14px; font-weight: 600; }
+.alert-meta { font-size: 11px; color: var(--muted); margin-top: 2px; }
+.alert-days { font-family: 'DM Sans', sans-serif; font-size: 12px; font-weight: 700; }
+.alert-days.critical { color: var(--critical); }
+.alert-days.warning  { color: var(--warning); }
+
+.drug-rate-row { margin-bottom: 14px; }
+.drug-rate-header { display: flex; justify-content: space-between; margin-bottom: 5px; font-size: 14px; }
+.drug-rate-name { font-weight: 600; }
+.drug-rate-count { font-family: 'DM Sans', sans-serif; font-size: 12px; color: var(--muted); }
+.bar-track { height: 7px; background: var(--surface2); border-radius: 4px; overflow: hidden; }
+.bar-fill  { height: 100%; border-radius: 4px; transition: width 0.7s ease; }
+.bar-sub   { display: flex; gap: 8px; margin-top: 4px; font-size: 11px; }
+.bar-sub span { padding: 2px 7px; border-radius: 10px; }
+.er-tag  { background: rgba(239,68,68,0.1); color: var(--critical); }
+.ipd-tag { background: rgba(59,130,246,0.1); color: var(--accent); }
+
+.leader-row {
+  display: flex; align-items: center; gap: 12px;
+  padding: 11px 0;
+  border-bottom: 1px solid var(--border);
+}
+.leader-row:last-child { border-bottom: none; }
+.leader-rank { font-family: 'DM Sans', sans-serif; font-size: 14px; font-weight: 700; width: 28px; flex-shrink: 0; }
+.leader-rank.gold   { color: #fbbf24; }
+.leader-rank.silver { color: #9ca3af; }
+.leader-rank.bronze { color: #b45309; }
+.leader-name { flex: 1; font-size: 14px; font-weight: 600; }
+.leader-count { font-family: 'DM Sans', sans-serif; font-size: 12px; color: var(--muted); }
+.leader-count strong { color: var(--ok); }
+
+/* ============================================================
+   PAGE 5: ADMIN
+   ============================================================ */
+.admin-section {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 18px;
+  padding: 20px;
+  margin-bottom: 18px;
+}
+.admin-section h2 { font-size: 16px; font-weight: 700; margin-bottom: 16px; }
+
+.drug-master-row {
+  display: flex; align-items: center; gap: 10px;
+  padding: 10px 8px;
+  border-bottom: 1px solid var(--border);
+  font-size: 14px;
+  border-radius: 8px;
+  transition: background 0.15s;
+}
+.drug-master-row:hover { background: var(--surface2); }
+.drug-master-row:last-child { border-bottom: none; }
+.drug-master-name { flex: 1; font-weight: 600; }
+.drug-master-meta { font-size: 12px; color: var(--muted); font-family: 'DM Sans', sans-serif; }
+.edit-btn {
+  background: rgba(59,130,246,0.08);
+  border: none;
+  color: var(--accent);
+  width: 28px; height: 28px;
+  border-radius: 7px;
+  cursor: pointer; font-size: 13px;
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+}
+
+/* HAD badge in inventory */
+.had-badge {
+  display: inline-flex; align-items: center; gap: 3px;
+  background: rgba(239,68,68,0.12);
+  border: 1px solid rgba(239,68,68,0.3);
+  color: var(--critical);
+  font-size: 10px; font-weight: 700;
+  padding: 1px 6px; border-radius: 4px;
+  margin-right: 6px;
+  vertical-align: middle;
+  letter-spacing: 0.05em;
+}
+
+.had-card {
+  border-left: 3px solid var(--critical) !important;
+  background: linear-gradient(90deg, rgba(239,68,68,0.04) 0%, var(--surface) 40%);
+}
+  border: none;
+  color: var(--critical);
+  width: 28px; height: 28px;
+  border-radius: 7px;
+  cursor: pointer; font-size: 14px;
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+}
+
+/* Skeleton */
+.skeleton {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: 16px; padding: 20px; margin-bottom: 10px;
+}
+.skel-line {
+  background: linear-gradient(90deg, var(--surface2) 25%, rgba(255,255,255,0.04) 50%, var(--surface2) 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+  border-radius: 5px; height: 11px; margin-bottom: 9px;
+}
+@keyframes shimmer { 0%{background-position:200% 0} 100%{background-position:-200% 0} }
+
+/* ============================================================
+   AUTH MODAL
+   ============================================================ */
+.auth-overlay {
+  display: none;
+  position: fixed; inset: 0;
+  background: rgba(0,0,0,0.75);
+  backdrop-filter: blur(8px);
+  z-index: 900;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+}
+.auth-overlay.show { display: flex; }
+
+.auth-box {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 22px;
+  padding: 32px 28px;
+  width: 100%; max-width: 360px;
+  animation: slideUp 0.3s ease;
+  text-align: center;
+}
+
+.auth-icon { font-size: 40px; margin-bottom: 14px; }
+.auth-title { font-size: 18px; font-weight: 700; margin-bottom: 6px; }
+.auth-desc  { font-size: 13px; color: var(--muted); margin-bottom: 22px; line-height: 1.6; }
+
+.auth-input-wrap { position: relative; margin-bottom: 14px; }
+.auth-input-wrap input {
+  width: 100%;
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  color: var(--text);
+  padding: 13px 44px 13px 16px;
+  border-radius: 12px;
+  font-family: 'IBM Plex Sans Thai Looped', sans-serif;
+  font-size: 16px;
+  outline: none;
+  text-align: center;
+  letter-spacing: 0.2em;
+  transition: border-color 0.2s;
+}
+.auth-input-wrap input:focus { border-color: var(--accent); }
+.auth-input-wrap input.err   { border-color: var(--critical); animation: shake 0.35s ease; }
+
+.auth-toggle {
+  position: absolute; right: 12px; top: 50%;
+  transform: translateY(-50%);
+  background: none; border: none;
+  color: var(--muted); cursor: pointer; font-size: 16px; padding: 4px;
+}
+
+.auth-hint { font-size: 12px; color: var(--critical); height: 16px; margin-bottom: 16px; }
+.auth-lock-badge {
+  display: inline-flex; align-items: center; gap: 5px;
+  background: rgba(59,130,246,0.1);
+  border: 1px solid rgba(59,130,246,0.2);
+  color: var(--accent);
+  font-size: 11px; font-weight: 600;
+  padding: 3px 10px; border-radius: 20px;
+  margin-bottom: 8px;
+}
+.auth-logout {
+  margin-top: 16px;
+  font-size: 12px; color: var(--muted);
+  cursor: pointer; background: none; border: none;
+  font-family: 'IBM Plex Sans Thai Looped', sans-serif;
+  text-decoration: underline;
+}
+
+@keyframes shake {
+  0%,100%{ transform: translateX(0); }
+  25%    { transform: translateX(-6px); }
+  75%    { transform: translateX(6px); }
+}
+
+.staff-only { display: none !important; }
+.is-staff .staff-only { display: flex !important; }
+
+
+.home-btn{display:inline-flex;align-items:center;gap:5px;background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.2);color:rgba(255,255,255,0.7);font-size:12px;font-weight:600;padding:5px 12px;border-radius:7px;cursor:pointer;text-decoration:none;transition:background 0.15s;margin-bottom:16px;}
+.home-btn:hover{background:rgba(255,255,255,0.18);color:white;}
+/* Staff badge in topbar */
+.staff-badge {
+  display: none;
+  align-items: center; gap: 6px;
+  background: rgba(16,185,129,0.1);
+  border: 1px solid rgba(16,185,129,0.2);
+  color: var(--ok);
+  font-size: 12px; font-weight: 600;
+  padding: 5px 12px; border-radius: 20px;
+  cursor: pointer;
+}
+.staff-badge.show { display: flex; }
+
+.staff-entry-btn {
+  width: 100%;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  color: var(--muted);
+  padding: 14px 20px;
+  border-radius: 14px;
+  cursor: pointer;
+  font-family: 'IBM Plex Sans Thai Looped', sans-serif;
+  font-size: 14px;
+  font-weight: 600;
+  transition: all 0.2s;
+  text-align: center;
+}
+.staff-entry-btn:hover {
+  border-color: var(--accent);
+  color: var(--text);
+  background: rgba(59,130,246,0.06);
+}
+
+.staff-menu {
+  display: none;
+  width: 100%; max-width: 620px;
+  margin-top: 12px;
+  background: var(--surface);
+  border: 1px solid rgba(59,130,246,0.2);
+  border-radius: 16px;
+  padding: 6px;
+  animation: fadeUp 0.25s ease;
+}
+.staff-menu.show { display: block; }
+.staff-menu-item {
+  display: flex; align-items: center; gap: 14px;
+  padding: 14px 16px;
+  border-radius: 10px;
+  cursor: pointer;
+  font-size: 16px; font-weight: 600;
+  transition: background 0.15s;
+  color: var(--text);
+  text-align: left;
+}
+.staff-menu-item:hover { background: var(--surface2); }
+.staff-menu-item .mi-icon {
+  font-size: 22px; width: 32px;
+  text-align: center; flex-shrink: 0;
+}
+.staff-menu-item .mi-desc { font-size: 13px; color: var(--muted); font-weight: 400; margin-top: 2px; }
+
+/* Staff icon bar (หลัง login) */
+.staff-icon-bar {
+  display: none;
+  background: var(--surface);
+  border: 1px solid rgba(59,130,246,0.25);
+  border-radius: 18px;
+  padding: 16px 20px;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+}
+.staff-icon-bar.show { display: flex; }
+
+.sib-label {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--accent);
+  white-space: nowrap;
+  padding-right: 16px;
+  border-right: 1px solid var(--border);
+  margin-right: 4px;
+  line-height: 1.5;
+}
+
+.sib-items {
+  display: flex;
+  gap: 4px;
+  flex: 1;
+  justify-content: space-around;
+}
+
+.sib-item {
+  position: relative;
+  flex: 1;
+  border-radius: 13px;
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  gap: 6px;
+  padding: 12px 8px;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+.sib-item:hover { background: var(--surface2); }
+.sib-item span.icon { font-size: 28px; line-height: 1; }
+.sib-item span.lbl {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--muted);
+  white-space: nowrap;
+  line-height: 1;
+}
+.sib-item:hover span.lbl { color: var(--text); }
+
+.sib-logout { flex: none; min-width: 72px; }
+.sib-logout:hover { background: rgba(239,68,68,0.1); }
+.sib-logout:hover span.lbl { color: var(--critical); }
+
+/* Loading dots */
+.loading-dots span {
+  display: inline-block;
+  width: 5px; height: 5px; border-radius: 50%;
+  background: var(--muted); margin: 0 2px;
+  animation: dot 1.2s ease infinite;
+}
+.loading-dots span:nth-child(2) { animation-delay: 0.2s; }
+.loading-dots span:nth-child(3) { animation-delay: 0.4s; }
+@keyframes dot { 0%,100%{opacity:0.3;transform:translateY(0)} 50%{opacity:1;transform:translateY(-3px)} }
+</style>
+</head>
+<body>
+
+<!-- ============================================================
+     PAGE 1: LANDING
+     ============================================================ -->
+<div id="page-landing" class="page active">
+<a class="home-btn" href="index.html"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M19 12H5M12 5l-7 7 7 7"/></svg> หน้าหลัก</a>
+  <div class="landing-header">
+    <div class="landing-logo">Pharmacy · Emergency Drug System</div>
+    <h1 class="landing-title">Emergency <span>Box</span><br>Tracking System</h1>
+  </div>
+
+  <div class="alert-banner" id="landingAlert"></div>
+
+  <!-- Guest cards — ซ่อนหลัง login -->
+  <div class="landing-cards" id="guestCards" style="margin-bottom:20px">
+    <div class="landing-card hospital" onclick="goToDashboard('hospital')">
+      <div class="lcard-badge">HOSPITAL</div>
+      <span class="lcard-icon">🏥</span>
+      <div class="lcard-title">Emergency Box<br>ในโรงพยาบาล</div>
+      <div class="lcard-desc">ดูรายการยาและสถานะกล่องทั้งหมด</div>
+      <div class="lcard-arrow">ดูข้อมูล →</div>
+      <div class="lcard-alert" id="alertHospital"></div>
+    </div>
+    <div class="landing-card refer" onclick="goToDashboard('refer')">
+      <div class="lcard-badge">REFER CAR</div>
+      <span class="lcard-icon">🚑</span>
+      <div class="lcard-title">Emergency Box<br>บนรถ Refer</div>
+      <div class="lcard-desc">ดูรายการยาและสถานะกล่องทั้งหมด</div>
+      <div class="lcard-arrow">ดูข้อมูล →</div>
+      <div class="lcard-alert" id="alertRefer"></div>
+    </div>
+  </div>
+
+  <!-- Staff section -->
+  <div style="margin-top:16px;width:100%;max-width:620px" id="staffSection">
+
+    <!-- ก่อน login: ปุ่มกด -->
+    <button class="staff-entry-btn" id="staffEntryBtn" onclick="requireAuth(() => showStaffMenu())">
+      🔐 เจ้าหน้าที่ห้องยา — จ่าย/เติมยา และจัดการระบบ
+    </button>
+
+    <!-- หลัง login: icon bar ที่หดได้ -->
+    <div class="staff-icon-bar" id="staffIconBar">
+      <div class="sib-label">เจ้าหน้าที่<br>ห้องยา</div>
+      <div class="sib-items">
+        <div class="sib-item" onclick="goToDashboard('hospital')">
+          <span class="icon">🏥</span>
+          <span class="lbl">โรงพยาบาล</span>
+        </div>
+        <div class="sib-item" onclick="goToDashboard('refer')">
+          <span class="icon">🚑</span>
+          <span class="lbl">รถ Refer</span>
+        </div>
+        <div class="sib-item" onclick="goToPage('page-report')">
+          <span class="icon">📊</span>
+          <span class="lbl">รายงาน</span>
+        </div>
+        <div class="sib-item" onclick="goToPage('page-admin')">
+          <span class="icon">⚙️</span>
+          <span class="lbl">จัดการ</span>
+        </div>
+        <div class="sib-item sib-logout" onclick="logout()">
+          <span class="icon">🔓</span>
+          <span class="lbl">ออกจากระบบ</span>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <div class="landing-footer">
+    <span class="loading-dots" id="landingLoader"><span></span><span></span><span></span></span>
+    <span id="landingFooterLinks" style="display:none">
+      อัปเดต: <span id="landingTime">—</span>
+    </span>
+  </div>
+</div>
+
+<!-- ============================================================
+     PAGE 2: DASHBOARD
+     ============================================================ -->
+<div id="page-dashboard" class="page">
+  <div class="topbar">
+    <button class="back-btn" onclick="goToPage('page-landing')">← กลับ</button>
+    <div class="page-title">
+      <span id="dashTitle">Emergency Box</span>
+      <small id="dashCategory">HOSPITAL</small>
+    </div>
+    <div class="staff-badge" onclick="logout()">🔓 ออกจากระบบ</div>
+  </div>
+
+  <div class="summary-grid">
+    <div class="stat-card ok"><div class="stat-num" id="sOk">—</div><div class="stat-lbl">ปกติ</div></div>
+    <div class="stat-card warn"><div class="stat-num" id="sWarn">—</div><div class="stat-lbl">เตือน</div></div>
+    <div class="stat-card crit"><div class="stat-num" id="sCrit">—</div><div class="stat-lbl">วิกฤต</div></div>
+    <div class="stat-card"><div class="stat-num" id="sTotal">—</div><div class="stat-lbl">ทั้งหมด</div></div>
+  </div>
+
+  <div class="boxes-grid" id="boxesGrid">
+    <div class="skeleton"><div class="skel-line" style="width:60%"></div><div class="skel-line" style="width:80%"></div><div class="skel-line" style="width:45%"></div></div>
+    <div class="skeleton"><div class="skel-line" style="width:50%"></div><div class="skel-line" style="width:70%"></div><div class="skel-line" style="width:60%"></div></div>
+    <div class="skeleton"><div class="skel-line" style="width:70%"></div><div class="skel-line" style="width:50%"></div><div class="skel-line" style="width:80%"></div></div>
+  </div>
+</div>
+
+<!-- ============================================================
+     PAGE 3: BOX DETAIL
+     ============================================================ -->
+<div id="page-detail" class="page">
+  <div class="topbar">
+    <button class="back-btn" onclick="goToPage('page-dashboard')">← กลับ</button>
+    <div class="page-title">
+      <span id="detailTitle">กล่อง</span>
+      <small id="detailSub">—</small>
+    </div>
+    <div class="staff-badge" onclick="logout()">🔓 ออกจากระบบ</div>
+  </div>
+
+  <div class="tabs">
+    <button class="tab-btn active" onclick="switchTab('inv')">📦 คลังยา</button>
+    <button class="tab-btn staff-only" onclick="switchTab('dis')">💊 จ่ายยา</button>
+    <button class="tab-btn staff-only" onclick="switchTab('ref')">➕ เติมยา</button>
+  </div>
+
+  <!-- Inventory -->
+  <div id="panel-inv" class="tab-panel active">
+    <div id="drugList"><div style="text-align:center;padding:40px;color:var(--muted)">กำลังโหลด...</div></div>
+  </div>
+
+  <!-- Dispense -->
+  <div id="panel-dis" class="tab-panel">
+    <div class="section-label">ข้อมูลผู้ป่วย</div>
+    <div class="form-row">
+      <div class="form-group"><label>HN</label><input type="text" id="dHN" placeholder="เช่น 65010001"></div>
+      <div class="form-group"><label>ชื่อ-นามสกุล</label><input type="text" id="dName" placeholder="ชื่อผู้ป่วย"></div>
+    </div>
+    <div class="form-group">
+      <label>ประเภทผู้ป่วย</label>
+      <div class="ward-toggle">
+        <button class="ward-btn er"  onclick="selectWard('ER')">🚨 ER</button>
+        <button class="ward-btn ipd" onclick="selectWard('IPD')">🏥 IPD</button>
+      </div>
+    </div>
+    <div class="form-group">
+      <label>เจ้าหน้าที่ผู้จ่าย</label>
+      <select id="dStaff">
+        <option value="">— เลือกเจ้าหน้าที่ —</option>
+        <optgroup label="เภสัชกร">
+          <option>ภญ.นัยนา</option>
+          <option>ภญ.วนิดา</option>
+          <option>ภญ.อัญชลี</option>
+          <option>ภญ.ยุพิน</option>
+          <option>ภญ.กรรณิกา</option>
+        </optgroup>
+        <optgroup label="จพ.">
+          <option>จพ.วิภารัตน์</option>
+          <option>จพ.ปุญญพัฒน์</option>
+          <option>จพ.ธนารักษ์</option>
+          <option>จพ.สรัล</option>
+        </optgroup>
+      </select>
+    </div>
+
+    <div class="section-label">เลือกยาที่จ่าย</div>
+    <div class="form-group">
+      <label>ยา</label>
+      <select id="dDrugSelect" onchange="loadLotPicker()">
+        <option value="">— เลือกรายการยา —</option>
+      </select>
+    </div>
+    <div id="lotPickerSection" style="display:none">
+      <div class="section-label">เลือก Lot (ติ๊กได้หลายอัน)</div>
+      <div id="lotPicker"></div>
+    </div>
+  </div>
+
+  <!-- Refill -->
+  <div id="panel-ref" class="tab-panel">
+    <div class="form-group">
+      <label>เจ้าหน้าที่ผู้เติม</label>
+      <select id="rStaff">
+        <option value="">— เลือกเจ้าหน้าที่ —</option>
+        <optgroup label="เภสัชกร">
+          <option>ภญ.นัยนา</option>
+          <option>ภญ.วนิดา</option>
+          <option>ภญ.อัญชลี</option>
+          <option>ภญ.ยุพิน</option>
+          <option>ภญ.กรรณิกา</option>
+        </optgroup>
+        <optgroup label="จพ.">
+          <option>จพ.วิภารัตน์</option>
+          <option>จพ.ปุญญพัฒน์</option>
+          <option>จพ.ธนารักษ์</option>
+          <option>จพ.สรัล</option>
+        </optgroup>
+      </select>
+    </div>
+    <div class="section-label">รายการที่เติม</div>
+    <div id="refillGroups"></div>
+    <button class="add-item-btn" onclick="addRefillGroup()">+ เพิ่มรายการยา</button>
+  </div>
+
+  <div class="bottom-action">
+    <button class="btn-primary full" id="detailActionBtn" onclick="handleDetailAction()">บันทึก</button>
+  </div>
+</div>
+
+<!-- ============================================================
+     PAGE 4: REPORT
+     ============================================================ -->
+<div id="page-report" class="page">
+  <div class="topbar">
+    <button class="back-btn" onclick="goToPage('page-landing')">← กลับ</button>
+    <div class="page-title">📊 รายงาน</div>
+    <div class="staff-badge" onclick="logout()">🔓 ออกจากระบบ</div>
+  </div>
+
+  <!-- Date filter -->
+  <div class="report-section" style="animation-delay:0s">
+    <div class="section-label">ช่วงเวลา</div>
+    <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center">
+      <div class="form-group" style="margin:0;flex:1;min-width:140px">
+        <label style="font-size:12px;color:var(--muted);display:block;margin-bottom:4px">จาก</label>
+        <input type="date" id="rDateFrom" style="width:100%;background:var(--surface2);border:1px solid var(--border);color:var(--text);padding:9px 12px;border-radius:10px;font-size:14px;outline:none">
+      </div>
+      <div class="form-group" style="margin:0;flex:1;min-width:140px">
+        <label style="font-size:12px;color:var(--muted);display:block;margin-bottom:4px">ถึง</label>
+        <input type="date" id="rDateTo" style="width:100%;background:var(--surface2);border:1px solid var(--border);color:var(--text);padding:9px 12px;border-radius:10px;font-size:14px;outline:none">
+      </div>
+      <button class="btn-primary" style="margin-top:20px" onclick="loadReport()">🔍 ดูรายงาน</button>
+      <button class="btn-secondary" style="margin-top:20px" onclick="exportCSV()">⬇ Export CSV</button>
+    </div>
+  </div>
+
+  <!-- Expiry Alert -->
+  <div class="report-section" style="animation-delay:0.05s">
+    <div class="section-label">Expiry Alert — ทุกกล่อง</div>
+    <h2>ยาใกล้หมดอายุ</h2>
+    <div id="rAlertList" style="margin-top:14px">กำลังโหลด...</div>
+  </div>
+
+  <!-- Top 3 -->
+  <div class="report-section" style="animation-delay:0.1s">
+    <div class="section-label">Top 3 — Most Dispensed</div>
+    <h2>ยาที่ถูกจ่ายมากที่สุด</h2>
+    <div id="rTop3" style="margin-top:14px">กำลังโหลด...</div>
+  </div>
+
+  <!-- Drug rate + ER/IPD -->
+  <div class="report-section" style="animation-delay:0.15s">
+    <div class="section-label">Drug Dispensing Rate</div>
+    <h2>สถิติการจ่ายยา</h2>
+    <!-- ER/IPD summary -->
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px;margin-top:14px">
+      <div style="background:rgba(239,68,68,0.08);border:1px solid rgba(239,68,68,0.2);border-radius:12px;padding:16px;text-align:center">
+        <div style="font-size:28px;font-weight:700;color:var(--critical)" id="rErTotal">—</div>
+        <div style="font-size:13px;color:var(--muted);margin-top:4px">🚨 ER</div>
+      </div>
+      <div style="background:rgba(59,130,246,0.08);border:1px solid rgba(59,130,246,0.2);border-radius:12px;padding:16px;text-align:center">
+        <div style="font-size:28px;font-weight:700;color:var(--accent)" id="rIpdTotal">—</div>
+        <div style="font-size:13px;color:var(--muted);margin-top:4px">🏥 IPD</div>
+      </div>
+    </div>
+    <div id="rDrugRate">กำลังโหลด...</div>
+  </div>
+
+  <!-- Leaderboard gamification -->
+  <div class="report-section" style="animation-delay:0.2s">
+    <div class="section-label">Refill Leaderboard 🏆</div>
+    <h2>แชมป์ผู้เติมยา</h2>
+    <div id="rLeader" style="margin-top:14px">กำลังโหลด...</div>
+  </div>
+</div>
+
+<!-- ============================================================
+     PAGE 5: ADMIN
+     ============================================================ -->
+<div id="page-admin" class="page">
+  <div class="topbar">
+    <button class="back-btn" onclick="goToPage('page-landing')">← กลับ</button>
+    <div class="page-title">⚙️ จัดการระบบ</div>
+    <div class="staff-badge" onclick="logout()">🔓 ออกจากระบบ</div>
+  </div>
+
+  <div class="admin-section">
+    <h2>จัดการกล่อง — Hospital EB</h2>
+    <div id="adminBoxHospital">กำลังโหลด...</div>
+    <button class="btn-primary" style="margin-top:14px" onclick="openAddBoxModal('hospital')">+ เพิ่มกล่อง</button>
+  </div>
+
+  <div class="admin-section">
+    <h2>จัดการกล่อง — Refer Car</h2>
+    <div id="adminBoxRefer">กำลังโหลด...</div>
+    <button class="btn-primary" style="margin-top:14px" onclick="openAddBoxModal('refer')">+ เพิ่มกล่อง</button>
+  </div>
+
+  <div class="admin-section">
+    <h2>รายการยา — Hospital EB</h2>
+    <div id="adminDrugHospital">กำลังโหลด...</div>
+    <button class="btn-primary" style="margin-top:14px" onclick="openAddDrugModal('hospital')">+ เพิ่มรายการยา</button>
+  </div>
+
+  <div class="admin-section">
+    <h2>รายการยา — Refer Car</h2>
+    <div id="adminDrugRefer">กำลังโหลด...</div>
+    <button class="btn-primary" style="margin-top:14px" onclick="openAddDrugModal('refer')">+ เพิ่มรายการยา</button>
+  </div>
+</div>
+
+<!-- ============================================================
+     MODALS
+     ============================================================ -->
+
+<!-- Add Box -->
+<div class="modal-overlay" id="modalAddBox">
+  <div class="modal">
+    <h3 id="boxModalTitle">➕ เพิ่มกล่องใหม่</h3>
+    <div class="form-group"><label>รหัสกล่อง</label><input type="text" id="abId" placeholder="เช่น BOX-04"></div>
+    <div class="form-group"><label>ชื่อกล่อง</label><input type="text" id="abLabel" placeholder="เช่น กล่องที่ 4"></div>
+    <div class="modal-actions">
+      <button class="btn-secondary" onclick="closeModal('modalAddBox')">ยกเลิก</button>
+      <button class="btn-primary" onclick="submitAddBox()">เพิ่มกล่อง</button>
+    </div>
+  </div>
+</div>
+
+<!-- Add/Edit Drug -->
+<div class="modal-overlay" id="modalAddDrug">
+  <div class="modal">
+    <h3 id="drugModalTitle">💊 เพิ่มรายการยา</h3>
+    <input type="hidden" id="adCategory">
+    <input type="hidden" id="adEditMode" value="add">
+    <input type="hidden" id="adOriginalName">
+    <div class="form-group">
+      <label>ชื่อยา</label>
+      <input type="text" id="adName" placeholder="ชื่อยา">
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label>หน่วย</label>
+        <select id="adUnit">
+          <option value="">— เลือกหน่วย —</option>
+          <option value="amp">amp</option>
+          <option value="vial">vial</option>
+          <option value="tablet">tablet</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>จำนวนสูงสุด (max)</label>
+        <input type="number" id="adMax" placeholder="เช่น 6" min="1">
+      </div>
+    </div>
+    <div class="form-group">
+      <label style="display:flex;align-items:center;gap:10px;cursor:pointer">
+        <input type="checkbox" id="adHad" style="width:18px;height:18px;accent-color:var(--critical);cursor:pointer">
+        <span>⚠️ High Alert Drug (HAD)</span>
+      </label>
+    </div>
+    <div class="modal-actions">
+      <button class="btn-secondary" onclick="closeModal('modalAddDrug')">ยกเลิก</button>
+      <button class="btn-primary" onclick="submitAddDrug()">บันทึก</button>
+    </div>
+  </div>
+</div>
+
+<!-- Edit Lot Modal -->
+<div class="modal-overlay" id="modalEditLot">
+  <div class="modal">
+    <h3>✏️ แก้ไขข้อมูล Lot</h3>
+    <input type="hidden" id="elDrug">
+    <input type="hidden" id="elOrigLot">
+    <input type="hidden" id="elOrigExp">
+    <div class="form-group">
+      <label>ชื่อยา</label>
+      <input type="text" id="elDrugName" disabled style="opacity:0.5">
+    </div>
+    <div class="form-group">
+      <label>Lot number</label>
+      <input type="text" id="elLot" placeholder="Lot number">
+    </div>
+    <div class="form-group">
+      <label>วันหมดอายุ (ค.ศ.)</label>
+      <div class="date-input-wrap" style="width:100%">
+        <input type="number" id="elDd" class="ru-dd" placeholder="DD" min="1" max="31">
+        <span class="date-sep">/</span>
+        <input type="number" id="elMm" class="ru-mm" placeholder="MM" min="1" max="12">
+        <span class="date-sep">/</span>
+        <input type="number" id="elYyyy" class="ru-yyyy" placeholder="YYYY" min="2020" max="2099">
+        <input type="date" id="elExpPicker" class="ru-exp-hidden"
+               onchange="syncEditLotDate()">
+        <button class="cal-btn" onclick="document.getElementById('elExpPicker').showPicker()">📅</button>
+      </div>
+    </div>
+    <div class="form-group">
+      <label>จำนวน</label>
+      <input type="number" id="elQty" min="0" placeholder="จำนวน">
+    </div>
+    <div class="modal-actions">
+      <button class="btn-secondary" onclick="closeModal('modalEditLot')">ยกเลิก</button>
+      <button class="btn-primary" onclick="submitEditLot()">บันทึก</button>
+    </div>
+  </div>
+</div>
+
+<!-- Dispense confirm popup -->
+<div class="popup-overlay" id="popupDispense">
+  <div class="popup">
+    <h3>✓ ยืนยันการจ่ายยา</h3>
+    <p id="popupPatient"></p>
+    <div class="summary-box" id="popupSummaryBox"></div>
+    <div class="popup-actions">
+      <button class="btn-secondary" onclick="closePopup()">ยกเลิก</button>
+      <button class="btn-primary success" id="popupConfirmBtn" onclick="confirmDispense()">✓ ยืนยัน</button>
+    </div>
+  </div>
+</div>
+
+<!-- Toast -->
+<div class="toast" id="toast"></div>
+
+<!-- Auth Modal -->
+<div class="auth-overlay" id="authOverlay">
+  <div class="auth-box">
+    <div class="auth-icon">🔐</div>
+    <div class="auth-title">เข้าสู่ระบบเจ้าหน้าที่</div>
+    <div class="auth-desc">ฟังก์ชันนี้สำหรับเจ้าหน้าที่เท่านั้น<br>กรุณาใส่รหัสผ่านเพื่อดำเนินการต่อ</div>
+    <div class="auth-input-wrap">
+      <input type="password" id="authInput" placeholder="รหัสผ่าน"
+             onkeydown="if(event.key==='Enter') submitAuth()">
+      <button class="auth-toggle" onclick="toggleAuthPw()">👁</button>
+    </div>
+    <div class="auth-hint" id="authHint"></div>
+    <button class="btn-primary full" onclick="submitAuth()">เข้าสู่ระบบ</button>
+    <br>
+    <button class="btn-secondary" style="width:100%;margin-top:10px" onclick="closeAuth()">ยกเลิก</button>
+  </div>
+</div>
+
+<!-- ============================================================
+     SCRIPT
+     ============================================================ -->
+<script>
+// ============================================================
+// CONFIG — ใส่ URL Apps Script ที่นี่
+// ============================================================
+const GAS_URL = 'https://script.google.com/macros/s/AKfycbyFDf8KXwUZEXL12YOPFccrwE3WUQETT1JJlt32FpPiS4lwB8yB3n0ZT3UD3XIpGsi8Gw/exec';
+const ALERT_WARNING  = 30;
+const ALERT_CRITICAL = 15;
+const COLORS = ['#3b82f6','#10b981','#f59e0b','#8b5cf6','#ec4899','#06b6d4','#f97316'];
+
+// ============================================================
+// STATE
+// ============================================================
+let currentCategory = 'hospital';
+let currentBoxId    = '';
+let boxData         = null;
+let currentTab      = 'inv';
+let selectedWard    = '';
+let checkedLots     = {};
+let refillCount     = 0;
+let dispensePayload = null;
+
+// ============================================================
+// AUTH
+// ============================================================
+const STAFF_PW = 'hp869131';
+let isStaff    = false;
+let authCallback = null; // function to call after successful login
+
+function requireAuth(callback) {
+  if (isStaff) { callback(); return; }
+  authCallback = callback;
+  const overlay = document.getElementById('authOverlay');
+  document.getElementById('authInput').value = '';
+  document.getElementById('authHint').textContent = '';
+  document.getElementById('authInput').classList.remove('err');
+  overlay.classList.add('show');
+  setTimeout(() => document.getElementById('authInput').focus(), 100);
+}
+
+function submitAuth() {
+  const val = document.getElementById('authInput').value;
+  if (val === STAFF_PW) {
+    isStaff = true;
+    document.getElementById('authOverlay').classList.remove('show');
+    updateStaffBadge();
+    showToast('✅ เข้าสู่ระบบเจ้าหน้าที่แล้ว', 'ok');
+    if (authCallback) { authCallback(); authCallback = null; }
+  } else {
+    const inp = document.getElementById('authInput');
+    inp.classList.add('err');
+    document.getElementById('authHint').textContent = 'รหัสผ่านไม่ถูกต้อง';
+    inp.value = '';
+    setTimeout(() => inp.classList.remove('err'), 400);
+  }
+}
+
+function closeAuth() {
+  document.getElementById('authOverlay').classList.remove('show');
+  authCallback = null;
+}
+
+function toggleAuthPw() {
+  const inp = document.getElementById('authInput');
+  inp.type = inp.type === 'password' ? 'text' : 'password';
+}
+
+function showStaffMenu() {
+  document.getElementById('guestCards').style.display = 'none';
+  document.getElementById('staffEntryBtn').style.display = 'none';
+  document.getElementById('staffIconBar').classList.add('show');
+  document.getElementById('page-landing').classList.add('staff-mode');
+  updateStaffBadge();
+}
+
+function logout() {
+  isStaff = false;
+  updateStaffBadge();
+  document.getElementById('guestCards').style.display = '';
+  document.getElementById('staffEntryBtn').style.display = '';
+  document.getElementById('staffIconBar').classList.remove('show');
+  document.getElementById('page-landing').classList.remove('staff-mode');
+  showToast('ออกจากระบบแล้ว');
+}
+
+function updateStaffBadge() {
+  document.querySelectorAll('.staff-badge').forEach(el => {
+    el.classList.toggle('show', isStaff);
+  });
+  document.body.classList.toggle('is-staff', isStaff);
+  // ถ้าอยู่หน้า detail ให้ re-render inventory เพื่อแสดง/ซ่อนปุ่ม edit
+  if (document.getElementById('page-detail').classList.contains('active') && boxData) {
+    renderInventory();
+  }
+}
+
+// ============================================================
+// NAVIGATION
+// ============================================================
+function goToPage(pageId) {
+  // report และ admin ต้องเป็นเจ้าหน้าที่
+  if ((pageId === 'page-report' || pageId === 'page-admin') && !isStaff) {
+    requireAuth(() => goToPage(pageId));
+    return;
+  }
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.getElementById(pageId).classList.add('active');
+  window.scrollTo(0, 0);
+  if (pageId === 'page-report') { initReportDates(); loadReport(); }
+  if (pageId === 'page-admin')  loadAdmin();
+}
+
+function goToDashboard(category) {
+  currentCategory = category;
+  document.getElementById('dashTitle').textContent =
+    category === 'hospital' ? 'Emergency Box โรงพยาบาล' : 'Emergency Box รถ Refer';
+  document.getElementById('dashCategory').textContent =
+    category === 'hospital' ? 'HOSPITAL' : 'REFER CAR';
+  goToPage('page-dashboard');
+  loadBoxes();
+}
+
+function goToDetail(boxId) {
+  currentBoxId = boxId;
+  checkedLots  = {};
+  refillCount  = 0;
+  goToPage('page-detail');
+  switchTab('inv');
+  loadDetail();
+}
+
+// ============================================================
+// API HELPERS
+// ============================================================
+async function apiGet(params) {
+  const qs = new URLSearchParams(params).toString();
+  const res = await fetch(`${GAS_URL}?${qs}`, { redirect: 'follow' });
+  return res.json();
+}
+
+async function apiPost(body) {
+  const res = await fetch(GAS_URL, {
+    method: 'POST',
+    redirect: 'follow',
+    headers: { 'Content-Type': 'text/plain' },
+    body: JSON.stringify(body),
+  });
+  return res.json();
+}
+
+// ============================================================
+// TOAST
+// ============================================================
+function showToast(msg, type = '') {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.className = `toast ${type} show`;
+  setTimeout(() => t.classList.remove('show'), 3000);
+}
+
+// ============================================================
+// LANDING — load alerts
+// ============================================================
+async function initLanding() {
+  try {
+    const data = await apiGet({ action: 'getAlerts' });
+    const alerts = data.alerts || [];
+    const critAlerts = alerts.filter(a => a.level === 'critical');
+    const warnAlerts = alerts.filter(a => a.level === 'warning');
+
+    // นับจำนวนกล่องที่มีปัญหา (unique box_id)
+    const critBoxes = new Set(critAlerts.map(a => a.box_id)).size;
+    const warnBoxes = new Set(warnAlerts.map(a => a.box_id)).size;
+
+    if (critAlerts.length > 0) {
+      const b = document.getElementById('landingAlert');
+      let msg = `🔴 วิกฤต! ${critBoxes} กล่อง มียาเหลือน้อยกว่า ${ALERT_CRITICAL} วัน`;
+      if (warnBoxes > 0) msg += ` · ⚠️ ${warnBoxes} กล่อง ใกล้หมดอายุ`;
+      b.textContent = msg;
+      b.className = 'alert-banner show crit';
+    } else if (warnAlerts.length > 0) {
+      const b = document.getElementById('landingAlert');
+      b.textContent = `⚠️ ${warnBoxes} กล่อง มียาใกล้หมดอายุ (เหลือน้อยกว่า ${ALERT_WARNING} วัน)`;
+      b.className = 'alert-banner show warn';
+    }
+  } catch(e) {}
+
+  document.getElementById('landingLoader').style.display = 'none';
+  document.getElementById('landingFooterLinks').style.display = 'inline';
+  document.getElementById('landingTime').textContent = new Date().toLocaleString('th-TH');
+}
+
+// ============================================================
+// DASHBOARD
+// ============================================================
+async function loadBoxes() {
+  document.getElementById('boxesGrid').innerHTML = `
+    <div class="skeleton"><div class="skel-line" style="width:60%"></div><div class="skel-line" style="width:80%"></div><div class="skel-line" style="width:45%"></div></div>
+    <div class="skeleton"><div class="skel-line" style="width:50%"></div><div class="skel-line" style="width:70%"></div><div class="skel-line" style="width:60%"></div></div>
+    <div class="skeleton"><div class="skel-line" style="width:70%"></div><div class="skel-line" style="width:50%"></div><div class="skel-line" style="width:80%"></div></div>`;
+
+  try {
+    // โหลดแยกกัน ไม่ให้ fail พร้อมกัน
+    const boxRes   = await apiGet({ action: 'getBoxes', category: currentCategory });
+    const boxes    = boxRes.boxes || [];
+
+    let alerts = [];
+    try {
+      const alertRes = await apiGet({ action: 'getAlerts' });
+      const boxIds   = new Set(boxes.map(b => b.box_id));
+      alerts = (alertRes.alerts || []).filter(a => boxIds.has(a.box_id));
+    } catch(e) { /* alerts ไม่ได้ก็แสดงกล่องได้ */ }
+
+    renderBoxes(boxes, alerts);
+  } catch(e) {
+    document.getElementById('boxesGrid').innerHTML =
+      '<div class="empty-state"><div class="empty-icon">⚠️</div><p>ไม่สามารถเชื่อมต่อได้<br><small style="font-size:12px">ตรวจสอบ GAS_URL ในโค้ด</small></p></div>';
+  }
+}
+
+function renderBoxes(boxes, alerts = []) {
+  const grid = document.getElementById('boxesGrid');
+  if (!boxes.length) {
+    grid.innerHTML = '<div class="empty-state"><div class="empty-icon">📦</div><p>ยังไม่มีกล่อง<br><small style="font-size:12px">กด "+ กล่อง" เพื่อเริ่มต้น</small></p></div>';
+    ['sOk','sWarn','sCrit','sTotal'].forEach(id => document.getElementById(id).textContent = '0');
+    return;
+  }
+
+  // Dynamic grid: max 5 ต่อแถว เต็มจอ
+  const cols = Math.min(boxes.length, 5);
+  grid.style.gridTemplateColumns = `repeat(${cols}, 1fr)`;
+
+  // นับจาก alerts จริงๆ (จำนวน lot ที่มีปัญหา ไม่ใช่จำนวนกล่อง)
+  const critCount = alerts.filter(a => a.level === 'critical').length;
+  const warnCount = alerts.filter(a => a.level === 'warning').length;
+  document.getElementById('sOk').textContent    = boxes.filter(b=>b.status==='ok').length;
+  document.getElementById('sWarn').textContent  = warnCount;
+  document.getElementById('sCrit').textContent  = critCount;
+  document.getElementById('sTotal').textContent = boxes.length;
+
+  const statusLabel = { ok: '✓ ปกติ', warning: '⚠ ใกล้หมดอายุ', critical: '🔴 วิกฤต' };
+  const icon = currentCategory === 'hospital' ? '🏥' : '🚑';
+
+  grid.innerHTML = boxes.map((box, i) => {
+    const boxAlerts   = alerts.filter(a => a.box_id === box.box_id);
+    const expiredLots = boxAlerts.filter(a => a.days_left <= 0);
+    const critLots    = boxAlerts.filter(a => a.level === 'critical' && a.days_left > 0);
+    const warnLots    = boxAlerts.filter(a => a.level === 'warning');
+
+    // จำนวนที่ต้องเติม = qty ยาหมดอายุ + ที่ยังขาดจาก max (refill_needed จาก GAS)
+    const expiredQty  = expiredLots.reduce((s,a) => s + Number(a.qty||0), 0);
+    const gasRefill   = Number(box.refill_needed) || 0;
+    const refillTotal = gasRefill;
+
+    let alertLine = '';
+    if (expiredLots.length > 0) alertLine += `<div class="box-refill" style="color:var(--critical)">🔴 หมดอายุ <strong style="color:var(--critical)">${expiredLots.length} lot · ${expiredQty} หน่วย</strong></div>`;
+    if (critLots.length > 0)   alertLine += `<div class="box-refill" style="color:var(--critical)">⚠️ วิกฤต <strong style="color:var(--critical)">${critLots.length} lot</strong></div>`;
+    if (warnLots.length > 0)   alertLine += `<div class="box-refill" style="color:var(--warning)">⚠ เตือน <strong style="color:var(--warning)">${warnLots.length} lot</strong></div>`;
+    if (refillTotal > 0)       alertLine += `<div class="box-refill" style="margin-top:8px">ต้องเติม <strong style="color:var(--warning);font-size:16px">${refillTotal} หน่วย</strong></div>`;
+    else if (box.status === 'ok') alertLine = `<div class="box-refill" style="color:var(--ok);margin-top:8px">✓ ครบทุกรายการ</div>`;
+
+    return `
+    <div class="box-card ${box.status}" style="animation-delay:${i*0.07}s" onclick="goToDetail('${box.box_id}')">
+      <span class="box-icon">${icon}</span>
+      <div class="box-id">BOX · ${box.box_id}</div>
+      <div class="box-label">${box.label}</div>
+      <div class="box-status">${statusLabel[box.status]}</div>
+      ${alertLine}
+    </div>`;
+  }).join('');
+}
+
+// Add Box
+let currentAddBoxCategory = 'hospital';
+let boxEditMode = 'add';
+let boxOriginalId = '';
+
+function openAddBoxModal(category) {
+  currentAddBoxCategory = category || currentCategory;
+  boxEditMode = 'add';
+  boxOriginalId = '';
+  document.getElementById('abId').value = '';
+  document.getElementById('abId').disabled = false;
+  document.getElementById('abLabel').value = '';
+  document.getElementById('boxModalTitle').textContent = '➕ เพิ่มกล่องใหม่';
+  document.getElementById('modalAddBox').classList.add('show');
+}
+
+function openEditBoxModal(category, box_id, label) {
+  currentAddBoxCategory = category;
+  boxEditMode = 'edit';
+  boxOriginalId = box_id;
+  document.getElementById('abId').value = box_id;
+  document.getElementById('abId').disabled = true;
+  document.getElementById('abLabel').value = label;
+  document.getElementById('boxModalTitle').textContent = '✏️ แก้ไขชื่อกล่อง';
+  document.getElementById('modalAddBox').classList.add('show');
+}
+
+async function submitAddBox() {
+  const box_id = boxOriginalId || document.getElementById('abId').value.trim();
+  const label  = document.getElementById('abLabel').value.trim();
+  if (!box_id || !label) return showToast('กรุณากรอกข้อมูลให้ครบ', 'err');
+  try {
+    let data;
+    if (boxEditMode === 'edit') {
+      data = await apiPost({ action: 'updateBox', box_id, label });
+    } else {
+      data = await apiPost({ action: 'addBox', box_id, category: currentAddBoxCategory, label });
+    }
+    if (data.success) {
+      closeModal('modalAddBox');
+      loadAdmin();
+      showToast(boxEditMode === 'edit' ? '✅ แก้ไขแล้ว' : '✅ เพิ่มกล่องแล้ว', 'ok');
+    } else showToast('เกิดข้อผิดพลาด: ' + data.error, 'err');
+  } catch(e) { showToast('เกิดข้อผิดพลาด', 'err'); }
+}
+
+// ============================================================
+// BOX DETAIL
+// ============================================================
+async function loadDetail() {
+  document.getElementById('drugList').innerHTML = '<div style="text-align:center;padding:40px;color:var(--muted)">กำลังโหลด...</div>';
+  try {
+    const data = await apiGet({ action: 'getInventory', box_id: currentBoxId });
+    boxData = data;
+    document.getElementById('detailTitle').textContent = data.box?.label || currentBoxId;
+    document.getElementById('detailSub').textContent = `${currentCategory === 'hospital' ? 'HOSPITAL' : 'REFER CAR'} · ${currentBoxId}`;
+    renderInventory();
+    populateDrugDropdown();
+    renderRefillPreload();
+  } catch(e) {
+    document.getElementById('drugList').innerHTML = '<div style="text-align:center;padding:40px;color:var(--muted)">ไม่สามารถโหลดได้</div>';
+  }
+}
+
+function toBE(dateStr) {
+  // แปลง YYYY-MM-DD → DD/MM/พ.ศ.
+  if (!dateStr) return '—';
+  const d = new Date(dateStr);
+  if (isNaN(d.getTime())) return dateStr;
+  const day   = String(d.getDate()).padStart(2, '0');
+  const month = String(d.getMonth() + 1).padStart(2, '0');
+  const year  = d.getFullYear() + 543;
+  return `${day}/${month}/${year}`;
+}
+
+function renderInventory() {
+  const list = document.getElementById('drugList');
+  if (!boxData?.drugs?.length) {
+    list.innerHTML = '<div style="text-align:center;padding:40px;color:var(--muted)">ไม่มีรายการยา</div>';
+    return;
+  }
+
+  // FEFO sort — HAD ขึ้นก่อนถ้า qty = 0
+  const drugs = [...boxData.drugs].sort((a, b) => {
+    const ae = a.lots[0] ? new Date(a.lots[0].exp_date) : new Date('9999');
+    const be = b.lots[0] ? new Date(b.lots[0].exp_date) : new Date('9999');
+    return ae - be;
+  });
+
+  list.innerHTML = drugs.map((drug, i) => {
+    const ws    = drug.lots.some(l=>l.status==='critical') ? 'critical'
+                : drug.lots.some(l=>l.status==='warning')  ? 'warning' : 'ok';
+    const em    = { ok:'💊', warning:'⚠️', critical:'🔴' }[ws];
+    // รับได้ทุกรูปแบบ: true, TRUE, True, checkbox value
+    const isHad = drug.is_had === true || String(drug.is_had).trim().toLowerCase() === 'true';
+    return `
+      <div class="drug-card${isHad ? ' had-card' : ''}" style="animation-delay:${i*0.05}s">
+        <div class="drug-header" onclick="toggleLots('dl-${i}')">
+          <div class="drug-icon-box ${ws}">${em}</div>
+          <div style="flex:1">
+            <div class="drug-name">
+              ${isHad ? '<span class="had-badge">⚠ HAD</span>' : ''}
+              ${drug.drug_name}
+            </div>
+            <div class="drug-unit">${drug.unit}</div>
+          </div>
+          <div class="drug-qty-wrap">
+            <div class="drug-qty ${ws}">${drug.total_qty}<span style="font-size:12px;opacity:.5">/${drug.max_qty}</span></div>
+            <div class="drug-qty-max">${drug.unit}</div>
+            ${drug.refill_qty > 0 ? `<div class="refill-badge">เติม +${drug.refill_qty}</div>` : ''}
+          </div>
+        </div>
+        <div class="lot-list" id="dl-${i}">
+          ${!drug.lots.length
+            ? '<div style="padding:14px 18px;color:var(--muted);font-size:13px">ยังไม่มี Lot</div>'
+            : drug.lots.map((lot, li) => `
+              <div class="lot-row">
+                <div class="lot-info">
+                  <div class="lot-id">LOT: ${lot.lot || '—'}</div>
+                  <div class="lot-exp ${lot.status}">
+                    EXP: ${toBE(lot.exp_date)}
+                    ${lot.status!=='ok' ? ` · เหลือ ${lot.days_left} วัน` : ''}
+                    ${lot.status==='critical' ? ' 🔴' : lot.status==='warning' ? ' ⚠️' : ''}
+                  </div>
+                </div>
+                <div class="lot-qty-badge">${lot.qty} ${drug.unit}</div>
+                ${isStaff ? `<button class="edit-btn" style="flex-shrink:0"
+                  onclick="openEditLotModal('${drug.drug_name}','${lot.lot}','${lot.exp_date}',${lot.qty})">✏️</button>` : ''}
+              </div>`).join('')
+          }
+        </div>
+      </div>`;
+  }).join('');
+}
+
+function toggleLots(id) { document.getElementById(id).classList.toggle('open'); }
+
+function switchTab(tab) {
+  // จ่าย/เติมยาต้องเป็นเจ้าหน้าที่
+  if ((tab === 'dis' || tab === 'ref') && !isStaff) {
+    requireAuth(() => switchTab(tab));
+    return;
+  }
+  currentTab = tab;
+  document.querySelectorAll('.tab-btn').forEach((b,i) => b.classList.toggle('active', ['inv','dis','ref'][i] === tab));
+  document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+  document.getElementById(`panel-${tab}`).classList.add('active');
+
+  const btn = document.getElementById('detailActionBtn');
+  if (tab === 'inv') { btn.textContent = '🔄 รีเฟรช'; btn.className = 'btn-primary full'; }
+  if (tab === 'dis') { btn.textContent = '💊 บันทึกการจ่าย'; btn.className = 'btn-primary full'; }
+  if (tab === 'ref') { btn.textContent = '✅ บันทึกการเติม'; btn.className = 'btn-primary full success'; }
+}
+
+function handleDetailAction() {
+  if (currentTab === 'inv') return loadDetail();
+  if (currentTab === 'dis') return submitDispense();
+  if (currentTab === 'ref') return submitRefill();
+}
+
+// --- DISPENSE ---
+function populateDrugDropdown() {
+  const sel = document.getElementById('dDrugSelect');
+  if (!boxData) return;
+  sel.innerHTML = '<option value="">— เลือกรายการยา —</option>' +
+    (boxData.drugs || []).map(d =>
+      `<option value="${d.drug_name}">${d.drug_name} (คงเหลือ ${d.total_qty} ${d.unit})</option>`
+    ).join('');
+}
+
+function selectWard(type) {
+  selectedWard = type;
+  document.querySelectorAll('.ward-btn').forEach(b => b.classList.remove('active'));
+  document.querySelector(`.ward-btn.${type.toLowerCase()}`).classList.add('active');
+}
+
+function loadLotPicker() {
+  const drugName = document.getElementById('dDrugSelect').value;
+  const section  = document.getElementById('lotPickerSection');
+  if (!drugName) { section.style.display = 'none'; return; }
+
+  const drug = (boxData?.drugs || []).find(d => d.drug_name === drugName);
+  if (!drug?.lots.length) { section.style.display = 'none'; return; }
+
+  section.style.display = 'block';
+  checkedLots[drugName] = [];
+
+  document.getElementById('lotPicker').innerHTML = drug.lots.map((lot, i) => `
+    <div class="lot-row" id="lp-row-${i}"
+         style="background:var(--surface);border-radius:11px;margin-bottom:7px;cursor:pointer;align-items:center"
+         onclick="toggleLotCheck('${drugName}','${lot.lot}','lc-${i}', ${lot.qty})">
+      <div class="lot-check" id="lc-${i}"></div>
+      <div class="lot-info" style="flex:1">
+        <div class="lot-id">LOT: ${lot.lot || '—'}</div>
+        <div class="lot-exp ${lot.status}">EXP: ${toBE(lot.exp_date)}${lot.status!=='ok' ? ` · เหลือ ${lot.days_left} วัน` : ''}</div>
+      </div>
+      <div style="display:flex;align-items:center;gap:8px;flex-shrink:0">
+        <input type="number" id="lq-${i}" value="1" min="1" max="${lot.qty}"
+               style="width:56px;background:var(--surface2);border:1px solid var(--border);color:var(--text);
+                      padding:6px 8px;border-radius:8px;font-size:14px;text-align:center;outline:none"
+               onclick="event.stopPropagation()"
+               oninput="updateLotQty('${drugName}','${lot.lot}',this.value)">
+        <span style="font-size:13px;color:var(--muted);white-space:nowrap">/ ${lot.qty} ${drug.unit}</span>
+      </div>
+    </div>
+  `).join('');
+}
+
+function toggleLotCheck(drugName, lot, checkId, maxQty) {
+  const el  = document.getElementById(checkId);
+  const arr = checkedLots[drugName] || (checkedLots[drugName] = []);
+  const idx = arr.findIndex(c => c.lot === lot);
+  // หา qty จาก input
+  const lotIndex = document.getElementById(checkId).closest('.lot-row')
+                            ?.querySelector('input[type="number"]');
+  const qty = lotIndex ? Number(lotIndex.value) || 1 : 1;
+
+  if (idx >= 0) {
+    arr.splice(idx, 1);
+    el.classList.remove('checked');
+  } else {
+    arr.push({ lot, qty });
+    el.classList.add('checked');
+  }
+}
+
+function updateLotQty(drugName, lot, value) {
+  const arr = checkedLots[drugName] || [];
+  const idx = arr.findIndex(c => c.lot === lot);
+  if (idx >= 0) arr[idx].qty = Number(value) || 1;
+}
+
+function submitDispense() {
+  const HN    = document.getElementById('dHN').value.trim();
+  const name  = document.getElementById('dName').value.trim();
+  const staff = document.getElementById('dStaff').value.trim();
+  if (!HN || !name || !selectedWard || !staff) return showToast('กรุณากรอกข้อมูลให้ครบ', 'err');
+
+  const items = [];
+  Object.entries(checkedLots).forEach(([drug, lots]) => {
+    lots.forEach(l => items.push({ drug_name: drug, lot: l.lot, qty: l.qty }));
+  });
+  if (!items.length) return showToast('กรุณาเลือกยาที่จ่ายอย่างน้อย 1 รายการ', 'err');
+
+  dispensePayload = { box_id: currentBoxId, HN, patient_name: name, ward_type: selectedWard, dispensed_by: staff, items };
+
+  document.getElementById('popupPatient').textContent = `ผู้ป่วย: ${name} (HN: ${HN}) · ${selectedWard}`;
+  document.getElementById('popupSummaryBox').innerHTML = items.map(item => {
+    const drug = (boxData?.drugs || []).find(d => d.drug_name === item.drug_name);
+    if (!drug) return '';
+    const today = new Date();
+
+    // valid qty หลังจ่ายออก (ไม่นับ expired)
+    let validQtyAfter = 0;
+    drug.lots.forEach(lot => {
+      const exp = new Date(lot.exp_date);
+      if (!lot.lot || isNaN(exp) || exp < today) return;
+      const dispensed = (lot.lot === item.lot) ? Number(item.qty) : 0;
+      validQtyAfter += Math.max(0, Number(lot.qty) - dispensed);
+    });
+
+    const need = Math.max(0, drug.max_qty - validQtyAfter);
+    return `<div class="summary-row">
+      <span>${item.drug_name} (LOT: ${item.lot})</span>
+      <span>จ่าย ${item.qty} → <strong>ต้องเติม ${need}</strong></span>
+    </div>`;
+  }).join('');
+
+  document.getElementById('popupDispense').classList.add('show');
+}
+
+async function confirmDispense() {
+  const btn = document.getElementById('popupConfirmBtn');
+  btn.textContent = 'กำลังบันทึก...'; btn.disabled = true;
+  try {
+    const data = await apiPost({ action: 'dispense', ...dispensePayload });
+    if (data.success) {
+      closePopup();
+      loadDetail();
+      showToast('✅ บันทึกการจ่ายยาแล้ว', 'ok');
+      switchTab('inv');
+      checkedLots = {};
+    } else showToast('เกิดข้อผิดพลาด: ' + data.error, 'err');
+  } catch(e) { showToast('เกิดข้อผิดพลาด', 'err'); }
+  finally { btn.textContent = '✓ ยืนยัน'; btn.disabled = false; }
+}
+
+// --- REFILL ---
+function renderRefillPreload() {
+  const container = document.getElementById('refillGroups');
+  if (!container) return;
+  container.innerHTML = '';
+  refillCount = 0;
+  unitCounters = {};
+  addRefillGroup(); // เริ่มว่าง 1 ช่อง ให้ user เลือกเอง
+}
+
+function addRefillGroup(presetDrug = '') {
+  refillCount++;
+  const gid = refillCount;
+  unitCounters[gid] = 1;
+  const drugOpts = (boxData?.drugs || []).map(d =>
+    `<option value="${d.drug_name}" ${d.drug_name === presetDrug ? 'selected' : ''}>${d.drug_name}</option>`
+  ).join('');
+
+  const div = document.createElement('div');
+  div.className = 'refill-group';
+  div.id = `rg-${gid}`;
+  div.innerHTML = `
+    <div class="refill-group-header">
+      <select class="rg-drug">
+        <option value="">— เลือกยา —</option>
+        ${drugOpts}
+      </select>
+      <button class="remove-item-btn" onclick="document.getElementById('rg-${gid}').remove()">✕</button>
+    </div>
+    <div class="refill-unit-label" style="display:grid;grid-template-columns:1fr 1fr 64px 28px;gap:8px;padding:0 2px">
+      <span>Lot</span>
+      <span>วันหมดอายุ</span>
+      <span style="text-align:center">จำนวน</span>
+      <span></span>
+    </div>
+    <div class="rg-units" id="rg-units-${gid}">
+      ${makeUnitRow(gid, 1)}
+    </div>
+    <button class="add-unit-btn" onclick="addUnitRow(${gid})">+ เพิ่มอีก 1 หน่วย</button>
+  `;
+  document.getElementById('refillGroups').appendChild(div);
+}
+
+let unitCounters = {};
+
+function makeUnitRow(gid, n) {
+  const uid = `rg-${gid}-u-${n}`;
+  return `
+    <div class="refill-unit-row" id="${uid}">
+      <input type="text" class="ru-lot" placeholder="Lot number">
+      <div class="date-input-wrap">
+        <input type="number" class="ru-dd" placeholder="DD" min="1" max="31"
+               oninput="autoAdvanceDate(this, 2, '${uid}', 'ru-mm')">
+        <span class="date-sep">/</span>
+        <input type="number" class="ru-mm" placeholder="MM" min="1" max="12"
+               oninput="autoAdvanceDate(this, 2, '${uid}', 'ru-yyyy')">
+        <span class="date-sep">/</span>
+        <input type="number" class="ru-yyyy" placeholder="YYYY" min="2020" max="2099"
+               oninput="limitDigits(this, 4)">
+        <input type="date" class="ru-exp-hidden" tabindex="-1" aria-hidden="true"
+               onchange="syncDateFromPicker(this, ${gid}, ${n})">
+        <button class="cal-btn" onclick="document.getElementById('${uid}').querySelector('.ru-exp-hidden').showPicker()" title="เลือกจากปฏิทิน">
+          📅
+        </button>
+      </div>
+      <input type="number" class="ru-qty" value="1" min="1" style="width:64px;background:var(--surface);border:1px solid var(--border);color:var(--text);padding:9px 8px;border-radius:10px;font-family:'IBM Plex Sans Thai Looped',sans-serif;font-size:14px;outline:none;text-align:center">
+      <button class="remove-unit-btn" onclick="removeUnitRow('${uid}', ${gid})">✕</button>
+    </div>`;
+}
+
+function autoAdvanceDate(input, maxLen, rowId, nextClass) {
+  // จำกัดความยาว
+  if (input.value.length > maxLen) input.value = input.value.slice(0, maxLen);
+  // auto-advance เมื่อครบ digit
+  if (input.value.length >= maxLen) {
+    const row  = document.getElementById(rowId);
+    const next = row?.querySelector('.' + nextClass);
+    if (next) { next.focus(); next.select(); }
+  }
+}
+
+function limitDigits(input, max) {
+  if (input.value.length > max) input.value = input.value.slice(0, max);
+}
+
+function syncDateFromPicker(input, gid, n) {
+  // รับค่าจาก hidden date picker → แปลงใส่ 3 ช่อง
+  const val = input.value; // YYYY-MM-DD
+  if (!val) return;
+  const [y, m, d] = val.split('-');
+  const row = document.getElementById(`rg-${gid}-u-${n}`);
+  row.querySelector('.ru-dd').value   = parseInt(d);
+  row.querySelector('.ru-mm').value   = parseInt(m);
+  row.querySelector('.ru-yyyy').value = y;
+}
+
+function getExpFromRow(row) {
+  // แปลง dd/mm/yyyy → YYYY-MM-DD สำหรับส่ง GAS
+  const dd   = String(row.querySelector('.ru-dd').value || '').padStart(2, '0');
+  const mm   = String(row.querySelector('.ru-mm').value || '').padStart(2, '0');
+  const yyyy = row.querySelector('.ru-yyyy').value || '';
+  if (!dd || !mm || !yyyy || yyyy.length < 4) return '';
+  return `${yyyy}-${mm}-${dd}`;
+}
+
+function addUnitRow(gid) {
+  unitCounters[gid] = (unitCounters[gid] || 1) + 1;
+  const n = unitCounters[gid];
+  document.getElementById(`rg-units-${gid}`)
+    .insertAdjacentHTML('beforeend', makeUnitRow(gid, n));
+}
+
+function removeUnitRow(rowId, gid) {
+  const el = document.getElementById(rowId);
+  const parent = document.getElementById(`rg-units-${gid}`);
+  if (parent && parent.querySelectorAll('.refill-unit-row').length > 1) {
+    el.remove();
+  } else {
+    showToast('ต้องมีอย่างน้อย 1 หน่วย', 'err');
+  }
+}
+
+async function submitRefill() {
+  const staff = document.getElementById('rStaff').value.trim();
+  if (!staff) return showToast('กรุณาเลือกเจ้าหน้าที่', 'err');
+
+  const items = [];
+  document.querySelectorAll('.refill-group').forEach(group => {
+    const drug = group.querySelector('.rg-drug').value;
+    if (!drug) return;
+    group.querySelectorAll('.refill-unit-row').forEach(row => {
+      const lot = row.querySelector('.ru-lot').value.trim();
+      const exp = getExpFromRow(row);
+      const qty = Number(row.querySelector('.ru-qty').value) || 1;
+      if (lot || exp) items.push({ drug_name: drug, lot, exp_date: exp, qty });
+    });
+  });
+
+  if (!items.length) return showToast('กรุณาเพิ่มรายการที่ต้องการเติม', 'err');
+
+  const btn = document.getElementById('detailActionBtn');
+  btn.textContent = 'กำลังบันทึก...'; btn.disabled = true;
+  try {
+    const data = await apiPost({ action: 'refill', box_id: currentBoxId, refilled_by: staff, items });
+    if (data.success) {
+      loadDetail();
+      showToast('✅ บันทึกการเติมยาแล้ว', 'ok');
+      switchTab('inv');
+    } else showToast('เกิดข้อผิดพลาด: ' + data.error, 'err');
+  } catch(e) { showToast('เกิดข้อผิดพลาด', 'err'); }
+  finally { btn.textContent = '✅ บันทึกการเติม'; btn.disabled = false; }
+}
+
+// ============================================================
+// EDIT LOT
+// ============================================================
+function openEditLotModal(drugName, lot, expDate, qty) {
+  document.getElementById('elDrug').value      = drugName;
+  document.getElementById('elOrigLot').value   = lot;
+  document.getElementById('elOrigExp').value   = expDate;
+  document.getElementById('elDrugName').value  = drugName;
+  document.getElementById('elLot').value       = lot;
+  document.getElementById('elQty').value       = qty;
+  // แปลง YYYY-MM-DD → DD MM YYYY
+  if (expDate) {
+    const [y, m, d] = expDate.split('-');
+    document.getElementById('elDd').value   = parseInt(d) || '';
+    document.getElementById('elMm').value   = parseInt(m) || '';
+    document.getElementById('elYyyy').value = y || '';
+  } else {
+    document.getElementById('elDd').value   = '';
+    document.getElementById('elMm').value   = '';
+    document.getElementById('elYyyy').value = '';
+  }
+  document.getElementById('modalEditLot').classList.add('show');
+}
+
+function syncEditLotDate() {
+  const val = document.getElementById('elExpPicker').value;
+  if (!val) return;
+  const [y, m, d] = val.split('-');
+  document.getElementById('elDd').value   = parseInt(d);
+  document.getElementById('elMm').value   = parseInt(m);
+  document.getElementById('elYyyy').value = y;
+}
+
+async function submitEditLot() {
+  const drug_name = document.getElementById('elDrug').value;
+  const orig_lot  = document.getElementById('elOrigLot').value;
+  const orig_exp  = document.getElementById('elOrigExp').value;
+  const new_lot   = document.getElementById('elLot').value.trim();
+  const qty       = Number(document.getElementById('elQty').value);
+  const dd   = String(document.getElementById('elDd').value || '').padStart(2,'0');
+  const mm   = String(document.getElementById('elMm').value || '').padStart(2,'0');
+  const yyyy = document.getElementById('elYyyy').value || '';
+  const new_exp = yyyy && mm && dd ? `${yyyy}-${mm}-${dd}` : '';
+
+  if (!new_lot) return showToast('กรุณากรอก Lot number', 'err');
+  if (!new_exp) return showToast('กรุณากรอกวันหมดอายุ', 'err');
+
+  try {
+    const data = await apiPost({
+      action: 'updateLot',
+      box_id: currentBoxId,
+      drug_name,
+      orig_lot,
+      orig_exp,
+      new_lot,
+      new_exp,
+      qty,
+    });
+    if (data.success) {
+      closeModal('modalEditLot');
+      loadDetail();
+      showToast('✅ แก้ไข Lot แล้ว', 'ok');
+    } else showToast('เกิดข้อผิดพลาด: ' + data.error, 'err');
+  } catch(e) { showToast('เกิดข้อผิดพลาด', 'err'); }
+}
+
+// ============================================================
+// REPORT
+// ============================================================
+// set default date range = 30 วันที่ผ่านมา
+function initReportDates() {
+  const to   = new Date();
+  const from = new Date(); from.setDate(from.getDate() - 30);
+  const fmt = d => d.toISOString().split('T')[0];
+  document.getElementById('rDateFrom').value = fmt(from);
+  document.getElementById('rDateTo').value   = fmt(to);
+}
+
+let reportData = null; // เก็บไว้สำหรับ export CSV
+
+async function loadReport() {
+  const dateFrom = document.getElementById('rDateFrom').value;
+  const dateTo   = document.getElementById('rDateTo').value;
+  loadAlertReport();
+  loadDrugRateReport(dateFrom, dateTo);
+  loadLeaderboard();
+}
+
+async function loadAlertReport() {
+  try {
+    const data = await apiGet({ action: 'getAlerts' });
+    const el = document.getElementById('rAlertList');
+    if (!data.alerts?.length) {
+      el.innerHTML = '<div style="color:var(--ok);padding:10px 0">✅ ไม่มียาใกล้หมดอายุ</div>';
+      return;
+    }
+    el.innerHTML = data.alerts.map(a => `
+      <div class="alert-row">
+        <div class="alert-dot ${a.level}"></div>
+        <div class="alert-info">
+          <div class="alert-drug">${a.drug_name}</div>
+          <div class="alert-meta">${a.box_label} · LOT: ${a.lot} · EXP: ${toBE(a.exp_date)}</div>
+        </div>
+        <div class="alert-days ${a.level}">${a.days_left <= 0 ? 'หมดแล้ว' : a.days_left + ' วัน'}</div>
+      </div>`).join('');
+  } catch(e) { document.getElementById('rAlertList').innerHTML = '<div style="color:var(--muted)">โหลดไม่ได้</div>'; }
+}
+
+async function loadDrugRateReport(dateFrom, dateTo) {
+  try {
+    const params = { action: 'getReport', type: 'drug_rate' };
+    if (dateFrom) params.date_from = dateFrom;
+    if (dateTo)   params.date_to   = dateTo;
+    const data = await apiGet(params);
+    reportData = data.report || [];
+
+    const el  = document.getElementById('rDrugRate');
+    const top = document.getElementById('rTop3');
+
+    if (!reportData.length) {
+      el.innerHTML  = '<div style="color:var(--muted)">ยังไม่มีข้อมูลการจ่ายยาในช่วงเวลานี้</div>';
+      top.innerHTML = '<div style="color:var(--muted)">—</div>';
+      document.getElementById('rErTotal').textContent = '0';
+      document.getElementById('rIpdTotal').textContent = '0';
+      return;
+    }
+
+    // ER/IPD total
+    const erTotal  = reportData.reduce((s,d) => s + Number(d.ER||0), 0);
+    const ipdTotal = reportData.reduce((s,d) => s + Number(d.IPD||0), 0);
+    document.getElementById('rErTotal').textContent  = erTotal;
+    document.getElementById('rIpdTotal').textContent = ipdTotal;
+
+    // Top 3
+    const top3 = [...reportData].sort((a,b) => b.total - a.total).slice(0, 3);
+    const medals = ['🥇','🥈','🥉'];
+    const podiumColors = ['#fbbf24','#9ca3af','#b45309'];
+    top.innerHTML = top3.map((d, i) => `
+      <div style="display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid var(--border)">
+        <div style="font-size:24px;width:36px;text-align:center">${medals[i]}</div>
+        <div style="flex:1">
+          <div style="font-size:15px;font-weight:700">${d.drug_name}</div>
+          <div style="font-size:12px;color:var(--muted);margin-top:2px">
+            <span style="color:var(--critical)">ER: ${d.ER||0}</span> · <span style="color:var(--accent)">IPD: ${d.IPD||0}</span>
+          </div>
+        </div>
+        <div style="font-family:'DM Sans';font-size:22px;font-weight:700;color:${podiumColors[i]}">${d.total}</div>
+      </div>`).join('');
+
+    // Drug rate bar chart
+    const max = reportData[0].total;
+    el.innerHTML = reportData.map((d, i) => `
+      <div class="drug-rate-row">
+        <div class="drug-rate-header">
+          <span class="drug-rate-name">${d.drug_name}</span>
+          <span class="drug-rate-count">${d.total} ครั้ง</span>
+        </div>
+        <div class="bar-track">
+          <div class="bar-fill" style="width:${max?(d.total/max*100):0}%;background:${COLORS[i%COLORS.length]}"></div>
+        </div>
+        <div class="bar-sub">
+          <span class="er-tag">ER: ${d.ER||0}</span>
+          <span class="ipd-tag">IPD: ${d.IPD||0}</span>
+        </div>
+      </div>`).join('');
+  } catch(e) { document.getElementById('rDrugRate').innerHTML = '<div style="color:var(--muted)">โหลดไม่ได้</div>'; }
+}
+
+async function loadLeaderboard() {
+  try {
+    const data = await apiGet({ action: 'getRefillBoard' });
+    const el   = document.getElementById('rLeader');
+    if (!data.leaderboard?.length) {
+      el.innerHTML = '<div style="color:var(--muted)">ยังไม่มีข้อมูล</div>';
+      return;
+    }
+    const board = data.leaderboard;
+    const maxQty = board[0].qty;
+    const medals = ['🥇','🥈','🥉'];
+    const trophyColors = {0:'#fbbf24', 1:'#9ca3af', 2:'#b45309'};
+
+    el.innerHTML = board.map((p, i) => {
+      const pct = maxQty ? (p.qty / maxQty * 100) : 0;
+      const isTop = i < 3;
+      return `
+      <div class="leader-row" style="${isTop ? 'background:rgba(255,255,255,0.02);border-radius:12px;padding:12px 8px;' : ''}">
+        <div class="leader-rank ${['gold','silver','bronze'][i]||''}" style="font-size:${isTop?'22px':'16px'}">
+          ${i < 3 ? medals[i] : `#${i+1}`}
+        </div>
+        <div style="flex:1">
+          <div class="leader-name">${p.name}</div>
+          <div style="margin-top:6px;height:6px;background:var(--surface2);border-radius:3px;overflow:hidden">
+            <div style="height:100%;width:${pct}%;background:${trophyColors[i]||'var(--accent)'};border-radius:3px;transition:width 0.8s ease"></div>
+          </div>
+        </div>
+        <div class="leader-count" style="text-align:right;min-width:80px">
+          <div><strong style="font-size:16px;color:var(--ok)">${p.qty}</strong> หน่วย</div>
+          <div style="font-size:11px;color:var(--muted)">${p.count} ครั้ง</div>
+        </div>
+      </div>`;
+    }).join('');
+  } catch(e) { document.getElementById('rLeader').innerHTML = '<div style="color:var(--muted)">โหลดไม่ได้</div>'; }
+}
+
+function exportCSV() {
+  if (!reportData?.length) return showToast('ยังไม่มีข้อมูล กรุณาดูรายงานก่อน', 'err');
+  const from = document.getElementById('rDateFrom').value;
+  const to   = document.getElementById('rDateTo').value;
+  const rows  = [['ชื่อยา','จำนวนรวม','ER','IPD']];
+  reportData.forEach(d => rows.push([d.drug_name, d.total, d.ER||0, d.IPD||0]));
+  const csv  = rows.map(r => r.join(',')).join('\n');
+  const blob = new Blob(['\uFEFF'+csv], { type: 'text/csv;charset=utf-8;' });
+  const url  = URL.createObjectURL(blob);
+  const a    = document.createElement('a');
+  a.href = url; a.download = `drug-report-${from}-to-${to}.csv`; a.click();
+  URL.revokeObjectURL(url);
+  showToast('✅ Export CSV แล้ว', 'ok');
+}
+
+// ============================================================
+// ADMIN
+// ============================================================
+async function loadAdmin() {
+  loadBoxList('hospital', 'adminBoxHospital');
+  loadBoxList('refer', 'adminBoxRefer');
+  loadDrugMaster('hospital', 'adminDrugHospital');
+  loadDrugMaster('refer', 'adminDrugRefer');
+}
+
+async function loadBoxList(category, elId) {
+  try {
+    const data = await apiGet({ action: 'getBoxes', category });
+    const el = document.getElementById(elId);
+    if (!el) return;
+    if (!data.boxes?.length) { el.innerHTML = '<div style="color:var(--muted);font-size:13px">ยังไม่มีกล่อง</div>'; return; }
+    el.innerHTML = data.boxes.map(b => `
+      <div class="drug-master-row">
+        <div style="flex:1">
+          <div class="drug-master-name">${b.label}</div>
+          <div class="drug-master-meta">ID: ${b.box_id}</div>
+        </div>
+        <button class="edit-btn" onclick="openEditBoxModal('${category}','${b.box_id}','${b.label}')">✏️</button>
+        <button class="delete-btn" onclick="deleteBox('${b.box_id}')">✕</button>
+      </div>`).join('');
+  } catch(e) { const el = document.getElementById(elId); if(el) el.innerHTML = '<div style="color:var(--muted)">โหลดไม่ได้</div>'; }
+}
+
+async function deleteBox(box_id) {
+  if (!confirm(`ลบกล่อง "${box_id}" ออกจากระบบ?\n(ข้อมูล inventory จะถูกลบด้วย)`)) return;
+  try {
+    const data = await apiPost({ action: 'removeBox', box_id });
+    if (data.success) { loadAdmin(); showToast('ลบกล่องแล้ว', 'ok'); }
+  } catch(e) { showToast('เกิดข้อผิดพลาด', 'err'); }
+}
+
+async function loadDrugMaster(category, elId) {
+  try {
+    const data = await apiGet({ action: 'getDrugs', category });
+    const el = document.getElementById(elId);
+    if (!data.drugs?.length) { el.innerHTML = '<div style="color:var(--muted);font-size:13px">ยังไม่มีรายการยา</div>'; return; }
+    el.innerHTML = data.drugs.map(d => {
+      const isHad = String(d.is_had).toLowerCase() === 'true';
+      return `
+      <div class="drug-master-row">
+        <div style="flex:1">
+          <div class="drug-master-name">
+            ${isHad ? '<span style="color:var(--critical);font-size:11px;font-weight:700;background:rgba(239,68,68,0.1);padding:1px 6px;border-radius:4px;margin-right:6px">HAD</span>' : ''}
+            ${d.drug_name}
+          </div>
+          <div class="drug-master-meta">${d.unit} · max ${d.max_qty}</div>
+        </div>
+        <button class="edit-btn" onclick="openEditDrugModal('${category}','${d.drug_name}','${d.unit}','${d.max_qty}','${String(d.is_had)}')">✏️</button>
+        <button class="delete-btn" onclick="deleteDrug('${category}','${d.drug_name}')">✕</button>
+      </div>`;
+    }).join('');
+  } catch(e) { document.getElementById(elId).innerHTML = '<div style="color:var(--muted)">โหลดไม่ได้</div>'; }
+}
+
+function openAddDrugModal(category) {
+  document.getElementById('adCategory').value = category;
+  document.getElementById('adEditMode').value = 'add';
+  document.getElementById('adOriginalName').value = '';
+  document.getElementById('adName').value = '';
+  document.getElementById('adName').disabled = false;
+  document.getElementById('adUnit').value = '';
+  document.getElementById('adMax').value  = '';
+  document.getElementById('adHad').checked = false;
+  document.getElementById('drugModalTitle').textContent = '💊 เพิ่มรายการยา';
+  document.getElementById('modalAddDrug').classList.add('show');
+}
+
+function openEditDrugModal(category, drug_name, unit, max_qty, is_had) {
+  document.getElementById('adCategory').value = category;
+  document.getElementById('adEditMode').value = 'edit';
+  document.getElementById('adOriginalName').value = drug_name;
+  document.getElementById('adName').value = drug_name;
+  document.getElementById('adName').disabled = true;
+  document.getElementById('adUnit').value = unit;
+  document.getElementById('adMax').value  = Number(max_qty) || '';
+  document.getElementById('adHad').checked = String(is_had).toLowerCase() === 'true';
+  document.getElementById('drugModalTitle').textContent = '✏️ แก้ไขรายการยา';
+  document.getElementById('modalAddDrug').classList.add('show');
+}
+
+async function submitAddDrug() {
+  const category  = document.getElementById('adCategory').value;
+  const editMode  = document.getElementById('adEditMode').value;
+  const drug_name = document.getElementById('adName').value.trim() || document.getElementById('adOriginalName').value;
+  const unit      = document.getElementById('adUnit').value;
+  const max_qty   = document.getElementById('adMax').value;
+  const is_had    = document.getElementById('adHad').checked ? 'true' : 'false';
+  if (!drug_name || !unit || !max_qty) return showToast('กรุณากรอกข้อมูลให้ครบ', 'err');
+  try {
+    const action = editMode === 'edit' ? 'updateDrug' : 'addDrug';
+    const data = await apiPost({ action, category, drug_name, unit, max_qty: Number(max_qty), is_had });
+    if (data.success) {
+      closeModal('modalAddDrug');
+      loadAdmin();
+      showToast(editMode === 'edit' ? '✅ แก้ไขแล้ว' : '✅ เพิ่มรายการยาแล้ว', 'ok');
+    } else showToast('เกิดข้อผิดพลาด', 'err');
+  } catch(e) { showToast('เกิดข้อผิดพลาด', 'err'); }
+}
+
+async function deleteDrug(category, drug_name) {
+  if (!confirm(`ลบ "${drug_name}" ออกจากรายการ ${category}?`)) return;
+  try {
+    const data = await apiPost({ action: 'removeDrug', category, drug_name });
+    if (data.success) { loadAdmin(); showToast('ลบแล้ว', 'ok'); }
+  } catch(e) { showToast('เกิดข้อผิดพลาด', 'err'); }
+}
+
+// ============================================================
+// MODAL / POPUP HELPERS
+// ============================================================
+function closeModal(id) { document.getElementById(id).classList.remove('show'); }
+function closePopup()   { document.getElementById('popupDispense').classList.remove('show'); }
+
+// ============================================================
+// INIT
+// ============================================================
+updateStaffBadge();
+initLanding();
+</script>
+</body>
+</html>
