@@ -2060,7 +2060,7 @@ function buildPharmPage(key) {
     const hasBackend = APPS_SCRIPT_URL && !APPS_SCRIPT_URL.includes('YOUR_APPS');
     if (key==='patients') {
       if (hasBackend) {
-        api('getPatients',{}).then(d=>{ if(d?.length) S.patients=d; renderPatients(); }).catch(()=>{ S.patients=[]; renderPatients(); });
+        api('getPatients',{}).then(d=>{ if(d?.length) S.patients=d; renderPatients(); populatePatientSelects(); }).catch(()=>{ S.patients=[]; renderPatients(); });
       } else { S.patients=[]; renderPatients(); }
     }
     if (key==='stock') {
@@ -2079,7 +2079,18 @@ function buildPharmPage(key) {
       else updateDashboardStats();
     }
     if (key==='dili') { setTimeout(calcDILI, 50); }
+    // Populate patient dropdowns in pharm pages
+    setTimeout(populatePatientSelects, 30);
   }, 10);
+}
+
+function populatePatientSelects() {
+  const opts = '<option value="">— เลือกผู้ป่วย —</option>' +
+    S.patients.map(p => `<option value="${p.patient_id}">${p.name} — HN ${p.hn}</option>`).join('');
+  ['dili-pt','lab-pt-sel','adr-pt-sel'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.innerHTML = opts;
+  });
 }
 
 /* ─── PHARMACIST TEMPLATES ─────────────────
@@ -2146,24 +2157,15 @@ patients: `
 alerts: `
 <div class="between mb12">
   <div class="ct" style="margin:0;font-size:14.5px"><span class="cd rd"></span>Alert เตรียมยา</div>
-  <span class="pill pill-rd">3 รายการ</span>
+  <span class="pill pill-mu" id="alert-count-badge">—</span>
 </div>
-<div style="display:flex;flex-direction:column;gap:8px;margin-bottom:16px">
-  <div class="al al-rd"><span>🚨</span><div><strong>นาย จ. ฉ.</strong> ขาดนัด 18 วัน — ต้องเริ่ม IP ใหม่</div></div>
-  <div class="al al-am"><span>⚡</span><div><strong>นาง ค. ง.</strong> ครบ 2M 01/06 — เปลี่ยน HRZE → HR + ตรวจเสมหะ</div></div>
-  <div class="al al-bl"><span>💊</span><div><strong>นาง ด. อ.</strong> นัด 06/06 — H×28, R×28, Z×56, E×56, B6×28</div></div>
+<div id="alerts-list" style="display:flex;flex-direction:column;gap:8px;margin-bottom:16px">
+  <div class="al al-g"><span>ℹ️</span><div>ข้อมูลจะแสดงเมื่อมีผู้ป่วยในระบบที่มีนัดสัปดาห์นี้</div></div>
 </div>
 <div class="card">
-  <div class="ct"><span class="cd"></span>รวมยาที่ต้องเตรียม — 06/06/2568</div>
-  <div style="overflow-x:auto">
-    <table class="tbl" style="min-width:380px">
-      <thead><tr><th>ผู้ป่วย</th><th>Visit</th><th>H 100</th><th>R 450</th><th>Z 500</th><th>E 400</th><th>B6 50</th></tr></thead>
-      <tbody>
-        <tr><td><div class="dn">นาง ค. ง.</div><div class="da">→CP</div></td><td><span class="pill pill-g" style="font-size:10.5px">V3</span></td><td>—</td><td>28</td><td>—</td><td>—</td><td>28</td></tr>
-        <tr><td><div class="dn">นาง ด. อ.</div></td><td><span class="pill pill-mu" style="font-size:10.5px">V2</span></td><td>—</td><td>28</td><td>56</td><td>56</td><td>28</td></tr>
-      </tbody>
-      <tfoot><tr><td colspan="2">รวม</td><td>—</td><td>56</td><td>56</td><td>56</td><td>56</td></tr></tfoot>
-    </table>
+  <div class="ct"><span class="cd"></span>รวมยาที่ต้องเตรียม</div>
+  <div id="alerts-drug-table" style="color:var(--tx3);font-size:13px;padding:12px 0;text-align:center">
+    ยังไม่มีข้อมูล
   </div>
 </div>`,
 
@@ -2172,12 +2174,12 @@ dili: `
   <div class="col">
     <div class="card">
       <div class="ct"><span class="cd rd"></span>🚦 DILI Decision Tool <span style="font-size:11px;color:var(--tx3);font-weight:400;margin-left:4px">NTP 2564</span></div>
-      <div class="fg"><label>ผู้ป่วย</label><select id="dili-pt"><option>นาย ก. ข. — HN 12345678</option><option>นาง ค. ง. — HN 87654321</option></select></div>
+      <div class="fg"><label>ผู้ป่วย</label><select id="dili-pt"><option value="">— เลือกผู้ป่วย —</option></select></div>
       <div class="g2" style="gap:9px">
-        <div class="fg"><label>AST (U/L)</label><input type="number" id="d-ast" value="58" oninput="calcDILI()"></div>
-        <div class="fg"><label>ALT (U/L)</label><input type="number" id="d-alt" value="112" oninput="calcDILI()"></div>
-        <div class="fg"><label>T.Bili (mg/dL)</label><input type="number" id="d-bili" value="1.0" step="0.1" oninput="calcDILI()"></div>
-        <div class="fg"><label>ULN (U/L)</label><input type="number" id="d-uln" value="45" oninput="calcDILI()"></div>
+        <div class="fg"><label>AST (U/L)</label><input type="number" id="d-ast" placeholder="28" oninput="calcDILI()"></div>
+        <div class="fg"><label>ALT (U/L)</label><input type="number" id="d-alt" placeholder="22" oninput="calcDILI()"></div>
+        <div class="fg"><label>T.Bili (mg/dL)</label><input type="number" id="d-bili" placeholder="0.8" step="0.1" oninput="calcDILI()"></div>
+        <div class="fg"><label>ULN (U/L)</label><input type="number" id="d-uln" placeholder="45" oninput="calcDILI()"></div>
       </div>
       <div class="fg"><label>อาการ</label>
         <div class="chips" id="chips-sym">
@@ -2195,14 +2197,14 @@ dili: `
   <div class="card">
     <div class="ct"><span class="cd rd"></span>⏱️ Hold Counter <span style="font-size:11px;color:var(--tx3);font-weight:400;margin-left:4px">แผนภูมิ 5.1</span></div>
     <div class="hold-counter">
-      <div class="hold-label">สถานะ — นาย ก. ข.</div>
-      <div class="hold-days">Hold มาแล้ว 16 วัน</div>
-      <div class="hold-sub">หยุดยา 16/04/2568 · Phase IP เดือน 1</div>
+      <div class="hold-label">สถานะ</div>
+      <div class="hold-days">เลือกผู้ป่วยที่ hold ยาอยู่</div>
+      <div class="hold-sub">กรอก AST/ALT แล้วกด วิเคราะห์</div>
     </div>
     <div class="al al-rd mb12"><span>⚠️</span><div>≥14 วันใน IP → <strong>ต้องเริ่มนับ IP Day 1 ใหม่</strong> (NTP 2564)</div></div>
     <div class="tl">
       <div class="tli"><div class="tld g">D1</div><div class="tlc"><div class="tlt">เริ่มยา 2HRZE</div><div class="tld8">01/04/2568</div></div></div>
-      <div class="tli"><div class="tld am">16d</div><div class="tlc"><div class="tlt">Hold H+R+Z</div><div class="tls">ALT 2.5× ULN + คลื่นไส้</div><div class="tld8 am">16/04/2568</div></div></div>
+
       <div class="tli"><div class="tld bl">Br</div><div class="tlc"><div class="tlt">Bridge E+Lfx+Am</div><div class="tld8" style="color:var(--blue)">รอ LFT &lt;2× ULN</div></div></div>
       <div class="tli"><div class="tld">RC</div><div class="tlc"><div class="tlt" style="color:var(--tx3)">Re-challenge H→R→Z</div><div class="tld8 mu">ยังไม่ถึง</div></div></div>
     </div>
@@ -2217,7 +2219,7 @@ lab: `
 <div class="g2" style="gap:16px">
   <div class="card">
     <div class="ct"><span class="cd bl"></span>บันทึกผล Lab</div>
-    <div class="fg"><label>ผู้ป่วย</label><select><option>นาย ก. ข. — HN 12345678</option><option>นาง ค. ง. — HN 87654321</option></select></div>
+    <div class="fg"><label>ผู้ป่วย</label><select id="lab-pt-sel"><option value="">— เลือกผู้ป่วย —</option></select></div>
     <div class="g2" style="gap:9px"><div class="fg"><label>วันที่เจาะ</label><input type="date" id="lab-date"></div><div class="fg"><label>Visit</label><select><option>ก่อนยา</option><option>2w</option><option>1M</option><option>2M</option><option>5M</option><option>6M</option></select></div></div>
     <div class="divider"></div>
     <div style="font-size:12px;font-weight:700;color:var(--tx2);margin-bottom:8px">ตับ</div>
@@ -2246,22 +2248,13 @@ lab: `
   </div>
   <div class="col">
     <div class="card">
-      <div class="ct"><span class="cd bl"></span>ค่า Lab ล่าสุด — นาย ก. ข.</div>
-      <div style="display:flex;flex-direction:column">
-        <div style="display:flex;align-items:center;padding:9px 0;border-bottom:1px solid var(--bd);gap:10px"><div style="min-width:80px;font-weight:600;font-size:13px">AST</div><div style="font-family:var(--font-en);font-size:16px;font-weight:700;color:var(--warn);min-width:55px">58</div><div style="font-size:11px;color:var(--tx3);flex:1">U/L · &lt;40</div><span class="spark-flag flag-warn">↑ WARN</span></div>
-        <div style="display:flex;align-items:center;padding:9px 0;border-bottom:1px solid var(--bd);gap:10px"><div style="min-width:80px;font-weight:600;font-size:13px">ALT</div><div style="font-family:var(--font-en);font-size:16px;font-weight:700;color:var(--red);min-width:55px">112</div><div style="font-size:11px;color:var(--tx3);flex:1">U/L · &lt;45</div><span class="spark-flag flag-hihi">↑↑ HIGH</span></div>
-        <div style="display:flex;align-items:center;padding:9px 0;border-bottom:1px solid var(--bd);gap:10px"><div style="min-width:80px;font-weight:600;font-size:13px">Cr</div><div style="font-family:var(--font-en);font-size:16px;font-weight:700;color:var(--g4);min-width:55px">0.9</div><div style="font-size:11px;color:var(--tx3);flex:1">mg/dL · 0.7–1.2</div><span class="spark-flag flag-ok">Normal</span></div>
-        <div style="display:flex;align-items:center;padding:9px 0;gap:10px"><div style="min-width:80px;font-weight:600;font-size:13px">eGFR</div><div style="font-family:var(--font-en);font-size:16px;font-weight:700;color:var(--g4);min-width:55px">78</div><div style="font-size:11px;color:var(--tx3);flex:1">mL/min</div><span class="spark-flag flag-ok">Normal</span></div>
-      </div>
-      <div class="al al-rd mt10"><span>⚠️</span><div>ALT 2.5× ULN → <a href="#" onclick="goPage('dili');return false" style="color:var(--red);font-weight:700">ดู DILI Engine →</a></div></div>
+      <div class="ct"><span class="cd bl"></span>ค่า Lab ล่าสุด</div>
+      <div style="color:var(--tx3);font-size:13px;padding:12px 0;text-align:center">เลือกผู้ป่วยแล้วบันทึก Lab เพื่อดูค่าล่าสุด</div>
     </div>
     <div class="card">
       <div class="ct"><span class="cd pu"></span>Trend ALT</div>
-      <div class="between mb8">
-        <div style="font-size:12px;font-weight:600;color:var(--tx2)">ALT (U/L)</div>
-        <div style="font-size:11.5px;color:var(--red);font-weight:700">↑ 112 ล่าสุด</div>
-      </div>
-      <svg viewBox="0 0 300 65" width="100%" style="display:block;overflow:visible">
+      <div id="lab-trend-area" style="color:var(--tx3);font-size:13px;padding:12px 0;text-align:center">บันทึกผล Lab เพื่อดู trend</div>
+      <svg viewBox="0 0 300 65" width="100%" style="display:none;overflow:visible" id="lab-trend-svg">
         <line x1="0" y1="38" x2="300" y2="38" stroke="var(--bd)" stroke-width="1" stroke-dasharray="4,3"/>
         <text x="2" y="36" font-size="9" fill="var(--tx3)" font-family="IBM Plex Sans Thai Looped,sans-serif">ULN 45</text>
         <polygon points="0,60 55,58 110,55 168,46 228,28 280,18 300,60" fill="rgba(185,28,28,.08)"/>
@@ -2287,7 +2280,7 @@ adr: `
 <div class="g2" style="gap:16px">
   <div class="card">
     <div class="ct"><span class="cd rd"></span>บันทึก ADR / ขาดยา</div>
-    <div class="fg"><label>ผู้ป่วย</label><select><option>นาย ก. ข. — HN 12345678</option><option>นาย จ. ฉ. — HN 11112222</option></select></div>
+    <div class="fg"><label>ผู้ป่วย</label><select id="adr-pt-sel"><option value="">— เลือกผู้ป่วย —</option></select></div>
     <div class="fg"><label>ประเภท</label><div class="chips" id="chips-ev"><div class="chip on" onclick="sc(this,'chips-ev')">ADR</div><div class="chip" onclick="sc(this,'chips-ev')">ขาดนัด</div><div class="chip" onclick="sc(this,'chips-ev')">Hold ยา</div></div></div>
     <div class="fg"><label>ยาที่สงสัย</label><div class="chips"><div class="chip on" onclick="this.classList.toggle('on')">Z</div><div class="chip" onclick="this.classList.toggle('on')">H</div><div class="chip" onclick="this.classList.toggle('on')">R</div><div class="chip" onclick="this.classList.toggle('on')">E</div></div></div>
     <div class="fg"><label>อาการ</label><div class="chips"><div class="chip on" onclick="this.classList.toggle('on')">ตาเหลือง</div><div class="chip" onclick="this.classList.toggle('on')">คลื่นไส้</div><div class="chip" onclick="this.classList.toggle('on')">ปวดข้อ</div><div class="chip" onclick="this.classList.toggle('on')">ผื่น</div><div class="chip" onclick="this.classList.toggle('on')">ตามัว</div></div></div>
@@ -2302,8 +2295,7 @@ adr: `
     <table class="tbl" style="font-size:12.5px">
       <thead><tr><th>ผู้ป่วย</th><th>วันที่</th><th>ประเภท</th><th>ระดับ</th><th>สถานะ</th></tr></thead>
       <tbody>
-        <tr><td>นาย ก. ข.</td><td>16/04</td><td>DILI (Z)</td><td><span class="pill pill-am" style="font-size:10.5px">G2</span></td><td><span class="pill pill-am" style="font-size:10.5px">ติดตาม</span></td></tr>
-        <tr><td>นาย จ. ฉ.</td><td>15/03</td><td>ขาดนัด 18d</td><td>—</td><td><span class="pill pill-rd" style="font-size:10.5px">ยังไม่ติดต่อ</span></td></tr>
+        <tr><td colspan="5" style="text-align:center;color:var(--tx3)">ยังไม่มีข้อมูล</td></tr>
       </tbody>
     </table>
   </div>
@@ -2337,7 +2329,7 @@ stock: `
       <div class="fg"><label>แหล่งที่มา</label><input type="text" placeholder="คลังจังหวัด"></div>
       <button class="btn btn-g btn-full mt8" onclick="toast('บันทึก stock สำเร็จ')">💾 บันทึก</button>
     </div>
-    <div class="al al-rd"><span>⚠️</span><div><strong>E 400mg เหลือ 120</strong> ต่ำกว่า min (200) ควรสั่งเพิ่ม</div></div>
+    <div id="stock-alert-area"></div>
   </div>
 </div>`,
 
