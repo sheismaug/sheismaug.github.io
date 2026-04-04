@@ -1,0 +1,475 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<title>sheisphere — pharmacy digital tools</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@700;800;900&family=Google+Sans:wght@400;500;700&family=Noto+Sans+Thai:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+
+body{
+  font-family:'Google Sans','Noto Sans Thai',sans-serif;
+  background:#fff;
+  color:#0D0D0D;
+  min-height:100vh;
+}
+
+/* ── TOPBAR ── */
+.topbar{
+  background:#0D0D0D;
+  padding:13px 32px;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+}
+.logo{
+  font-family:'Montserrat',sans-serif;
+  font-size:18px;
+  font-weight:900;
+  color:#fff;
+  letter-spacing:-0.03em;
+  display:inline-flex;
+  align-items:baseline;
+  line-height:1;
+  text-decoration:none;
+}
+.logo-dot{
+  display:inline-block;
+  width:0.42em;height:0.42em;
+  border-radius:50%;
+  background:#fff;
+  position:relative;top:-0.06em;
+}
+.logo-dot::after{
+  content:'';position:absolute;
+  bottom:-0.28em;left:50%;
+  transform:translateX(-50%);
+  width:100%;height:2.5px;
+  background:#F5C800;border-radius:1px;
+}
+.logo-p{display:inline-block;}
+.topbar-right{
+  font-family:'Google Sans',sans-serif;
+  font-size:10px;
+  color:rgba(255,255,255,0.3);
+  letter-spacing:0.08em;
+  text-transform:uppercase;
+}
+
+/* ── HERO ── */
+.hero{padding:36px 32px 28px;}
+.hero-bio{
+  font-family:'Google Sans','Noto Sans Thai',sans-serif;
+  font-size:12px;color:#bbb;
+  line-height:1.7;margin-top:10px;
+}
+.bio-email{
+  color:#bbb;font-weight:400;
+  border-bottom:1px solid #ddd;
+  text-decoration:none;
+}
+.bio-email:hover{color:#888;border-color:#bbb;}
+.hero-row{
+  display:flex;
+  align-items:flex-start;
+  justify-content:space-between;
+  flex-wrap:wrap;
+  gap:16px;
+}
+.hero-name{
+  font-family:'Montserrat',sans-serif;
+  font-size:clamp(38px,8vw,60px);
+  font-weight:900;
+  line-height:0.92;
+  letter-spacing:-0.035em;
+  color:#0D0D0D;
+}
+.hero-stats{display:flex;gap:10px;}
+.stat{
+  background:#F5F5F5;
+  border-radius:14px;
+  padding:12px 18px;
+  text-align:center;
+  min-width:76px;
+}
+.stat-n{
+  font-family:'Montserrat',sans-serif;
+  font-size:22px;font-weight:700;
+  color:#0D0D0D;line-height:1;
+}
+.stat-l{
+  font-family:'Google Sans',sans-serif;
+  font-size:10px;color:#999;
+  margin-top:4px;letter-spacing:0.04em;
+}
+.stat.accent{background:#F5C800;}
+.stat.accent .stat-n,.stat.accent .stat-l{color:#0D0D0D;}
+
+/* ── FILTER BAR ── */
+.filter-bar{
+  padding:14px 32px;
+  display:flex;align-items:center;
+  gap:8px;flex-wrap:wrap;
+  border-top:1px solid #F0F0F0;
+  border-bottom:1px solid #F0F0F0;
+}
+.filter-lbl{
+  font-family:'Google Sans',sans-serif;
+  font-size:10px;font-weight:700;
+  letter-spacing:0.16em;text-transform:uppercase;
+  color:#bbb;margin-right:4px;
+}
+.chip{
+  display:inline-flex;align-items:center;gap:6px;
+  padding:7px 16px;border-radius:99px;
+  border:1.5px solid #E5E5E5;background:#fff;
+  font-family:'Google Sans',sans-serif;
+  font-size:12px;font-weight:600;color:#888;
+  cursor:pointer;transition:all 0.15s;user-select:none;
+}
+.chip:hover{border-color:#ccc;color:#333;}
+.chip.active{background:#F5C800;border-color:#F5C800;color:#0D0D0D;}
+.dot-chip{width:7px;height:7px;border-radius:50%;flex-shrink:0;}
+.dot-green{background:#22c55e;}
+.dot-amber{background:#f59e0b;}
+.dot-blue{background:#3b82f6;}
+.dot-purple{background:#a855f7;}
+.dot-teal{background:#14b8a6;}
+.search-wrap{margin-left:auto;}
+.search{
+  display:inline-flex;align-items:center;gap:7px;
+  background:#F5F5F5;border:1px solid #EBEBEB;
+  border-radius:10px;padding:7px 14px;
+  font-family:'Google Sans',sans-serif;
+  font-size:12px;color:#aaa;
+}
+.search svg{width:13px;height:13px;opacity:0.5;flex-shrink:0;}
+
+/* ── GRID ── */
+.grid-area{padding:24px 32px 48px;}
+.sec-head{display:flex;align-items:center;gap:10px;margin-bottom:16px;}
+.sec-lbl{
+  font-family:'Google Sans',sans-serif;
+  font-size:10px;font-weight:700;
+  letter-spacing:0.18em;text-transform:uppercase;color:#bbb;
+}
+.sec-badge{
+  font-family:'Google Sans',sans-serif;
+  font-size:9px;font-weight:700;
+  padding:3px 10px;border-radius:99px;letter-spacing:0.06em;
+}
+.badge-open{background:#dcfce7;color:#15803d;}
+.badge-lock{background:#fef3c7;color:#92400e;}
+.sec-line{flex:1;height:1px;background:#F0F0F0;}
+
+.cards{
+  display:grid;
+  grid-template-columns:repeat(auto-fill,minmax(200px,1fr));
+  gap:14px;margin-bottom:32px;
+}
+.card{
+  background:#fff;
+  border:2px solid #0D0D0D;
+  border-radius:20px;padding:22px;
+  cursor:pointer;
+  display:flex;flex-direction:column;
+  min-height:210px;
+  position:relative;overflow:hidden;
+  transition:transform 0.18s,box-shadow 0.18s;
+  text-decoration:none;color:inherit;
+}
+.card::before{
+  content:'';position:absolute;inset:0;
+  background:#F5C800;opacity:0;
+  transition:opacity 0.18s;z-index:0;
+}
+.card:hover{transform:translateY(-4px);box-shadow:0 12px 32px rgba(0,0,0,0.10);}
+.card:hover::before{opacity:1;}
+.card>*{position:relative;z-index:1;}
+.card:hover .cico{background:#0D0D0D;color:#fff;}
+.card:hover .carr{background:#0D0D0D;color:#fff;border-color:#0D0D0D;}
+
+.cnum{
+  font-family:'Google Sans',sans-serif;
+  font-size:10px;font-weight:700;
+  color:#ccc;letter-spacing:0.14em;margin-bottom:14px;
+}
+.cico{
+  width:40px;height:40px;border-radius:11px;
+  background:#F5F5F5;color:#0D0D0D;
+  display:flex;align-items:center;justify-content:center;
+  margin-bottom:12px;transition:all 0.18s;
+}
+.cico svg{width:19px;height:19px;}
+.ctag{
+  font-family:'Google Sans',sans-serif;
+  font-size:9px;font-weight:700;
+  letter-spacing:0.1em;text-transform:uppercase;
+  color:#aaa;margin-bottom:5px;display:block;
+}
+.cname{
+  font-family:'Montserrat',sans-serif;
+  font-size:16px;font-weight:800;
+  color:#0D0D0D;margin-bottom:6px;
+  line-height:1.2;letter-spacing:-0.01em;
+}
+.cdesc{
+  font-family:'Google Sans','Noto Sans Thai',sans-serif;
+  font-size:12px;color:#555;
+  line-height:1.65;flex:1;margin-bottom:12px;
+}
+.cfoot{display:flex;align-items:center;justify-content:space-between;margin-top:auto;}
+.cbadge{
+  font-family:'Google Sans',sans-serif;
+  font-size:9px;font-weight:700;
+  padding:3px 9px;border-radius:99px;letter-spacing:0.05em;
+}
+.cbadge.open{background:#dcfce7;color:#15803d;}
+.cbadge.lock{background:#fef3c7;color:#92400e;}
+.carr{
+  width:30px;height:30px;border-radius:50%;
+  background:#F5F5F5;border:1.5px solid #E0E0E0;
+  color:#0D0D0D;
+  display:flex;align-items:center;justify-content:center;
+  transition:all 0.18s;
+}
+.carr svg{width:13px;height:13px;}
+
+/* ── FOOTER ── */
+.foot-bar{
+  background:#0D0D0D;padding:16px 32px;
+  display:flex;align-items:center;justify-content:space-between;
+}
+.flogo{
+  font-family:'Montserrat',sans-serif;
+  font-size:16px;font-weight:900;color:#fff;
+  letter-spacing:-0.03em;
+  display:inline-flex;align-items:baseline;line-height:1;
+}
+.flogo-dot{
+  display:inline-block;
+  width:0.42em;height:0.42em;
+  border-radius:50%;background:#fff;
+  position:relative;top:-0.06em;
+}
+.flogo-dot::after{
+  content:'';position:absolute;
+  bottom:-0.28em;left:50%;
+  transform:translateX(-50%);
+  width:100%;height:2.5px;
+  background:#F5C800;border-radius:1px;
+}
+.flogo-p{display:inline-block;}
+.fcontact{text-align:center;}
+.fcontact-name{font-family:'Google Sans',sans-serif;font-size:12px;font-weight:600;color:rgba(255,255,255,0.6);}
+.fcontact-sub{font-family:'Google Sans',sans-serif;font-size:11px;color:rgba(255,255,255,0.3);margin-top:2px;}
+.fcontact-email{font-family:'Google Sans',sans-serif;font-size:11px;color:rgba(255,255,255,0.35);text-decoration:none;border-bottom:1px solid rgba(255,255,255,0.15);margin-top:4px;display:inline-block;}
+.fcontact-email:hover{color:rgba(255,255,255,0.6);}
+.cclicks{display:flex;align-items:center;gap:4px;font-family:'Google Sans',sans-serif;font-size:9px;color:#aaa;font-weight:600;letter-spacing:0.06em;text-transform:uppercase;}
+.cclicks svg{width:10px;height:10px;flex-shrink:0;}
+.card:hover .cclicks{color:rgba(0,0,0,0.35);}
+.fright{
+  font-family:'Google Sans',sans-serif;
+  font-size:10px;color:rgba(255,255,255,0.25);letter-spacing:0.06em;
+}
+
+/* ── RESPONSIVE ── */
+@media(max-width:600px){
+  .hero,.grid-area,.filter-bar,.topbar,.foot-bar{padding-left:20px;padding-right:20px;}
+  .cards{grid-template-columns:1fr;}
+  .search-wrap{display:none;}
+}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="logo">sheis<span class="logo-dot"></span><span class="logo-p">p</span>here</div>
+  <div class="topbar-right">pharmacy digital tools</div>
+</div>
+
+<div class="hero">
+  <div class="hero-row">
+    <div>
+      <div class="hero-name">pharmacy<br>tools</div>
+    </div>
+    <div class="hero-stats">
+      <div class="stat accent"><div class="stat-n">7</div><div class="stat-l">Live Apps</div></div>
+      <div class="stat"><div class="stat-n">3</div><div class="stat-l">Open Access</div></div>
+      <div class="stat"><div class="stat-n" id="clk">--:--</div><div class="stat-l">เวลาปัจจุบัน</div></div>
+    </div>
+  </div>
+</div>
+
+<div class="filter-bar">
+  <span class="filter-lbl">กรอง</span>
+  <div class="chip active" data-filter="all">ทั้งหมด</div>
+  <div class="chip" data-filter="open"><span class="dot-chip dot-green"></span>Open Access</div>
+  <div class="chip" data-filter="lock"><span class="dot-chip dot-amber"></span>Requires Password</div>
+  <div class="chip" data-filter="nursing"><span class="dot-chip dot-blue"></span>Nursing</div>
+  <div class="chip" data-filter="clinical"><span class="dot-chip dot-purple"></span>Clinical</div>
+  <div class="search-wrap">
+    <div class="search">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+      ค้นหา app...
+    </div>
+  </div>
+</div>
+
+<div class="grid-area">
+  <div class="sec-head" id="open-head">
+    <div class="sec-lbl">Open Access</div>
+    <span class="sec-badge badge-open">ใช้งานได้เลย</span>
+    <div class="sec-line"></div>
+  </div>
+  <div class="cards" id="open-cards">
+    <a class="card" href="iv_calculator.html" data-cat="open nursing">
+      <div class="cnum">01</div>
+      <div class="cico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M8 2h8l1 6H7L8 2z"/><path d="M7 8v12a1 1 0 001 1h8a1 1 0 001-1V8"/><line x1="12" y1="12" x2="12" y2="17"/><line x1="9.5" y1="14.5" x2="14.5" y2="14.5"/></svg></div>
+      <span class="ctag">Nursing · IV Fluid</span>
+      <div class="cname">IV Drip Calculator</div>
+      <div class="cdesc">คำนวณเวลาน้ำเกลือหมดแบบ real-time พร้อม progress bar อัปเดตอัตโนมัติ</div>
+      <div class="cfoot"><span class="cclicks"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg><span id="v-iv">—</span> views</span><div class="carr"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg></div></div>
+    </a>
+    <a class="card" href="tb-pharm.html" data-cat="open clinical">
+      <div class="cnum">02</div>
+      <div class="cico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2C8 2 5 5 5 9c0 5 7 13 7 13s7-8 7-13c0-4-3-7-7-7z"/><circle cx="12" cy="9" r="2.5"/></svg></div>
+      <span class="ctag">Pharmacy · Tuberculosis</span>
+      <div class="cname">TB Pharm</div>
+      <div class="cdesc">คำนวณยาวัณโรค สูตร NTP 2564 ปฏิทิน DOT ติดตามผล Lab DILI Engine และ stock ยา TB</div>
+      <div class="cfoot"><span class="cclicks"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg><span id="v-tbpharm">—</span> views</span><div class="carr"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg></div></div>
+    </a>
+    <a class="card" href="shift-swap-excel-diff.html" data-cat="open">
+      <div class="cnum">03</div>
+      <div class="cico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M7 16V4m0 0L3 8m4-4l4 4"/><path d="M17 8v12m0 0l4-4m-4 4l-4-4"/></svg></div>
+      <span class="ctag">Pharmacy · Scheduling</span>
+      <div class="cname">Shift Swap Form</div>
+      <div class="cdesc">สร้างใบแลกเปลี่ยนเวรอัตโนมัติ อัปโหลดตารางเวร Excel 2 ไฟล์ ระบบ diff และ auto-fill ใบพิมพ์ A4</div>
+      <div class="cfoot"><span class="cclicks"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg><span id="v-shiftswap">—</span> views</span><div class="carr"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg></div></div>
+    </a>
+  </div>
+
+  <div class="sec-head" id="lock-head">
+    <div class="sec-lbl">Requires Login</div>
+    <span class="sec-badge badge-lock">ต้องใช้รหัสผ่าน</span>
+    <div class="sec-line"></div>
+  </div>
+  <div class="cards" id="lock-cards">
+    <a class="card" href="narcotic_log_sheets.html" data-cat="lock clinical">
+      <div class="cnum">04</div>
+      <div class="cico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 3H5a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2V5a2 2 0 00-2-2h-4"/><path d="M9 3a2 2 0 004 0"/><path d="M12 12v4M10 14h4"/></svg></div>
+      <span class="ctag">Pharmacy · Narcotic</span>
+      <div class="cname">Narcotic Drug Log</div>
+      <div class="cdesc">บันทึกการจ่ายยาควบคุม ติดตามคลังยา dashboard real-time เชื่อมต่อ Google Sheets</div>
+      <div class="cfoot"><span class="cclicks"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg><span id="v-narcotic">—</span> views</span><div class="carr"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg></div></div>
+    </a>
+    <a class="card" href="med_error.html" data-cat="lock clinical">
+      <div class="cnum">05</div>
+      <div class="cico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg></div>
+      <span class="ctag">Pharmacy · Safety</span>
+      <div class="cname">Med Error Report</div>
+      <div class="cdesc">บันทึกและวิเคราะห์ความคลาดเคลื่อนทางยา dashboard real-time พร้อม trend & intervention</div>
+      <div class="cfoot"><span class="cclicks"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg><span id="v-mederr">—</span> views</span><div class="carr"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg></div></div>
+    </a>
+    <a class="card" href="emergency_box.html" data-cat="lock clinical">
+      <div class="cnum">06</div>
+      <div class="cico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="3"/><path d="M12 8v8M8 12h8"/></svg></div>
+      <span class="ctag">Pharmacy · Emergency</span>
+      <div class="cname">Emergency Box</div>
+      <div class="cdesc">ติดตามและเติมยา Emergency Box แต่ละหน่วยงาน พร้อมระบบตรวจสอบ real-time</div>
+      <div class="cfoot"><span class="cclicks"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg><span id="v-emergency">—</span> views</span><div class="carr"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg></div></div>
+    </a>
+    <a class="card" href="ERmedcart.html" data-cat="lock clinical nursing">
+      <div class="cnum">07</div>
+      <div class="cico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a2 2 0 00-2-2h-4a2 2 0 00-2 2v2"/><line x1="12" y1="12" x2="12" y2="16"/><line x1="10" y1="14" x2="14" y2="14"/></svg></div>
+      <span class="ctag">Pharmacy · ER Night Shift</span>
+      <div class="cname">ER Med Cart</div>
+      <div class="cdesc">ติดตามรถยาเวรดึก ตรวจนับยา บันทึก Med Error และภาระงานเภสัช เชื่อมต่อ Google Sheets</div>
+      <div class="cfoot"><span class="cclicks"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg><span id="v-ermedcart">—</span> views</span><div class="carr"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg></div></div>
+    </a>
+  </div>
+
+  <div id="empty-msg" style="display:none;text-align:center;padding:48px 0;color:#bbb;font-size:14px;font-family:'Google Sans',sans-serif;">ไม่พบ app ในหมวดนี้</div>
+</div>
+
+<div class="foot-bar">
+  <div class="flogo">sheis<span class="flogo-dot"></span><span class="flogo-p">p</span>here</div>
+  <div class="fcontact">
+    <div class="fcontact-name">Kannika Santipanichwong</div>
+    <div class="fcontact-sub">Pharmacist · Huaiphueng Hospital</div>
+    <a class="fcontact-email" href="mailto:sheismaug@gmail.com">sheismaug@gmail.com</a>
+  </div>
+  <div class="fright">pharmacy digital tools &middot; &copy; 2026 All rights reserved</div>
+</div>
+
+<script>
+const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxTtFx4xqqYE-qUULiIoZL7QXOtn92zv6fx_um6ZMsPZKlva5ot-wgm7VRiC5DDR28J/exec';
+
+function showClicks(d){
+  if(d.ok){
+    const ids=['iv','narcotic','mederr','emergency','ermedcart','tbpharm','shiftswap'];
+    ids.forEach(app=>{
+      const el=document.getElementById('v-'+app);
+      if(el) el.textContent=(d[app]||0).toLocaleString();
+    });
+  }
+}
+function loadClicks(){
+  const s=document.createElement('script');
+  s.src=SCRIPT_URL+'?action=getClicks&callback=showClicks&t='+Date.now();
+  document.head.appendChild(s);
+}
+function recordClick(app){
+  const s=document.createElement('script');
+  s.src=SCRIPT_URL+'?action=addClick&app='+app+'&callback=showClicks&t='+Date.now();
+  document.head.appendChild(s);
+}
+
+document.querySelector('[href="iv_calculator.html"]').addEventListener('click',()=>recordClick('iv'));
+document.querySelector('[href="narcotic_log_sheets.html"]').addEventListener('click',()=>recordClick('narcotic'));
+document.querySelector('[href="med_error.html"]').addEventListener('click',()=>recordClick('mederr'));
+document.querySelector('[href="emergency_box.html"]').addEventListener('click',()=>recordClick('emergency'));
+document.querySelector('[href="ERmedcart.html"]').addEventListener('click',()=>recordClick('ermedcart'));
+document.querySelector('[href="tb-pharm.html"]').addEventListener('click',()=>recordClick('tbpharm'));
+document.querySelector('[href="shift-swap-excel-diff.html"]').addEventListener('click',()=>recordClick('shiftswap'));
+
+loadClicks();
+const allCards = document.querySelectorAll('.card[data-cat]');
+const openHead = document.getElementById('open-head');
+const openCards = document.getElementById('open-cards');
+const lockHead = document.getElementById('lock-head');
+const lockCards = document.getElementById('lock-cards');
+const emptyMsg = document.getElementById('empty-msg');
+
+chips.forEach(chip => {
+  chip.addEventListener('click', () => {
+    chips.forEach(c => c.classList.remove('active'));
+    chip.classList.add('active');
+    const f = chip.dataset.filter;
+    let visOpen = 0, visLock = 0;
+    allCards.forEach(card => {
+      const cats = card.dataset.cat.split(' ');
+      const show = f === 'all' || cats.includes(f);
+      card.style.display = show ? '' : 'none';
+      if(show){ if(cats.includes('open')) visOpen++; if(cats.includes('lock')) visLock++; }
+    });
+    openHead.style.display = visOpen ? '' : 'none';
+    openCards.style.display = visOpen ? '' : 'none';
+    lockHead.style.display = visLock ? '' : 'none';
+    lockCards.style.display = visLock ? '' : 'none';
+    emptyMsg.style.display = (!visOpen && !visLock) ? '' : 'none';
+  });
+});
+
+function tick(){
+  const n = new Date();
+  document.getElementById('clk').textContent = String(n.getHours()).padStart(2,'0')+':'+String(n.getMinutes()).padStart(2,'0');
+}
+tick(); setInterval(tick, 1000);
+</script>
+</body>
+</html>
