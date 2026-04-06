@@ -1,0 +1,965 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ฉลากยาขนาดใหญ่</title>
+<link href="https://fonts.googleapis.com/css2?family=Google+Sans:wght@400;500&display=swap" rel="stylesheet">
+<style>
+/* ── reset ── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+/* ── tokens ── */
+:root {
+  --navy:        #152050;
+  --navy-deep:   #0D1830;
+  --navy-mid:    #1C2A60;
+  --warm-white:  #FAF8F3;
+  --warm-card:   #F0EDE6;
+  --warm-border: #DDD9D0;
+  --warm-input:  #FFFFFF;
+  --text:        #1C1C1E;
+  --muted:       #9B9890;
+  --subtle:      #8A8070;
+  --font:        'Google Sans', sans-serif;
+  --r:           10px;
+  --r-lg:        14px;
+}
+body { font-family: var(--font); background: var(--warm-white); color: var(--text); font-size: 15px; min-height: 100vh; }
+
+/* ── header ── */
+.app-header {
+  background: var(--navy);
+  color: white;
+  padding: 0 24px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  height: 52px;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+.app-header h1 { font-size: 16px; font-weight: 500; color: #F8F5EE; letter-spacing: 0.01em; }
+.tab-nav { display: flex; gap: 3px; margin-left: auto; }
+.tab-btn { padding: 6px 16px; border: none; border-radius: 20px; background: rgba(248,245,238,0.1); color: rgba(248,245,238,0.5); font-family: var(--font); font-size: 13px; font-weight: 500; cursor: pointer; transition: all 0.15s; }
+.tab-btn.active { background: #F8F5EE; color: var(--navy); }
+.tab-btn:hover:not(.active) { background: rgba(248,245,238,0.18); color: #F8F5EE; }
+
+/* ── pages ── */
+.page { display: none; padding: 24px; max-width: 920px; margin: 0 auto; }
+.page.active { display: block; }
+
+/* ── cards ── */
+.card { background: white; border: 1px solid var(--warm-border); border-radius: var(--r-lg); padding: 18px 20px; margin-bottom: 14px; }
+.card.tinted { background: var(--warm-card); border-color: #D8D4C8; }
+.card-title { font-size: 10px; font-weight: 500; letter-spacing: 0.09em; text-transform: uppercase; color: var(--muted); margin-bottom: 14px; }
+
+/* ── form ── */
+.form-row { display: grid; gap: 12px; margin-bottom: 12px; }
+.form-row.c3 { grid-template-columns: 1fr 1fr 1fr; }
+.form-row.c2 { grid-template-columns: 1fr 1fr; }
+.form-row.c1 { grid-template-columns: 1fr; }
+label { display: block; font-size: 11px; font-weight: 500; letter-spacing: 0.05em; color: var(--subtle); margin-bottom: 5px; }
+input[type=text], input[type=number], select, textarea {
+  width: 100%; padding: 9px 12px;
+  border: 1px solid var(--warm-border); border-radius: var(--r);
+  font-family: var(--font); font-size: 14px; color: var(--text);
+  background: var(--warm-input); transition: border-color 0.15s; appearance: none;
+}
+select { background-image: url("data:image/svg+xml,%3Csvg width='12' height='8' viewBox='0 0 12 8' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M1 1l5 6 5-6' stroke='%23888' stroke-width='1.5' fill='none'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 12px center; padding-right: 32px; }
+input:focus, select:focus, textarea:focus { outline: none; border-color: var(--navy); }
+textarea { resize: vertical; line-height: 1.6; min-height: 70px; }
+
+/* ── buttons ── */
+.btn { padding: 9px 20px; border-radius: var(--r); border: 1px solid var(--warm-border); font-family: var(--font); font-size: 13px; font-weight: 500; cursor: pointer; background: var(--warm-card); color: #6B6A66; transition: all 0.15s; display: inline-flex; align-items: center; gap: 6px; }
+.btn:hover { background: #E8E4DC; }
+.btn-primary { background: var(--navy); color: #F8F5EE; border-color: var(--navy); }
+.btn-primary:hover { background: var(--navy-deep); }
+.btn-danger { color: #A03020; border-color: #E8C8B8; background: #FBF0EC; }
+.btn-danger:hover { background: #F5DDD5; }
+.btn-sm { padding: 5px 12px; font-size: 12px; }
+.btn-row { display: flex; gap: 10px; justify-content: flex-end; margin-top: 4px; }
+
+/* ── drug display block ── */
+.drug-display { padding: 12px 14px; border-radius: var(--r); background: var(--warm-card); border: 1px solid #D8D4C8; margin-bottom: 8px; }
+.drug-display-name { font-size: 22px; font-weight: 500; color: var(--text); line-height: 1.1; }
+.drug-display-str  { font-size: 13px; color: var(--muted); margin-top: 3px; }
+
+/* ── mode tabs ── */
+.mode-tabs { display: flex; gap: 5px; margin-bottom: 16px; flex-wrap: wrap; }
+.mode-tab { flex: 1; min-width: 70px; padding: 8px 6px; border: 1px solid var(--warm-border); border-radius: var(--r); background: var(--warm-card); font-family: var(--font); font-size: 12px; font-weight: 500; cursor: pointer; text-align: center; color: var(--muted); transition: all 0.15s; }
+.mode-tab:hover:not(.active) { background: #E8E4DC; }
+.mode-tab.active { background: var(--navy); color: #F8F5EE; border-color: var(--navy); }
+
+/* ── dot inputs ── */
+.dot-grid { display: grid; grid-template-columns: repeat(4,1fr); gap: 12px; margin: 10px 0 14px; }
+.dot-box  { display: flex; flex-direction: column; align-items: center; gap: 6px; }
+.dot-time { font-size: 12px; font-weight: 500; color: var(--muted); }
+.dot-input { width: 60px; height: 60px; border: 2px solid var(--navy); border-radius: 50%; text-align: center; font-size: 24px; font-weight: 500; font-family: var(--font); color: var(--text); background: var(--warm-card); }
+.dot-input:focus { outline: none; border-color: var(--navy-deep); }
+
+/* ── insulin inputs ── */
+.ins-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 12px; margin: 10px 0 14px; }
+.ins-box  { display: flex; flex-direction: column; align-items: center; gap: 4px; }
+.ins-time { font-size: 12px; font-weight: 500; color: var(--muted); }
+.ins-input { width: 76px; height: 58px; border: 2px solid var(--navy); border-radius: var(--r); text-align: center; font-size: 24px; font-weight: 500; font-family: var(--font); color: var(--text); background: var(--warm-card); }
+.ins-input:focus { outline: none; border-color: var(--navy-deep); }
+.ins-unit { font-size: 11px; font-weight: 500; color: var(--subtle); }
+
+/* ── badges ── */
+.badge-indication { display: inline-block; font-size: 11px; font-weight: 500; padding: 3px 10px; border-radius: 20px; background: #E0DCD0; color: #3A3020; }
+.badge-route { display: inline-block; font-size: 11px; font-weight: 500; padding: 2px 9px; border-radius: 20px; background: var(--warm-card); color: var(--subtle); border: 1px solid var(--warm-border); }
+
+/* ── autodetect bar ── */
+.autobar { border-radius: var(--r); padding: 10px 14px; display: flex; align-items: flex-start; gap: 10px; margin-bottom: 12px; border: 1px solid; }
+.autobar.two { background: var(--warm-card); border-color: #D8D4C8; }
+.autobar.one { background: var(--warm-card); border-color: #C8D4B8; }
+.ad-num { width: 22px; height: 22px; border-radius: 50%; background: var(--navy); color: #F8F5EE; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 500; flex-shrink: 0; margin-top: 1px; }
+.ad-num.one { background: #3A6030; }
+.ad-title { font-size: 11px; font-weight: 500; color: var(--text); margin-bottom: 2px; }
+.ad-sub   { font-size: 11px; color: var(--muted); line-height: 1.5; }
+
+/* ── queue list ── */
+.queue-list { display: flex; flex-direction: column; gap: 8px; margin-bottom: 12px; }
+.q-item { border-radius: var(--r); padding: 10px 13px; display: flex; align-items: center; gap: 10px; border: 1px solid var(--warm-border); background: var(--warm-card); }
+.q-item.active { border-color: var(--navy); border-width: 1.5px; background: white; }
+.q-item.done { opacity: 0.8; }
+.q-num { width: 24px; height: 24px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 500; flex-shrink: 0; background: var(--warm-border); color: var(--subtle); }
+.q-num.done   { background: var(--navy); color: #F8F5EE; }
+.q-num.active { background: var(--navy); color: #F8F5EE; }
+.q-info { flex: 1; min-width: 0; }
+.q-name { font-size: 13px; font-weight: 500; }
+.q-sig  { font-size: 11px; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.q-del  { background: #FBF0EC; border: 1px solid #E8C8B8; border-radius: 50%; width: 22px; height: 22px; display: flex; align-items: center; justify-content: center; cursor: pointer; flex-shrink: 0; font-size: 12px; color: #A03020; font-weight: 500; }
+
+/* ── tables ── */
+.data-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+.data-table th { text-align: left; padding: 8px 12px; border-bottom: 1px solid var(--warm-border); font-size: 10px; font-weight: 500; color: var(--muted); letter-spacing: 0.07em; text-transform: uppercase; }
+.data-table td { padding: 10px 12px; border-bottom: 1px solid var(--warm-border); vertical-align: middle; }
+.data-table tr:last-child td { border-bottom: none; }
+.data-table tr:hover td { background: var(--warm-white); }
+
+/* ── toast ── */
+#toast { position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%); background: var(--navy); color: #F8F5EE; padding: 10px 22px; border-radius: var(--r); font-size: 13px; font-weight: 500; opacity: 0; transition: opacity 0.25s; pointer-events: none; z-index: 9999; white-space: nowrap; }
+#toast.show { opacity: 1; }
+.loading { text-align: center; padding: 32px; color: var(--muted); font-size: 14px; }
+
+/* ── preview ── */
+#preview-wrap { max-width: 440px; margin: 20px auto 0; }
+.preview-label { font-size: 10px; font-weight: 500; color: var(--muted); text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 8px; }
+
+/* ════════════════════════════════════════
+   LABEL (print + preview) — B&W only
+   ════════════════════════════════════════ */
+#print-area { font-family: 'Google Sans', sans-serif; color: #000; background: white; }
+#print-area.preview { border: 1px solid #ccc; border-radius: 6px; overflow: hidden; }
+.lbl-header { background: #111; color: white; padding: 10px 16px; display: flex; justify-content: space-between; align-items: flex-start; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+.lbl-hosp-name { font-size: 15px; font-weight: 500; }
+.lbl-hosp-dept { font-size: 11px; opacity: 0.7; }
+.lbl-print-dt  { font-size: 11px; opacity: 0.75; text-align: right; line-height: 1.5; }
+.lbl-patient { padding: 10px 16px; border-bottom: 1px solid #e0e0e0; display: grid; grid-template-columns: 1fr auto auto; gap: 16px; }
+.lbl-fl { font-size: 10px; color: #888; margin-bottom: 2px; }
+.lbl-fv { font-size: 16px; font-weight: 500; }
+.lbl-fs { font-size: 13px; color: #333; }
+.lbl-drug { padding: 12px 16px 10px; border-bottom: 1px solid #e0e0e0; }
+.lbl-drug-name     { font-size: 30px; font-weight: 500; line-height: 1.1; }
+.lbl-drug-strength { font-size: 14px; color: #555; margin-top: 3px; }
+.lbl-drug-ind      { display: inline-block; font-size: 12px; margin-top: 7px; padding: 2px 10px; border: 1px solid #ccc; border-radius: 20px; color: #444; }
+.lbl-sig { padding: 24px 16px 20px; }
+.lbl-sig-label { font-size: 11px; color: #888; text-transform: uppercase; letter-spacing: 0.07em; margin-bottom: 14px; }
+.lbl-sig-text  { font-size: 75px; font-weight: 500; line-height: 1.35; }
+.lbl-dot-grid { display: grid; grid-template-columns: repeat(4,1fr); gap: 8px; padding: 14px 16px; border-bottom: 1px solid #e0e0e0; }
+.lbl-dot-card { border: 1px solid #ccc; border-radius: 6px; padding: 8px 4px; text-align: center; }
+.lbl-dot-card.on { border-color: #111; border-width: 1.5px; }
+.lbl-dot-time { font-size: 11px; color: #888; margin-bottom: 4px; }
+.lbl-dot-num  { font-size: 38px; font-weight: 500; line-height: 1; margin-bottom: 6px; }
+.lbl-dot-num.zero { color: #ccc; font-size: 28px; }
+.lbl-dots { display: flex; flex-wrap: wrap; justify-content: center; gap: 3px; min-height: 12px; }
+.lbl-dot  { width: 10px; height: 10px; border-radius: 50%; background: #111; }
+.lbl-dot.empty { background: none; border: 1.5px solid #ccc; }
+.lbl-dot-extra { padding: 10px 16px; border-bottom: 1px solid #e0e0e0; font-size: 20px; font-weight: 500; line-height: 1.5; }
+.lbl-ins-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 8px; padding: 14px 16px 10px; border-bottom: 1px solid #e0e0e0; }
+.lbl-ins-card { border: 1px solid #ccc; border-radius: 6px; padding: 8px 4px; text-align: center; }
+.lbl-ins-card.on { border-color: #111; border-width: 1.5px; }
+.lbl-ins-time { font-size: 11px; color: #888; margin-bottom: 4px; }
+.lbl-ins-dose { font-size: 38px; font-weight: 500; line-height: 1; }
+.lbl-ins-dose.zero { color: #ccc; font-size: 28px; }
+.lbl-ins-unit { font-size: 12px; color: #555; margin-top: 3px; }
+.lbl-ins-sig  { padding: 10px 16px; font-size: 20px; font-weight: 500; line-height: 1.5; border-bottom: 1px solid #e0e0e0; }
+.lbl-footer { padding: 7px 16px; display: flex; justify-content: space-between; font-size: 10px; color: #999; background: #f8f8f8; }
+
+/* syringe guide */
+.lbl-syringe { padding: 14px 16px; border-bottom: 1px solid #e0e0e0; display: flex; gap: 16px; align-items: flex-start; }
+.lbl-syr-title { font-size: 10px; color: #888; text-transform: uppercase; letter-spacing: 0.07em; margin-bottom: 8px; }
+.lbl-syr-dose  { font-size: 28px; font-weight: 500; margin-bottom: 4px; }
+.lbl-syr-sub   { font-size: 13px; color: #555; margin-bottom: 12px; }
+.lbl-syr-note  { font-size: 11px; color: #666; margin-top: 8px; line-height: 1.6; border-top: 1px solid #eee; padding-top: 8px; }
+
+/* ── print ── */
+@media print {
+  @page { size: A5 portrait; margin: 10mm; }
+  .app-header, #page-meds, #page-sigs,
+  #page-print .card.tinted,
+  #page-print > .card,
+  #page-print .queue-list,
+  #page-print .btn-row,
+  #page-print .preview-label,
+  #page-print #sig-card,
+  #page-print #summary-card { display: none !important; }
+  #page-print #preview-wrap { display: block !important; max-width: 100% !important; margin: 0 !important; }
+  #print-area { border: none !important; border-radius: 0 !important; }
+  .lbl-header { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+}
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<div class="app-header">
+  <h1>ฉลากยาขนาดใหญ่</h1>
+  <div class="tab-nav">
+    <button class="tab-btn active" onclick="showPage('print')">พิมพ์ฉลาก</button>
+    <button class="tab-btn" onclick="showPage('meds')">จัดการยา</button>
+    <button class="tab-btn" onclick="showPage('sigs')">จัดการวิธีใช้</button>
+  </div>
+</div>
+
+<!-- ══════════════ PAGE: PRINT ══════════════ -->
+<div id="page-print" class="page active">
+
+  <!-- patient -->
+  <div class="card tinted">
+    <div class="card-title">ข้อมูลคนไข้</div>
+    <div class="form-row c3">
+      <div><label>ชื่อ-นามสกุล</label><input type="text" id="pt-name" placeholder="นาย สมชาย ใจดี"></div>
+      <div><label>HN</label><input type="text" id="pt-hn" placeholder="12345678"></div>
+      <div><label>วันที่</label>
+        <div style="display:flex;gap:4px;align-items:center;">
+          <input type="text" id="pt-day"   placeholder="วว"   maxlength="2" style="width:52px;text-align:center;" oninput="dateAdvance(this,'pt-month',2)">
+          <span style="color:var(--muted);font-size:14px;">/</span>
+          <input type="text" id="pt-month" placeholder="ดด"   maxlength="2" style="width:52px;text-align:center;" oninput="dateAdvance(this,'pt-year',2)">
+          <span style="color:var(--muted);font-size:14px;">/</span>
+          <input type="text" id="pt-year"  placeholder="ปปปป" maxlength="4" style="width:74px;text-align:center;">
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- queue -->
+  <div class="card">
+    <div class="card-title">รายการยา</div>
+    <div id="queue-list" class="queue-list"></div>
+    <button class="btn" onclick="addQueueItem()" style="width:100%;justify-content:center;border-style:dashed;">+ เพิ่มยาตัวถัดไป</button>
+  </div>
+
+  <!-- sig form (shown when editing a queue item) -->
+  <div id="sig-card" class="card" style="display:none;">
+    <div class="card-title" id="sig-card-title">วิธีใช้</div>
+
+    <!-- drug selector -->
+    <div class="form-row c1" style="margin-bottom:10px;">
+      <div><label>เลือกยา</label><select id="med-select" onchange="onMedChange()"><option value="">— กำลังโหลด —</option></select></div>
+    </div>
+    <div id="med-info" style="display:none; margin-bottom:12px;">
+      <div id="med-display" class="drug-display"></div>
+      <span class="badge-indication" id="med-indication"></span>
+    </div>
+
+    <!-- mode tabs -->
+    <div class="mode-tabs">
+      <button class="mode-tab active" onclick="setMode('text')"    id="mtab-text">ข้อความ</button>
+      <button class="mode-tab"        onclick="setMode('dot')"     id="mtab-dot">สัญลักษณ์</button>
+      <button class="mode-tab"        onclick="setMode('insulin')" id="mtab-insulin">อินซูลิน (SC)</button>
+      <button class="mode-tab"        onclick="setMode('inhaler')" id="mtab-inhaler">ยาพ่น</button>
+    </div>
+
+    <!-- TEXT -->
+    <div id="mode-text">
+      <div class="form-row c1" style="margin-bottom:8px;"><div><label>เลือกวิธีใช้สำเร็จรูป</label><select id="sig-tpl-text" onchange="applyTpl('sig-text',this.value)"><option value="">— เลือก —</option></select></div></div>
+      <div class="form-row c1"><div><label>วิธีใช้ (แก้ไขได้)</label><textarea id="sig-text" rows="3" placeholder="รับประทาน 1 เม็ด หลังอาหารเช้าและเย็น"></textarea></div></div>
+      <div style="margin-top:10px;">
+        <label class="muted" style="display:block;margin-bottom:6px;">สัญลักษณ์เสริม (ไม่บังคับ) — กรอกเพื่อแสดง dot บนฉลากด้วย</label>
+        <div class="dot-grid">
+          <div class="dot-box"><div class="dot-time">🌅 เช้า</div><input class="dot-input" id="txt-dot-m" type="text" value="" placeholder="-" maxlength="1"></div>
+          <div class="dot-box"><div class="dot-time">☀️ เที่ยง</div><input class="dot-input" id="txt-dot-n" type="text" value="" placeholder="-" maxlength="1"></div>
+          <div class="dot-box"><div class="dot-time">🌆 เย็น</div><input class="dot-input" id="txt-dot-e" type="text" value="" placeholder="-" maxlength="1"></div>
+          <div class="dot-box"><div class="dot-time">🌙 ก่อนนอน</div><input class="dot-input" id="txt-dot-b" type="text" value="" placeholder="-" maxlength="1"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- DOT -->
+    <div id="mode-dot" style="display:none;">
+      <label style="display:block;margin-bottom:8px;">จำนวนเม็ด / มื้อ</label>
+      <div class="dot-grid">
+        <div class="dot-box"><div class="dot-time">🌅 เช้า</div><input class="dot-input" id="dot-m" type="text" value="0" maxlength="1"></div>
+        <div class="dot-box"><div class="dot-time">☀️ เที่ยง</div><input class="dot-input" id="dot-n" type="text" value="0" maxlength="1"></div>
+        <div class="dot-box"><div class="dot-time">🌆 เย็น</div><input class="dot-input" id="dot-e" type="text" value="0" maxlength="1"></div>
+        <div class="dot-box"><div class="dot-time">🌙 ก่อนนอน</div><input class="dot-input" id="dot-b" type="text" value="0" maxlength="1"></div>
+      </div>
+      <div class="form-row c1"><div><label>เวลา / วิธีรับประทาน</label><select id="sig-tpl-dot" onchange="applyTpl('sig-text-dot',this.value)"><option value="">— เลือก —</option></select></div></div>
+      <div class="form-row c1"><div><label>หมายเหตุ (แก้ไขได้)</label><textarea id="sig-text-dot" rows="2" placeholder="หลังอาหารเช้าและเย็น"></textarea></div></div>
+    </div>
+
+    <!-- INSULIN -->
+    <div id="mode-insulin" style="display:none;">
+      <div class="form-row c1" style="margin-bottom:4px;"><div><label>เลือกวิธีใช้สำเร็จรูป</label><select id="sig-tpl-ins" onchange="applyTpl('sig-text-ins',this.value)"><option value="">— เลือก —</option></select></div></div>
+      <label style="display:block;margin-bottom:8px;">ขนาดฉีด / มื้อ (ยูนิต)</label>
+      <div class="ins-grid">
+        <div class="ins-box"><div class="ins-time">🌅 เช้า</div><input class="ins-input" id="ins-m" type="text" value="0" maxlength="3" oninput="onInsChange()"><div class="ins-unit">ยูนิต</div></div>
+        <div class="ins-box"><div class="ins-time">🌆 เย็น</div><input class="ins-input" id="ins-e" type="text" value="0" maxlength="3" oninput="onInsChange()"><div class="ins-unit">ยูนิต</div></div>
+        <div class="ins-box"><div class="ins-time">🌙 ก่อนนอน</div><input class="ins-input" id="ins-b" type="text" value="0" maxlength="3" oninput="onInsChange()"><div class="ins-unit">ยูนิต</div></div>
+      </div>
+      <!-- autodetect bar -->
+      <div id="ins-autodetect" style="display:none;" class="autobar two">
+        <div id="ad-num" class="ad-num">2</div>
+        <div><div id="ad-title" class="ad-title"></div><div id="ad-sub" class="ad-sub"></div></div>
+      </div>
+      <div class="form-row c1"><div><label>วิธีใช้เพิ่มเติม (แก้ไขได้)</label><textarea id="sig-text-ins" rows="2" placeholder="ฉีดใต้ผิวหนัง ก่อนอาหารเช้า และก่อนนอน"></textarea></div></div>
+    </div>
+
+    <!-- INHALER -->
+    <div id="mode-inhaler" style="display:none;">
+      <div class="form-row c1" style="margin-bottom:8px;"><div><label>เลือกวิธีใช้สำเร็จรูป</label><select id="sig-tpl-inh" onchange="applyTpl('sig-text-inh',this.value)"><option value="">— เลือก —</option></select></div></div>
+      <div class="form-row c1"><div><label>วิธีใช้ (แก้ไขได้)</label><textarea id="sig-text-inh" rows="3" placeholder="พ่นยา 2 ครั้ง วันละ 2 ครั้ง เช้าและเย็น"></textarea></div></div>
+    </div>
+
+    <div class="btn-row" style="margin-top:8px;">
+      <button class="btn" onclick="cancelEdit()">ยกเลิก</button>
+      <button class="btn btn-primary" onclick="saveQueueItem()">บันทึกยานี้ →</button>
+    </div>
+  </div>
+
+  <!-- summary + print -->
+  <div id="summary-card" class="card" style="display:none;">
+    <div class="card-title">สรุปรายการ</div>
+    <div id="summary-list" style="margin-bottom:14px;"></div>
+    <div class="btn-row">
+      <button class="btn" onclick="showPage('print');document.getElementById('sig-card').style.display='block';">+ เพิ่มยา</button>
+      <button class="btn" onclick="updatePreview()">ดูตัวอย่าง</button>
+      <button class="btn btn-primary" id="print-btn" onclick="printAll()">🖨 พิมพ์ฉลาก</button>
+    </div>
+    <div id="preview-wrap" style="display:none; margin-top:16px;">
+      <div class="preview-label">ตัวอย่างฉลาก</div>
+      <div id="print-area" class="preview"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════ PAGE: MEDS ══════════════ -->
+<div id="page-meds" class="page">
+  <div class="card">
+    <div class="card-title">เพิ่มยาใหม่</div>
+    <div class="form-row c2">
+      <div><label>ชื่อยา</label><input type="text" id="new-med-name" placeholder="Metformin"></div>
+      <div><label>ความแรง</label><input type="text" id="new-med-strength" placeholder="500 mg"></div>
+    </div>
+    <div class="form-row c3">
+      <div><label>รูปแบบ</label><input type="text" id="new-med-form" placeholder="เม็ด / ยาฉีด / ยาพ่น"></div>
+      <div><label>Route</label><select id="new-med-route"><option value="oral">oral — รับประทาน</option><option value="SC">SC — ฉีดใต้ผิวหนัง</option><option value="inhaler-evo">inhaler-evo — Evohaler</option><option value="inhaler-acc">inhaler-acc — Accuhaler</option></select></div>
+      <div><label>สรรพคุณ</label><input type="text" id="new-med-indication" placeholder="ยาลดน้ำตาลในเลือด"></div>
+    </div>
+    <div class="btn-row"><button class="btn btn-primary" onclick="addMed()">+ เพิ่มยา</button></div>
+  </div>
+  <div class="card"><div class="card-title">รายการยาทั้งหมด</div><div id="med-table-wrap"><div class="loading">กำลังโหลด...</div></div></div>
+</div>
+
+<!-- ══════════════ PAGE: SIGS ══════════════ -->
+<div id="page-sigs" class="page">
+  <div class="card">
+    <div class="card-title">เพิ่มวิธีใช้สำเร็จรูป</div>
+    <div class="form-row c2">
+      <div><label>Route</label><select id="new-sig-route"><option value="oral">oral — รับประทาน</option><option value="SC">SC — ฉีดใต้ผิวหนัง</option><option value="inhaler-evo">inhaler-evo — Evohaler</option><option value="inhaler-acc">inhaler-acc — Accuhaler</option></select></div>
+      <div><label>วิธีใช้</label><input type="text" id="new-sig-text" placeholder="รับประทาน 1 เม็ด หลังอาหารเช้า"></div>
+    </div>
+    <div class="btn-row"><button class="btn btn-primary" onclick="addSig()">+ เพิ่มวิธีใช้</button></div>
+  </div>
+  <div class="card"><div class="card-title">วิธีใช้ทั้งหมด</div><div id="sig-table-wrap"><div class="loading">กำลังโหลด...</div></div></div>
+</div>
+
+<div id="toast"></div>
+
+<script>
+var GAS_URL = 'https://script.google.com/macros/s/AKfycbzbUK-vrx6mRN1Pcs9z10y-L37ql7xSGoaosxe-ifcXEu2rrPBVi6ExSGojLiyNgjRy/exec';
+var HOSP_NAME = 'โรงพยาบาลห้วยผึ้ง';
+
+var medList = [], sigList = [], currentMode = 'text';
+var queue = [];        // [{medIdx, mode, sigData, label}]
+var editingIdx = -1;   // index in queue being edited, -1 = new
+
+var ROUTE_AUTO = { 'oral':'text', 'SC':'insulin', 'inhaler-evo':'inhaler', 'inhaler-acc':'inhaler' };
+
+// ── init ──
+window.onload = function() { setTodayDate(); loadAll(); renderQueue(); };
+
+function setTodayDate() {
+  var now = new Date();
+  document.getElementById('pt-day').value   = String(now.getDate()).padStart(2,'0');
+  document.getElementById('pt-month').value = String(now.getMonth()+1).padStart(2,'0');
+  document.getElementById('pt-year').value  = String(now.getFullYear()+543);
+}
+
+function dateAdvance(el, nextId, maxLen) {
+  el.value = el.value.replace(/\D/g,'');
+  setTimeout(function(){
+    if (el.value.length >= maxLen) {
+      var next = document.getElementById(nextId);
+      if (next) { next.focus(); next.select(); }
+    }
+  }, 0);
+}
+
+function getPtDate() {
+  var d = document.getElementById('pt-day').value.trim();
+  var m = document.getElementById('pt-month').value.trim();
+  var y = document.getElementById('pt-year').value.trim();
+  if (!d || !m || !y) return '—';
+  return d.padStart(2,'0') + '/' + m.padStart(2,'0') + '/' + y;
+}
+
+// ── fetch ──
+function gasGet(a) { return fetch(GAS_URL+'?action='+a).then(function(r){return r.json();}); }
+function gasPost(a,e) { return fetch(GAS_URL,{method:'POST',body:JSON.stringify(Object.assign({action:a},e))}).then(function(r){return r.json();}); }
+
+function loadAll() {
+  gasGet('getMedList').then(onMedListLoad).catch(function(){toast('โหลดรายการยาไม่สำเร็จ');});
+  gasGet('getSigList').then(onSigListLoad).catch(function(){toast('โหลดวิธีใช้ไม่สำเร็จ');});
+}
+
+function onMedListLoad(data) {
+  medList = data;
+  var sel = document.getElementById('med-select');
+  sel.innerHTML = '<option value="">— เลือกยา —</option>';
+  data.forEach(function(m,i){ var o=document.createElement('option'); o.value=i; o.textContent=m.name+'  '+m.strength; sel.appendChild(o); });
+  renderMedTable();
+}
+
+function onSigListLoad(data) {
+  sigList = data;
+  renderSigDropdowns();
+  renderSigTable();
+}
+
+function renderSigDropdowns() {
+  var cfgs = [
+    {id:'sig-tpl-text', routes:['oral']},
+    {id:'sig-tpl-dot',  routes:['oral']},
+    {id:'sig-tpl-ins',  routes:['SC']},
+    {id:'sig-tpl-inh',  routes:['inhaler-evo','inhaler-acc']}
+  ];
+  cfgs.forEach(function(c){
+    var sel=document.getElementById(c.id);
+    sel.innerHTML='<option value="">— เลือก —</option>';
+    sigList.filter(function(s){return c.routes.indexOf(s.route)>=0;}).forEach(function(s){
+      var o=document.createElement('option'); o.value=s.sig; o.textContent='['+s.route+'] '+s.sig; sel.appendChild(o);
+    });
+  });
+}
+
+// ── queue ──
+function renderQueue() {
+  var wrap = document.getElementById('queue-list');
+  var summary = document.getElementById('summary-card');
+  if (!queue.length) { wrap.innerHTML=''; summary.style.display='none'; return; }
+  var html = '';
+  queue.forEach(function(item, i) {
+    var isDone = item.done;
+    var isActive = (editingIdx === i);
+    html += '<div class="q-item'+(isDone?' done':'')+(isActive?' active':'')+'">' +
+      '<div class="q-num '+(isDone?'done':'active')+'">'+(i+1)+'</div>' +
+      '<div class="q-info"><div class="q-name">'+(item.label||'(ยังไม่ได้เลือกยา)')+'</div>' +
+      '<div class="q-sig">'+(item.sig||'กำลังกรอก...')+'</div></div>' +
+      (isDone ? '<div style="display:flex;gap:6px;">' +
+        '<div class="q-del" onclick="editQueue('+i+')" title="แก้ไข" style="background:#EEF0FB;border-color:#C4CAF0;color:#4A5BBF;font-size:11px;width:auto;border-radius:6px;padding:0 8px;">แก้ไข</div>' +
+        '<div class="q-del" onclick="removeQueue('+i+')" title="ลบ">×</div>' +
+        '</div>' : '') +
+      '</div>';
+  });
+  wrap.innerHTML = html;
+  // show summary if all done
+  var allDone = queue.every(function(q){return q.done;});
+  summary.style.display = (allDone && queue.length) ? 'block' : 'none';
+  if (allDone) renderSummary();
+}
+
+function addQueueItem() {
+  // ถ้ากำลัง edit อยู่ ไม่ต้องเพิ่มใหม่
+  if (editingIdx >= 0 && !queue[editingIdx].done) {
+    document.getElementById('sig-card').style.display = 'block';
+    document.getElementById('sig-card').scrollIntoView({behavior:'smooth', block:'start'});
+    return;
+  }
+  editingIdx = queue.length;
+  queue.push({done:false, label:'', sig:'', mode:'text', medIdx:'', sigData:{}});
+  renderQueue();
+  document.getElementById('sig-card').style.display = 'block';
+  document.getElementById('sig-card-title').textContent = 'วิธีใช้ — ยาตัวที่ '+(editingIdx+1);
+  document.getElementById('med-select').value = '';
+  document.getElementById('med-info').style.display = 'none';
+  setMode('text');
+  clearSigForm();
+  setTimeout(function(){
+    document.getElementById('sig-card').scrollIntoView({behavior:'smooth', block:'start'});
+  }, 100);
+}
+
+function cancelEdit() {
+  if (editingIdx >= 0 && !queue[editingIdx].done) queue.splice(editingIdx, 1);
+  editingIdx = -1;
+  document.getElementById('sig-card').style.display = 'none';
+  renderQueue();
+}
+
+function saveQueueItem() {
+  var medIdx = document.getElementById('med-select').value;
+  if (medIdx === '') { toast('กรุณาเลือกยา'); return; }
+  var med = medList[parseInt(medIdx)];
+  var sigData = collectSigData();
+  var sigText = sigData.summary;
+  queue[editingIdx] = { done:true, label:med.name+' '+med.strength, sig:sigText, mode:currentMode, medIdx:parseInt(medIdx), sigData:sigData };
+  editingIdx = -1;
+  document.getElementById('sig-card').style.display = 'none';
+  renderQueue();
+  toast('บันทึกยาแล้ว ✓');
+}
+
+function editQueue(i) {
+  editingIdx = i;
+  var item = queue[i];
+  item.done = false;
+  renderQueue();
+  document.getElementById('sig-card').style.display = 'block';
+  document.getElementById('sig-card-title').textContent = 'วิธีใช้ — ยาตัวที่ '+(i+1);
+  // restore form values
+  if (item.medIdx !== '') {
+    document.getElementById('med-select').value = item.medIdx;
+    onMedChange();
+  }
+  setMode(item.mode);
+  var d = item.sigData;
+  if (item.mode === 'text') {
+    if (d.text) document.getElementById('sig-text').value = d.text;
+  } else if (item.mode === 'dot') {
+    document.getElementById('dot-m').value = d.m||0;
+    document.getElementById('dot-n').value = d.n||0;
+    document.getElementById('dot-e').value = d.e||0;
+    document.getElementById('dot-b').value = d.b||0;
+    if (d.extra) document.getElementById('sig-text-dot').value = d.extra;
+  } else if (item.mode === 'insulin') {
+    document.getElementById('ins-m').value = d.m||0;
+    document.getElementById('ins-e').value = d.e||0;
+    document.getElementById('ins-b').value = d.b||0;
+    if (d.extra) document.getElementById('sig-text-ins').value = d.extra;
+    onInsChange();
+  } else if (item.mode === 'inhaler') {
+    if (d.text) document.getElementById('sig-text-inh').value = d.text;
+  }
+}
+
+function removeQueue(i) {
+  queue.splice(i,1);
+  renderQueue();
+}
+
+function collectSigData() {
+  var d = { mode: currentMode };
+  if (currentMode === 'text') {
+    d.text = document.getElementById('sig-text').value.trim()||'—';
+    d.summary = d.text.replace(/\n/g,' ').substring(0,40);
+    d.dm = parseInt(document.getElementById('txt-dot-m').value)||0;
+    d.dn = parseInt(document.getElementById('txt-dot-n').value)||0;
+    d.de = parseInt(document.getElementById('txt-dot-e').value)||0;
+    d.db = parseInt(document.getElementById('txt-dot-b').value)||0;
+    d.hasDot = (d.dm||d.dn||d.de||d.db) > 0;
+  } else if (currentMode === 'dot') {
+    d.m = parseInt(document.getElementById('dot-m').value)||0;
+    d.n = parseInt(document.getElementById('dot-n').value)||0;
+    d.e = parseInt(document.getElementById('dot-e').value)||0;
+    d.b = parseInt(document.getElementById('dot-b').value)||0;
+    d.extra = document.getElementById('sig-text-dot').value.trim();
+    d.summary = 'เช้า '+d.m+' เที่ยง '+d.n+' เย็น '+d.e+' นอน '+d.b+(d.extra?' · '+d.extra:'');
+  } else if (currentMode === 'insulin') {
+    d.m = parseInt(document.getElementById('ins-m').value)||0;
+    d.e = parseInt(document.getElementById('ins-e').value)||0;
+    d.b = parseInt(document.getElementById('ins-b').value)||0;
+    d.extra = document.getElementById('sig-text-ins').value.trim();
+    d.summary = 'เช้า '+d.m+'U เย็น '+d.e+'U นอน '+d.b+'U';
+  } else if (currentMode === 'inhaler') {
+    d.text = document.getElementById('sig-text-inh').value.trim()||'—';
+    d.summary = d.text.replace(/\n/g,' ').substring(0,40);
+  }
+  return d;
+}
+
+function clearSigForm() {
+  document.getElementById('sig-text').value='';
+  document.getElementById('sig-text-dot').value='';
+  document.getElementById('sig-text-ins').value='';
+  document.getElementById('sig-text-inh').value='';
+  ['dot-m','dot-n','dot-e','dot-b'].forEach(function(id){document.getElementById(id).value='0';});
+  ['txt-dot-m','txt-dot-n','txt-dot-e','txt-dot-b'].forEach(function(id){document.getElementById(id).value='';});
+  ['ins-m','ins-e','ins-b'].forEach(function(id){document.getElementById(id).value='0';});
+  document.getElementById('ins-autodetect').style.display='none';
+}
+
+function renderSummary() {
+  var wrap = document.getElementById('summary-list');
+  var html = '<table class="data-table"><thead><tr><th>#</th><th>ยา</th><th>วิธีใช้</th><th></th></tr></thead><tbody>';
+  queue.forEach(function(q,i){
+    html += '<tr><td>'+(i+1)+'</td><td><strong>'+q.label+'</strong></td><td>'+q.sig+'</td>' +
+      '<td><button class="btn btn-danger btn-sm" onclick="removeQueue('+i+')">ลบ</button></td></tr>';
+  });
+  html += '</tbody></table>';
+  wrap.innerHTML = html;
+  var labelCount = getLabelsToprint().length;
+  document.getElementById('print-btn').textContent = '🖨 พิมพ์ ' + labelCount + ' แผ่น';
+}
+
+// ── insulin autodetect ──
+function onInsChange() {
+  var m = parseInt(document.getElementById('ins-m').value)||0;
+  var e = parseInt(document.getElementById('ins-e').value)||0;
+  var b = parseInt(document.getElementById('ins-b').value)||0;
+  var doses = [m,e,b].filter(function(v){return v>0;});
+  if (doses.length < 2) { document.getElementById('ins-autodetect').style.display='none'; return; }
+  var allSame = doses.every(function(v){return v===doses[0];});
+  var bar = document.getElementById('ins-autodetect');
+  var adNum = document.getElementById('ad-num');
+  var adTitle = document.getElementById('ad-title');
+  var adSub = document.getElementById('ad-sub');
+  bar.style.display = 'flex';
+  if (allSame) {
+    bar.className = 'autobar one';
+    adNum.className = 'ad-num one'; adNum.textContent = '1';
+    adTitle.textContent = 'dose เท่ากัน — พิมพ์แผ่นเดียว';
+    adSub.textContent = 'ทุกมื้อได้รับ '+doses[0]+' ยูนิต รวมไว้ในฉลากเดียว';
+  } else {
+    bar.className = 'autobar two';
+    adNum.className = 'ad-num'; adNum.textContent = doses.length;
+    adTitle.textContent = 'dose ต่างกัน — พิมพ์ '+doses.length+' แผ่น';
+    var parts=[];
+    if(m>0) parts.push('เช้า '+m+'U');
+    if(e>0) parts.push('เย็น '+e+'U');
+    if(b>0) parts.push('ก่อนนอน '+b+'U');
+    adSub.textContent = parts.join(' และ ')+' ต่างกัน';
+  }
+}
+
+// ── med change ──
+function onMedChange() {
+  var i = document.getElementById('med-select').value;
+  if (i==='') { document.getElementById('med-info').style.display='none'; return; }
+  var med = medList[parseInt(i)];
+  document.getElementById('med-display').innerHTML =
+    '<div class="drug-display-name">'+med.name+'</div>' +
+    '<div class="drug-display-str">'+med.strength+(med.form?' · '+med.form:'')+'</div>';
+  document.getElementById('med-indication').textContent = med.indication;
+  document.getElementById('med-info').style.display = 'block';
+  setMode(ROUTE_AUTO[med.route]||'text');
+}
+
+function applyTpl(id,val) { if(val) document.getElementById(id).value=val; }
+
+function setMode(mode) {
+  currentMode = mode;
+  ['text','dot','insulin','inhaler'].forEach(function(m){
+    document.getElementById('mode-'+m).style.display = (m===mode)?'block':'none';
+    var t=document.getElementById('mtab-'+m);
+    t.className='mode-tab'+(m===mode?' active':'');
+  });
+}
+
+// ── page nav ──
+function showPage(name) {
+  document.querySelectorAll('.page').forEach(function(p){p.classList.remove('active');});
+  document.getElementById('page-'+name).classList.add('active');
+  ['print','meds','sigs'].forEach(function(p,i){
+    document.querySelectorAll('.tab-btn')[i].classList.toggle('active',p===name);
+  });
+}
+
+// ── build label HTML ──
+function buildLabelHTML(item, mealLabel) {
+  var ptName = document.getElementById('pt-name').value.trim()||'—';
+  var ptHN   = document.getElementById('pt-hn').value.trim()||'—';
+  var ptDate = getPtDate();
+  var med    = medList[item.medIdx]||{name:'—',strength:'',form:'',indication:''};
+  var now    = new Date();
+  var pt     = now.toLocaleTimeString('th-TH',{hour:'2-digit',minute:'2-digit'});
+  var d      = item.sigData;
+  var sigZone = '';
+
+  if (d.mode==='text'||d.mode==='inhaler') {
+    var sigTxt = d.text || '—';
+    var sigPx = calcSigFontSize(sigTxt);
+    var textZone = '<div class="lbl-sig"><div class="lbl-sig-label">วิธีใช้</div><div class="lbl-sig-text" style="font-size:'+sigPx+'px;">'+sigTxt.replace(/\n/g,'<br>')+'</div></div>';
+    // dot เสริมสำหรับ text mode
+    if (d.mode==='text' && d.hasDot) {
+      var vals=[d.dm,d.dn,d.de,d.db]; var times=['🌅 เช้า','☀️ เที่ยง','🌆 เย็น','🌙 ก่อนนอน'];
+      var cards='';
+      vals.forEach(function(n,i){
+        var dots=''; for(var x=0;x<5;x++) dots+='<div class="lbl-dot'+(x<n?'':' empty')+'"></div>';
+        cards+='<div class="lbl-dot-card'+(n>0?' on':'')+'">' +
+          '<div class="lbl-dot-time">'+times[i]+'</div>' +
+          '<div class="lbl-dot-num'+(n===0?' zero':'')+'">'+(n===0?'—':n)+'</div>' +
+          '<div class="lbl-dots">'+(n>0?dots:'')+'</div></div>';
+      });
+      var textZoneNoflex = '<div class="lbl-sig" style="flex:none;"><div class="lbl-sig-label">วิธีใช้</div><div class="lbl-sig-text" style="font-size:'+sigPx+'px;">'+sigTxt.replace(/\n/g,'<br>')+'</div></div>';
+      sigZone = textZoneNoflex + '<div class="lbl-dot-grid" style="border-top:1px solid #e0e0e0;flex:1;align-content:center;">'+cards+'</div>';
+    } else {
+      sigZone = textZone;
+    }
+  } else if (d.mode==='dot') {
+    var vals=[d.m,d.n,d.e,d.b]; var times=['🌅 เช้า','☀️ เที่ยง','🌆 เย็น','🌙 ก่อนนอน'];
+    var cards='';
+    vals.forEach(function(n,i){
+      var dots=''; for(var x=0;x<5;x++) dots+='<div class="lbl-dot'+(x<n?'':' empty')+'"></div>';
+      cards+='<div class="lbl-dot-card'+(n>0?' on':'')+'">' +
+        '<div class="lbl-dot-time">'+times[i]+'</div>' +
+        '<div class="lbl-dot-num'+(n===0?' zero':'')+'">'+(n===0?'—':n)+'</div>' +
+        '<div class="lbl-dots">'+(n>0?dots:'')+'</div></div>';
+    });
+    sigZone='<div class="lbl-dot-grid">'+cards+'</div>';
+    if(d.extra) sigZone+='<div class="lbl-dot-extra">'+d.extra.replace(/\n/g,'<br>')+'</div>';
+  } else if (d.mode==='insulin') {
+    // single dose or labeled meal
+    var dose = mealLabel==='เช้า'?d.m : mealLabel==='เย็น'?d.e : mealLabel==='ก่อนนอน'?d.b : 0;
+    if (!mealLabel) {
+      // same dose — show all in one
+      var ivals=[d.m,d.e,d.b]; var itimes=['🌅 เช้า','🌆 เย็น','🌙 ก่อนนอน'];
+      var ic='';
+      ivals.forEach(function(n,i){
+        ic+='<div class="lbl-ins-card'+(n>0?' on':'')+'">' +
+          '<div class="lbl-ins-time">'+itimes[i]+'</div>' +
+          '<div class="lbl-ins-dose'+(n===0?' zero':'')+'">'+(n===0?'—':n)+'</div>' +
+          (n>0?'<div class="lbl-ins-unit">ยูนิต</div>':'')+
+          '</div>';
+      });
+      sigZone='<div class="lbl-ins-grid">'+ic+'</div>';
+    } else {
+      // split label — syringe guide for this specific dose
+      sigZone = buildSyringeHTML(dose, mealLabel, d);
+    }
+    if (d.extra && !mealLabel) sigZone+='<div class="lbl-ins-sig">'+d.extra.replace(/\n/g,'<br>')+'</div>';
+  }
+
+  return '<div class="lbl-wrap">' +
+    '<div class="lbl-header">' +
+    '<div><div class="lbl-hosp-name">'+HOSP_NAME+'</div><div class="lbl-hosp-dept">งานเภสัชกรรม</div></div>' +
+    '<div class="lbl-print-dt">'+ptDate+'<br>'+pt+'</div></div>' +
+    '<div class="lbl-patient">' +
+    '<div><div class="lbl-fl">ชื่อ-นามสกุล</div><div class="lbl-fv">'+ptName+'</div></div>' +
+    '<div><div class="lbl-fl">HN</div><div class="lbl-fs">'+ptHN+'</div></div>' +
+    '<div><div class="lbl-fl">วันที่</div><div class="lbl-fs">'+ptDate+'</div></div></div>' +
+    '<div class="lbl-drug"><div class="lbl-drug-name">'+med.name+'</div>' +
+    '<div class="lbl-drug-strength">'+med.strength+(med.form?' · '+med.form:'')+'</div>' +
+    (med.indication?'<div class="lbl-drug-ind">'+med.indication+'</div>':'')+'</div>' +
+    sigZone +
+    '<div class="lbl-footer"><span>พิมพ์: '+ptDate+' '+pt+'</span></div>' +
+    '</div>';
+}
+
+function buildSyringeHTML(dose, mealLabel, d) {
+  // full syringe: barrel h=250, y(u)=262-u*2.5
+  function yF(u){return 262-u*2.5;}
+  var prevMaj = Math.floor(dose/10)*10;
+  var nextMaj = prevMaj+10; if(nextMaj>100)nextMaj=100;
+
+  // zoom: show prevMaj→nextMaj, barrel y_top=20,y_bot=250,h=230
+  var ZBOT=250,ZTOP=20,ZH=230;
+  var rangeU = nextMaj - prevMaj; // always 10
+  var PER2 = ZH / (rangeU / 2);  // px per 2U
+  function yZ(u){return ZBOT-(u-prevMaj)/2*PER2;}
+
+  var fullSvg = '<svg width="56" height="292" viewBox="0 0 56 292" style="flex-shrink:0;" xmlns="http://www.w3.org/2000/svg">';
+  fullSvg += '<line x1="21" y1="2" x2="21" y2="12" stroke="#888" stroke-width="1.5"/>';
+  fullSvg += '<rect x="11" y="12" width="20" height="250" rx="3" fill="white" stroke="#333" stroke-width="1.5"/>';
+  var yT=yF(dose);
+  fullSvg += '<rect x="12" y="'+yT+'" width="18" height="'+(262-yT)+'" fill="#333"/>';
+  fullSvg += '<line x1="5" y1="'+yT+'" x2="36" y2="'+yT+'" stroke="#000" stroke-width="3"/>';
+  fullSvg += '<polygon points="3,'+yT+' 9,'+(yT-4)+' 9,'+(yT+4)+'" fill="#000"/>';
+  for(var u=10;u<=100;u+=10){var y=yF(u);fullSvg+='<line x1="31" y1="'+y+'" x2="35" y2="'+y+'" stroke="#555" stroke-width="1.2"/><text x="37" y="'+(y+3)+'" font-size="7" font-family="Google Sans,sans-serif" fill="#444">'+u+'</text>';}
+  fullSvg += '<text x="37" y="'+(yT-2)+'" font-size="7" font-family="Google Sans,sans-serif" fill="#000" font-weight="500">◀'+dose+'</text>';
+  fullSvg += '<text x="4" y="267" font-size="7" font-family="Google Sans,sans-serif" fill="#444">0</text>';
+  for(var u2=2;u2<=98;u2+=2){if(u2%10===0)continue;var y2=yF(u2);var isTgt=(u2===dose);fullSvg+='<line x1="11" y1="'+y2+'" x2="15" y2="'+y2+'" stroke="'+(isTgt?'#000':'#CCC')+'" stroke-width="'+(isTgt?'2':'0.8')+'"/>';}
+  var yZT=yF(nextMaj),yZB=yF(prevMaj);
+  fullSvg += '<rect x="10" y="'+yZT+'" width="22" height="'+(yZB-yZT)+'" fill="none" stroke="#000" stroke-width="1.5" stroke-dasharray="3,2"/>';
+  fullSvg += '<rect x="4" y="262" width="34" height="7" rx="2" fill="#DDD" stroke="#999" stroke-width="1"/>';
+  fullSvg += '<rect x="15" y="269" width="12" height="14" rx="1" fill="#EEE" stroke="#BBB" stroke-width="1"/>';
+  fullSvg += '<rect x="2" y="279" width="38" height="5" rx="2" fill="#DDD" stroke="#999" stroke-width="1"/>';
+  fullSvg += '</svg>';
+
+  // zoom svg
+  var zSvg = '<svg width="100%" height="270" viewBox="0 0 148 270" xmlns="http://www.w3.org/2000/svg">';
+  zSvg += '<rect x="30" y="'+ZTOP+'" width="52" height="'+ZH+'" rx="4" fill="white" stroke="#333" stroke-width="2"/>';
+  var yFill=yZ(dose),fillH=ZBOT-yFill;
+  if(fillH>0) zSvg+='<rect x="32" y="'+yFill+'" width="48" height="'+fillH+'" fill="#333"/>';
+  zSvg += '<line x1="8" y1="'+yFill+'" x2="92" y2="'+yFill+'" stroke="#000" stroke-width="5"/>';
+  zSvg += '<polygon points="5,'+yFill+' 15,'+(yFill-7)+' 15,'+(yFill+7)+'" fill="#000"/>';
+  for(var zu=prevMaj;zu<=nextMaj;zu+=2){
+    var zy=yZ(zu); var isMaj=(zu%10===0); var isTgt2=(zu===dose);
+    if(isTgt2){
+      zSvg+='<rect x="94" y="'+(zy-12)+'" width="40" height="24" rx="3" fill="#000"/>';
+      zSvg+='<text x="114" y="'+(zy+5)+'" font-size="14" font-family="Google Sans,sans-serif" fill="white" font-weight="500" text-anchor="middle">'+zu+'</text>';
+      zSvg+='<rect x="16" y="'+(zy-12)+'" width="14" height="24" rx="3" fill="#000"/>';
+      zSvg+='<text x="23" y="'+(zy+5)+'" font-size="14" font-family="Google Sans,sans-serif" fill="white" font-weight="500" text-anchor="middle">'+zu+'</text>';
+    } else if(isMaj){
+      zSvg+='<line x1="82" y1="'+zy+'" x2="97" y2="'+zy+'" stroke="#333" stroke-width="2.5"/>';
+      zSvg+='<text x="100" y="'+(zy+5)+'" font-size="15" font-family="Google Sans,sans-serif" fill="#222" font-weight="500">'+zu+'</text>';
+      zSvg+='<line x1="30" y1="'+zy+'" x2="15" y2="'+zy+'" stroke="#333" stroke-width="2.5"/>';
+      zSvg+='<text x="0" y="'+(zy+5)+'" font-size="15" font-family="Google Sans,sans-serif" fill="#222" font-weight="500">'+zu+'</text>';
+    } else {
+      zSvg+='<line x1="82" y1="'+zy+'" x2="92" y2="'+zy+'" stroke="#555" stroke-width="1.5"/>';
+      zSvg+='<text x="95" y="'+(zy+4)+'" font-size="13" font-family="Google Sans,sans-serif" fill="#444">'+zu+'</text>';
+      zSvg+='<line x1="30" y1="'+zy+'" x2="20" y2="'+zy+'" stroke="#555" stroke-width="1.5"/>';
+      zSvg+='<text x="5" y="'+(zy+4)+'" font-size="13" font-family="Google Sans,sans-serif" fill="#444">'+zu+'</text>';
+    }
+  }
+  zSvg += '</svg>';
+
+  var mealTime = mealLabel==='เช้า'?'ก่อนอาหารเช้า':mealLabel==='เย็น'?'ก่อนอาหารเย็น':'ก่อนนอน';
+  var extraText = d.extra ? d.extra : mealTime;
+
+  return '<div class="lbl-syringe">' +
+    fullSvg +
+    '<div style="flex:1;">' +
+    '<div class="lbl-syr-title">คู่มือการดูดยา</div>' +
+    '<div class="lbl-syr-dose">'+dose+' ยูนิต</div>' +
+    '<div class="lbl-syr-sub">'+extraText+'</div>' +
+    '<div style="font-size:9px;font-weight:500;letter-spacing:0.07em;text-transform:uppercase;color:#888;margin-bottom:6px;">ขยายช่วงเป้าหมาย</div>' +
+    zSvg +
+    '<div class="lbl-syr-note">กล่องดำ = ขีดที่ต้องดูดยาถึง · 1 ขีด = 2 ยูนิต</div>' +
+    '</div></div>';
+}
+
+// ── auto-fit sig font size ──
+// A5 พื้นที่ sig ≈ 128mm สูง, 128mm กว้าง
+// นับ characters (รวม newline เป็น factor) แล้วปรับ
+function calcSigFontSize(text) {
+  var lines = text.split('\n');
+  var maxLineLen = 0;
+  lines.forEach(function(l){ if(l.length > maxLineLen) maxLineLen = l.length; });
+  var numLines = lines.length;
+  var byLen  = maxLineLen <= 6  ? 96 :
+               maxLineLen <= 9  ? 80 :
+               maxLineLen <= 13 ? 68 :
+               maxLineLen <= 18 ? 56 :
+               maxLineLen <= 24 ? 46 : 38;
+  var byLine = numLines === 1 ? byLen :
+               numLines === 2 ? Math.min(byLen, 72) :
+               numLines === 3 ? Math.min(byLen, 56) : Math.min(byLen, 44);
+  return Math.min(byLen, byLine);
+}
+function getLabelsToprint() {
+  var labels = [];
+  queue.forEach(function(item){
+    if (!item.done) return;
+    var d = item.sigData;
+    if (d.mode === 'insulin') {
+      var doses = [{v:d.m,label:'เช้า'},{v:d.e,label:'เย็น'},{v:d.b,label:'ก่อนนอน'}].filter(function(x){return x.v>0;});
+      var allSame = doses.length>0 && doses.every(function(x){return x.v===doses[0].v;});
+      if (allSame || doses.length<=1) {
+        labels.push({item:item, meal:null});
+      } else {
+        doses.forEach(function(x){ labels.push({item:item, meal:x.label}); });
+      }
+    } else {
+      labels.push({item:item, meal:null});
+    }
+  });
+  return labels;
+}
+
+function updatePreview() {
+  var labels = getLabelsToprint();
+  if (!labels.length) { toast('ยังไม่มีรายการยา'); return; }
+  var area = document.getElementById('print-area');
+  area.innerHTML = buildLabelHTML(labels[0].item, labels[0].meal);
+  area.className = 'preview'; area.style.display = 'block';
+  document.getElementById('preview-wrap').style.display = 'block';
+  if (labels.length > 1) toast('แสดงแผ่นแรก ('+labels.length+' แผ่นทั้งหมด)');
+}
+
+function getPrintCSS() {
+  return '*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }' +
+    'body { font-family: "Google Sans", sans-serif; background: white; color: #000; }' +
+    '.lbl-wrap { display: flex; flex-direction: column; min-height: 277mm; }' +
+    '.lbl-dot-grid { display: grid; grid-template-columns: repeat(4,1fr); gap: 8px; padding: 14px 16px; border-bottom: 1px solid #e0e0e0; }' +
+    '@page { size: A5 portrait; margin: 10mm; }' +
+    '.lbl-header { background: #111 !important; color: white !important; padding: 10px 16px; display: flex; justify-content: space-between; align-items: flex-start; -webkit-print-color-adjust: exact; print-color-adjust: exact; }' +
+    '.lbl-hosp-name { font-size: 15px; font-weight: 500; }' +
+    '.lbl-hosp-dept { font-size: 11px; opacity: 0.7; }' +
+    '.lbl-print-dt { font-size: 11px; opacity: 0.75; text-align: right; line-height: 1.5; }' +
+    '.lbl-patient { padding: 10px 16px; border-bottom: 1px solid #e0e0e0; display: grid; grid-template-columns: 1fr auto auto; gap: 16px; }' +
+    '.lbl-fl { font-size: 10px; color: #888; margin-bottom: 2px; }' +
+    '.lbl-fv { font-size: 16px; font-weight: 500; }' +
+    '.lbl-fs { font-size: 13px; color: #333; }' +
+    '.lbl-drug { padding: 12px 16px 10px; border-bottom: 1px solid #e0e0e0; }' +
+    '.lbl-drug-name { font-size: 30px; font-weight: 500; line-height: 1.1; }' +
+    '.lbl-drug-strength { font-size: 14px; color: #555; margin-top: 3px; }' +
+    '.lbl-drug-ind { display: inline-block; font-size: 12px; margin-top: 7px; padding: 2px 10px; border: 1px solid #ccc; border-radius: 20px; color: #444; }' +
+    '.lbl-sig { padding: 24px 16px 20px; flex: 1; display: flex; flex-direction: column; justify-content: flex-start; }' +
+    '.lbl-sig-label { font-size: 11px; color: #888; text-transform: uppercase; letter-spacing: 0.07em; margin-bottom: 14px; }' +
+    '.lbl-sig-text { font-weight: 500; line-height: 1.35; }' +
+    '.lbl-dot-card { border: 1px solid #ccc; border-radius: 6px; padding: 16px 4px; text-align: center; }' +
+    '.lbl-dot-card.on { border-color: #111; border-width: 1.5px; }' +
+    '.lbl-dot-time { font-size: 11px; color: #888; margin-bottom: 4px; }' +
+    '.lbl-dot-num { font-size: 38px; font-weight: 500; line-height: 1; margin-bottom: 6px; }' +
+    '.lbl-dot-num.zero { color: #ccc; font-size: 28px; }' +
+    '.lbl-dots { display: flex; flex-wrap: wrap; justify-content: center; gap: 3px; min-height: 12px; }' +
+    '.lbl-dot { width: 10px; height: 10px; border-radius: 50%; background: #111; }' +
+    '.lbl-dot.empty { background: none; border: 1.5px solid #ccc; }' +
+    '.lbl-dot-extra { padding: 10px 16px; border-bottom: 1px solid #e0e0e0; font-size: 20px; font-weight: 500; line-height: 1.5; }' +
+    '.lbl-ins-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 8px; padding: 14px 16px 10px; border-bottom: 1px solid #e0e0e0; }' +
+    '.lbl-ins-card { border: 1px solid #ccc; border-radius: 6px; padding: 8px 4px; text-align: center; }' +
+    '.lbl-ins-card.on { border-color: #111; border-width: 1.5px; }' +
+    '.lbl-ins-time { font-size: 11px; color: #888; margin-bottom: 4px; }' +
+    '.lbl-ins-dose { font-size: 38px; font-weight: 500; line-height: 1; }' +
+    '.lbl-ins-dose.zero { color: #ccc; font-size: 28px; }' +
+    '.lbl-ins-unit { font-size: 12px; color: #555; margin-top: 3px; }' +
+    '.lbl-ins-sig { padding: 10px 16px; font-size: 20px; font-weight: 500; line-height: 1.5; border-bottom: 1px solid #e0e0e0; }' +
+    '.lbl-syringe { padding: 14px 16px; border-bottom: 1px solid #e0e0e0; display: flex; gap: 16px; align-items: flex-start; }' +
+    '.lbl-syr-title { font-size: 10px; color: #888; text-transform: uppercase; letter-spacing: 0.07em; margin-bottom: 8px; }' +
+    '.lbl-syr-dose { font-size: 28px; font-weight: 500; margin-bottom: 4px; }' +
+    '.lbl-syr-sub { font-size: 13px; color: #555; margin-bottom: 12px; }' +
+    '.lbl-syr-note { font-size: 11px; color: #666; margin-top: 8px; line-height: 1.6; border-top: 1px solid #eee; padding-top: 8px; }' +
+    '.lbl-footer { padding: 7px 16px; display: flex; justify-content: space-between; font-size: 10px; color: #999; background: #f8f8f8; }';
+}
+
+function printAll() {
+  var labels = getLabelsToprint();
+  if (!labels.length) { toast('ยังไม่มีรายการยา'); return; }
+  var htmlAll = labels.map(function(l){ return buildLabelHTML(l.item, l.meal); }).join('<div style="page-break-after:always;"></div>');
+  var win = window.open('', '_blank');
+  win.document.write(
+    '<!DOCTYPE html><html><head><meta charset="UTF-8"><title>ฉลากยา</title>' +
+    '<link href="https://fonts.googleapis.com/css2?family=Google+Sans:wght@400;500&display=swap" rel="stylesheet">' +
+    '<style>' + getPrintCSS() + '</style></head><body>' +
+    '<script>function calcSigFontSize(t){var l=t.split("\\n"),m=0;l.forEach(function(x){if(x.length>m)m=x.length;});var n=l.length,s=m<=6?96:m<=9?80:m<=13?68:m<=18?56:m<=24?46:38;return n===1?s:n===2?Math.min(s,72):n===3?Math.min(s,56):Math.min(s,44);}<\/script>' +
+    htmlAll + '</body></html>'
+  );
+  win.document.close();
+  win.onload = function() { win.focus(); win.print(); };
+}
+
+// ── med CRUD ──
+function addMed() {
+  var data = {name:document.getElementById('new-med-name').value.trim(),strength:document.getElementById('new-med-strength').value.trim(),form:document.getElementById('new-med-form').value.trim(),route:document.getElementById('new-med-route').value,indication:document.getElementById('new-med-indication').value.trim()};
+  if(!data.name){toast('กรุณากรอกชื่อยา');return;}
+  if(!data.indication){toast('กรุณากรอกสรรพคุณ');return;}
+  gasPost('addMed',{data:data}).then(function(){toast('เพิ่มยาสำเร็จ ✓');loadAll();['new-med-name','new-med-strength','new-med-form','new-med-indication'].forEach(function(id){document.getElementById(id).value='';});}).catch(function(){toast('เกิดข้อผิดพลาด');});
+}
+function deleteMed(i){if(!confirm('ลบยา "'+medList[i].name+'"?'))return;gasPost('deleteMed',{index:i}).then(function(){toast('ลบยาแล้ว');loadAll();}).catch(function(){toast('เกิดข้อผิดพลาด');});}
+function renderMedTable(){var wrap=document.getElementById('med-table-wrap');if(!medList.length){wrap.innerHTML='<div class="loading">ยังไม่มีรายการยา</div>';return;}var h='<table class="data-table"><thead><tr><th>ชื่อยา</th><th>ความแรง</th><th>รูปแบบ</th><th>Route</th><th>สรรพคุณ</th><th></th></tr></thead><tbody>';medList.forEach(function(m,i){h+='<tr><td><strong>'+m.name+'</strong></td><td>'+m.strength+'</td><td>'+m.form+'</td><td><span class="badge-route">'+m.route+'</span></td><td>'+m.indication+'</td><td><button class="btn btn-danger btn-sm" onclick="deleteMed('+i+')">ลบ</button></td></tr>';});h+='</tbody></table>';wrap.innerHTML=h;}
+
+// ── sig CRUD ──
+function addSig(){var data={route:document.getElementById('new-sig-route').value,sig:document.getElementById('new-sig-text').value.trim()};if(!data.sig){toast('กรุณากรอกวิธีใช้');return;}gasPost('addSig',{data:data}).then(function(){toast('เพิ่มวิธีใช้สำเร็จ ✓');loadAll();document.getElementById('new-sig-text').value='';}).catch(function(){toast('เกิดข้อผิดพลาด');});}
+function deleteSig(i){if(!confirm('ลบวิธีใช้นี้?'))return;gasPost('deleteSig',{index:i}).then(function(){toast('ลบวิธีใช้แล้ว');loadAll();}).catch(function(){toast('เกิดข้อผิดพลาด');});}
+function renderSigTable(){var wrap=document.getElementById('sig-table-wrap');if(!sigList.length){wrap.innerHTML='<div class="loading">ยังไม่มีวิธีใช้</div>';return;}var h='<table class="data-table"><thead><tr><th>Route</th><th>วิธีใช้</th><th></th></tr></thead><tbody>';sigList.forEach(function(s,i){h+='<tr><td><span class="badge-route">'+s.route+'</span></td><td>'+s.sig+'</td><td><button class="btn btn-danger btn-sm" onclick="deleteSig('+i+')">ลบ</button></td></tr>';});h+='</tbody></table>';wrap.innerHTML=h;}
+
+// ── toast ──
+function toast(msg){var el=document.getElementById('toast');el.textContent=msg;el.classList.add('show');setTimeout(function(){el.classList.remove('show');},2500);}
+</script>
+</body>
+</html>
