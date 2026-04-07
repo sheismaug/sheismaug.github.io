@@ -1,0 +1,920 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Gym Springer Tracker</title>
+<link href="https://fonts.googleapis.com/css2?family=Google+Sans:wght@400;500;700&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<style>
+:root {
+  --black:   #18181B;
+  --zinc9:   #27272A;
+  --zinc8:   #3F3F46;
+  --zinc7:   #52525B;
+  --zinc5:   #71717A;
+  --zinc4:   #A1A1AA;
+  --zinc3:   #D4D4D8;
+  --zinc2:   #E4E4E7;
+  --zinc1:   #F4F4F5;
+  --white:   #FAFAF9;
+  --amber:   #F59E0B;
+  --amber-d: #D97706;
+  --amber-l: #FEF3C7;
+  --amber-b: #FDE68A;
+  --green:   #22C55E;
+  --green-d: #15803D;
+  --green-l: #F0FDF4;
+  --green-b: #BBF7D0;
+  --red:     #EF4444;
+  --red-l:   #FEF2F2;
+  --orange:  #F97316;
+  --shadow:  0 1px 3px rgba(0,0,0,0.08);
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { height: 100%; }
+body {
+  font-family: 'Google Sans', sans-serif;
+  background: var(--zinc1);
+  color: var(--black);
+  min-height: 100vh;
+}
+.app-shell {
+  display: flex; flex-direction: column;
+  min-height: 100vh; max-width: 520px;
+  margin: 0 auto; width: 100%;
+  background: var(--white);
+  box-shadow: 0 0 40px rgba(0,0,0,0.07);
+}
+/* Header */
+.header {
+  background: var(--zinc9); padding: 14px 20px;
+  display: flex; align-items: center; justify-content: space-between;
+  position: sticky; top: 0; z-index: 200; flex-shrink: 0;
+}
+.header-left { display: flex; align-items: center; gap: 10px; }
+.header-icon {
+  width: 32px; height: 32px; background: rgba(245,158,11,0.2);
+  border-radius: 9px; display: flex; align-items: center; justify-content: center; font-size: 17px;
+}
+.header-title { color: #fff; font-size: 16px; font-weight: 700; }
+.header-loc {
+  background: rgba(255,255,255,0.1); color: rgba(255,255,255,0.65);
+  font-size: 11px; padding: 4px 10px; border-radius: 20px;
+}
+/* Tabs */
+.tabs {
+  background: var(--zinc9); display: flex;
+  border-top: 1px solid rgba(255,255,255,0.06); flex-shrink: 0;
+}
+.tab {
+  flex: 1; text-align: center; padding: 11px 4px 9px;
+  font-size: 12.5px; font-weight: 500; color: rgba(255,255,255,0.38);
+  cursor: pointer; border-bottom: 2px solid transparent;
+  transition: color .15s, border-color .15s; user-select: none;
+}
+.tab.active { color: var(--amber); border-bottom-color: var(--amber); }
+/* Pages */
+.pages { flex: 1; }
+.page { display: none; padding: 20px 16px 40px; animation: fadeIn .2s ease; }
+.page.active { display: block; }
+@keyframes fadeIn { from { opacity:0; transform:translateY(4px); } to { opacity:1; transform:none; } }
+/* Cards */
+.card {
+  background: var(--white); border: 1px solid var(--zinc2);
+  border-radius: 14px; padding: 18px; margin-bottom: 14px; box-shadow: var(--shadow);
+}
+.card-label {
+  font-size: 11px; font-weight: 600; color: var(--zinc4);
+  letter-spacing: 0.6px; text-transform: uppercase; margin-bottom: 14px;
+}
+/* Clock */
+.datetime-row { display: flex; align-items: baseline; gap: 10px; margin-bottom: 22px; padding: 0 2px; }
+.clock { font-size: 52px; font-weight: 700; color: var(--zinc9); line-height: 1; letter-spacing: -1px; }
+.datestamp { font-size: 13px; color: var(--zinc5); }
+/* Temp input */
+.temp-input-wrap { position: relative; }
+.temp-input-big {
+  width: 100%; background: var(--zinc1); border: 1.5px solid var(--zinc2);
+  border-radius: 12px; padding: 18px 48px 18px 20px;
+  font-family: 'Google Sans', sans-serif; font-size: 48px; font-weight: 700;
+  color: var(--zinc9); text-align: center; outline: none; transition: border-color .15s;
+  -moz-appearance: textfield;
+}
+.temp-input-big::-webkit-outer-spin-button,
+.temp-input-big::-webkit-inner-spin-button { -webkit-appearance: none; }
+.temp-input-big:focus { border-color: var(--amber); background: var(--white); }
+.temp-unit {
+  position: absolute; right: 18px; top: 50%; transform: translateY(-50%);
+  font-size: 18px; color: var(--zinc4); font-weight: 500; pointer-events: none;
+}
+/* Outdoor box */
+.outdoor-box {
+  display: flex; align-items: center; gap: 12px;
+  background: var(--amber-l); border: 1px solid var(--amber-b);
+  border-radius: 12px; padding: 13px 16px; margin-top: 10px; cursor: pointer;
+}
+.outdoor-icon { font-size: 22px; }
+.outdoor-info { flex: 1; }
+.outdoor-temp { font-size: 24px; font-weight: 700; color: var(--amber-d); line-height: 1.1; }
+.outdoor-label { font-size: 11px; color: #92400E; margin-top: 1px; }
+.auto-tag {
+  background: var(--amber); color: #fff; font-size: 9px; font-weight: 700;
+  padding: 3px 7px; border-radius: 8px; letter-spacing: 0.6px;
+}
+.outdoor-refresh { font-size: 18px; color: var(--amber-d); margin-left: 4px; cursor: pointer; transition: transform .3s; }
+.outdoor-refresh.spinning { animation: spin .6s linear; }
+@keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+/* Springer toggle */
+.springer-row {
+  display: flex; align-items: center; justify-content: space-between;
+  background: var(--zinc1); border: 1.5px solid var(--zinc2);
+  border-radius: 12px; padding: 15px 16px; cursor: pointer;
+  transition: background .15s, border-color .15s; user-select: none;
+}
+.springer-row.on { background: var(--green-l); border-color: var(--green-b); }
+.springer-row-left { display: flex; align-items: center; gap: 10px; }
+.springer-dot { width: 10px; height: 10px; border-radius: 50%; background: var(--zinc3); transition: background .15s; flex-shrink: 0; }
+.springer-row.on .springer-dot { background: var(--green); }
+.springer-text { font-size: 14px; font-weight: 600; color: var(--zinc8); }
+.springer-row.on .springer-text { color: var(--green-d); }
+.springer-sub { font-size: 11px; color: var(--zinc5); margin-top: 1px; }
+.springer-row.on .springer-sub { color: #16A34A; }
+.sw { width: 44px; height: 24px; background: var(--zinc3); border-radius: 12px; position: relative; transition: background .2s; flex-shrink: 0; }
+.sw.on { background: var(--green); }
+.sw::after { content:''; width:20px; height:20px; background:#fff; border-radius:50%; position:absolute; top:2px; left:2px; box-shadow:0 1px 3px rgba(0,0,0,0.2); transition:transform .2s; }
+.sw.on::after { transform: translateX(20px); }
+/* Springer schedule box */
+.log-entry-box {
+  background: var(--zinc1); border: 1.5px dashed var(--zinc3);
+  border-radius: 12px; padding: 14px 16px; margin-top: 10px;
+}
+.log-entry-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.field-label { font-size: 11px; font-weight: 600; color: var(--zinc5); margin-bottom: 5px; letter-spacing: 0.3px; }
+.time-input {
+  width: 100%; background: var(--white); border: 1.5px solid var(--zinc2);
+  border-radius: 9px; padding: 10px 12px;
+  font-family: 'Google Sans', sans-serif; font-size: 18px; font-weight: 700;
+  color: var(--zinc9); outline: none; text-align: center; transition: border-color .15s;
+}
+.time-input:focus { border-color: var(--amber); }
+.log-entry-hint { font-size: 11px; color: var(--zinc4); margin-top: 8px; text-align: center; }
+/* Notes */
+.notes-input {
+  width: 100%; background: var(--zinc1); border: 1.5px solid var(--zinc2);
+  border-radius: 10px; padding: 11px 14px;
+  font-family: 'Google Sans', sans-serif; font-size: 14px; color: var(--zinc8);
+  outline: none; resize: none; transition: border-color .15s;
+}
+.notes-input:focus { border-color: var(--amber); }
+.notes-input::placeholder { color: var(--zinc4); }
+/* Buttons */
+.btn-primary {
+  width: 100%; background: var(--zinc9); color: #fff; border: none;
+  border-radius: 12px; padding: 15px;
+  font-family: 'Google Sans', sans-serif; font-size: 15px; font-weight: 700;
+  cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px;
+  transition: background .15s;
+}
+.btn-primary:hover { background: var(--zinc8); }
+.btn-primary:disabled { background: var(--zinc4); cursor: not-allowed; }
+.btn-secondary {
+  width: 100%; background: var(--white); color: var(--zinc8);
+  border: 1.5px solid var(--zinc3); border-radius: 10px; padding: 11px;
+  font-family: 'Google Sans', sans-serif; font-size: 14px; font-weight: 600;
+  cursor: pointer; margin-top: 12px; transition: background .15s, border-color .15s;
+}
+.btn-secondary:hover { background: var(--zinc1); border-color: var(--zinc4); }
+.btn-secondary:disabled { opacity: 0.5; cursor: not-allowed; }
+.btn-hint { font-size: 11px; color: var(--zinc4); text-align: center; margin-top: 8px; }
+/* Toast */
+.toast {
+  position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%) translateY(80px);
+  background: var(--zinc9); color: #fff; padding: 12px 20px; border-radius: 12px;
+  font-size: 14px; font-weight: 500; z-index: 999; transition: transform .3s ease;
+  white-space: nowrap; box-shadow: 0 4px 16px rgba(0,0,0,0.2);
+}
+.toast.show { transform: translateX(-50%) translateY(0); }
+.toast.success { background: var(--green-d); }
+.toast.error { background: var(--red); }
+/* Tab 2: ประวัติ */
+.summary-row { display: grid; grid-template-columns: repeat(3,1fr); gap: 10px; margin-bottom: 16px; }
+.stat-box { background: var(--white); border: 1px solid var(--zinc2); border-radius: 12px; padding: 13px 10px; text-align: center; box-shadow: var(--shadow); }
+.stat-val { font-size: 22px; font-weight: 700; color: var(--zinc9); }
+.stat-lbl { font-size: 10.5px; color: var(--zinc5); margin-top: 2px; }
+.section-header { font-size: 11.5px; font-weight: 600; color: var(--zinc5); text-transform: uppercase; letter-spacing: 0.5px; padding: 10px 2px 8px; }
+.log-list { display: flex; flex-direction: column; gap: 3px; }
+.log-row {
+  display: flex; align-items: center; gap: 0;
+  padding: 12px 14px; background: var(--white);
+  border-radius: 10px; border: 1px solid var(--zinc2); border-left: 3px solid transparent;
+}
+.log-row.on { border-left-color: var(--green); }
+.log-time { font-size: 13px; font-weight: 700; color: var(--zinc9); width: 48px; flex-shrink: 0; }
+.log-temps { flex: 1; }
+.log-indoor { font-size: 16px; font-weight: 700; }
+.log-indoor.hot { color: var(--red); }
+.log-indoor.warm { color: var(--orange); }
+.log-indoor.cool { color: var(--green-d); }
+.log-outdoor-txt { font-size: 11px; color: var(--zinc5); }
+.log-badge { font-size: 10px; font-weight: 600; padding: 3px 8px; border-radius: 20px; flex-shrink: 0; }
+.log-badge.on { background: var(--green-l); color: var(--green-d); }
+.log-badge.off { background: var(--zinc1); color: var(--zinc5); }
+/* Empty state */
+.empty { text-align: center; padding: 48px 20px; color: var(--zinc4); }
+.empty .emoji { font-size: 40px; margin-bottom: 12px; }
+.empty p { font-size: 14px; }
+/* Skeleton loader */
+.skeleton { background: linear-gradient(90deg, var(--zinc1) 25%, var(--zinc2) 50%, var(--zinc1) 75%); background-size: 200% 100%; animation: shimmer 1.2s infinite; border-radius: 8px; }
+@keyframes shimmer { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
+/* Tab 3: วิเคราะห์ */
+.insight-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 14px; }
+.insight-box { background: var(--white); border: 1px solid var(--zinc2); border-radius: 13px; padding: 14px; box-shadow: var(--shadow); }
+.insight-box.amber { border-color: #D6D0C8; background: #F5F2EE; }
+.ib-lbl { font-size: 10.5px; font-weight: 600; color: var(--zinc4); letter-spacing: 0.4px; text-transform: uppercase; }
+.insight-box.amber .ib-lbl { color: #78716C; }
+.ib-val { font-size: 26px; font-weight: 700; color: var(--zinc9); margin: 5px 0 2px; line-height: 1.1; }
+.ib-sub { font-size: 11px; color: var(--zinc5); }
+.insight-box.amber .ib-sub { color: #78716C; }
+.chart-wrap { background: var(--white); border: 1px solid var(--zinc2); border-radius: 14px; padding: 16px 14px 12px; box-shadow: var(--shadow); margin-bottom: 14px; }
+.chart-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; }
+.chart-title { font-size: 12px; font-weight: 600; color: var(--zinc5); text-transform: uppercase; letter-spacing: 0.4px; }
+.legend { display: flex; gap: 10px; flex-wrap: wrap; }
+.legend-item { font-size: 10.5px; color: var(--zinc5); display: flex; align-items: center; gap: 4px; }
+.ld { width: 8px; height: 8px; border-radius: 50%; }
+.rec-card { background: #F0EFED; border: 1px solid #E0DDD8; border-radius: 14px; padding: 18px; margin-bottom: 14px; }
+.rec-head { font-size: 10.5px; font-weight: 600; color: #9C9690; letter-spacing: 0.6px; text-transform: uppercase; margin-bottom: 14px; }
+.rec-item { display: flex; align-items: flex-start; gap: 12px; margin-bottom: 12px; }
+.rec-item:last-child { margin-bottom: 0; }
+.rec-icon { font-size: 20px; margin-top: 1px; flex-shrink: 0; }
+.rec-title { font-size: 14px; font-weight: 600; color: var(--zinc9); }
+.rec-sub { font-size: 11.5px; color: var(--zinc5); margin-top: 2px; }
+.pill-row { display: flex; gap: 6px; margin-bottom: 14px; overflow-x: auto; padding-bottom: 2px; }
+.pill-row::-webkit-scrollbar { display: none; }
+.pill { padding: 6px 13px; border-radius: 20px; font-size: 12px; font-weight: 500; background: var(--white); color: var(--zinc5); border: 1.5px solid var(--zinc2); white-space: nowrap; cursor: pointer; flex-shrink: 0; transition: all .15s; }
+.pill.active { background: var(--amber-l); color: var(--amber-d); border-color: var(--amber-b); }
+.no-data-note { font-size: 12px; color: var(--zinc4); text-align: center; padding: 12px; }
+@media (min-width: 720px) {
+  body { background: #E8E8E8; }
+  .app-shell { max-width: 440px; border-radius: 32px; overflow: hidden; margin: 32px auto; min-height: unset; }
+}
+</style>
+</head>
+<body>
+<div class="app-shell">
+
+  <div class="header">
+    <div class="header-left">
+      <div class="header-icon">🌬️</div>
+      <div class="header-title">Gym Springer</div>
+    </div>
+    <div class="header-loc">📍 Boss Fitness</div>
+  </div>
+
+  <div class="tabs">
+    <div class="tab active" onclick="go(0)">📝 บันทึก</div>
+    <div class="tab" onclick="go(1)">📋 ประวัติ</div>
+    <div class="tab" onclick="go(2)">📊 วิเคราะห์</div>
+  </div>
+
+  <div class="pages">
+
+    <!-- ══ TAB 0: บันทึก ══ -->
+    <div class="page active" id="p0">
+      <div class="datetime-row">
+        <div class="clock" id="clock">--:--</div>
+        <div class="datestamp" id="datestamp">--</div>
+      </div>
+
+      <div class="card">
+        <div class="card-label">อุณหภูมิในยิม</div>
+        <div class="temp-input-wrap">
+          <input class="temp-input-big" type="number" id="tempIn" step="0.1" min="20" max="55" placeholder="--.-">
+          <span class="temp-unit">°C</span>
+        </div>
+        <div class="outdoor-box" onclick="fetchOutdoor()">
+          <div class="outdoor-icon" id="outdoorIcon">☀️</div>
+          <div class="outdoor-info">
+            <div class="outdoor-temp" id="outdoorTemp">--.-°C</div>
+            <div class="outdoor-label" id="outdoorLabel">กดเพื่อดึงอุณหภูมิภายนอก</div>
+          </div>
+          <div class="auto-tag">AUTO</div>
+          <div class="outdoor-refresh" id="refreshBtn" onclick="event.stopPropagation(); fetchOutdoor()">↻</div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-label">สถานะ Springer (ตอนนี้)</div>
+        <div class="springer-row" id="springerRow" onclick="toggleSpringer()">
+          <div class="springer-row-left">
+            <div class="springer-dot" id="sprDot"></div>
+            <div>
+              <div class="springer-text" id="sprText">Springer ปิดอยู่</div>
+              <div class="springer-sub" id="sprSub">แตะเพื่อเปลี่ยนสถานะ</div>
+            </div>
+          </div>
+          <div class="sw" id="sw"></div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-label">บันทึกเวลาเปิด/ปิด Springer วันนี้</div>
+        <div class="log-entry-box">
+          <div class="log-entry-row">
+            <div>
+              <div class="field-label">เปิดเวลา</div>
+              <input class="time-input" type="text" id="sprOpenTime" placeholder="HH:MM" maxlength="5">
+            </div>
+            <div>
+              <div class="field-label">ปิดเวลา</div>
+              <input class="time-input" type="text" id="sprCloseTime" placeholder="HH:MM" maxlength="5">
+            </div>
+          </div>
+          <div class="log-entry-hint">กรอกเวลาปิดได้ทีหลัง ไม่ต้องรอทำพร้อมกับ temp</div>
+        </div>
+        <button class="btn-secondary" id="btnSprSchedule" onclick="saveSpringerSchedule()">💾 บันทึกเวลา Springer</button>
+      </div>
+
+      <div class="card">
+        <div class="card-label">หมายเหตุ (ไม่บังคับ)</div>
+        <textarea class="notes-input" id="notes" rows="2" placeholder="เช่น มีคนใช้ยิมอยู่ 3 คน, ท้องฟ้ามีเมฆ..."></textarea>
+      </div>
+
+      <button class="btn-primary" id="btnSave" onclick="saveHourlyLog()">
+        ✅ บันทึกข้อมูล
+      </button>
+      <p class="btn-hint">บันทึกทุกชั่วโมง • ข้อมูลถูกส่งไปยัง Google Sheets</p>
+    </div>
+
+    <!-- ══ TAB 1: ประวัติ ══ -->
+    <div class="page" id="p1">
+      <div class="summary-row">
+        <div class="stat-box">
+          <div class="stat-val" id="statCount">--</div>
+          <div class="stat-lbl">รายการวันนี้</div>
+        </div>
+        <div class="stat-box">
+          <div class="stat-val" id="statMax" style="color:var(--red)">--°</div>
+          <div class="stat-lbl">สูงสุดวันนี้</div>
+        </div>
+        <div class="stat-box">
+          <div class="stat-val" id="statMin" style="color:var(--green-d)">--°</div>
+          <div class="stat-lbl">ต่ำสุดวันนี้</div>
+        </div>
+      </div>
+      <div id="historyContent">
+        <div class="empty"><div class="emoji">📋</div><p>กำลังโหลด...</p></div>
+      </div>
+    </div>
+
+    <!-- ══ TAB 2: วิเคราะห์ ══ -->
+    <div class="page" id="p2">
+      <div class="pill-row">
+        <div class="pill active" onclick="setDays(7,this)">7 วันล่าสุด</div>
+        <div class="pill" onclick="setDays(30,this)">30 วัน</div>
+        <div class="pill" onclick="setDays(0,this)">ทั้งหมด</div>
+      </div>
+
+      <div class="insight-grid">
+        <div class="insight-box amber">
+          <div class="ib-lbl">เวลาที่ดีสุด</div>
+          <div class="ib-val" id="ibBestHour">--</div>
+          <div class="ib-sub" id="ibBestDrop">--</div>
+        </div>
+        <div class="insight-box">
+          <div class="ib-lbl">ลดได้เฉลี่ย</div>
+          <div class="ib-val" id="ibAvgDrop">--</div>
+          <div class="ib-sub">ต่อ session เปิด</div>
+        </div>
+        <div class="insight-box">
+          <div class="ib-lbl">ช่วงร้อนสุด</div>
+          <div class="ib-val" id="ibHottestHour">--</div>
+          <div class="ib-sub" id="ibHottestTemp">--</div>
+        </div>
+        <div class="insight-box">
+          <div class="ib-lbl">Outdoor corr.</div>
+          <div class="ib-val" id="ibCorr">--</div>
+          <div class="ib-sub">indoor vs outdoor</div>
+        </div>
+      </div>
+
+      <div class="chart-wrap">
+        <div class="chart-head">
+          <div class="chart-title">อุณหภูมิรายชั่วโมง (วันนี้)</div>
+          <div class="legend">
+            <div class="legend-item"><div class="ld" style="background:#27272A"></div>ในยิม</div>
+            <div class="legend-item"><div class="ld" style="background:#A1A1AA"></div>นอก</div>
+          </div>
+        </div>
+        <div style="position:relative;height:180px">
+          <canvas id="tempChart"></canvas>
+        </div>
+        <div class="no-data-note" id="chartNote" style="display:none">ยังไม่มีข้อมูลวันนี้</div>
+      </div>
+
+      <div class="rec-card" id="recCard">
+        <div class="rec-head">💡 คำแนะนำจากข้อมูล</div>
+        <div id="recContent">
+          <div class="rec-item">
+            <div class="rec-icon">⏳</div>
+            <div><div class="rec-title">กำลังวิเคราะห์ข้อมูล...</div><div class="rec-sub">ต้องการข้อมูลอย่างน้อย 3 session</div></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-label">ข้อมูลทั้งหมด</div>
+        <div style="display:flex;justify-content:space-between;align-items:center;padding:4px 0">
+          <div style="font-size:13px;color:var(--zinc7)">จำนวนการบันทึก</div>
+          <div style="font-size:15px;font-weight:700;color:var(--zinc9)" id="totalLogs">--</div>
+        </div>
+        <div style="height:1px;background:var(--zinc2);margin:10px 0"></div>
+        <div style="display:flex;justify-content:space-between;align-items:center;padding:4px 0">
+          <div style="font-size:13px;color:var(--zinc7)">อัปเดตล่าสุด</div>
+          <div style="font-size:14px;color:var(--zinc5)" id="lastUpdate">--</div>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /pages -->
+</div><!-- /app-shell -->
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ═══════════════════════════════════════
+//  CONFIG
+// ═══════════════════════════════════════
+const GAS_URL    = 'https://script.google.com/macros/s/AKfycbxecegE9n5ArdciwnlvG8qR-BxCIAwjbJznkTuKCxxb8V9XBcwGPg7RmDzNPa533ydf/exec';
+const GYM_LAT    = 16.7003028;
+const GYM_LNG    = 103.7466752;
+const OPEN_METEO = 'https://api.open-meteo.com/v1/forecast';
+
+// ═══════════════════════════════════════
+//  STATE
+// ═══════════════════════════════════════
+let springerOn    = false;
+let outdoorTemp   = null;
+let outdoorSource = 'auto';
+let chartInstance = null;
+let analysisDays  = 7;
+
+// ═══════════════════════════════════════
+//  INIT
+// ═══════════════════════════════════════
+document.addEventListener('DOMContentLoaded', () => {
+  updateClock();
+  setInterval(updateClock, 10000);
+  fetchOutdoor();
+  autoFormatTime('sprOpenTime');
+  autoFormatTime('sprCloseTime');
+});
+
+// ═══════════════════════════════════════
+//  CLOCK + DATE (พ.ศ.)
+// ═══════════════════════════════════════
+function updateClock() {
+  const now = new Date();
+  const hh  = String(now.getHours()).padStart(2,'0');
+  const mm  = String(now.getMinutes()).padStart(2,'0');
+  document.getElementById('clock').textContent = hh + ':' + mm;
+  document.getElementById('datestamp').textContent = formatDateTh(now);
+  const btnSave = document.getElementById('btnSave');
+  btnSave.innerHTML = '✅ บันทึกข้อมูล ' + hh + ':' + mm + ' น.';
+}
+
+function formatDateTh(d) {
+  const days = ['อาทิตย์','จันทร์','อังคาร','พุธ','พฤหัส','ศุกร์','เสาร์'];
+  const months = ['ม.ค.','ก.พ.','มี.ค.','เม.ย.','พ.ค.','มิ.ย.','ก.ค.','ส.ค.','ก.ย.','ต.ค.','พ.ย.','ธ.ค.'];
+  return days[d.getDay()] + ' ' + d.getDate() + ' ' + months[d.getMonth()] + ' ' + (d.getFullYear() + 543);
+}
+
+function formatDateTimeTh(d) {
+  const dd = String(d.getDate()).padStart(2,'0');
+  const mo = String(d.getMonth()+1).padStart(2,'0');
+  const yy = d.getFullYear() + 543;
+  const hh = String(d.getHours()).padStart(2,'0');
+  const mm = String(d.getMinutes()).padStart(2,'0');
+  return dd + '/' + mo + '/' + yy + ' ' + hh + ':' + mm;
+}
+
+function formatDateOnlyTh(d) {
+  const dd = String(d.getDate()).padStart(2,'0');
+  const mo = String(d.getMonth()+1).padStart(2,'0');
+  const yy = d.getFullYear() + 543;
+  return dd + '/' + mo + '/' + yy;
+}
+
+// ═══════════════════════════════════════
+//  OUTDOOR TEMP (Open-Meteo)
+// ═══════════════════════════════════════
+async function fetchOutdoor() {
+  const btn = document.getElementById('refreshBtn');
+  btn.classList.add('spinning');
+  document.getElementById('outdoorLabel').textContent = 'กำลังดึงข้อมูล...';
+  try {
+    const url = `${OPEN_METEO}?latitude=${GYM_LAT}&longitude=${GYM_LNG}&current=temperature_2m,weathercode&timezone=Asia%2FBangkok`;
+    const res  = await fetch(url);
+    const data = await res.json();
+    outdoorTemp   = data.current.temperature_2m;
+    outdoorSource = 'auto';
+    const now = new Date();
+    const hh  = String(now.getHours()).padStart(2,'0');
+    const mm  = String(now.getMinutes()).padStart(2,'0');
+    document.getElementById('outdoorTemp').textContent  = outdoorTemp.toFixed(1) + '°C';
+    document.getElementById('outdoorLabel').textContent = 'ดึงจาก Open-Meteo • อัปเดต ' + hh + ':' + mm;
+    document.getElementById('outdoorIcon').textContent  = getWeatherIcon(data.current.weathercode);
+  } catch(e) {
+    document.getElementById('outdoorLabel').textContent = 'ดึงไม่สำเร็จ — กรอกเองได้';
+    outdoorSource = 'manual';
+  } finally {
+    setTimeout(() => btn.classList.remove('spinning'), 600);
+  }
+}
+
+function getWeatherIcon(code) {
+  if (code === 0) return '☀️';
+  if (code <= 3)  return '⛅';
+  if (code <= 67) return '🌧️';
+  return '🌤️';
+}
+
+// ═══════════════════════════════════════
+//  SPRINGER TOGGLE
+// ═══════════════════════════════════════
+function toggleSpringer() {
+  springerOn = !springerOn;
+  document.getElementById('springerRow').classList.toggle('on', springerOn);
+  document.getElementById('sw').classList.toggle('on', springerOn);
+  document.getElementById('sprText').textContent = springerOn ? 'Springer เปิดอยู่' : 'Springer ปิดอยู่';
+  document.getElementById('sprSub').textContent  = springerOn ? 'เปิดอยู่ในขณะนี้' : 'แตะเพื่อเปลี่ยนสถานะ';
+}
+
+// ═══════════════════════════════════════
+//  AUTO FORMAT TIME INPUT (HH:MM)
+// ═══════════════════════════════════════
+function autoFormatTime(id) {
+  const el = document.getElementById(id);
+  el.addEventListener('input', function() {
+    let v = this.value.replace(/\D/g,'');
+    if (v.length >= 3) v = v.slice(0,2) + ':' + v.slice(2,4);
+    this.value = v;
+  });
+}
+
+// ═══════════════════════════════════════
+//  SAVE HOURLY LOG
+// ═══════════════════════════════════════
+async function saveHourlyLog() {
+  const tempIn = parseFloat(document.getElementById('tempIn').value);
+  if (isNaN(tempIn)) { showToast('กรุณากรอกอุณหภูมิในยิม', 'error'); return; }
+  if (outdoorTemp === null) { showToast('กรุณาดึงอุณหภูมิภายนอกก่อน', 'error'); return; }
+
+  const btn = document.getElementById('btnSave');
+  btn.disabled = true;
+  btn.innerHTML = '⏳ กำลังบันทึก...';
+
+  const payload = {
+    action:         'saveHourlyLog',
+    datetime:       formatDateTimeTh(new Date()),
+    temp_indoor:    tempIn,
+    temp_outdoor:   outdoorTemp,
+    outdoor_source: outdoorSource,
+    springer_on:    springerOn,
+    notes:          document.getElementById('notes').value.trim()
+  };
+
+  try {
+    const res  = await postGAS(payload);
+    if (res.success) {
+      showToast('✅ บันทึกแล้ว! (' + payload.datetime.split(' ')[1] + ')', 'success');
+      document.getElementById('notes').value = '';
+      if (document.getElementById('p1').classList.contains('active')) loadHistory();
+    } else {
+      showToast('เกิดข้อผิดพลาด: ' + res.error, 'error');
+    }
+  } catch(e) {
+    showToast('เชื่อมต่อไม่ได้ กรุณาลองใหม่', 'error');
+  } finally {
+    btn.disabled = false;
+    updateClock();
+  }
+}
+
+// ═══════════════════════════════════════
+//  SAVE SPRINGER SCHEDULE
+// ═══════════════════════════════════════
+async function saveSpringerSchedule() {
+  const openT  = document.getElementById('sprOpenTime').value.trim();
+  const closeT = document.getElementById('sprCloseTime').value.trim();
+  if (!openT) { showToast('กรุณากรอกเวลาเปิด springer', 'error'); return; }
+
+  const btn = document.getElementById('btnSprSchedule');
+  btn.disabled = true;
+  btn.innerHTML = '⏳ กำลังบันทึก...';
+
+  const payload = {
+    action:      'saveSpringerLog',
+    date:        formatDateOnlyTh(new Date()),
+    open_time:   openT,
+    close_time:  closeT || '',
+    notes:       ''
+  };
+
+  try {
+    const res = await postGAS(payload);
+    if (res.success) {
+      showToast('✅ บันทึกเวลา Springer แล้ว', 'success');
+      btn.innerHTML = '✓ บันทึกแล้ว!';
+      btn.style.background = '#F0FDF4';
+      btn.style.borderColor = '#86EFAC';
+      btn.style.color = '#15803D';
+      setTimeout(() => {
+        btn.innerHTML = '💾 บันทึกเวลา Springer';
+        btn.style.background = '';
+        btn.style.borderColor = '';
+        btn.style.color = '';
+        btn.disabled = false;
+      }, 2000);
+    } else {
+      showToast('เกิดข้อผิดพลาด: ' + res.error, 'error');
+      btn.disabled = false;
+      btn.innerHTML = '💾 บันทึกเวลา Springer';
+    }
+  } catch(e) {
+    showToast('เชื่อมต่อไม่ได้ กรุณาลองใหม่', 'error');
+    btn.disabled = false;
+    btn.innerHTML = '💾 บันทึกเวลา Springer';
+  }
+}
+
+// ═══════════════════════════════════════
+//  LOAD HISTORY
+// ═══════════════════════════════════════
+async function loadHistory() {
+  const container = document.getElementById('historyContent');
+  container.innerHTML = '<div class="empty"><div class="emoji">⏳</div><p>กำลังโหลด...</p></div>';
+
+  try {
+    const res = await fetch(GAS_URL + '?action=getLogs&days=14');
+    const data = await res.json();
+    if (!data.success) throw new Error(data.error);
+
+    const logs = data.logs || [];
+    if (logs.length === 0) {
+      container.innerHTML = '<div class="empty"><div class="emoji">📋</div><p>ยังไม่มีข้อมูล<br>เริ่มบันทึกได้เลย!</p></div>';
+      document.getElementById('statCount').textContent = '0';
+      document.getElementById('statMax').textContent = '--°';
+      document.getElementById('statMin').textContent = '--°';
+      return;
+    }
+
+    // กรองวันนี้
+    const todayStr = formatDateOnlyTh(new Date());
+    const todayLogs = logs.filter(l => String(l.datetime || '').startsWith(todayStr));
+
+    // stats วันนี้
+    if (todayLogs.length > 0) {
+      const temps = todayLogs.map(l => Number(l.temp_indoor)).filter(t => !isNaN(t));
+      document.getElementById('statCount').textContent = todayLogs.length;
+      document.getElementById('statMax').textContent   = Math.max(...temps).toFixed(1) + '°';
+      document.getElementById('statMin').textContent   = Math.min(...temps).toFixed(1) + '°';
+    } else {
+      document.getElementById('statCount').textContent = '0';
+      document.getElementById('statMax').textContent = '--°';
+      document.getElementById('statMin').textContent = '--°';
+    }
+
+    // จัดกลุ่มตามวัน
+    const groups = {};
+    logs.forEach(l => {
+      const dateKey = String(l.datetime || '').split(' ')[0];
+      if (!groups[dateKey]) groups[dateKey] = [];
+      groups[dateKey].push(l);
+    });
+
+    let html = '';
+    Object.entries(groups).slice(0, 7).forEach(([dateKey, rows]) => {
+      const label = dateKey === todayStr ? 'วันนี้' : dateKey;
+      html += `<div class="section-header">${label}</div><div class="log-list">`;
+      rows.forEach(l => {
+        const t    = Number(l.temp_indoor);
+        const cls  = t >= 37 ? 'hot' : t >= 34 ? 'warm' : 'cool';
+        const on   = l.springer_on === true || l.springer_on === 'TRUE' || l.springer_on === 'true';
+        const time = String(l.datetime || '').split(' ')[1] || '--:--';
+        html += `
+          <div class="log-row ${on ? 'on' : ''}">
+            <div class="log-time">${time}</div>
+            <div class="log-temps">
+              <div class="log-indoor ${cls}">${t.toFixed(1)}°C</div>
+              <div class="log-outdoor-txt">นอก ${Number(l.temp_outdoor).toFixed(1)}°C</div>
+            </div>
+            <div class="log-badge ${on ? 'on' : 'off'}">${on ? 'เปิด' : 'ปิด'}</div>
+          </div>`;
+      });
+      html += '</div>';
+    });
+    container.innerHTML = html;
+
+  } catch(e) {
+    container.innerHTML = '<div class="empty"><div class="emoji">⚠️</div><p>โหลดไม่สำเร็จ<br>' + e.message + '</p></div>';
+  }
+}
+
+// ═══════════════════════════════════════
+//  LOAD ANALYSIS
+// ═══════════════════════════════════════
+async function loadAnalysis() {
+  try {
+    const res  = await fetch(GAS_URL + '?action=getAnalysis&days=' + analysisDays);
+    const data = await res.json();
+    if (!data.success || !data.analysis) {
+      showNoData();
+      return;
+    }
+    const a = data.analysis;
+
+    // KPI cards
+    document.getElementById('ibBestHour').textContent  = a.best_open_hour || '--';
+    document.getElementById('ibBestDrop').textContent  = a.best_open_drop ? 'ลดได้ ' + a.best_open_drop + '°C' : 'ข้อมูลยังน้อย';
+    document.getElementById('ibAvgDrop').textContent   = a.avg_drop ? a.avg_drop + '°C' : '--';
+    document.getElementById('ibHottestHour').textContent = a.hottest_hour !== null ? pad2(a.hottest_hour) + ':00' : '--';
+    document.getElementById('ibHottestTemp').textContent = a.hottest_temp_avg ? 'เฉลี่ย ' + a.hottest_temp_avg + '°C' : '--';
+    document.getElementById('ibCorr').textContent      = a.outdoor_corr !== null ? 'r = ' + a.outdoor_corr : '--';
+    document.getElementById('totalLogs').textContent   = a.total_logs + ' ครั้ง';
+    document.getElementById('lastUpdate').textContent  = 'เมื่อกี้';
+
+    // Chart
+    renderChart(a.chart_data || []);
+
+    // Recommendations
+    renderRec(a);
+
+  } catch(e) {
+    showNoData();
+  }
+}
+
+function showNoData() {
+  ['ibBestHour','ibAvgDrop','ibHottestHour','ibCorr'].forEach(id => {
+    document.getElementById(id).textContent = '--';
+  });
+  ['ibBestDrop','ibHottestTemp'].forEach(id => {
+    document.getElementById(id).textContent = 'ยังไม่มีข้อมูล';
+  });
+  document.getElementById('totalLogs').textContent = '0 ครั้ง';
+}
+
+// ═══════════════════════════════════════
+//  CHART
+// ═══════════════════════════════════════
+function renderChart(chartData) {
+  const canvas = document.getElementById('tempChart');
+  const note   = document.getElementById('chartNote');
+
+  if (!chartData || chartData.length === 0) {
+    canvas.style.display = 'none';
+    note.style.display = 'block';
+    return;
+  }
+  canvas.style.display = 'block';
+  note.style.display = 'none';
+
+  // destroy ก่อน recreate (Chart.js ห้าม reuse canvas)
+  if (chartInstance) { chartInstance.destroy(); chartInstance = null; }
+  canvas.parentElement.innerHTML = '<canvas id="tempChart"></canvas>';
+  const ctx = document.getElementById('tempChart').getContext('2d');
+
+  // springer background plugin
+  const springerBg = {
+    id: 'springerBg',
+    beforeDraw(chart) {
+      const { ctx, chartArea, scales } = chart;
+      if (!chartArea) return;
+      chartData.forEach((d, i) => {
+        if (d.springer) {
+          const x1 = i === 0 ? chartArea.left : scales.x.getPixelForValue(i - 0.5);
+          const x2 = scales.x.getPixelForValue(i + 0.5);
+          ctx.save();
+          ctx.fillStyle = '#BBFAD0';
+          ctx.fillRect(x1, chartArea.top, x2 - x1, chartArea.height);
+          ctx.restore();
+        }
+      });
+    }
+  };
+
+  chartInstance = new Chart(ctx, {
+    type: 'line',
+    plugins: [springerBg],
+    data: {
+      labels: chartData.map(d => d.time),
+      datasets: [
+        {
+          label: 'ในยิม',
+          data: chartData.map(d => d.indoor),
+          borderColor: '#27272A', borderWidth: 2.5,
+          pointBackgroundColor: '#27272A', pointRadius: 3,
+          tension: 0.3, fill: true,
+          backgroundColor: 'rgba(39,39,42,0.06)'
+        },
+        {
+          label: 'ภายนอก',
+          data: chartData.map(d => d.outdoor),
+          borderColor: '#A1A1AA', borderWidth: 1.5,
+          pointBackgroundColor: '#A1A1AA', pointRadius: 2,
+          borderDash: [4,3], tension: 0.3, fill: false
+        }
+      ]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: { legend: { display: false }, tooltip: {
+        callbacks: {
+          label: ctx => ctx.dataset.label + ': ' + ctx.parsed.y.toFixed(1) + '°C'
+        }
+      }},
+      scales: {
+        x: { grid: { display: false }, ticks: { font: { family: 'Google Sans', size: 10 }, color: '#A1A1AA' } },
+        y: {
+          grid: { color: '#E4E4E7', lineWidth: 0.5 },
+          ticks: { font: { family: 'Google Sans', size: 10 }, color: '#A1A1AA', callback: v => v + '°' }
+        }
+      }
+    }
+  });
+}
+
+// ═══════════════════════════════════════
+//  RECOMMENDATION
+// ═══════════════════════════════════════
+function renderRec(a) {
+  let html = '';
+  if (a.best_open_hour) {
+    html += `<div class="rec-item"><div class="rec-icon">⏰</div><div>
+      <div class="rec-title">เปิด Springer ${a.best_open_hour} น.</div>
+      <div class="rec-sub">ลดได้เฉลี่ยสูงสุด ${a.best_open_drop || '--'}°C ต่อ session</div>
+    </div></div>`;
+  }
+  if (a.avg_drop) {
+    html += `<div class="rec-item"><div class="rec-icon">🌡️</div><div>
+      <div class="rec-title">ลดอุณหภูมิได้เฉลี่ย ${a.avg_drop}°C</div>
+      <div class="rec-sub">จาก ${a.session_count} session ที่บันทึกไว้</div>
+    </div></div>`;
+  }
+  if (a.outdoor_corr !== null) {
+    const corrText = a.outdoor_corr >= 0.7 ? 'สูงมาก' : a.outdoor_corr >= 0.4 ? 'ปานกลาง' : 'ต่ำ';
+    html += `<div class="rec-item"><div class="rec-icon">🌤️</div><div>
+      <div class="rec-title">อุณหภูมินอกมีผล${corrText}ต่ออุณหภูมิในยิม</div>
+      <div class="rec-sub">Correlation r = ${a.outdoor_corr}</div>
+    </div></div>`;
+  }
+  if (!html) {
+    html = `<div class="rec-item"><div class="rec-icon">⏳</div><div>
+      <div class="rec-title">ยังวิเคราะห์ไม่ได้</div>
+      <div class="rec-sub">ต้องการข้อมูลอย่างน้อย 3 session ที่มี springer เปิด</div>
+    </div></div>`;
+  }
+  document.getElementById('recContent').innerHTML = html;
+}
+
+// ═══════════════════════════════════════
+//  HELPERS
+// ═══════════════════════════════════════
+async function postGAS(payload) {
+  const res = await fetch(GAS_URL, {
+    method: 'POST',
+    headers: { 'Content-Type': 'text/plain' },
+    body: JSON.stringify(payload)
+  });
+  return await res.json();
+}
+
+function showToast(msg, type = '') {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.className = 'toast ' + type + ' show';
+  setTimeout(() => t.classList.remove('show'), 3000);
+}
+
+function pad2(n) { return String(n).padStart(2,'0'); }
+
+function setDays(d, el) {
+  analysisDays = d;
+  document.querySelectorAll('.pill-row .pill').forEach(p => p.classList.remove('active'));
+  el.classList.add('active');
+  loadAnalysis();
+}
+
+// ═══════════════════════════════════════
+//  TAB NAVIGATION
+// ═══════════════════════════════════════
+function go(i) {
+  document.querySelectorAll('.tab').forEach((t,idx)  => t.classList.toggle('active', idx===i));
+  document.querySelectorAll('.page').forEach((p,idx) => p.classList.toggle('active', idx===i));
+  if (i === 1) loadHistory();
+  if (i === 2) loadAnalysis();
+}
+</script>
+</body>
+</html>
