@@ -253,6 +253,7 @@ button,input,select{font-family:inherit}
         <div class="hb">
           <button class="btn-primary" onclick="gt('batch')">+ บันทึก MR</button>
           <button class="btn-outline" onclick="alert('Export Excel')">↓ Export</button>
+          <button class="btn-outline" onclick="refreshData()" title="โหลดข้อมูลใหม่จาก Google Sheet">↻ Refresh</button>
         </div>
       </div>
     </div>
@@ -453,58 +454,221 @@ async function apiPost(payload) {
 }
 
 // ══════════════════════════════════════════════
-//  STATE
+//  STATE + CACHE
 // ══════════════════════════════════════════════
 let settings = {};   // dropdown options จาก GAS
 let mrList   = [];   // รายการ MR ทั้งหมด
 let stats    = {};   // dashboard stats
 let rc = 0;         // row counter สำหรับ batch
 
+// cache ของ bundle — โหลดครั้งเดียวแล้วใช้ซ้ำทุก tab
+// _cache = { mrList, drpList, ts }
+let _cache = null;
+const CACHE_TTL_MS = 5 * 60 * 1000; // 5 นาที
+
+function cacheValid() {
+  return _cache && (Date.now() - _cache.ts) < CACHE_TTL_MS;
+}
+
+function invalidateCache() {
+  _cache = null;
+}
+
+// ปุ่ม Refresh — บังคับโหลดข้อมูลใหม่จาก Google Sheet แล้ว re-render tab ปัจจุบัน
+async function refreshData() {
+  showToast('กำลังโหลดข้อมูลใหม่...', 'loading');
+  try {
+    invalidateCache();
+    await loadBundle(true);
+    // re-render tab ที่เปิดอยู่ (tab ใช้ class .on และ id t-xxx)
+    const activeTabEl = document.querySelector('.tab.on');
+    const tabId = activeTabEl?.id || 't-dash';
+    if      (tabId === 't-list') await loadList();
+    else if (tabId === 't-wl')   await loadWorklist();
+    else                          await loadStats();
+    showToast('✅ โหลดใหม่แล้ว', 'success');
+  } catch(e) {
+    console.error(e);
+    showToast('โหลดใหม่ไม่สำเร็จ', 'error');
+  }
+}
+
+// โหลด bundle ครั้งเดียว — ถ้ามี cache ใช้ cache, ถ้าไม่มีก็ยิง backend
+async function loadBundle(force) {
+  if (!force && cacheValid()) return _cache;
+  const res = await apiGet({ action: 'getBundle' });
+  if (!res.success) throw new Error(res.error || 'load bundle failed');
+  _cache = {
+    mrList:  res.data.mrList  || [],
+    drpList: res.data.drpList || [],
+    ts: Date.now()
+  };
+  // sync settings ด้วย (ถ้า bundle ส่งมา)
+  if (res.data.settings) {
+    settings = res.data.settings;
+    populateSettingsDropdowns();
+  }
+  return _cache;
+}
+
+// ── helper: parse dd/mm/yyyy พ.ศ. → Date ──
+function parseThaiDate(str) {
+  if (!str) return null;
+  if (str instanceof Date) return str;
+  const s = String(str).trim();
+  const p = s.split('/');
+  if (p.length !== 3) return null;
+  return new Date(parseInt(p[2]) - 543, parseInt(p[1]) - 1, parseInt(p[0]));
+}
+
+// ── port จาก backend getStats — คำนวณใน browser ──
+function computeStatsLocal(mrRowsAll, drpRowsAll, fromStr, toStr) {
+  let rows = mrRowsAll;
+  if (fromStr || toStr) {
+    const from = fromStr ? parseThaiDate(fromStr) : null;
+    const to   = toStr   ? parseThaiDate(toStr)   : null;
+    if (to) to.setHours(23, 59, 59);
+    rows = rows.filter(r => {
+      const d = parseThaiDate(r['วันที่_admit']);
+      if (!d) return false;
+      if (from && d < from) return false;
+      if (to   && d > to)   return false;
+      return true;
+    });
+  }
+
+  const total     = rows.length;
+  const done      = rows.filter(r => r['สถานะ_MR'] === 'มีรายการ MR' || r['สถานะ_MR'] === 'ไม่พบรายการยาเดิม').length;
+  const hasDRP    = rows.filter(r => r['มี_DRP'] === true || r['มี_DRP'] === 'TRUE').length;
+  const totalDone = rows.filter(r => r['สถานะ_MR'] === 'มีรายการ MR').length;
+
+  const rowsWithCriteria = rows.filter(r => r['ผ่านเกณฑ์เวลา'] !== '' && r['ผ่านเกณฑ์เวลา'] !== null && r['ผ่านเกณฑ์เวลา'] !== undefined);
+  const passTime = rowsWithCriteria.filter(r =>
+    r['ผ่านเกณฑ์เวลา'] === 'ผ่าน' || r['ผ่านเกณฑ์เวลา'] === 'ผ่าน (ไม่พบยา)'
+  ).length;
+  const totalCriteria = rowsWithCriteria.length;
+
+  // MD response — นับเคสที่มี MR แล้วและกรอก เวร_MD_review (ไม่ว่า d/c หรือ เวร) ปกติ
+  const rowsForMD = rows.filter(r => {
+    if (r['สถานะ_MR'] !== 'มีรายการ MR') return false;
+    const sh = r['เวร_MD_review'];
+    return sh && sh !== '';
+  });
+  const totalMD = rowsForMD.length;
+
+  // md in 1 shift — เวร_admit ↔ เวร_MD_review ต่างกัน ≤ 1 (ข้าม d/c)
+  const shiftIdx = { 'เช้า': 1, 'บ่าย': 2, 'ดึก': 3 };
+  const mdIn1Shift = rowsForMD.filter(r => {
+    if (r['เวร_MD_review'] === 'd/c แล้ว') return false;
+    const admitDate = parseThaiDate(r['วันที่_admit']);
+    if (!admitDate) return false;
+    // ถ้าไม่มีวันที่ MD review แยก ใช้วันที่ admit เป็นฐาน
+    const d1 = shiftIdx[r['เวร_admit']] || 0;
+    const d2 = shiftIdx[r['เวร_MD_review']] || 0;
+    if (!d1 || !d2) return false;
+    return Math.abs(d2 - d1) <= 1;
+  }).length;
+
+  // DRP breakdown
+  const drpTypes = {};
+  (drpRowsAll || []).forEach(r => {
+    const t = r['ประเภท_DRP'];
+    if (t) drpTypes[t] = (drpTypes[t] || 0) + 1;
+  });
+
+  // MD distribution (approx จาก shift diff — ไม่มี column MD_response_เวร ใน sheet)
+  const mdDist = { '1': 0, '2': 0, '3-4': 0, '5+': 0, 'd/c': 0 };
+  rowsForMD.forEach(r => {
+    if (r['เวร_MD_review'] === 'd/c แล้ว') { mdDist['d/c']++; return; }
+    const d1 = shiftIdx[r['เวร_admit']] || 0;
+    const d2 = shiftIdx[r['เวร_MD_review']] || 0;
+    const diff = (d1 && d2) ? Math.abs(d2 - d1) : 0;
+    if (diff <= 1)       mdDist['1']++;
+    else if (diff === 2) mdDist['2']++;
+    else if (diff <= 4)  mdDist['3-4']++;
+    else                 mdDist['5+']++;
+  });
+
+  const single   = rows.filter(r => r['ประเภทยา'] === 'รพ.เดียว');
+  const outside  = rows.filter(r => r['ประเภทยา'] === 'ยานอก');
+  const nomed    = rows.filter(r => r['สถานะ_MR'] === 'ไม่พบรายการยาเดิม').length;
+  const cantFollow = rows.filter(r => r['สถานะ_MR'] === 'ติดตามไม่ได้').length;
+
+  const singlePass  = single.filter(r => r['ผ่านเกณฑ์เวลา'] === 'ผ่าน' || r['ผ่านเกณฑ์เวลา'] === 'ผ่าน (ไม่พบยา)').length;
+  const outsidePass = outside.filter(r => r['ผ่านเกณฑ์เวลา'] === 'ผ่าน' || r['ผ่านเกณฑ์เวลา'] === 'ผ่าน (ไม่พบยา)').length;
+
+  return {
+    total, done, totalDone, hasDRP,
+    passTime, totalCriteria,
+    mdIn1Shift, totalMD,
+    drpTypes, mdDist,
+    singleTotal: single.length, singlePass,
+    outsideTotal: outside.length, outsidePass,
+    nomed, cantFollow,
+    passTimeRate:   totalCriteria > 0 ? Math.round(passTime    / totalCriteria * 100) : 0,
+    drpRate:        totalDone     > 0 ? Math.round(hasDRP      / totalDone     * 100) : 0,
+    mdIn1ShiftRate: totalMD       > 0 ? Math.round(mdIn1Shift  / totalMD       * 100) : 0,
+  };
+}
+
+// ── port จาก backend getMRList — filter ใน browser ──
+function filterMRListLocal(rowsAll, params) {
+  let rows = rowsAll;
+  if (params.dateFrom || params.dateTo) {
+    const from = params.dateFrom ? parseThaiDate(params.dateFrom) : null;
+    const to   = params.dateTo   ? parseThaiDate(params.dateTo)   : null;
+    if (to) to.setHours(23, 59, 59);
+    rows = rows.filter(r => {
+      const d = parseThaiDate(r['วันที่_admit']);
+      if (!d) return false;
+      if (from && d < from) return false;
+      if (to   && d > to)   return false;
+      return true;
+    });
+  }
+  if (params.status)  rows = rows.filter(r => r['สถานะ_MR'] === params.status);
+  if (params.medType) rows = rows.filter(r => r['ประเภทยา'] === params.medType);
+  return rows;
+}
+
 // ══════════════════════════════════════════════
-//  INIT — โหลดข้อมูลตอนเปิดหน้า
+//  INIT — โหลดข้อมูลตอนเปิดหน้า (1 call เดียวเท่านั้น)
 // ══════════════════════════════════════════════
 async function init() {
   showToast('กำลังโหลดข้อมูล...', 'loading');
   try {
-    const settRes = await apiGet({ action: 'getSettings' });
-    if (settRes.success) {
-      settings = settRes.data;
-      populateSettingsDropdowns();
-    }
-    await loadStats();
+    await loadBundle(true);     // 1 call — ได้ mrList + drpList + settings
+    await loadStats();          // render dashboard จาก cache (ไม่ยิง backend)
     hideToast();
   } catch(e) {
+    console.error(e);
     showToast('โหลดข้อมูลไม่สำเร็จ — ตรวจสอบการเชื่อมต่อ', 'error');
   }
 }
 
 // ══════════════════════════════════════════════
-//  LOAD STATS — dashboard
+//  LOAD STATS — dashboard (ใช้ cache — ไม่ยิง backend)
 // ══════════════════════════════════════════════
 async function loadStats() {
   const fromVal = document.getElementById('dash-from')?.value.trim() || '';
   const toVal   = document.getElementById('dash-to')?.value.trim()   || '';
-  const params  = { action: 'getStats' };
-  if (fromVal.length === 10) params.dateFrom = fromVal;
-  if (toVal.length   === 10) params.dateTo   = toVal;
 
   try {
-    showToast('กำลังโหลด...', 'loading');
-    const statsRes = await apiGet(params);
-    if (statsRes.success) {
-      stats = statsRes.data;
-      renderDashboard(stats);
-      const label = document.getElementById('dash-period-label');
-      if (label) {
-        if (fromVal || toVal) {
-          label.textContent = `${fromVal || '...'} ถึง ${toVal || '...'}  ·  ${stats.total} เคส`;
-        } else {
-          label.textContent = `ทั้งหมด ${stats.total} เคส`;
-        }
+    const bundle = await loadBundle(false);
+    stats = computeStatsLocal(bundle.mrList, bundle.drpList,
+                              fromVal.length === 10 ? fromVal : '',
+                              toVal.length   === 10 ? toVal   : '');
+    renderDashboard(stats);
+    const label = document.getElementById('dash-period-label');
+    if (label) {
+      if (fromVal || toVal) {
+        label.textContent = `${fromVal || '...'} ถึง ${toVal || '...'}  ·  ${stats.total} เคส`;
+      } else {
+        label.textContent = `ทั้งหมด ${stats.total} เคส`;
       }
     }
-    hideToast();
   } catch(e) {
+    console.error(e);
     showToast('โหลดไม่สำเร็จ', 'error');
   }
 }
@@ -1067,8 +1231,10 @@ async function saveAllRows() {
       updateSaveBarCount();
       addRow(); // เปิด row แรกให้พร้อมกรอกทันที
     }, 1500);
-    const statsRes = await apiGet({ action: 'getStats' });
-    if (statsRes.success) renderDashboard(statsRes.data);
+    // invalidate cache + refetch → dashboard/รายการ จะเห็นเคสใหม่
+    invalidateCache();
+    await loadBundle(true);
+    await loadStats();
   } else {
     showToast(`บันทึกสำเร็จ ${success} · ล้มเหลว ${failed} เคส`, 'error');
   }
@@ -1104,13 +1270,12 @@ function updateSaveBarCount() {
 async function loadList() {
   const tbody = document.getElementById('list-tbody');
   if (!tbody) return;
-  tbody.innerHTML = `<tr><td colspan="10" style="text-align:center;padding:24px;color:var(--ink4)">กำลังโหลด...</td></tr>`;
 
   const filterMonth  = document.getElementById('f-month')?.value  || '';
   const filterType   = document.getElementById('f-type')?.value   || '';
   const filterStatus = document.getElementById('f-status')?.value || '';
 
-  const params = { action: 'getMRList' };
+  const params = {};
   // แปลง month (MM/YYYY) เป็น dateFrom/dateTo
   if (filterMonth && filterMonth !== 'ทุกเดือน') {
     const [m, y] = filterMonth.split('/');
@@ -1122,11 +1287,15 @@ async function loadList() {
   if (filterStatus && filterStatus !== 'ทุกสถานะ MR')   params.status  = filterStatus;
 
   try {
-    const res = await apiGet(params);
-    if (!res.success) throw new Error(res.error);
-    mrList = res.data;
+    // ถ้ายังไม่มี cache (เช่น เข้า tab รายการตรงๆ) ให้ fetch ก่อน
+    if (!cacheValid()) {
+      tbody.innerHTML = `<tr><td colspan="10" style="text-align:center;padding:24px;color:var(--ink4)">กำลังโหลด...</td></tr>`;
+      await loadBundle(true);
+    }
+    mrList = filterMRListLocal(_cache.mrList, params);
     renderList(mrList);
   } catch(e) {
+    console.error(e);
     tbody.innerHTML = `<tr><td colspan="10" style="text-align:center;padding:24px;color:var(--fail)">โหลดข้อมูลไม่สำเร็จ</td></tr>`;
   }
 }
@@ -1301,6 +1470,9 @@ async function saveEdit(mrId) {
     if (res.success) {
       showToast('✅ แก้ไขสำเร็จ', 'success');
       closeEditRow(mrId);
+      // invalidate cache แล้ว refetch
+      invalidateCache();
+      await loadBundle(true);
       await loadList();
     } else {
       showToast('แก้ไขไม่สำเร็จ: ' + (res.error||''), 'error');
@@ -1331,18 +1503,19 @@ function wlClear() {
 async function loadWorklist() {
   const cont = document.getElementById('wl-cont');
   if (!cont) return;
-  cont.innerHTML = `<div style="text-align:center;padding:24px;color:var(--ink4)">กำลังโหลด...</div>`;
 
   const fromVal = document.getElementById('wl-from')?.value.trim() || '';
   const toVal   = document.getElementById('wl-to')?.value.trim()   || '';
-  const params  = { action: 'getMRList' };
+  const params  = {};
   if (fromVal.length === 10) params.dateFrom = fromVal;
   if (toVal.length   === 10) params.dateTo   = toVal;
 
   try {
-    const res = await apiGet(params);
-    if (!res.success) throw new Error(res.error);
-    const all = res.data;
+    if (!cacheValid()) {
+      cont.innerHTML = `<div style="text-align:center;padding:24px;color:var(--ink4)">กำลังโหลด...</div>`;
+      await loadBundle(true);
+    }
+    const all = filterMRListLocal(_cache.mrList, params);
 
     // เคสยังไม่ทำ MR
     const notDone = all.filter(r => r['สถานะ_MR'] === 'ไม่ได้ทำ MR');
