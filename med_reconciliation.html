@@ -1033,14 +1033,17 @@ async function saveAllRows() {
     payloads.push({ payload, card });
   }
 
-  // ส่งพร้อมกันทุก row
-  const results = await Promise.all(
-    payloads.map(({ payload, card }) =>
-      apiPost(payload)
-        .then(res => ({ ok: res.success, card }))
-        .catch(() => ({ ok: false, card }))
-    )
-  );
+  // ส่งทีละ row แบบ sequential — กัน race condition ฝั่ง backend
+  // (ถ้าส่งพร้อมกัน Apps Script หลาย instance จะเรียก getLastRow() ได้ค่าเดิม → MR_ID ซ้ำ)
+  const results = [];
+  for (const { payload, card } of payloads) {
+    try {
+      const res = await apiPost(payload);
+      results.push({ ok: res.success, card });
+    } catch(e) {
+      results.push({ ok: false, card });
+    }
+  }
 
   const success = results.filter(r => r.ok).length;
   const failed  = results.filter(r => !r.ok).length;
