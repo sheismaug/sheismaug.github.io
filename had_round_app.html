@@ -4,7 +4,9 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>HAD Round — sheisphere</title>
-<link href="https://fonts.googleapis.com/css2?family=Google+Sans:wght@300;400;500;700&display=swap" rel="stylesheet">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Google+Sans:wght@300;400;500;700;900&display=swap" rel="stylesheet">
 <style>
 /* ══════════════════════════════════
    TOKENS
@@ -43,12 +45,39 @@
   -webkit-tap-highlight-color: transparent;
 }
 
+html {
+  background: var(--bg);
+  min-height: 100vh;
+}
+
 body {
   background: var(--bg);
   min-height: 100vh;
   max-width: 430px;
   margin: 0 auto;
   overflow-x: hidden;
+  position: relative;
+}
+
+/* บน desktop ทำให้ดูเหมือน phone frame เบาๆ */
+@media (min-width: 500px) {
+  html {
+    background: #EAE8E4;
+  }
+  body {
+    box-shadow: 0 0 40px rgba(0,0,0,0.08);
+    border-left: 1px solid var(--ink5);
+    border-right: 1px solid var(--ink5);
+    min-height: 100vh;
+  }
+  .bnav {
+    /* จำกัด bnav ให้อยู่ใน column 430px กลางหน้าจอเท่านั้น */
+    max-width: 430px;
+  }
+  /* ให้ FAB ติดอยู่ขอบขวาของ phone frame (ไม่ใช่ขอบขวาของจอ) */
+  .fab {
+    right: calc(50vw - 195px); /* 215 (half of 430) - 20 (margin) */
+  }
 }
 
 /* ══════════════════════════════════
@@ -59,7 +88,9 @@ body {
 /* ══════════════════════════════════
    SCREENS
 ══════════════════════════════════ */
-.screen { display: none; min-height: calc(100vh - 64px); }
+/* padding-bottom 88px = 64 (bnav height) + 24 (breathing room) */
+/* กันไม่ให้ card ใบสุดท้ายโดน bnav ทับ */
+.screen { display: none; min-height: calc(100vh - 64px); padding-bottom: 88px; }
 .screen.active { display: block; }
 
 /* ══════════════════════════════════
@@ -818,7 +849,7 @@ body {
     <div class="sec-dot"></div>
     <span class="sec-ttl">บันทึกล่าสุด</span>
   </div>
-  <div class="hlist" id="hist-list" style="padding-bottom:80px">
+  <div class="hlist" id="hist-list">
     <div class="empty-state">
       <div class="empty-icon">📋</div>
       <div class="empty-title">ยังไม่มีบันทึก</div>
@@ -839,7 +870,7 @@ body {
   </div>
 
   <!-- KPI CARDS -->
-  <div style="padding:14px;display:flex;flex-direction:column;gap:10px;padding-bottom:80px;">
+  <div style="padding:14px;display:flex;flex-direction:column;gap:10px;">
 
     <!-- K1: Round รายเดือน -->
     <div style="background:white;border-radius:20px;border:1.5px solid var(--ink5);padding:16px 18px;box-shadow:0 2px 8px rgba(0,0,0,0.05);">
