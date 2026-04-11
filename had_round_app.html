@@ -762,7 +762,7 @@ body {
     </div>
     <div class="inp-row">
       <span class="inp-lbl">BP</span>
-      <input class="inp" id="v-bp" type="text" placeholder="120/80" inputmode="numeric">
+      <input class="inp" id="v-bp" type="text" placeholder="120/80" inputmode="numeric" oninput="autoSlashBP(this)" maxlength="7">
       <span class="inp-u">mmHg</span>
     </div>
     <div class="inp-row">
@@ -1815,6 +1815,32 @@ function deletePatient(ptId) {
   saveLocal();
   renderHome();
   showToast('🗑 ลบแล้ว');
+}
+
+// ══════════════════════════════════
+// AUTO-SLASH BP (mobile keyboard ไม่มีปุ่ม /)
+// ══════════════════════════════════
+// Heuristic: ถ้าเลขตัวแรกเป็น 1 หรือ 2 → systolic 3 หลัก (100-250)
+//            ถ้าไม่ใช่ → systolic 2 หลัก (50-99)
+// ตัวอย่าง: 12080 → 120/80 · 9060 → 90/60 · 200120 → 200/120
+function autoSlashBP(input) {
+  // เก็บตัวเลขล้วนๆ (ตัด slash ออก เดี๋ยวใส่ใหม่)
+  const digits = input.value.replace(/[^\d]/g, '');
+  if (!digits) { input.value = ''; return; }
+
+  const first = digits.charAt(0);
+  const sysLen = (first === '1' || first === '2') ? 3 : 2;
+
+  let systolic, diastolic;
+  if (digits.length <= sysLen) {
+    systolic  = digits;
+    diastolic = '';
+  } else {
+    systolic  = digits.slice(0, sysLen);
+    diastolic = digits.slice(sysLen, sysLen + 3); // diastolic สูงสุด 3 หลัก
+  }
+
+  input.value = diastolic ? systolic + '/' + diastolic : systolic;
 }
 
 // SAVE ROUND
