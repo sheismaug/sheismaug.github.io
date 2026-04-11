@@ -627,6 +627,7 @@ input::placeholder, textarea::placeholder { color: var(--hint); }
 .cc-body.open { max-height:2200px; padding:0 12px 14px; border-top:1px dashed var(--border); }
 .cc-pill { font-size:10px; padding:3px 8px; border-radius:10px; background:var(--bg2); color:var(--muted); white-space:nowrap; font-weight:600; }
 .cc-pill-done { background:#d1fae5; color:#065f46; }
+.cc-pill-empty { background:#fee2e2; color:#991b1b; }
 .cc-col-hdr { display:grid; grid-template-columns:1fr auto 78px; gap:10px; font-size:10px; font-weight:600; color:var(--hint); text-transform:uppercase; padding:12px 2px 6px; border-bottom:1px solid var(--border); }
 .cc-lot-row { display:grid; grid-template-columns:1fr auto 78px; gap:10px; align-items:center; padding:9px 2px; border-bottom:1px dashed var(--border); }
 .cc-lot-row:last-child { border-bottom:none; }
@@ -1108,7 +1109,7 @@ input::placeholder, textarea::placeholder { color: var(--hint); }
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:.75rem;margin-top:.5rem;">
       <div>
         <h2 style="font-size:17px;">ตรวจรถยา</h2>
-        <p style="font-size:12px;color:var(--muted);" id="cc-subtitle">เดินตามช่อง · กดการ์ดเพื่อเปิด</p>
+        <p style="font-size:12px;color:var(--muted);" id="cc-subtitle">เปิดเฉพาะช่องที่เห็นว่าหาย · ช่องที่ไม่แตะ = ถือว่าครบ</p>
       </div>
       <div style="position:relative;">
         <input type="text" id="cc-search" placeholder="ค้นหา..." oninput="ccFilter()"
@@ -1128,24 +1129,23 @@ input::placeholder, textarea::placeholder { color: var(--hint); }
     </div>
 
     <!-- Summary -->
-    <div class="stat-grid" style="grid-template-columns:repeat(3,minmax(0,1fr));margin-bottom:.5rem;">
+    <div class="stat-grid" style="grid-template-columns:repeat(3,minmax(0,1fr));margin-bottom:.75rem;">
       <div class="stat-box"><p>ทั้งหมด</p><p id="cc-cnt-all">0</p></div>
-      <div class="stat-box"><p>ตรวจแล้ว</p><p style="color:var(--green);" id="cc-cnt-done">0</p></div>
-      <div class="stat-box"><p>เหลือ</p><p style="color:var(--muted);" id="cc-cnt-left">0</p></div>
+      <div class="stat-box"><p>ช่องว่าง</p><p style="color:var(--red);" id="cc-cnt-empty">0</p></div>
+      <div class="stat-box"><p>จัดการแล้ว</p><p style="color:var(--green);" id="cc-cnt-done">0</p></div>
     </div>
-    <div class="prog-wrap" style="margin-bottom:.75rem;"><div class="prog-fill" id="cc-prog" style="width:0%"></div></div>
 
     <!-- Hide-done toggle -->
     <label style="display:flex;align-items:center;gap:6px;font-size:13px;color:var(--muted);margin-bottom:.75rem;cursor:pointer;">
-      <input type="checkbox" id="cc-hide-done" onchange="renderCartCheckList()" checked
+      <input type="checkbox" id="cc-hide-done" onchange="renderCartCheckList()"
         style="width:14px;height:14px;accent-color:var(--navy);cursor:pointer;">
-      ซ่อนการ์ดที่ตรวจแล้ว
+      ซ่อนการ์ดที่จัดการแล้ว
     </label>
 
     <div id="cc-card-list"></div>
 
     <div id="cc-empty" style="display:none;text-align:center;padding:2rem 1rem;color:var(--muted);">
-      <p style="font-size:14px;">✓ ตรวจครบทุกรายการแล้ว</p>
+      <p style="font-size:14px;">— ไม่มีการ์ดที่ตรงกับเงื่อนไข —</p>
     </div>
   </div>
 </div>
@@ -2225,7 +2225,7 @@ async function doLogin() {
       if (el) el.style.display = 'flex';
     });
     document.getElementById('pv-sub').textContent = APP.userName + ' · ' + todayStr();
-    gotoPage('pharm-verify');
+    gotoPage('cart-check');
   }
   // แสดงปุ่ม "+ เพิ่มยาเข้ารถ" เฉพาะเภสัช
   const addBtn = document.getElementById('stock-add-btn-wrap');
@@ -6043,7 +6043,8 @@ function renderCartCheckList() {
   sorted.forEach(d => {
     if (q && !(d.name||'').toLowerCase().includes(q)) return;
     const st = CART_CHECK.cardState[d.id];
-    const isDone = st && st.status === 'done';
+    const isDone  = st && st.status === 'done';
+    const isEmpty = (parseInt(d.cur)||0) === 0;
     if (hideDone && isDone) return;
 
     shown++;
@@ -6053,8 +6054,16 @@ function renderCartCheckList() {
 
     const hadBadgeHtml = d.had ? '<span class="had-badge">HAD</span>' : '';
     const pos = d.cart_pos || d.location || '—';
-    const pillText  = isDone ? '✓ เสร็จ' : 'ยังไม่ตรวจ';
-    const pillClass = 'cc-pill' + (isDone ? ' cc-pill-done' : '');
+
+    // pill: 3 states — done (green), empty (red), untouched (hidden)
+    let pillHtml = '';
+    if (isDone) {
+      pillHtml = '<span class="cc-pill cc-pill-done" id="cc-pill-'+d.id+'">✓ จัดการแล้ว</span>';
+    } else if (isEmpty) {
+      pillHtml = '<span class="cc-pill cc-pill-empty" id="cc-pill-'+d.id+'">ช่องว่าง</span>';
+    } else {
+      pillHtml = '<span class="cc-pill cc-pill-idle" id="cc-pill-'+d.id+'" style="visibility:hidden;">—</span>';
+    }
 
     card.innerHTML =
       '<div class="cc-head" data-did="'+d.id+'" onclick="ccToggle(this.dataset.did)">' +
@@ -6063,7 +6072,7 @@ function renderCartCheckList() {
           '<div style="font-size:14px;font-weight:500;" class="'+(d.had?'had-name':'')+'">'+d.name+hadBadgeHtml+'</div>' +
           '<div style="font-size:11px;color:var(--muted);">เป้าหมาย '+d.target+' '+d.unit+'</div>' +
         '</div>' +
-        '<span class="'+pillClass+'" id="cc-pill-'+d.id+'">'+pillText+'</span>' +
+        pillHtml +
       '</div>' +
       '<div class="cc-body" id="cc-body-'+d.id+'"></div>';
     c.appendChild(card);
@@ -6134,6 +6143,7 @@ function ccRenderBody(drugId) {
   if (lots.length === 0) {
     html += '<div style="padding:.75rem;font-size:12px;color:var(--muted);text-align:center;background:var(--bg2);border-radius:6px;margin-top:10px;">ยังไม่มีล็อตในระบบ — ต้องเติมล็อตใหม่</div>';
   } else {
+    html += '<div style="font-size:11px;color:var(--muted);margin:10px 0 6px;line-height:1.45;">💡 ถ้าช่องไหนยังครบ ไม่ต้องกรอก · กรอกเฉพาะช่องที่เห็นว่าหาย</div>';
     html += '<div class="cc-col-hdr"><div>วันหมดอายุ</div><div style="text-align:right;">ในระบบ</div><div style="text-align:center;">เห็นจริง</div></div>';
     lots.forEach(lot => {
       const expBE = dateToBE(lot.exp_date);
@@ -6233,16 +6243,14 @@ function ccRecalc(drugId) {
 
   let totalDisp = 0;
   let hasError  = false;
-  let filledCount = 0;
 
+  // "untouched" = blank input = ถือว่าครบ (actual = system). Only filled rows are evaluated.
   lots.forEach(lot => {
     const a = st.actuals[lot.exp_date];
     if (a == null) return;
-    filledCount++;
     if (a > lot.available_qty) { hasError = true; return; }
     totalDisp += (lot.available_qty - a);
   });
-  const allFilled = (lots.length > 0 && filledCount === lots.length);
 
   const dispEl = document.getElementById('cc-disp-' + drugId);
   const refEl  = document.getElementById('cc-refill-' + drugId);
@@ -6253,20 +6261,21 @@ function ccRecalc(drugId) {
   if (!btn) return;
 
   btn.style.background = '';
+  btn.style.color = '';
   if (hasError) {
     btn.textContent = 'เห็นจริงมากกว่าระบบ — ตรวจสอบ';
     btn.disabled = true;
     btn.style.background = 'var(--red)';
   } else if (lots.length === 0) {
+    // empty locker — need new lot exp to restock target
     btn.textContent = st.newLotExp ? ('เติมล็อตแรก ' + d.target + ' ' + d.unit) : 'กรอก exp ล็อตใหม่ก่อน';
     btn.disabled = !st.newLotExp;
-  } else if (!allFilled) {
-    btn.textContent = 'คีย์เห็นจริงให้ครบก่อน';
-    btn.disabled = true;
   } else if (totalDisp === 0) {
-    btn.textContent = '✓ ครบ · กดเพื่อ mark ตรวจแล้ว';
+    // no missing stock detected → just close (no API, no done mark)
+    btn.textContent = 'ปิด · ไม่มีการเปลี่ยนแปลง';
     btn.disabled = false;
-    btn.style.background = 'var(--green)';
+    btn.style.background = 'var(--bg2)';
+    btn.style.color = 'var(--muted)';
   } else {
     if (st.newLotOn && !st.newLotExp) {
       btn.textContent = 'กรอก exp ล็อตใหม่ก่อน';
@@ -6366,10 +6375,9 @@ async function ccConfirm(drugId) {
     }
   });
 
-  // Case A: existing lots, nothing missing → mark done locally, no API
+  // Case A: existing lots, nothing missing → just close card (ถือว่าครบ, no API, no done mark)
   if (lots.length > 0 && totalDisp === 0) {
-    st.status = 'done';
-    ccMarkDone(drugId);
+    ccToggle(drugId);
     return;
   }
 
@@ -6467,48 +6475,44 @@ function ccMarkDone(drugId) {
   const pill = document.getElementById('cc-pill-' + drugId);
   const body = document.getElementById('cc-body-' + drugId);
   if (card) card.classList.add('cc-done');
-  if (pill) { pill.textContent = '✓ เสร็จ'; pill.className = 'cc-pill cc-pill-done'; }
-  if (body) body.innerHTML = '<div style="padding:.75rem;text-align:center;color:#065f46;font-size:13px;font-weight:600;">✓ ตรวจแล้ว</div>';
+  if (pill) {
+    pill.textContent = '✓ จัดการแล้ว';
+    pill.className = 'cc-pill cc-pill-done';
+    pill.style.visibility = '';
+  }
+  if (body) {
+    body.innerHTML = '<div style="padding:.75rem;text-align:center;color:#065f46;font-size:13px;font-weight:600;">✓ จัดการแล้ว</div>';
+    // collapse after a moment so user can see the green flash
+    setTimeout(() => {
+      body.classList.remove('open');
+      if (card) card.classList.remove('open');
+      // if hide-done is on, re-render to remove this card from list
+      const hideDone = !!document.getElementById('cc-hide-done')?.checked;
+      if (hideDone) renderCartCheckList();
+    }, 500);
+  }
 
   updateCcSummary();
-
-  setTimeout(() => {
-    const hideDone = !!document.getElementById('cc-hide-done')?.checked;
-    const sorted = ccSortDrugs();
-    const idx = sorted.findIndex(d => d.id === drugId);
-
-    if (hideDone) renderCartCheckList();
-
-    // find next pending card
-    for (let i = idx + 1; i < sorted.length; i++) {
-      const nx = sorted[i];
-      const st2 = CART_CHECK.cardState[nx.id];
-      if (!st2 || st2.status !== 'done') {
-        if (document.getElementById('cc-card-' + nx.id)) {
-          ccToggle(nx.id);
-        }
-        return;
-      }
-    }
-    // nothing left
-    const empty = document.getElementById('cc-empty');
-    if (empty) empty.style.display = 'block';
-  }, 450);
 }
 
 function updateCcSummary() {
   const all = DRUGS.length;
+  // "จัดการแล้ว" = card that fired dispense/restock (status === 'done')
   const done = Object.values(CART_CHECK.cardState).filter(s => s && s.status === 'done').length;
-  const left = all - done;
-  const pct = all > 0 ? Math.round(done / all * 100) : 0;
-  const allEl  = document.getElementById('cc-cnt-all');
-  const doneEl = document.getElementById('cc-cnt-done');
-  const leftEl = document.getElementById('cc-cnt-left');
-  const progEl = document.getElementById('cc-prog');
-  if (allEl)  allEl.textContent  = all;
-  if (doneEl) doneEl.textContent = done;
-  if (leftEl) leftEl.textContent = left;
-  if (progEl) progEl.style.width = pct + '%';
+  // "ช่องว่าง" = locker with 0 current stock AND not yet handled
+  let empty = 0;
+  DRUGS.forEach(d => {
+    if ((parseInt(d.cur)||0) === 0) {
+      const st = CART_CHECK.cardState[d.id];
+      if (!st || st.status !== 'done') empty++;
+    }
+  });
+  const allEl   = document.getElementById('cc-cnt-all');
+  const doneEl  = document.getElementById('cc-cnt-done');
+  const emptyEl = document.getElementById('cc-cnt-empty');
+  if (allEl)   allEl.textContent   = all;
+  if (doneEl)  doneEl.textContent  = done;
+  if (emptyEl) emptyEl.textContent = empty;
 }
 
 function ccFilter() {
