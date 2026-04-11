@@ -1347,14 +1347,13 @@ async function loadWorklist() {
     // เคสยังไม่ทำ MR
     const notDone = all.filter(r => r['สถานะ_MR'] === 'ไม่ได้ทำ MR');
     // เคสรอ MD review (มี MR แล้วแต่ MD ยังไม่ตอบ และไม่ใช่ d/c)
-    // ขาดฟิลด์ใดฟิลด์หนึ่ง (วันที่ หรือ เวร) = ยังไม่เสร็จ → ใช้ ||
-    // กันกรณี d/c แล้ว (เวร_MD_review === 'd/c แล้ว') ไม่ต้องเข้า worklist
+    // Sheet เก็บแค่ `เวร_MD_review` อย่างเดียว (ไม่มี column วันที่_MD_review)
+    // → ถ้า shift ว่าง = รอ / ถ้ามีค่า (เช้า/บ่าย/ดึก) = เสร็จแล้ว / ถ้า d/c แล้ว = ไม่เข้า worklist
     const waitMD = all.filter(r => {
       if (r['สถานะ_MR'] !== 'มีรายการ MR') return false;
-      if (r['เวร_MD_review'] === 'd/c แล้ว') return false;
-      const noDate  = !r['วันที่_MD_review'] || r['วันที่_MD_review'] === '';
-      const noShift = !r['เวร_MD_review']    || r['เวร_MD_review']    === '';
-      return noDate || noShift;
+      const shift = r['เวร_MD_review'];
+      if (shift === 'd/c แล้ว') return false;
+      return !shift || shift === '';
     });
 
     const items = [
