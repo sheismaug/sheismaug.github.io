@@ -6,7 +6,7 @@
 <title>TB Pharm</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Google+Sans:ital,wght@0,400;0,500;0,700;1,400&family=Google+Sans+Text:ital,wght@0,400;0,500;0,700;1,400&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Google+Sans:ital,wght@0,400;0,500;0,700;1,400&family=Google+Sans+Text:ital,wght@0,400;0,500;0,700;1,400&family=Noto+Color+Emoji&display=swap" rel="stylesheet">
 <style>
 @font-face { font-family:'IBM Plex Sans Thai Looped'; font-display:swap; }
 </style>
@@ -30,8 +30,8 @@
   --pu:#6D28D9;   --pu1:#EDE9FE;
   --r:10px; --r-sm:7px; --r-xs:5px;
   --t:all .14s ease;
-  --font-th:'Google Sans Text','Google Sans',sans-serif;
-  --font-en:'Google Sans','Google Sans Text',sans-serif;
+  --font-th:'Google Sans Text','Google Sans','Noto Color Emoji','Apple Color Emoji','Segoe UI Emoji',sans-serif;
+  --font-en:'Google Sans','Google Sans Text','Noto Color Emoji','Apple Color Emoji','Segoe UI Emoji',sans-serif;
   --sh:0 1px 3px rgba(0,0,0,.06);
   --sh-md:0 4px 16px rgba(0,0,0,.08);
   --btab-h: 58px;
@@ -4194,7 +4194,16 @@ function togglePtView() {
 function renderPatients(filter='all', search='') {
   let list = S.patients;
   if (filter !== 'all') list = list.filter(p => p.status === filter);
-  if (search) { const q = search.trim().toLowerCase(); list = list.filter(p => (p.name||'').toLowerCase().includes(q)||(p.hn||'').toLowerCase().includes(q)); }
+  if (search) {
+    const q = String(search).trim().toLowerCase();
+    if (q) {
+      list = list.filter(p => {
+        const name = String(p.name ?? '').toLowerCase();
+        const hn   = String(p.hn   ?? '').toLowerCase();
+        return name.includes(q) || hn.includes(q);
+      });
+    }
+  }
   const el = document.getElementById('pt-list'); if (!el) return;
 
   const viewMode = localStorage.getItem('ptView') || 'compact';
