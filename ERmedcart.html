@@ -1121,13 +1121,6 @@ input::placeholder, textarea::placeholder { color: var(--hint); }
       </div>
     </div>
 
-    <!-- จพ. helper field -->
-    <div style="margin-bottom:.875rem;">
-      <label class="fl">จพ. ที่ช่วยหยิบยา (ไม่บังคับ)</label>
-      <input type="text" id="cc-tech" placeholder="ชื่อ จพ."
-        style="width:100%;font-size:15px;" oninput="CART_CHECK.tech=this.value">
-    </div>
-
     <!-- Summary -->
     <div class="stat-grid" style="grid-template-columns:repeat(3,minmax(0,1fr));margin-bottom:.75rem;">
       <div class="stat-box"><p>ทั้งหมด</p><p id="cc-cnt-all">0</p></div>
@@ -2219,8 +2212,8 @@ async function doLogin() {
     document.getElementById('nav-nurse-check').style.display = 'flex';
     document.getElementById('nav-stock-nurse').style.display = 'flex';
   } else {
-    // เภสัช — tabs อิสระ (เพิ่ม cart-check เป็นตัวแรก)
-    ['nav-cart-check','nav-pharm-verify','nav-dispense','nav-restock','nav-stock','nav-shift-log','nav-dashboard'].forEach(function(id){
+    // เภสัช — tabs อิสระ (cart-check เป็นตัวแรก · nav-dispense/nav-restock ซ่อนไว้ เพราะ cart-check ครอบคลุมแล้ว)
+    ['nav-cart-check','nav-pharm-verify','nav-stock','nav-shift-log','nav-dashboard'].forEach(function(id){
       var el = document.getElementById(id);
       if (el) el.style.display = 'flex';
     });
@@ -6005,7 +5998,6 @@ async function voidSlEntry(id) {
    CART CHECK (ตรวจรถยา) — unified dispense+restock per card
    ============================================================ */
 const CART_CHECK = {
-  tech     : '',
   stockMap : {},   // drug_id → [{ exp_date, available_qty }, ...]
   cardState: {},   // drug_id → { status, actuals, newLotOn, newLotExp, loaded }
   inflight : {},   // drug_id → true while saving
