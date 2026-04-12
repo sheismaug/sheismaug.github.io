@@ -1694,7 +1694,7 @@ async function submitPassword() {
       }
       if (S._pendingPage) { goPage(S._pendingPage); S._pendingPage = null; }
     } else {
-      err.textContent = 'รหัสผ่านไม่ถูกต้อง';
+      err.textContent = result?.error ? ('⚠️ ' + result.error) : 'รหัสผ่านไม่ถูกต้อง';
       document.getElementById('pw-input').value = '';
     }
   } catch (e) {
