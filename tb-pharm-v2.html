@@ -4068,10 +4068,21 @@ function buildAlertsPage() {
     lfx:   ['เริ่มยา','1 สัปดาห์','2 สัปดาห์','1 เดือน','2 เดือน','3 เดือน','6 เดือน','9 เดือน','12 เดือน','ครบรักษา 18M'],
     '2hezl':['เริ่มยา','2 สัปดาห์','1 เดือน','2 เดือน','3 เดือน','5 เดือน','8 เดือน','10 เดือน','ครบรักษา 12M'],
   };
-  const getSchedLbl = (reg, i) => {
+  const getSchedLbl = (reg, i, patient) => {
     const code = Object.keys(REGS).find(k => REGS[k] === reg) || 'std';
     const lbls = SCHED_LBLS[code] || SCHED_LBLS['std'];
-    return lbls[i] || `V${i}`;
+    if (lbls[i]) return lbls[i];
+    // ถ้า index เกิน label มาตรฐาน → หาชื่อจาก custom_visits_json
+    if (patient?.custom_visits_json) {
+      try {
+        const customs = JSON.parse(patient.custom_visits_json);
+        if (Array.isArray(customs)) {
+          const customIdx = i - lbls.length;
+          if (customs[customIdx]?.lbl) return customs[customIdx].lbl;
+        }
+      } catch(e) {}
+    }
+    return `V${i}`;
   };
   const getDispLbl = (schedLbl) => {
     if (!schedLbl || schedLbl === 'เริ่มยา') return 'เริ่มยา → เติมยาเดือน 1';
@@ -4141,7 +4152,7 @@ function buildAlertsPage() {
         const nearPC = isIP && daysToPC !== null && daysToPC >= 0 && daysToPC <= 14;
 
         // ใช้ schedule label จริง ไม่คำนวณจาก moElapsed
-        const schedLbl = getSchedLbl(reg, i);
+        const schedLbl = getSchedLbl(reg, i, p);
         const dispLbl  = getDispLbl(schedLbl);
         const ptId     = p.patient_id;
 
