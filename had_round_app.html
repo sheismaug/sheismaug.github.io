@@ -1025,10 +1025,15 @@ div:has(> .guide-panel.open) .guide-chevron { transform:rotate(90deg); }
     </div>
   </div>
 
-  <!-- compat check -->
+  <!-- compat check (collapsible) -->
   <div class="compat-wrap" id="compat-detail">
-    <div class="slabel" style="display:flex;align-items:center;gap:8px;">Drug Interaction Check <span id="compat-badge" style="display:none;background:var(--red);color:white;font-size:9px;padding:1px 7px;border-radius:10px;font-weight:700;"></span></div>
-    <div class="compat-list" id="compat-list"></div>
+    <div class="slabel" style="display:flex;align-items:center;gap:8px;cursor:pointer;user-select:none;" onclick="toggleCompat()">
+      <span id="compat-chevron" style="transition:transform 0.2s;font-size:10px;">▶</span>
+      Drug Interaction Check
+      <span id="compat-badge" style="display:none;background:var(--red);color:white;font-size:9px;padding:1px 7px;border-radius:10px;font-weight:700;"></span>
+      <span id="compat-toggle-hint" style="font-size:10px;color:var(--ink3);font-weight:400;margin-left:auto;">แตะเพื่อดู</span>
+    </div>
+    <div class="compat-list" id="compat-list" style="display:none;"></div>
   </div>
 
   <!-- dose blocks -->
@@ -1310,7 +1315,7 @@ const DRUG_DB = {
       monitoring: 'BP และ HR ทุก 2 นาทีเมื่อเริ่มให้ยา → ทุก 5 นาทีเมื่อ BP คงที่ (SBP ≈ 80-100 mmHg) → ทุก 15 นาที · ดู IV site ทุก 1 ชม. · Respiratory rate',
       alarm: 'HR > 120 ครั้ง/นาที · BP > 160/100 mmHg (ผู้ใหญ่) · BP > 120/80 mmHg (เด็ก) · ผิวหนังซีด/เขียว ที่ IV site · หลอดเลือดอักเสบ · Extravasation',
       sae: 'หัวใจเต้นช้า/ผิดจังหวะ (Arrhythmia) · ปวดศีรษะ ความดันโลหิตสูง · กระวนกระวาย หายใจลำบาก · Tissue necrosis จาก extravasation · Vasoconstriction',
-      antidote: 'Phentolamine (extravasation) · การหยุดยาต้องค่อยๆ ปรับลด ระวัง rebound hypotension',
+      antidote: 'Phentolamine 5-10 mg ผสม NSS 10-15 mL ฉีดรอบบริเวณ extravasation ภายใน 12 ชม. · การหยุดยาต้องค่อยๆ ปรับลด ระวัง rebound hypotension',
     },
   },
   adr: {
@@ -1335,7 +1340,7 @@ const DRUG_DB = {
       monitoring: 'BP, HR, EKG (ตามคำสั่งแพทย์) · Pulmonary function · Urine output (ยาอาจทำให้เกิด renal blood vessel constriction) · Infusion rate and site · ตรวจ IV Set เพราะอาจเกิด tissue necrosis',
       alarm: 'Arrhythmia · Extravasations · Hypertension · Vasoconstriction · Tachycardia, palpitation, BP สูง',
       sae: 'ใจสั่น กระวนกระวาย หัวใจเต้นเร็ว หยุดหายใจ · อาจเกิด Ventricular fibrillation · Pulmonary edema · Extravasation → tissue necrosis',
-      antidote: 'Phentolamine (extravasation)',
+      antidote: 'Phentolamine 5-10 mg ผสม NSS 10-15 mL ฉีดรอบบริเวณ extravasation ภายใน 12 ชม.',
     },
   },
   morphine: {
@@ -1360,7 +1365,7 @@ const DRUG_DB = {
       monitoring: 'BP และ RR · Pain score · Sign of dyspnea · Sedation score · Cardiovascular depression · ระวังในผู้ป่วยสูงอายุ เด็ก โรคหัวใจ ไต ตับ',
       alarm: 'Hypotension · Bradycardia · Respiratory depression · RR < 10 · ม่านตาหดเล็ก (overdose) · ง่วงซึมมาก',
       sae: 'เบื่ออาหาร ท้องผูก วิงเวียน ตาพร่า หัวใจเต้นช้า เหงื่อออก คันตามร่างกาย · Respiratory depression → หยุดหายใจ',
-      antidote: 'Naloxone — เตรียมไว้ทุกครั้งที่ใช้ยา',
+      antidote: 'Naloxone 0.4-2 mg IV (เด็ก 0.01 mg/kg) ซ้ำได้ทุก 2-3 นาที (total < 10 mg) · เตรียมไว้ทุกครั้งที่ใช้ยา · ให้ dextrose IV หรือ NSS ควบคุมระบบไหลเวียนโลหิต',
     },
   },
   pethidine: {
@@ -1488,12 +1493,12 @@ const DRUG_DB = {
       { key:'k', label:'K⁺', unit:'mEq/L', placeholder:'3.5-5.0' },
     ],
     info: {
-      dose: 'ขนาด 0.5 mg/2 mL · Therapeutic Index แคบ: 0.8-2 ng/mL · ข้อบ่งใช้: CHF, AF, SVT · ติดตามผู้ป่วยอย่างใกล้ชิด · ผู้ป่วยไทรอยด์ต่ำ: ลดขนาดยา / ไทรอยด์สูง: อาจต้องเพิ่มขนาด',
+      dose: 'ขนาดบรรจุ 0.5 mg/2 mL · IV Loading: 0.25-0.5 mg slow IV push ครั้งแรก แล้วตามด้วย 0.25 mg ทุก 6 ชม. อีก 2 ครั้ง (Total loading ≈ 0.75-1 mg) · Maintenance: 0.125-0.25 mg/day IV หรือ PO · Therapeutic Index แคบ: 0.8-2 ng/mL · ข้อบ่งใช้: CHF, AF, SVT · IV slow push ≥ 10-20 นาที · ผู้ป่วยไทรอยด์ต่ำ: ลดขนาดยา / ไทรอยด์สูง: อาจต้องเพิ่มขนาด · ผู้สูงอายุ/ไตบกพร่อง: ลดขนาดลง',
       prep: '0.5 mg/2 mL · เจือจาง NSS ≥ 4 เท่า · IV slow push ≥ 10-20 นาที · Compatible: D5W, D10W, NSS, Sterile water · ให้ยาเข้าหลอดเลือดดำอย่างรวดเร็วเป็นสาเหตุให้เกิดการหดตัวของหลอดเลือด ดังนั้นการฉีดยาอย่างช้าๆ จึงเป็นสิ่งสำคัญ · เก็บยาไว้ที่อุณภูมิ ≤25°C ป้องกันแสง',
       monitoring: 'HR, BP, EKG · Electrolytes (K⁺, Mg²⁺, Ca²⁺) · BUN, Cr · Digoxin level (0.8-2 ng/mL) · ทั้งนี้ขึ้นกับคำสั่งและดุลพินิจแพทย์ · เภสัชกรตรวจ Drug interaction: Digoxin↑ β-blockers, verapamil, diltiazem, ACE-I, erythromycin, tetracycline / ยาที่ทำให้สูญเสีย K⁺ เช่น Amphotericin B, Diuretics ร่วมกับ digoxin เพิ่มความเสี่ยง toxicity / Digoxin↓ amiloride, spironolactone, oral antacid, cholestyramine',
       alarm: 'คลื่นไส้ อาเจียน · หัวใจเต้นช้าหรือเต้นผิดจังหวะ · บวมตามอวัยวะต่างๆ · มองเห็นสีเขียวเหลือง → แจ้งแพทย์',
       sae: 'Digoxin toxicity → fatal arrhythmia (โดยเฉพาะถ้า K⁺ ต่ำ) · คลื่นไส้อาเจียน หัวใจเต้นช้า/ผิดจังหวะ มองเห็นสีเขียวเหลือง',
-      antidote: 'Digoxin immune Fab (DigiFab)',
+      antidote: 'Digoxin immune Fab (DigiFab) — คำนวณ dose จาก body load: vials = (serum level × BW) / 100 · Acute ingestion: vials = (จำนวน mg ที่กิน × 0.8) / 0.5 · กรณีไม่ทราบ level/ปริมาณ: ให้ 10-20 vials IV ใน 30 นาที',
     },
   },
   warfarin: {
@@ -1510,7 +1515,7 @@ const DRUG_DB = {
       monitoring: 'PT/INR (ตามคำสั่งและดุลพินิจแพทย์) · HR, BP · Sign of bleeding: จ้ำเลือดตามผิวหนัง เลือดกำเดา ปัสสาวะเป็นเลือด อุจจาระสีดำ · Sign of clotting: ขาบวม ขาไม่มีแรง · แนะนำผู้ป่วยระวังการมีบาดแผล',
       alarm: 'Minor bleeding: เลือดออกตามไรฟัน รอยช้ำตามตัว เลือดกำเดาไหล เลือดซึมจากแผล เลือดหยุดยาก · Major bleeding: อาเจียนเป็นเลือด ไอเป็นเลือด ปัสสาวะเป็นเลือด อุจจาระสีดำ',
       sae: 'Major bleeding → cardiopulmonary arrest, organ failure, MI, intracerebral hemorrhage · Warfarin-induced skin necrosis (สัปดาห์แรกหลังเริ่มยา) · Purple toe syndrome (3-8 สัปดาห์)',
-      antidote: 'Vitamin K · สอนวิธีห้ามเลือด: ใช้ผ้าสะอาดกดที่แผล 5-10 นาที',
+      antidote: 'Vitamin K1 (Phytonadione): INR 5-9 ไม่มีเลือดออก = 1-2.5 mg PO · INR > 9 ไม่มีเลือดออก = 2.5-5 mg PO · เลือดออกรุนแรง = 10 mg slow IV (ให้นาน > 30 นาที) + FFP หรือ PCC · สอนผู้ป่วยห้ามเลือด: กดที่แผล 5-10 นาที',
     },
   },
   amiodarone: {
@@ -1526,7 +1531,7 @@ const DRUG_DB = {
       monitoring: 'BP, HR, EKG (ตามคำสั่งแพทย์) · RR · ตรวจ IV site (Thrombophlebitis)',
       alarm: 'Hypotension · Arrhythmia · Cardiac arrest · ใช้อย่างระมัดระวังในผู้ที่ใส่ pacemaker, ภาวะไทรอยด์ผิดปกติ',
       sae: 'ความดันต่ำ หัวใจเต้นช้า · คลื่นไส้/อาเจียน · หายใจขัด เดินเซ แขนขาอ่อนแรง ชาปลายนิ้วเท้า · เหนื่อยเพลีย ตามัว · Thrombophlebitis (บริเวณให้ยา)',
-      antidote: '-',
+      antidote: 'ไม่มี specific antidote · Bradycardia: Atropine 0.5-1 mg IV หรือ temporary pacemaker · Hypotension: IV fluid, vasopressor ตามความจำเป็น · Torsades de Pointes: Magnesium 1-2 g IV',
     },
   },
   adenosine: {
@@ -1542,7 +1547,7 @@ const DRUG_DB = {
       monitoring: 'BP และ HR · EKG (ตามคำสั่งแพทย์) · เตรียม defibrillator',
       alarm: 'อาการข้างเคียง: facial flushing, ใจสั่น แน่นหน้าอก ปวดศีรษะ · (half-life สั้นมาก < 10 วินาที → อาการเกิดเร็วและหายได้เอง)',
       sae: 'Prolonged asystole · Bronchospasm · ความเป็นพิษสั้น (half-life < 10 วินาที)',
-      antidote: 'Aminophylline (bronchospasm) · อาการข้างเคียงมักหายได้เองอย่างรวดเร็ว',
+      antidote: 'Aminophylline 50-125 mg slow IV push (กรณี bronchospasm รุนแรง) · half-life สั้นมาก (< 10 วินาที) อาการข้างเคียงส่วนใหญ่หายได้เองภายใน 1 นาที · Prolonged AV block: อาจต้องใช้ temporary pacemaker',
     },
   },
   streptokinase: {
@@ -1558,7 +1563,7 @@ const DRUG_DB = {
       monitoring: 'BP, PT, Platelet count, Hct · Sign of bleeding, allergy · Drip in NSS or D5W 100 mL in 30-60 min · ติดตามภาวะเลือดออกทุก 15 นาทีชั่วโมงแรก · HR, EKG · Neuro signs · ติดตามสัญญาณแพ้ยาใน 2-3 ชม.แรก',
       alarm: 'เลือดออกผิดปกติ (IV site, เหงือก, ปัสสาวะ) · Allergic reaction · BP ลดลง 25 mmHg → ลดอัตราเร็วหรือหยุดยาทันที · อาการหอบ → หยุดยาทันที',
       sae: 'Injection site bleeding · Hypotension · Major organs bleeding · Epistaxis · Genitourinary bleeding · Anaphylaxis',
-      antidote: 'หยุดยา · Aminocaproic acid / Tranexamic acid · ติดตามภาวะเลือดออก',
+      antidote: 'หยุดยาทันที · Aminocaproic acid 5 g IV loading (ใน 1 ชม.) แล้วตามด้วย 1 g/hr infusion · หรือ Tranexamic acid 1 g IV ช้าๆ (> 10 นาที) · Cryoprecipitate/FFP ถ้า fibrinogen ต่ำ · กดตำแหน่งเลือดออก',
     },
   },
 };
@@ -1898,6 +1903,17 @@ function selectDrugTab(drugKey, btn) {
 // ══════════════════════════════════
 // COMPATIBILITY
 // ══════════════════════════════════
+let compatOpen = false;
+function toggleCompat() {
+  compatOpen = !compatOpen;
+  const list = document.getElementById('compat-list');
+  const chevron = document.getElementById('compat-chevron');
+  const hint = document.getElementById('compat-toggle-hint');
+  if (list) list.style.display = compatOpen ? 'flex' : 'none';
+  if (chevron) chevron.style.transform = compatOpen ? 'rotate(90deg)' : '';
+  if (hint) hint.textContent = compatOpen ? 'แตะเพื่อซ่อน' : 'แตะเพื่อดู';
+}
+
 function renderCompat() {
   const drugs = currentPt.drugs;
   const list = document.getElementById('compat-list');
@@ -1953,6 +1969,25 @@ function renderCompat() {
         <span class="ci-ico">${item.type==='ok'?'✓':item.type==='warn'?'⚠':'✕'}</span>
         <div><div class="ci-t">${item.msg}</div><div class="ci-d">${item.desc}</div></div>
       </div>`).join('');
+  }
+
+  // Auto-expand if there are errors/warnings, collapse if none
+  if (alertCount > 0 && !compatOpen) {
+    compatOpen = true;
+    const listEl = document.getElementById('compat-list');
+    const chevron = document.getElementById('compat-chevron');
+    const hint = document.getElementById('compat-toggle-hint');
+    if (listEl) listEl.style.display = 'flex';
+    if (chevron) chevron.style.transform = 'rotate(90deg)';
+    if (hint) hint.textContent = 'แตะเพื่อซ่อน';
+  } else if (alertCount === 0 && compatOpen) {
+    compatOpen = false;
+    const listEl = document.getElementById('compat-list');
+    const chevron = document.getElementById('compat-chevron');
+    const hint = document.getElementById('compat-toggle-hint');
+    if (listEl) listEl.style.display = 'none';
+    if (chevron) chevron.style.transform = '';
+    if (hint) hint.textContent = 'แตะเพื่อดู';
   }
 }
 
@@ -2015,7 +2050,7 @@ function renderDoseBlocks() {
     html += `<div id="ins-scale" style="display:none">
       <div class="inp-row">
         <span class="inp-lbl">DTx</span>
-        <input class="inp" id="dtx-inp" type="number" placeholder="mg/dL" inputmode="numeric" oninput="updateScale(this.value)">
+        <input class="inp" id="dtx-inp" type="number" placeholder="mg/dL" inputmode="numeric" oninput="updateScale(this.value);updateSmartCalc('insulin')">
         <span class="inp-u">mg/dL</span>
       </div>
       <div id="scale-result"></div>
@@ -2182,7 +2217,7 @@ function renderDoseBlocks() {
     };
     const hiNums = (s) => {
       // highlight numbers with units (e.g. 150 mg, 0.5 mg/min, 10 mEq/hr, 4-5 g, 24 ชม.)
-      return s.replace(/(\d+[\.,]?\d*)\s*(mg\/m[Ll]|mg\/min|mg|mL\/hr|mL|mEq\/L|mEq\/hr|mEq|mcg\/mL|mcg\/kg\/min|mcg\/min|mcg|u\/kg\/hr|u\/kg|unit[s]?\/hour|unit[s]?|g\/hr|g\/mL|g |ng\/mL|%|°C|mmHg|ชม\.|นาที|วินาที|วัน|BPM)/gi, '<span class="hi">$1 $2</span>');
+      return s.replace(/(\d[\d,]*\.?\d*)\s*(mg\/m[Ll]|mg\/min|mg|mL\/hr|mL|mEq\/L|mEq\/hr|mEq|mcg\/mL|mcg\/kg\/min|mcg\/min|mcg|u\/kg\/hr|u\/kg|unit[s]?\/hour|unit[s]?\/vial|unit[s]?|g\/hr|g\/mL|g |ng\/mL|%|°C|mmHg|ชม\.|นาที|วินาที|วัน|BPM)/gi, '<span class="hi">$1 $2</span>');
     };
     html += `<div style="margin-top:10px;display:flex;justify-content:flex-end;">
       <div class="dinfo-btn" onclick="toggleDrugInfo('${currentDrugTab}')">ℹ HAD Card · ${drug.short}</div>
@@ -2215,12 +2250,14 @@ function renderDoseBlocks() {
     </div>`;
   }
 
-  // Lab monitoring inputs (per drug)
-  if (drug.labs && drug.labs.length > 0) {
+  // Lab monitoring inputs (per drug) — skip labs already shown in calculator above
+  const skipLabs = currentDrugTab === 'insulin' ? ['dtx'] : [];
+  const filteredLabs = (drug.labs || []).filter(l => !skipLabs.includes(l.key));
+  if (filteredLabs.length > 0) {
     html += `<div class="lab-mon-section">
       <div class="lab-mon-title">📋 Lab Monitor</div>
       <div class="lab-mon-fields">`;
-    drug.labs.forEach(lab => {
+    filteredLabs.forEach(lab => {
       html += `<div class="lab-field">
         <span class="lab-label">${lab.label}</span>
         <input class="lab-inp" id="lab-${currentDrugTab}-${lab.key}" type="number" placeholder="${lab.placeholder}" inputmode="decimal" step="any" oninput="updateSmartCalc('${currentDrugTab}')">
@@ -2441,7 +2478,7 @@ function smartCalcPethidine(el) {
 
 /* ── Insulin: K⁺ context when giving RI ── */
 function smartCalcInsulinK(el) {
-  const dtx = parseFloat(document.getElementById('lab-insulin-dtx')?.value);
+  const dtx = parseFloat(document.getElementById('dtx-inp')?.value || document.getElementById('lab-insulin-dtx')?.value);
   const kVal = parseFloat(document.getElementById('lab-insulin-k')?.value);
   let parts = [];
 
@@ -2813,7 +2850,13 @@ function saveRound() {
     const drug = DRUG_DB[d];
     if (!drug || !drug.labs) return;
     drug.labs.forEach(lab => {
-      const inp = document.getElementById(`lab-${d}-${lab.key}`);
+      // For insulin DTx, read from sliding scale input instead
+      let inp;
+      if (d === 'insulin' && lab.key === 'dtx') {
+        inp = document.getElementById('dtx-inp');
+      } else {
+        inp = document.getElementById(`lab-${d}-${lab.key}`);
+      }
       if (inp && inp.value) {
         if (!labData[d]) labData[d] = {};
         labData[d][lab.key] = { value: parseFloat(inp.value), label: lab.label, unit: lab.unit };
@@ -3345,7 +3388,7 @@ function renderGuide(filter) {
     return '<ul>' + items.map(i => '<li>' + hiNums(i) + '</li>').join('') + '</ul>';
   };
   const hiNums = (s) => {
-    return s.replace(/(\d+[\.,]?\d*)\s*(mg\/m[Ll]|mg\/min|mg|mL\/hr|mL|mEq\/L|mEq\/hr|mEq|mcg\/mL|mcg\/kg\/min|mcg\/min|mcg|u\/kg\/hr|u\/kg|unit[s]?\/hour|unit[s]?|g\/hr|g\/mL|g |ng\/mL|%|°C|mmHg|ชม\.|นาที|วินาที|วัน|BPM)/gi, '<span class="hi">$1 $2</span>');
+    return s.replace(/(\d[\d,]*\.?\d*)\s*(mg\/m[Ll]|mg\/min|mg|mL\/hr|mL|mEq\/L|mEq\/hr|mEq|mcg\/mL|mcg\/kg\/min|mcg\/min|mcg|u\/kg\/hr|u\/kg|unit[s]?\/hour|unit[s]?\/vial|unit[s]?|g\/hr|g\/mL|g |ng\/mL|%|°C|mmHg|ชม\.|นาที|วินาที|วัน|BPM)/gi, '<span class="hi">$1 $2</span>');
   };
 
   let html = '';
