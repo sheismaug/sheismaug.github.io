@@ -4493,36 +4493,57 @@ function buildAlertsPage() {
     if (!groups.length) {
       dotPrepEl.innerHTML = `<div style="color:var(--tx3);font-size:13px;text-align:center;padding:12px 0">ไม่มีนัดสัปดาห์นี้</div>`;
     } else {
-      dotPrepEl.innerHTML = `<table class="tbl" style="font-size:13px">
-        <thead><tr>
-          <th>Combination</th>
-          <th style="text-align:center">วัน</th>
-          <th style="text-align:right">ซอง</th>
-          <th style="text-align:right">ผู้ป่วย</th>
-        </tr></thead>
-        <tbody>${groups.map(g => {
-          const phaseBadge = g.isPhaseOption
-            ? `<span style="font-size:10px;padding:1px 6px;border-radius:99px;font-weight:500;margin-left:6px;${g.isPhaseOption==='IP (extend)'?'background:#AFA9EC;color:#26215C':'background:#9FE1CB;color:#04342C'}">${g.isPhaseOption}</span>`
-            : '';
-          const sachetTotal = (g.patients||[]).reduce((s,x) => s + x.days, 0);
-          const ptDetail = (g.patients||[]).map(x => `${x.name} (${x.days}ว)`).join(', ');
-          const ptCount  = (g.patients||[]).length;
-          return `<tr>
-            <td>
-              <span style="font-family:var(--font-en);font-weight:600">${g.combo.replace(/·/g,' · ')}</span>${phaseBadge}
-              <div style="font-size:11px;color:var(--tx3);margin-top:2px">${ptDetail}</div>
-            </td>
-            <td style="text-align:center;color:var(--tx3)">
-              <div style="font-size:11px">${(g.patients||[]).map(x=>x.days).join(' / ')}</div>
-            </td>
-            <td style="text-align:right">
-              <span style="font-size:16px;font-weight:700;color:var(--g4)">${sachetTotal}</span>
-              <span style="font-size:11px;color:var(--tx3)"> ซอง</span>
-            </td>
-            <td style="text-align:right;color:var(--tx3)">${ptCount} คน</td>
-          </tr>`;
-        }).join('')}</tbody>
-      </table>`;
+      // parse combo string เป็น drug list เพื่อคำนวณเม็ดต่อตัว
+      const parseDrugCombo = (combo) => {
+        return combo.split('·').map(part => {
+          const m = part.match(/^([A-Za-z]+\d?)(\d+)$/);
+          return m ? { abbr: m[1], dose: parseInt(m[2]) } : null;
+        }).filter(Boolean);
+      };
+      const DRUG_STR2 = { H:100, R:300, Z:500, E:400, B6:50, Am:250, Lfx:250 };
+
+      dotPrepEl.innerHTML = groups.map(g => {
+        const phaseBadge = g.isPhaseOption
+          ? `<span style="font-size:10px;padding:2px 8px;border-radius:99px;font-weight:600;margin-left:8px;${g.isPhaseOption==='IP (extend)'?'background:#AFA9EC;color:#26215C':'background:#9FE1CB;color:#04342C'}">${g.isPhaseOption}</span>`
+          : '';
+        const sachetTotal = (g.patients||[]).reduce((s,x) => s + x.days, 0);
+        const ptCount = (g.patients||[]).length;
+
+        // แสดงรายชื่อคนไข้ แยกบรรทัด
+        const ptRows = (g.patients||[]).map(x =>
+          `<div style="display:flex;justify-content:space-between;align-items:center;padding:4px 0;border-bottom:1px dashed var(--bd)">
+            <span style="font-size:12.5px;color:var(--tx)">${x.name}</span>
+            <span style="font-size:12.5px;font-weight:600;color:var(--g3);white-space:nowrap">${x.days} วัน</span>
+          </div>`
+        ).join('');
+
+        // คำนวณจำนวนเม็ดรวมต่อตัวยา
+        const drugs = parseDrugCombo(g.combo);
+        const drugBreakdown = drugs.map(dr => {
+          const str = DRUG_STR2[dr.abbr] || dr.dose;
+          const tabsPerDay = dr.dose / str;
+          const totalTabs = Math.ceil(tabsPerDay * sachetTotal);
+          return `<span style="display:inline-flex;align-items:center;gap:3px;font-size:11px;color:var(--tx2);background:var(--sf2);padding:2px 8px;border-radius:12px">
+            <strong>${dr.abbr}</strong>${str}mg × ${totalTabs}
+          </span>`;
+        }).join(' ');
+
+        return `<div style="border:1px solid var(--bd);border-radius:var(--r-md);padding:0;margin-bottom:10px;overflow:hidden">
+          <div style="padding:10px 14px;background:var(--sf2);display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:6px">
+            <div style="display:flex;align-items:center;flex-wrap:wrap;gap:4px">
+              <span style="font-family:var(--font-en);font-weight:700;font-size:14px;color:var(--g4)">${g.combo.replace(/·/g,' · ')}</span>
+              ${phaseBadge}
+            </div>
+            <div style="display:flex;align-items:baseline;gap:4px">
+              <span style="font-size:22px;font-weight:800;color:var(--g3)">${sachetTotal}</span>
+              <span style="font-size:11px;color:var(--tx3)">ซอง</span>
+              <span style="font-size:11px;color:var(--tx3);margin-left:4px">${ptCount} คน</span>
+            </div>
+          </div>
+          <div style="padding:6px 14px 4px">${drugBreakdown}</div>
+          <div style="padding:4px 14px 10px">${ptRows}</div>
+        </div>`;
+      }).join('');
     }
   }
 }
