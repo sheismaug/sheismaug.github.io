@@ -4253,23 +4253,29 @@ function buildAlertsPage() {
   }
 
   // ── ขาดนัด / ไม่มาตามนัด ──
-  // Debug: log allVisits count เพื่อตรวจสอบว่าโหลดข้อมูลมาหรือยัง
-  console.log('[Missed] S.allVisits count:', (S.allVisits||[]).length,
-    'sample:', (S.allVisits||[]).slice(0,2).map(v => ({pid:v.patient_id,vn:v.visit_num,ad:v.actual_date,pd:v.planned_date})));
-
-  // สร้าง map: patient_id → Set ของ key ที่มีบันทึกแล้ว (match ได้หลายทาง)
-  const visitedKeys = {};
+  // สร้าง map: patient_id → { keys: Set, latestDate: string, allVisitNums: Set }
+  const visitedInfo = {};
   (S.allVisits||[]).forEach(v => {
     const pid = String(v.patient_id || '').trim();
     if (!pid) return;
-    if (!visitedKeys[pid]) visitedKeys[pid] = new Set();
+    if (!visitedInfo[pid]) visitedInfo[pid] = { keys: new Set(), latestDate: '', allVisitNums: new Set() };
+    const info = visitedInfo[pid];
     // เก็บทุก key ที่เป็นไปได้เพื่อ match
-    if (v.visit_num !== undefined && v.visit_num !== null && v.visit_num !== '')
-      visitedKeys[pid].add('n:' + String(v.visit_num));
-    if (v.actual_date)
-      visitedKeys[pid].add('d:' + String(v.actual_date).trim().slice(0,10));
-    if (v.planned_date)
-      visitedKeys[pid].add('p:' + String(v.planned_date).trim().slice(0,10));
+    const vn = v.visit_num;
+    if (vn !== undefined && vn !== null && vn !== '') {
+      info.keys.add('n:' + String(vn));
+      info.allVisitNums.add(Number(vn));
+    }
+    if (v.actual_date) {
+      const ad = String(v.actual_date).trim().slice(0,10);
+      info.keys.add('d:' + ad);
+      if (ad > info.latestDate) info.latestDate = ad;
+    }
+    if (v.planned_date) {
+      const pd = String(v.planned_date).trim().slice(0,10);
+      info.keys.add('p:' + pd);
+      if (pd > info.latestDate && v.actual_date) info.latestDate = pd;
+    }
   });
 
   const missedList = [];
@@ -4279,13 +4285,15 @@ function buildAlertsPage() {
       const dates = JSON.parse(p.visit_dates_json);
       if (!Array.isArray(dates)) return;
       const pid = String(p.patient_id || '').trim();
-      const recorded = visitedKeys[pid] || new Set();
+      const info = visitedInfo[pid] || { keys: new Set(), latestDate: '', allVisitNums: new Set() };
+      const recorded = info.keys;
 
-      // Debug: log ข้อมูลเฉพาะผู้ป่วยที่มี visits
-      if (recorded.size > 0 && dates.some(d => d && d < todayISO)) {
-        console.log('[Missed] Patient:', p.name, 'pid:', pid, 'recorded:', [...recorded]);
-      }
+      // หา latest recorded visit date ของผู้ป่วย
+      // ถ้ามี visit ที่บันทึกแล้ว หลังจากวันนัดนี้ → ถือว่ายังมาอยู่ ไม่ขาดนัด
+      const latestRecordedDate = info.latestDate;
 
+      // หา visit ที่ยังไม่มี record & เป็นวันที่ผ่านมาแล้ว
+      const candidateMissed = [];
       dates.forEach((d, i) => {
         if (!d || d >= todayISO) return; // only past dates
         const dateStr = String(d).trim().slice(0,10);
@@ -4293,23 +4301,47 @@ function buildAlertsPage() {
         if (recorded.has('n:' + String(i))) return;    // match by visit_num = index
         if (recorded.has('d:' + dateStr)) return;      // match by actual_date
         if (recorded.has('p:' + dateStr)) return;      // match by planned_date
-        const daysMissed = Math.round((new Date(todayISO+'T00:00:00') - new Date(d+'T00:00:00')) / 86400000);
-        missedList.push({ name: p.name, ptId: p.patient_id, date: d, daysMissed, visitIdx: i });
+        // เพิ่ม: match by visit_num จาก schedule definition (กรณี changeRegimen shift num)
+        try {
+          const schedDefs = (REGS[p.regimen_code]) ? getVisDefs(p.regimen_code) : null;
+          if (schedDefs && schedDefs[i]) {
+            const defNum = schedDefs[i].num;
+            if (defNum !== undefined && recorded.has('n:' + String(defNum))) return;
+          }
+        } catch(e2) {}
+        candidateMissed.push({ date: dateStr, idx: i });
+      });
+
+      // กรอง: เอาเฉพาะนัดที่ไม่มี visit หลังจากนั้น (ผู้ป่วยไม่ได้มาหลังจากนี้เลย)
+      // ถ้ามีนัดหลังจากนี้ที่บันทึกแล้ว → ผู้ป่วยยังมาอยู่ → ข้ามนัดนี้ไป
+      candidateMissed.forEach(cm => {
+        if (latestRecordedDate && cm.date < latestRecordedDate) return; // มีนัดหลังจากนี้ที่มาแล้ว
+        const daysMissed = Math.round((new Date(todayISO+'T00:00:00') - new Date(cm.date+'T00:00:00')) / 86400000);
+        if (daysMissed < 2) return; // grace period: ไม่นับขาดนัดถ้าเพิ่งผ่านไป < 2 วัน
+        missedList.push({ name: p.name, ptId: p.patient_id, date: cm.date, daysMissed, visitIdx: cm.idx });
       });
     } catch(e) {}
   });
 
-  missedList.sort((a,b) => b.date.localeCompare(a.date)); // recent first
+  // Deduplicate: เอาเฉพาะนัดล่าสุดที่ขาดต่อผู้ป่วย (most recent missed per patient)
+  const missedByPt = {};
+  missedList.forEach(m => {
+    if (!missedByPt[m.ptId] || m.date > missedByPt[m.ptId].date) {
+      missedByPt[m.ptId] = m;
+    }
+  });
+  const dedupMissed = Object.values(missedByPt);
+  dedupMissed.sort((a,b) => b.date.localeCompare(a.date)); // recent first
 
   const missedCountBadge = document.getElementById('missed-count-badge');
-  if (missedCountBadge) missedCountBadge.textContent = missedList.length ? `${missedList.length} ราย` : '—';
+  if (missedCountBadge) missedCountBadge.textContent = dedupMissed.length ? `${dedupMissed.length} ราย` : '—';
 
   const missedEl = document.getElementById('missed-appt-list');
   if (missedEl) {
-    if (!missedList.length) {
+    if (!dedupMissed.length) {
       missedEl.innerHTML = '<div class="al al-g"><span>✅</span><div>ไม่มีผู้ป่วยขาดนัด</div></div>';
     } else {
-      missedEl.innerHTML = missedList.map(m => {
+      missedEl.innerHTML = dedupMissed.map(m => {
         const d = new Date(m.date + 'T00:00:00');
         const dow = DOW_TH2[d.getDay()];
         const urgency = m.daysMissed >= 14 ? 'background:var(--red1);border-color:var(--red)'
