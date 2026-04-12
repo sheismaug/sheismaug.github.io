@@ -628,6 +628,8 @@ input::placeholder, textarea::placeholder { color: var(--hint); }
 .cc-pill { font-size:10px; padding:3px 8px; border-radius:10px; background:var(--bg2); color:var(--muted); white-space:nowrap; font-weight:600; }
 .cc-pill-done { background:#d1fae5; color:#065f46; }
 .cc-pill-empty { background:#fee2e2; color:#991b1b; }
+.cc-withdraw-btn { font-size:10px; padding:1px 7px; border-radius:8px; border:1px solid var(--red); background:#fee2e2; color:#991b1b; cursor:pointer; margin-left:6px; font-weight:600; vertical-align:middle; line-height:1.5; }
+.cc-withdraw-btn:active { background:#fca5a5; }
 .cc-col-hdr { display:grid; grid-template-columns:1fr auto 78px; gap:10px; font-size:10px; font-weight:600; color:var(--hint); text-transform:uppercase; padding:12px 2px 6px; border-bottom:1px solid var(--border); }
 .cc-lot-row { display:grid; grid-template-columns:1fr auto 78px; gap:10px; align-items:center; padding:9px 2px; border-bottom:1px dashed var(--border); }
 .cc-lot-row:last-child { border-bottom:none; }
@@ -6141,14 +6143,20 @@ function ccRenderBody(drugId) {
       const expBE = dateToBE(lot.exp_date);
       const es = checkExpStatus(lot.exp_date);
       let expWarn = '';
+      const isNearExp = (es.status === 'danger' || es.status === 'critical' || es.status === 'warn');
       if (es.status === 'danger')   expWarn = ' <span style="color:var(--red);font-size:10px;">หมดแล้ว</span>';
       else if (es.status === 'critical') expWarn = ' <span style="color:var(--red);font-size:10px;">วิกฤต</span>';
       else if (es.status === 'warn') expWarn = ' <span style="color:#d97706;font-size:10px;">'+es.daysLeft+' วัน</span>';
+      // "ถอน" button for near-expiry lots — auto-fills 0
+      const withdrawBtn = isNearExp
+        ? ' <button type="button" class="cc-withdraw-btn" data-did="'+drugId+'" data-exp="'+lot.exp_date+'"'
+          + ' onclick="ccWithdraw(this.dataset.did,this.dataset.exp)">ถอน</button>'
+        : '';
       const curVal = st.actuals[lot.exp_date];
       const valAttr = (curVal!=null ? ' value="'+curVal+'"' : '');
       html +=
         '<div class="cc-lot-row">' +
-          '<div style="font-size:13px;font-weight:500;">'+expBE+expWarn+'</div>' +
+          '<div style="font-size:13px;font-weight:500;">'+expBE+expWarn+withdrawBtn+'</div>' +
           '<div style="font-size:13px;color:var(--muted);text-align:right;">'+lot.available_qty+' '+d.unit+'</div>' +
           '<input type="number" class="cc-inp" min="0" max="'+lot.available_qty+'" placeholder="'+lot.available_qty+'"' +
             ' data-sys="'+lot.available_qty+'" data-exp="'+lot.exp_date+'" data-did="'+drugId+'"' +
@@ -6277,6 +6285,20 @@ function ccRecalc(drugId) {
       btn.disabled = false;
     }
   }
+}
+
+function ccWithdraw(drugId, expDate) {
+  const st = CART_CHECK.cardState[drugId];
+  if (!st) return;
+  // auto-fill 0 → means "remove entire lot"
+  st.actuals[expDate] = 0;
+  // update the input field visually
+  const inp = document.querySelector('.cc-inp[data-did="'+drugId+'"][data-exp="'+expDate+'"]');
+  if (inp) {
+    inp.value = 0;
+    inp.className = 'cc-inp ok';
+  }
+  ccRecalc(drugId);
 }
 
 function ccToggleNewLot(drugId, checked) {
