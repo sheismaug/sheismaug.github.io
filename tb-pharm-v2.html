@@ -1,0 +1,3417 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="TB Pharmacy Management System - เครื่องมือจัดการเภสัชกรรมปอด">
+    <meta name="theme-color" content="#7C5CC4">
+    <title>TB Pharm - ระบบจัดการเภสัชกรรมปอด</title>
+
+    <!-- Google Sans + Thai fallback -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Google+Sans:wght@300;400;500;700&family=Google+Sans+Text:wght@400;500;700&family=Noto+Sans+Thai:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+    <style>
+        /* ========================================
+           ROOT DESIGN TOKENS & CSS CUSTOM PROPERTIES
+           ======================================== */
+        :root {
+            /* Colors - Soft Violet Theme */
+            --color-primary: #7C5CC4;
+            --color-primary-dark: #3D2E80;
+            --color-primary-darker: #241A50;
+            --color-bg: #F7F6FF;
+            --color-surface: #FFFFFF;
+            --color-border: #D4CEEE;
+            --color-text: #1F2937;
+            --color-text-secondary: #6B7280;
+            --color-text-light: #9CA3AF;
+
+            /* Status colors */
+            --color-success: #10B981;
+            --color-warning: #D97706;
+            --color-danger: #B91C1C;
+            --color-info: #1D4ED8;
+            --color-blue: #1D4ED8;
+
+            /* Spacing */
+            --spacing-xs: 4px;
+            --spacing-sm: 8px;
+            --spacing-md: 12px;
+            --spacing-lg: 16px;
+            --spacing-xl: 24px;
+            --spacing-2xl: 32px;
+
+            /* Border radius */
+            --radius-xs: 5px;
+            --radius-sm: 7px;
+            --radius-md: 10px;
+            --radius-lg: 12px;
+
+            /* Shadows */
+            --shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.05);
+            --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.06);
+            --shadow-md: 0 2px 8px rgba(0, 0, 0, 0.08);
+            --shadow-lg: 0 4px 12px rgba(0, 0, 0, 0.1);
+
+            /* Font sizes */
+            --font-xs: 12px;
+            --font-sm: 14px;
+            --font-md: 16px;
+            --font-lg: 18px;
+            --font-xl: 20px;
+            --font-2xl: 24px;
+
+            /* Touch targets */
+            --touch-target: 44px;
+
+            /* Breakpoints (mobile-first) */
+            --breakpoint-sm: 480px;
+            --breakpoint-md: 768px;
+            --breakpoint-lg: 1024px;
+            --breakpoint-xl: 1280px;
+        }
+
+        /* ========================================
+           RESET & BASE STYLES
+           ======================================== */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html, body {
+            width: 100%;
+            height: 100%;
+        }
+
+        body {
+            font-family: 'Google Sans', 'Google Sans Text', 'Noto Sans Thai', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            font-size: var(--font-md);
+            line-height: 1.5;
+            color: var(--color-text);
+            background-color: var(--color-bg);
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+
+        /* Typography */
+        h1, h2, h3, h4, h5, h6 {
+            font-weight: 600;
+            line-height: 1.3;
+            margin-bottom: var(--spacing-md);
+        }
+
+        h1 { font-size: var(--font-2xl); }
+        h2 { font-size: var(--font-xl); }
+        h3 { font-size: var(--font-lg); }
+        h4 { font-size: var(--font-md); }
+        h5, h6 { font-size: var(--font-sm); }
+
+        p { margin-bottom: var(--spacing-md); }
+        a { color: var(--color-primary); text-decoration: none; }
+        a:hover { text-decoration: underline; }
+
+        /* ========================================
+           LAYOUT SHELL
+           ======================================== */
+        #app {
+            display: flex;
+            width: 100vw;
+            height: 100vh;
+            overflow: hidden;
+            flex-direction: column;
+        }
+
+        /* Topbar */
+        #topbar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: var(--spacing-lg);
+            background-color: var(--color-surface);
+            border-bottom: 1px solid var(--color-border);
+            box-shadow: var(--shadow-sm);
+            flex-shrink: 0;
+            z-index: 100;
+        }
+
+        .topbar-left {
+            display: flex;
+            align-items: center;
+            gap: var(--spacing-md);
+            flex: 1;
+        }
+
+        .topbar-title {
+            display: flex;
+            flex-direction: column;
+            gap: var(--spacing-xs);
+        }
+
+        .topbar-title h1 {
+            margin: 0;
+            font-size: var(--font-lg);
+            color: var(--color-primary-dark);
+        }
+
+        .topbar-subtitle {
+            font-size: var(--font-xs);
+            color: var(--color-text-light);
+            margin: 0;
+        }
+
+        .topbar-center {
+            display: flex;
+            align-items: center;
+            gap: var(--spacing-md);
+        }
+
+        .topbar-badge {
+            display: inline-block;
+            padding: var(--spacing-xs) var(--spacing-sm);
+            background-color: var(--color-primary);
+            color: white;
+            border-radius: var(--radius-xs);
+            font-size: var(--font-xs);
+            font-weight: 600;
+        }
+
+        .topbar-right {
+            display: flex;
+            align-items: center;
+            gap: var(--spacing-sm);
+        }
+
+        .topbar-btn {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: var(--touch-target);
+            height: var(--touch-target);
+            border: none;
+            background: none;
+            cursor: pointer;
+            color: var(--color-primary);
+            font-size: var(--font-lg);
+            transition: background-color 0.2s;
+            border-radius: var(--radius-sm);
+        }
+
+        .topbar-btn:hover {
+            background-color: var(--color-bg);
+        }
+
+        .topbar-btn:active {
+            background-color: rgba(124, 92, 196, 0.1);
+        }
+
+        /* Sidebar - Desktop only */
+        #sidebar {
+            display: none;
+            flex-direction: column;
+            width: 280px;
+            height: calc(100vh - 80px);
+            background-color: var(--color-surface);
+            border-right: 1px solid var(--color-border);
+            overflow-y: auto;
+            flex-shrink: 0;
+            box-shadow: var(--shadow-sm);
+        }
+
+        @media (min-width: 768px) {
+            #sidebar {
+                display: flex;
+            }
+        }
+
+        .sidebar-logo {
+            padding: var(--spacing-lg);
+            border-bottom: 1px solid var(--color-border);
+            text-align: center;
+            flex-shrink: 0;
+        }
+
+        .sidebar-logo img {
+            max-width: 100%;
+            height: auto;
+            max-height: 60px;
+        }
+
+        .sidebar-nav {
+            flex: 1;
+            overflow-y: auto;
+            padding: var(--spacing-lg) 0;
+        }
+
+        .nav-section {
+            padding: var(--spacing-md) 0;
+            border-bottom: 1px solid var(--color-border);
+        }
+
+        .nav-section:last-child {
+            border-bottom: none;
+        }
+
+        .nav-section-title {
+            padding: var(--spacing-md) var(--spacing-lg);
+            font-size: var(--font-xs);
+            font-weight: 700;
+            color: var(--color-text-light);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .nav-item {
+            display: flex;
+            align-items: center;
+            padding: var(--spacing-md) var(--spacing-lg);
+            gap: var(--spacing-md);
+            cursor: pointer;
+            transition: all 0.2s;
+            font-size: var(--font-sm);
+            color: var(--color-text);
+            border-left: 3px solid transparent;
+        }
+
+        .nav-item:hover {
+            background-color: rgba(124, 92, 196, 0.05);
+        }
+
+        .nav-item.on {
+            background-color: rgba(124, 92, 196, 0.1);
+            color: var(--color-primary-dark);
+            border-left-color: var(--color-primary);
+            font-weight: 600;
+        }
+
+        .nav-item-icon {
+            font-size: var(--font-lg);
+            min-width: 24px;
+        }
+
+        .nav-section.hidden {
+            display: none;
+        }
+
+        .sidebar-footer {
+            padding: var(--spacing-lg);
+            border-top: 1px solid var(--color-border);
+            flex-shrink: 0;
+        }
+
+        .lock-btn {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 100%;
+            padding: var(--spacing-md);
+            border: 1px solid var(--color-border);
+            background-color: var(--color-bg);
+            color: var(--color-primary);
+            border-radius: var(--radius-sm);
+            cursor: pointer;
+            font-size: var(--font-sm);
+            font-weight: 600;
+            transition: all 0.2s;
+            gap: var(--spacing-sm);
+        }
+
+        .lock-btn:hover {
+            background-color: rgba(124, 92, 196, 0.05);
+            border-color: var(--color-primary);
+        }
+
+        /* Main content area */
+        #main-wrapper {
+            display: flex;
+            flex: 1;
+            overflow: hidden;
+        }
+
+        @media (min-width: 768px) {
+            #main-wrapper {
+                flex-direction: row;
+            }
+        }
+
+        #main {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        /* Content container (scrollable) */
+        #content {
+            flex: 1;
+            overflow-y: auto;
+            overflow-x: hidden;
+            padding: var(--spacing-lg);
+            /* Safe area for iPhone */
+            padding-bottom: calc(var(--spacing-lg) + env(safe-area-inset-bottom));
+        }
+
+        @media (min-width: 768px) {
+            #content {
+                padding-bottom: var(--spacing-lg);
+            }
+        }
+
+        /* Page containers */
+        .page {
+            display: none;
+            animation: fadeUp 0.3s ease-in-out;
+        }
+
+        .page.on {
+            display: block;
+        }
+
+        @keyframes fadeUp {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* ========================================
+           BOTTOM TAB BAR (Mobile only)
+           ======================================== */
+        #bottom-tab-bar {
+            display: flex;
+            align-items: center;
+            justify-content: space-around;
+            padding: 0;
+            background-color: var(--color-surface);
+            border-top: 1px solid var(--color-border);
+            box-shadow: var(--shadow-lg);
+            flex-shrink: 0;
+            gap: 0;
+            padding-bottom: env(safe-area-inset-bottom);
+            padding-top: var(--spacing-xs);
+        }
+
+        @media (min-width: 768px) {
+            #bottom-tab-bar {
+                display: none;
+            }
+        }
+
+        .tab-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            flex: 1;
+            min-height: 56px;
+            cursor: pointer;
+            color: var(--color-text-light);
+            font-size: var(--font-xs);
+            gap: var(--spacing-xs);
+            transition: all 0.2s;
+            border: none;
+            background: none;
+            padding: 0;
+        }
+
+        .tab-item-icon {
+            font-size: 24px;
+        }
+
+        .tab-item.on {
+            color: var(--color-primary-dark);
+            font-weight: 600;
+        }
+
+        .tab-item.on .tab-item-icon {
+            color: var(--color-primary);
+        }
+
+        .tab-item:active {
+            background-color: rgba(124, 92, 196, 0.05);
+        }
+
+        /* ========================================
+           BOTTOM SHEET (Mobile "เพิ่มเติม" menu)
+           ======================================== */
+        #bottom-sheet {
+            position: fixed;
+            bottom: -100%;
+            left: 0;
+            right: 0;
+            background-color: var(--color-surface);
+            border-top-left-radius: var(--radius-lg);
+            border-top-right-radius: var(--radius-lg);
+            box-shadow: var(--shadow-lg);
+            z-index: 300;
+            transition: bottom 0.3s ease-in-out;
+            max-height: 70vh;
+            overflow-y: auto;
+        }
+
+        #bottom-sheet.on {
+            bottom: 0;
+        }
+
+        .bottom-sheet-header {
+            padding: var(--spacing-lg);
+            border-bottom: 1px solid var(--color-border);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .bottom-sheet-title {
+            font-size: var(--font-lg);
+            font-weight: 600;
+            color: var(--color-primary-dark);
+            margin: 0;
+        }
+
+        .bottom-sheet-close {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: var(--touch-target);
+            height: var(--touch-target);
+            border: none;
+            background: none;
+            cursor: pointer;
+            font-size: var(--font-lg);
+            color: var(--color-text);
+            transition: background-color 0.2s;
+            border-radius: var(--radius-sm);
+        }
+
+        .bottom-sheet-close:hover {
+            background-color: var(--color-bg);
+        }
+
+        .bottom-sheet-content {
+            padding: var(--spacing-lg);
+        }
+
+        .sheet-nav-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: var(--spacing-lg);
+        }
+
+        .sheet-nav-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: var(--spacing-sm);
+            padding: var(--spacing-lg);
+            text-align: center;
+            cursor: pointer;
+            border-radius: var(--radius-md);
+            transition: all 0.2s;
+            color: var(--color-text);
+            font-size: var(--font-sm);
+            background-color: var(--color-bg);
+            border: 1px solid var(--color-border);
+        }
+
+        .sheet-nav-item:hover {
+            background-color: rgba(124, 92, 196, 0.05);
+            border-color: var(--color-primary);
+        }
+
+        .sheet-nav-item-icon {
+            font-size: 28px;
+        }
+
+        /* ========================================
+           MODAL OVERLAY
+           ======================================== */
+        #modal-bg {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: 400;
+            display: none;
+            align-items: center;
+            justify-content: center;
+        }
+
+        #modal-bg.on {
+            display: flex;
+        }
+
+        .modal {
+            background-color: var(--color-surface);
+            border-radius: var(--radius-lg);
+            box-shadow: var(--shadow-lg);
+            max-width: 90vw;
+            max-height: 90vh;
+            overflow-y: auto;
+            position: relative;
+        }
+
+        .modal-header {
+            padding: var(--spacing-lg);
+            border-bottom: 1px solid var(--color-border);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .modal-title {
+            font-size: var(--font-lg);
+            font-weight: 600;
+            color: var(--color-primary-dark);
+            margin: 0;
+        }
+
+        .modal-close {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: var(--touch-target);
+            height: var(--touch-target);
+            border: none;
+            background: none;
+            cursor: pointer;
+            font-size: var(--font-lg);
+            color: var(--color-text);
+            transition: background-color 0.2s;
+            border-radius: var(--radius-sm);
+        }
+
+        .modal-close:hover {
+            background-color: var(--color-bg);
+        }
+
+        .modal-body {
+            padding: var(--spacing-lg);
+        }
+
+        .modal-footer {
+            padding: var(--spacing-lg);
+            border-top: 1px solid var(--color-border);
+            display: flex;
+            gap: var(--spacing-md);
+            justify-content: flex-end;
+        }
+
+        /* ========================================
+           PASSWORD OVERLAY
+           ======================================== */
+        #pw-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(135deg, var(--color-primary-darker) 0%, var(--color-primary-dark) 100%);
+            z-index: 500;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+            gap: var(--spacing-xl);
+        }
+
+        #pw-overlay.on {
+            display: flex;
+        }
+
+        .pw-overlay-content {
+            text-align: center;
+            color: white;
+        }
+
+        .pw-overlay-icon {
+            font-size: 64px;
+            margin-bottom: var(--spacing-md);
+        }
+
+        .pw-overlay-text {
+            font-size: var(--font-lg);
+            margin-bottom: var(--spacing-md);
+        }
+
+        .pw-overlay-input {
+            padding: var(--spacing-md);
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            background-color: rgba(255, 255, 255, 0.1);
+            color: white;
+            border-radius: var(--radius-sm);
+            font-size: var(--font-md);
+            width: 200px;
+            text-align: center;
+            letter-spacing: 2px;
+        }
+
+        .pw-overlay-input::placeholder {
+            color: rgba(255, 255, 255, 0.5);
+        }
+
+        /* ========================================
+           TOAST NOTIFICATION
+           ======================================== */
+        #toast {
+            position: fixed;
+            bottom: var(--spacing-lg);
+            left: var(--spacing-lg);
+            right: var(--spacing-lg);
+            max-width: 400px;
+            background-color: var(--color-text);
+            color: white;
+            padding: var(--spacing-lg);
+            border-radius: var(--radius-md);
+            box-shadow: var(--shadow-lg);
+            z-index: 600;
+            display: none;
+            align-items: center;
+            gap: var(--spacing-md);
+            animation: slideUp 0.3s ease-in-out;
+        }
+
+        #toast.on {
+            display: flex;
+        }
+
+        #toast.error {
+            background-color: var(--color-danger);
+        }
+
+        #toast.success {
+            background-color: var(--color-success);
+        }
+
+        #toast.warning {
+            background-color: var(--color-warning);
+            color: var(--color-text);
+        }
+
+        #toast.info {
+            background-color: var(--color-info);
+        }
+
+        .toast-icon {
+            font-size: var(--font-lg);
+            flex-shrink: 0;
+        }
+
+        .toast-message {
+            flex: 1;
+            font-size: var(--font-sm);
+        }
+
+        .toast-close {
+            border: none;
+            background: none;
+            color: white;
+            cursor: pointer;
+            font-size: var(--font-lg);
+            padding: 0;
+            margin: 0;
+        }
+
+        @keyframes slideUp {
+            from {
+                transform: translateY(20px);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        /* ========================================
+           COMPONENT STYLES
+           ======================================== */
+
+        /* Cards */
+        .card {
+            background-color: var(--color-surface);
+            border: 1px solid var(--color-border);
+            border-radius: var(--radius-md);
+            padding: var(--spacing-lg);
+            box-shadow: var(--shadow-sm);
+            transition: all 0.2s;
+        }
+
+        .card:hover {
+            box-shadow: var(--shadow-md);
+            border-color: rgba(124, 92, 196, 0.3);
+        }
+
+        /* Stat cards */
+        .sc {
+            background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-dark) 100%);
+            color: white;
+            padding: var(--spacing-lg);
+            border-radius: var(--radius-md);
+            box-shadow: var(--shadow-md);
+        }
+
+        .sc-label {
+            font-size: var(--font-xs);
+            opacity: 0.9;
+            margin-bottom: var(--spacing-sm);
+        }
+
+        .sc-value {
+            font-size: var(--font-2xl);
+            font-weight: 700;
+            line-height: 1;
+        }
+
+        /* Alert boxes */
+        .al {
+            padding: var(--spacing-lg);
+            border-radius: var(--radius-md);
+            border-left: 4px solid;
+            display: flex;
+            gap: var(--spacing-md);
+            align-items: flex-start;
+        }
+
+        .al-icon {
+            font-size: var(--font-lg);
+            flex-shrink: 0;
+            margin-top: 2px;
+        }
+
+        .al-content {
+            flex: 1;
+        }
+
+        .al-title {
+            font-weight: 600;
+            margin-bottom: var(--spacing-xs);
+            margin: 0;
+        }
+
+        .al-text {
+            font-size: var(--font-sm);
+            margin: 0;
+        }
+
+        .al-g {
+            background-color: rgba(16, 185, 129, 0.1);
+            border-left-color: var(--color-success);
+            color: var(--color-success);
+        }
+
+        .al-am {
+            background-color: rgba(217, 119, 6, 0.1);
+            border-left-color: var(--color-warning);
+            color: var(--color-warning);
+        }
+
+        .al-rd {
+            background-color: rgba(185, 28, 28, 0.1);
+            border-left-color: var(--color-danger);
+            color: var(--color-danger);
+        }
+
+        .al-bl {
+            background-color: rgba(29, 78, 216, 0.1);
+            border-left-color: var(--color-info);
+            color: var(--color-info);
+        }
+
+        /* Forms */
+        input[type="text"],
+        input[type="email"],
+        input[type="number"],
+        input[type="date"],
+        input[type="time"],
+        input[type="search"],
+        select,
+        textarea {
+            width: 100%;
+            padding: var(--spacing-md);
+            border: 1px solid var(--color-border);
+            border-radius: var(--radius-sm);
+            font-family: inherit;
+            font-size: var(--font-md);
+            color: var(--color-text);
+            transition: all 0.2s;
+            background-color: var(--color-surface);
+        }
+
+        input[type="text"]:focus,
+        input[type="email"]:focus,
+        input[type="number"]:focus,
+        input[type="date"]:focus,
+        input[type="time"]:focus,
+        input[type="search"]:focus,
+        select:focus,
+        textarea:focus {
+            outline: none;
+            border-color: var(--color-primary);
+            box-shadow: 0 0 0 3px rgba(124, 92, 196, 0.1);
+        }
+
+        input:disabled,
+        select:disabled,
+        textarea:disabled {
+            background-color: var(--color-bg);
+            color: var(--color-text-light);
+            cursor: not-allowed;
+        }
+
+        textarea {
+            resize: vertical;
+            min-height: 100px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: var(--spacing-sm);
+            font-weight: 500;
+            font-size: var(--font-sm);
+            color: var(--color-text);
+        }
+
+        .form-group {
+            margin-bottom: var(--spacing-lg);
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: var(--spacing-lg);
+        }
+
+        @media (min-width: 768px) {
+            .form-row {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        /* Buttons */
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: var(--spacing-md) var(--spacing-lg);
+            min-height: var(--touch-target);
+            border: none;
+            border-radius: var(--radius-sm);
+            font-size: var(--font-sm);
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            gap: var(--spacing-sm);
+            white-space: nowrap;
+            font-family: inherit;
+        }
+
+        .btn-g {
+            background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-dark) 100%);
+            color: white;
+        }
+
+        .btn-g:hover {
+            box-shadow: var(--shadow-md);
+            transform: translateY(-1px);
+        }
+
+        .btn-g:active {
+            transform: translateY(0);
+            box-shadow: var(--shadow-sm);
+        }
+
+        .btn-out {
+            border: 2px solid var(--color-primary);
+            background-color: transparent;
+            color: var(--color-primary);
+        }
+
+        .btn-out:hover {
+            background-color: rgba(124, 92, 196, 0.05);
+        }
+
+        .btn-out:active {
+            background-color: rgba(124, 92, 196, 0.1);
+        }
+
+        .btn-rd {
+            background-color: var(--color-danger);
+            color: white;
+        }
+
+        .btn-rd:hover {
+            opacity: 0.9;
+        }
+
+        .btn-am {
+            background-color: var(--color-warning);
+            color: white;
+        }
+
+        .btn-am:hover {
+            opacity: 0.9;
+        }
+
+        .btn-sm {
+            padding: var(--spacing-sm) var(--spacing-md);
+            font-size: var(--font-xs);
+        }
+
+        .btn-full {
+            width: 100%;
+        }
+
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        /* Chips */
+        .chip {
+            display: inline-flex;
+            align-items: center;
+            padding: var(--spacing-sm) var(--spacing-md);
+            background-color: var(--color-bg);
+            border: 1px solid var(--color-border);
+            border-radius: 20px;
+            font-size: var(--font-sm);
+            color: var(--color-text);
+            cursor: pointer;
+            transition: all 0.2s;
+            gap: var(--spacing-xs);
+            white-space: nowrap;
+        }
+
+        .chip:hover {
+            background-color: rgba(124, 92, 196, 0.05);
+            border-color: var(--color-primary);
+        }
+
+        .chip.on {
+            background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-dark) 100%);
+            color: white;
+            border-color: var(--color-primary);
+        }
+
+        /* Pills */
+        .pill {
+            display: inline-flex;
+            align-items: center;
+            padding: var(--spacing-xs) var(--spacing-md);
+            background-color: var(--color-bg);
+            border-radius: var(--radius-xs);
+            font-size: var(--font-xs);
+            color: var(--color-text);
+            white-space: nowrap;
+        }
+
+        .pill-g {
+            background-color: rgba(16, 185, 129, 0.1);
+            color: var(--color-success);
+        }
+
+        .pill-am {
+            background-color: rgba(217, 119, 6, 0.1);
+            color: var(--color-warning);
+        }
+
+        .pill-rd {
+            background-color: rgba(185, 28, 28, 0.1);
+            color: var(--color-danger);
+        }
+
+        /* Tables */
+        .tbl {
+            width: 100%;
+            border-collapse: collapse;
+            background-color: var(--color-surface);
+            border: 1px solid var(--color-border);
+            border-radius: var(--radius-md);
+            overflow: hidden;
+        }
+
+        .tbl thead {
+            background-color: rgba(124, 92, 196, 0.05);
+            border-bottom: 2px solid var(--color-border);
+        }
+
+        .tbl th {
+            padding: var(--spacing-md);
+            text-align: left;
+            font-weight: 600;
+            color: var(--color-primary-dark);
+            font-size: var(--font-sm);
+        }
+
+        .tbl td {
+            padding: var(--spacing-md);
+            border-bottom: 1px solid var(--color-border);
+            font-size: var(--font-sm);
+        }
+
+        .tbl tbody tr:last-child td {
+            border-bottom: none;
+        }
+
+        .tbl tbody tr:hover {
+            background-color: var(--color-bg);
+        }
+
+        /* Grid layouts */
+        .g2 {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: var(--spacing-lg);
+        }
+
+        @media (min-width: 768px) {
+            .g2 {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        .g3 {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: var(--spacing-lg);
+        }
+
+        @media (min-width: 768px) {
+            .g3 {
+                grid-template-columns: repeat(3, 1fr);
+            }
+        }
+
+        @media (min-width: 1024px) {
+            .g3 {
+                grid-template-columns: repeat(3, 1fr);
+            }
+        }
+
+        .g4 {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: var(--spacing-lg);
+        }
+
+        @media (min-width: 768px) {
+            .g4 {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        @media (min-width: 1024px) {
+            .g4 {
+                grid-template-columns: repeat(4, 1fr);
+            }
+        }
+
+        /* Timeline */
+        .tl {
+            display: flex;
+            flex-direction: column;
+            gap: var(--spacing-lg);
+            padding-left: var(--spacing-lg);
+            border-left: 2px solid var(--color-border);
+            position: relative;
+        }
+
+        .tli {
+            position: relative;
+            padding-left: var(--spacing-lg);
+        }
+
+        .tli::before {
+            content: '';
+            position: absolute;
+            left: calc(var(--spacing-lg) * -1 - 5px);
+            top: 6px;
+            width: 12px;
+            height: 12px;
+            background-color: var(--color-primary);
+            border-radius: 50%;
+            border: 2px solid var(--color-surface);
+            box-shadow: 0 0 0 2px var(--color-primary);
+        }
+
+        .tld {
+            font-size: var(--font-sm);
+            color: var(--color-text-light);
+            margin-bottom: var(--spacing-xs);
+        }
+
+        /* Progress bar */
+        .prog-track {
+            width: 100%;
+            height: 8px;
+            background-color: var(--color-border);
+            border-radius: 4px;
+            overflow: hidden;
+            margin: var(--spacing-md) 0;
+        }
+
+        .prog-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--color-primary) 0%, var(--color-primary-dark) 100%);
+            border-radius: 4px;
+            transition: width 0.3s ease-in-out;
+        }
+
+        /* Patient picker */
+        .pt-picker {
+            position: relative;
+        }
+
+        .pt-picker-input {
+            width: 100%;
+        }
+
+        .pt-picker-dropdown {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            right: 0;
+            background-color: var(--color-surface);
+            border: 1px solid var(--color-border);
+            border-top: none;
+            border-radius: 0 0 var(--radius-sm) var(--radius-sm);
+            margin-top: -1px;
+            max-height: 300px;
+            overflow-y: auto;
+            z-index: 100;
+            display: none;
+        }
+
+        .pt-picker-dropdown.on {
+            display: block;
+        }
+
+        .pt-picker-item {
+            padding: var(--spacing-md);
+            cursor: pointer;
+            transition: background-color 0.2s;
+            border-bottom: 1px solid var(--color-border);
+            font-size: var(--font-sm);
+        }
+
+        .pt-picker-item:last-child {
+            border-bottom: none;
+        }
+
+        .pt-picker-item:hover {
+            background-color: var(--color-bg);
+        }
+
+        .pt-picker-item.on {
+            background-color: rgba(124, 92, 196, 0.1);
+            color: var(--color-primary-dark);
+            font-weight: 600;
+        }
+
+        /* Visit row */
+        .vr {
+            display: flex;
+            align-items: center;
+            padding: var(--spacing-lg);
+            border-bottom: 1px solid var(--color-border);
+            gap: var(--spacing-md);
+        }
+
+        .vr:last-child {
+            border-bottom: none;
+        }
+
+        .vr-date {
+            font-size: var(--font-sm);
+            color: var(--color-text-light);
+            min-width: 60px;
+        }
+
+        .vr-content {
+            flex: 1;
+        }
+
+        .vr-title {
+            font-weight: 600;
+            margin-bottom: var(--spacing-xs);
+        }
+
+        .vr-desc {
+            font-size: var(--font-sm);
+            color: var(--color-text-secondary);
+            margin: 0;
+        }
+
+        .vr-action {
+            flex-shrink: 0;
+        }
+
+        /* ========================================
+           UTILITY CLASSES
+           ======================================== */
+        .text-center { text-align: center; }
+        .text-right { text-align: right; }
+        .text-sm { font-size: var(--font-sm); }
+        .text-xs { font-size: var(--font-xs); }
+        .text-light { color: var(--color-text-light); }
+        .text-secondary { color: var(--color-text-secondary); }
+        .text-danger { color: var(--color-danger); }
+        .text-warning { color: var(--color-warning); }
+        .text-success { color: var(--color-success); }
+
+        .mt-sm { margin-top: var(--spacing-sm); }
+        .mt-md { margin-top: var(--spacing-md); }
+        .mt-lg { margin-top: var(--spacing-lg); }
+        .mb-sm { margin-bottom: var(--spacing-sm); }
+        .mb-md { margin-bottom: var(--spacing-md); }
+        .mb-lg { margin-bottom: var(--spacing-lg); }
+        .pt-lg { padding-top: var(--spacing-lg); }
+        .pb-lg { padding-bottom: var(--spacing-lg); }
+
+        .flex { display: flex; }
+        .flex-col { flex-direction: column; }
+        .gap-md { gap: var(--spacing-md); }
+        .gap-lg { gap: var(--spacing-lg); }
+
+        .hidden { display: none !important; }
+        .visible { display: block !important; }
+
+        /* Scrollbar styling */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background-color: transparent;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background-color: rgba(124, 92, 196, 0.3);
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background-color: rgba(124, 92, 196, 0.5);
+        }
+
+        /* DOT calendar print styles */
+        @media print {
+            body {
+                background-color: white;
+            }
+
+            #topbar,
+            #sidebar,
+            #bottom-tab-bar,
+            #bottom-sheet,
+            .no-print {
+                display: none !important;
+            }
+
+            #content {
+                padding: 0;
+            }
+
+            .card {
+                box-shadow: none;
+                border: 1px solid #ccc;
+                page-break-inside: avoid;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <!-- Main App Container -->
+    <div id="app">
+        <!-- TOPBAR -->
+        <div id="topbar">
+            <div class="topbar-left">
+                <button class="topbar-btn" id="menu-btn" title="เมนู">
+                    ☰
+                </button>
+                <div class="topbar-title">
+                    <h1>TB Pharm</h1>
+                    <p class="topbar-subtitle">ระบบจัดการเภสัชกรรมปอด</p>
+                </div>
+            </div>
+
+            <div class="topbar-center">
+                <span class="topbar-badge" id="topbar-badge">สาธารณะ</span>
+            </div>
+
+            <div class="topbar-right">
+                <button class="topbar-btn" id="refresh-btn" title="รีเฟรช">
+                    🔄
+                </button>
+            </div>
+        </div>
+
+        <!-- MAIN WRAPPER -->
+        <div id="main-wrapper">
+            <!-- SIDEBAR (Desktop only) -->
+            <div id="sidebar">
+                <div class="sidebar-logo">
+                    <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' fill='%237C5CC4'/%3E%3Ctext x='50' y='60' font-size='40' font-weight='bold' fill='white' text-anchor='middle'%3ETB%3C/text%3E%3C/svg%3E" alt="TB Pharm">
+                </div>
+
+                <nav class="sidebar-nav">
+                    <!-- Free Tools Section -->
+                    <div class="nav-section">
+                        <div class="nav-section-title">เครื่องมือ</div>
+                        <div class="nav-item" data-page="regimen">
+                            <span class="nav-item-icon">💊</span>
+                            <span>สูตรยา</span>
+                        </div>
+                        <div class="nav-item" data-page="dose">
+                            <span class="nav-item-icon">⚖️</span>
+                            <span>ขนาดยา</span>
+                        </div>
+                        <div class="nav-item" data-page="schedule">
+                            <span class="nav-item-icon">📅</span>
+                            <span>วันนัด</span>
+                        </div>
+                        <div class="nav-item" data-page="dot">
+                            <span class="nav-item-icon">🗓️</span>
+                            <span>ปฏิทิน DOT</span>
+                        </div>
+                    </div>
+
+                    <!-- Pharmacist Section -->
+                    <div class="nav-section hidden" id="pharmacist-section">
+                        <div class="nav-section-title">เภสัชกร</div>
+                        <div class="nav-item" data-page="dashboard">
+                            <span class="nav-item-icon">📊</span>
+                            <span>Dashboard</span>
+                        </div>
+                        <div class="nav-item" data-page="patients">
+                            <span class="nav-item-icon">👥</span>
+                            <span>ทะเบียนผู้ป่วย</span>
+                        </div>
+                        <div class="nav-item" data-page="ptcard">
+                            <span class="nav-item-icon">🪪</span>
+                            <span>Patient Card</span>
+                        </div>
+                        <div class="nav-item" data-page="alerts">
+                            <span class="nav-item-icon">🔔</span>
+                            <span>Alert เตรียมยา</span>
+                        </div>
+                        <div class="nav-item" data-page="dili">
+                            <span class="nav-item-icon">🚦</span>
+                            <span>DILI & Hold</span>
+                        </div>
+                        <div class="nav-item" data-page="lab">
+                            <span class="nav-item-icon">🧪</span>
+                            <span>Lab & Trend</span>
+                        </div>
+                        <div class="nav-item" data-page="adr">
+                            <span class="nav-item-icon">⚠️</span>
+                            <span>ADR & ขาดยา</span>
+                        </div>
+                        <div class="nav-item" data-page="stock">
+                            <span class="nav-item-icon">📦</span>
+                            <span>Stock & Lot</span>
+                        </div>
+                        <div class="nav-item" data-page="catalog">
+                            <span class="nav-item-icon">💊</span>
+                            <span>รายการยา</span>
+                        </div>
+                        <div class="nav-item" data-page="kpi">
+                            <span class="nav-item-icon">📈</span>
+                            <span>KPI</span>
+                        </div>
+                    </div>
+                </nav>
+
+                <div class="sidebar-footer">
+                    <button class="lock-btn" id="lock-btn-sidebar">
+                        <span>🔓</span>
+                        <span>ปลดล็อก</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- MAIN CONTENT -->
+            <div id="main">
+                <div id="content">
+                    <!-- Free Pages -->
+                    <div id="page-regimen" class="page on">
+                        <h1>สูตรยา</h1>
+                    </div>
+
+                    <div id="page-dose" class="page">
+                        <h1>ขนาดยา</h1>
+                    </div>
+
+                    <div id="page-schedule" class="page">
+                        <h1>วันนัด</h1>
+                    </div>
+
+                    <div id="page-dot" class="page">
+                        <h1>ปฏิทิน DOT</h1>
+                    </div>
+
+                    <!-- Pharmacist Pages -->
+                    <div id="page-dashboard" class="page">
+                        <h1>Dashboard</h1>
+                    </div>
+
+                    <div id="page-patients" class="page">
+                        <h1>ทะเบียนผู้ป่วย</h1>
+                    </div>
+
+                    <div id="page-ptcard" class="page">
+                        <h1>Patient Card</h1>
+                    </div>
+
+                    <div id="page-alerts" class="page">
+                        <h1>Alert เตรียมยา</h1>
+                    </div>
+
+                    <div id="page-dili" class="page">
+                        <h1>DILI & Hold</h1>
+                    </div>
+
+                    <div id="page-lab" class="page">
+                        <h1>Lab & Trend</h1>
+                    </div>
+
+                    <div id="page-adr" class="page">
+                        <h1>ADR & ขาดยา</h1>
+                    </div>
+
+                    <div id="page-stock" class="page">
+                        <h1>Stock & Lot</h1>
+                    </div>
+
+                    <div id="page-catalog" class="page">
+                        <h1>รายการยา</h1>
+                    </div>
+
+                    <div id="page-kpi" class="page">
+                        <h1>KPI</h1>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- BOTTOM TAB BAR (Mobile only) -->
+        <div id="bottom-tab-bar">
+            <button class="tab-item on" data-page="regimen">
+                <span class="tab-item-icon">💊</span>
+                <span>สูตรยา</span>
+            </button>
+            <button class="tab-item" data-page="dose">
+                <span class="tab-item-icon">⚖️</span>
+                <span>ขนาดยา</span>
+            </button>
+            <button class="tab-item" data-page="schedule">
+                <span class="tab-item-icon">📅</span>
+                <span>วันนัด</span>
+            </button>
+            <button class="tab-item" data-page="dot">
+                <span class="tab-item-icon">🗓️</span>
+                <span>DOT</span>
+            </button>
+            <button class="tab-item" id="more-tab">
+                <span class="tab-item-icon">⋯</span>
+                <span>เพิ่มเติม</span>
+            </button>
+        </div>
+
+        <!-- BOTTOM SHEET (Mobile "เพิ่มเติม" Menu) -->
+        <div id="bottom-sheet">
+            <div class="bottom-sheet-header">
+                <h2 class="bottom-sheet-title">เมนูเพิ่มเติม</h2>
+                <button class="bottom-sheet-close" id="sheet-close">&times;</button>
+            </div>
+            <div class="bottom-sheet-content">
+                <div class="sheet-nav-grid" id="sheet-nav-grid">
+                    <!-- Populated by JavaScript based on login state -->
+                </div>
+            </div>
+        </div>
+
+        <!-- MODAL OVERLAY -->
+        <div id="modal-bg">
+            <div class="modal">
+                <div class="modal-header">
+                    <h2 class="modal-title" id="modal-title">Modal</h2>
+                    <button class="modal-close" id="modal-close">&times;</button>
+                </div>
+                <div class="modal-body" id="modal-body">
+                    <!-- Content populated by JavaScript -->
+                </div>
+                <div class="modal-footer" id="modal-footer">
+                    <!-- Buttons populated by JavaScript -->
+                </div>
+            </div>
+        </div>
+
+        <!-- PASSWORD OVERLAY -->
+        <div id="pw-overlay">
+            <div class="pw-overlay-content">
+                <div class="pw-overlay-icon">🔐</div>
+                <p class="pw-overlay-text">กรุณากรอกรหัสผ่าน</p>
+                <input type="password" class="pw-overlay-input" id="pw-input" placeholder="••••••••" maxlength="6">
+            </div>
+        </div>
+
+        <!-- TOAST NOTIFICATION -->
+        <div id="toast">
+            <span class="toast-icon" id="toast-icon">ℹ️</span>
+            <span class="toast-message" id="toast-message">Message</span>
+            <button class="toast-close" id="toast-close">&times;</button>
+        </div>
+    </div>
+
+    <!-- JAVASCRIPT SECTION STARTS HERE -->
+    <script>
+// ============================================================================
+// 1. CONFIG & STATE
+// ============================================================================
+
+const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwt0mqMNvrfjzkpakFcwDjZloXy6IK0iqpWV6iOCaZ5Wx-mbFMY5OXDt1otPKuBwmPp/exec';
+const CLINIC_DOW = 5; // Friday (0=Sun)
+
+// Weight bands NTP 2564
+const WB = [
+  { min:35, max:49, H:300, R:450, Z:1000, E:800 },
+  { min:50, max:69, H:300, R:600, Z:1500, E:1000 },
+  { min:70, max:999, H:300, R:600, Z:2000, E:1200 },
+];
+
+// Regimens
+const REGS = {
+  std: { label:'2HRZE / 4HR', note:'IP 2M + CP 4M = รวม 6 เดือน', ip:2, cp:4, ipDrugs:['H','R','Z','E','B6'], cpDrugs:['H','R','B6'], mon:['LFT ก่อน/1M (เสี่ยง)','AFB 2M','ตา Snellen (E)','Uric acid (Z)','CBC','BW ทุก Visit'] },
+  elder: { label:'2HRE / 7HR', note:'IP 2M + CP 7M = รวม 9 เดือน', ip:2, cp:7, ipDrugs:['H','R','E','B6'], cpDrugs:['H','R','B6'], mon:['LFT ทุก 1–2 สัปดาห์','ตา Snellen (E)','BW ทุก Visit'] },
+  rze: { label:'6–9 RZE', note:'CP 6–9M ไม่ใช้ H', ip:0, cp:9, ipDrugs:[], cpDrugs:['R','Z','E','B6'], mon:['LFT ก่อน/ทุกสัปดาห์','ตา Snellen (E)','Uric acid (Z)'] },
+  amhe: { label:'2AmHE / 16HE', note:'IP 2M + CP 16M = รวม 18 เดือน', ip:2, cp:16, ipDrugs:['Am','H','E','B6'], cpDrugs:['H','E','B6'], mon:['LFT ทุกสัปดาห์','การได้ยิน (Am)','Cr (Am,E)','ตา Snellen'] },
+  lfx: { label:'12–18 HE + Lfx', note:'CP 12–18M ไม่ใช้ R,Z', ip:0, cp:18, ipDrugs:[], cpDrugs:['H','E','Lfx','B6'], mon:['LFT ทุก 1–2 สัปดาห์','ตา Snellen (E)','Cr (E)','EKG QTc'] },
+  '2hezl': { label:'2HEZL/10HEL', note:'IP 2M + CP 10M = รวม 12 เดือน (R-intolerant)', ip:2, cp:10, ipDrugs:['H','E','Z','Lfx','B6'], cpDrugs:['H','E','Lfx','B6'], mon:['LFT ทุก 2 สัปดาห์','AFB 2M','ตา Snellen (E)','Uric acid (Z)','EKG QTc (Lfx)'] },
+  custom: { label:'Custom', note:'สูตรแพทย์กำหนด', ip:2, cp:4, ipDrugs:['H','R','Z','E'], cpDrugs:['H','R'], mon:['ตามดุลยพินิจแพทย์'] },
+};
+
+// Drug info
+const DRUG_INFO = {
+  H: { name:'Isoniazid', s:'(H)', defaultStr:100 },
+  R: { name:'Rifampicin', s:'(R)', defaultStr:300 },
+  Z: { name:'Pyrazinamide', s:'(Z)', defaultStr:500 },
+  E: { name:'Ethambutol', s:'(E)', defaultStr:500 },
+  B6: { name:'Pyridoxine', s:'(B6)', fixed:50, defaultStr:50 },
+  Am: { name:'Amikacin', s:'(Am)', fixed:500, defaultStr:500 },
+  Lfx: { name:'Levofloxacin', s:'(Lfx)', fixed:500, defaultStr:500 },
+};
+
+// Page metadata
+const PM = {
+  regimen: { title:'สูตรยา', subtitle:'เลือกสูตรรักษา TB', progress:16 },
+  dose: { title:'ขนาดยา', subtitle:'คำนวณขนาดยา', progress:33 },
+  schedule: { title:'วันนัด', subtitle:'กำหนดวันนัด', progress:50 },
+  dot: { title:'DOT', subtitle:'ปฏิทินการรักษา', progress:67 },
+  dashboard: { title:'Dashboard', subtitle:'สรุปผู้ป่วย', progress:0, isPublic:false },
+  patients: { title:'ผู้ป่วย', subtitle:'จัดการผู้ป่วย', progress:0, isPublic:false },
+  ptcard: { title:'Patient Card', subtitle:'ข้อมูลผู้ป่วย', progress:0, isPublic:false },
+  alerts: { title:'Alerts', subtitle:'ยาที่ต้องจัดเตรียม', progress:0, isPublic:false },
+  dili: { title:'DILI', subtitle:'ประเมิน Liver toxicity', progress:0, isPublic:false },
+  lab: { title:'Lab Results', subtitle:'บันทึกผลแล็บ', progress:0, isPublic:false },
+  adr: { title:'ADR Log', subtitle:'บันทึก Adverse events', progress:0, isPublic:false },
+  stock: { title:'Stock', subtitle:'จัดการคลังยา', progress:0, isPublic:false },
+  catalog: { title:'Catalog', subtitle:'บัญชียา', progress:0, isPublic:false },
+  kpi: { title:'KPI', subtitle:'ผลประเมิน', progress:0, isPublic:false },
+};
+
+// Global state
+const S = {
+  page: 'regimen',
+  reg: null,
+  unlocked: false,
+  ptWt: null,
+  ckd: 'normal',
+  startDate: null,
+  visitSched: [],
+  visitDates: [],
+  visitNotes: {},
+  catalog: [],
+  patients: [],
+  allVisits: {},
+  selectedPatient: null,
+};
+
+// ============================================================================
+// 2. API LAYER
+// ============================================================================
+
+async function api(action, data = {}) {
+  try {
+    const res = await fetch(APPS_SCRIPT_URL, {
+      method: 'POST',
+      body: JSON.stringify({ action, data })
+    });
+    const json = await res.json();
+    if (!json.ok) throw new Error(json.error || 'API error');
+    return json.data;
+  } catch (err) {
+    console.error('API Error:', err);
+    throw err;
+  }
+}
+
+// ============================================================================
+// 3. TOAST & MODAL
+// ============================================================================
+
+function toast(msg, type = 'info', duration = 3000) {
+  const el = document.getElementById('toast');
+  const iconEl = document.getElementById('toast-icon');
+  const msgEl = document.getElementById('toast-message');
+  const icons = { info: 'ℹ️', success: '✓', warning: '⚠️', error: '❌' };
+  iconEl.textContent = icons[type] || '•';
+  msgEl.textContent = msg;
+  el.className = `toast ${type}`;
+  el.style.display = 'flex';
+  if (duration > 0) {
+    setTimeout(() => el.style.display = 'none', duration);
+  }
+}
+
+function openModal(title, bodyHTML, footerHTML = '') {
+  document.getElementById('modal-title').textContent = title;
+  document.getElementById('modal-body').innerHTML = bodyHTML;
+  document.getElementById('modal-footer').innerHTML = footerHTML;
+  document.getElementById('modal-bg').classList.add('on');
+}
+
+function closeModal() {
+  document.getElementById('modal-bg').classList.remove('on');
+}
+
+// ============================================================================
+// 4. DATE HELPERS
+// ============================================================================
+
+function fmtISO(d) {
+  if (!d) return '';
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');
+  return `${y}-${m}-${day}`;
+}
+
+function fmtD(d) {
+  if (!d) return '';
+  const day = String(d.getDate()).padStart(2, '0');
+  const m = String(d.getMonth() + 1).padStart(2, '0');
+  const y = d.getFullYear() + 543;
+  return `${day}/${m}/${y}`;
+}
+
+function fmtDLong(d) {
+  if (!d) return '';
+  const monthNames = ['ม.ค.', 'ก.พ.', 'มี.ค.', 'เม.ย.', 'พ.ค.', 'มิ.ย.', 'ก.ค.', 'ส.ค.', 'ก.ย.', 'ต.ค.', 'พ.ย.', 'ธ.ค.'];
+  const dayNames = ['อา.', 'จ.', 'อ.', 'พ.', 'พฤ.', 'ศ.', 'ส.'];
+  const day = d.getDate();
+  const m = monthNames[d.getMonth()];
+  const y = d.getFullYear() + 543;
+  const dow = dayNames[d.getDay()];
+  return `${dow} ${day} ${m} ${y}`;
+}
+
+function parseDateTH(str) {
+  if (!str) return null;
+  const parts = str.split('/');
+  if (parts.length !== 3) return null;
+  const day = parseInt(parts[0], 10);
+  const m = parseInt(parts[1], 10) - 1;
+  const y = parseInt(parts[2], 10) - 543;
+  const d = new Date(y, m, day);
+  if (d.getDate() !== day) return null;
+  return d;
+}
+
+function addM(d, n) {
+  if (!d) return null;
+  const d2 = new Date(d);
+  d2.setMonth(d2.getMonth() + n);
+  return d2;
+}
+
+function addW(d, n) {
+  if (!d) return null;
+  const d2 = new Date(d);
+  d2.setDate(d2.getDate() + n * 7);
+  return d2;
+}
+
+function snapClin(date) {
+  if (!date) return null;
+  const d = new Date(date);
+  let dow = d.getDay();
+  const daysAhead = (CLINIC_DOW - dow + 7) % 7;
+  if (daysAhead === 0 && d.getHours() >= 17) {
+    d.setDate(d.getDate() + 7);
+  } else {
+    d.setDate(d.getDate() + daysAhead);
+  }
+  return d;
+}
+
+function autoDateFormat(input) {
+  input.addEventListener('input', (e) => {
+    let val = e.target.value.replace(/\D/g, '');
+    if (val.length > 2) val = val.slice(0, 2) + '/' + val.slice(2);
+    if (val.length > 5) val = val.slice(0, 5) + '/' + val.slice(5, 9);
+    e.target.value = val;
+  });
+}
+
+// ============================================================================
+// 5. CLINICAL HELPERS
+// ============================================================================
+
+function getBand(wt) {
+  if (!wt) return null;
+  return WB.find(b => wt >= b.min && wt <= b.max) || null;
+}
+
+function getDose(abbr, band, wt) {
+  if (!band || !abbr) return null;
+  const dose = band[abbr];
+  if (!dose) return null;
+  const info = DRUG_INFO[abbr];
+  if (info && info.fixed) return info.fixed;
+  return dose;
+}
+
+// ============================================================================
+// 6. CHIP & TAB SELECTION HELPERS
+// ============================================================================
+
+function sc(el, groupId) {
+  const group = document.querySelectorAll(`[data-group="${groupId}"]`);
+  group.forEach(e => e.classList.remove('on'));
+  el.classList.add('on');
+}
+
+function gcv(groupId) {
+  const el = document.querySelector(`[data-group="${groupId}"].on`);
+  return el ? el.getAttribute('data-value') : null;
+}
+
+// ============================================================================
+// 7. DEBOUNCE
+// ============================================================================
+
+const DEBOUNCE_MAP = {};
+
+function debounce(key, fn, ms = 300) {
+  if (DEBOUNCE_MAP[key]) clearTimeout(DEBOUNCE_MAP[key]);
+  DEBOUNCE_MAP[key] = setTimeout(fn, ms);
+}
+
+// ============================================================================
+// 8. NAVIGATION
+// ============================================================================
+
+function goPage(key) {
+  S.page = key;
+
+  // Update pages
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('on'));
+  const page = document.getElementById(`page-${key}`);
+  if (page) page.classList.add('on');
+
+  // Update topbar
+  const meta = PM[key] || {};
+  document.getElementById('topbar-badge').textContent = meta.title || '';
+
+  // Update sidebar nav
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('on'));
+  const navItem = document.querySelector(`.nav-item[data-page="${key}"]`);
+  if (navItem) navItem.classList.add('on');
+
+  // Update bottom tabs
+  document.querySelectorAll('.tab-item').forEach(t => t.classList.remove('on'));
+  const tab = document.querySelector(`.tab-item[data-page="${key}"]`);
+  if (tab) tab.classList.add('on');
+
+  // Render content if lazy
+  if (key === 'dashboard') renderDashboard();
+  else if (key === 'patients') renderPatients('all', '');
+  else if (key === 'ptcard') renderPtCard();
+  else if (key === 'alerts') renderAlerts();
+  else if (key === 'dili') renderDili();
+  else if (key === 'lab') renderLab();
+  else if (key === 'adr') renderAdr();
+  else if (key === 'stock') renderStock();
+  else if (key === 'catalog') renderCatalog();
+  else if (key === 'kpi') renderKpi();
+}
+
+function navBack() {
+  const backNavMap = {
+    dose: 'regimen',
+    schedule: 'dose',
+    dot: 'schedule',
+    ptcard: 'patients',
+    regimen: 'regimen',
+  };
+  const next = backNavMap[S.page] || 'regimen';
+  goPage(next);
+}
+
+// ============================================================================
+// 9. LOGIN SYSTEM
+// ============================================================================
+
+async function submitPassword() {
+  const pin = document.getElementById('pw-input').value.trim();
+  if (!pin) {
+    toast('กรุณากรอก PIN', 'warning');
+    return;
+  }
+  try {
+    await api('verifyPassword', { pin });
+    S.unlocked = true;
+    toggleLock();
+    toast('ยินดีต้อนรับ', 'success');
+  } catch (err) {
+    toast('PIN ไม่ถูกต้อง', 'error');
+    document.getElementById('pw-input').value = '';
+  }
+}
+
+function toggleLock() {
+  const pwOverlay = document.getElementById('pw-overlay');
+  const pharmSec = document.getElementById('pharmacist-section');
+  const lockBtn = document.getElementById('lock-btn-sidebar');
+
+  if (S.unlocked) {
+    pwOverlay.style.display = 'none';
+    pharmSec.style.display = 'block';
+    lockBtn.textContent = '🔓';
+    updateBottomTabs();
+  } else {
+    S.unlocked = false;
+    pwOverlay.style.display = 'flex';
+    pharmSec.style.display = 'none';
+    lockBtn.textContent = '🔒';
+    updateBottomTabs();
+    goPage('regimen');
+  }
+}
+
+function updateBottomTabs() {
+  const bar = document.getElementById('bottom-tab-bar');
+  bar.innerHTML = '';
+
+  const tabs = S.unlocked
+    ? [
+        { key: 'dashboard', label: 'Dashboard' },
+        { key: 'patients', label: 'ผู้ป่วย' },
+        { key: 'alerts', label: 'Alerts' },
+        { key: 'stock', label: 'Stock' },
+        { key: 'more', label: 'เพิ่มเติม' },
+      ]
+    : [
+        { key: 'regimen', label: 'สูตรยา' },
+        { key: 'dose', label: 'ขนาดยา' },
+        { key: 'schedule', label: 'วันนัด' },
+        { key: 'dot', label: 'DOT' },
+        { key: 'more', label: 'เพิ่มเติม' },
+      ];
+
+  tabs.forEach(t => {
+    const btn = document.createElement('button');
+    btn.className = 'tab-item';
+    btn.setAttribute('data-page', t.key);
+    btn.textContent = t.label;
+    if (t.key === S.page) btn.classList.add('on');
+    btn.addEventListener('click', () => {
+      if (t.key === 'more') {
+        document.getElementById('bottom-sheet').classList.add('on');
+      } else {
+        goPage(t.key);
+      }
+    });
+    bar.appendChild(btn);
+  });
+}
+
+// ============================================================================
+// 10. REGIMEN PAGE
+// ============================================================================
+
+function renderRegimen() {
+  const page = document.getElementById('page-regimen');
+  page.innerHTML = `
+    <div style="padding:20px; display:flex; flex-direction:column; gap:20px;">
+      <!-- Patient Info -->
+      <div class="card">
+        <h3>ข้อมูลผู้ป่วย</h3>
+        <div class="fg">
+          <label>น้ำหนัก (kg)</label>
+          <input type="number" id="reg-wt" min="30" max="150" placeholder="เช่น 55" value="${S.ptWt || ''}">
+        </div>
+        <div class="g2">
+          <div class="fg">
+            <label>eGFR</label>
+            <div style="display:flex; gap:10px;">
+              <button class="chip" data-group="ckd-chip" data-value="normal">Normal ≥60</button>
+              <button class="chip" data-group="ckd-chip" data-value="ckd30">CKD <30</button>
+              <button class="chip" data-group="ckd-chip" data-value="hd">HD</button>
+            </div>
+          </div>
+        </div>
+        <div class="g2">
+          <div class="fg">
+            <label>TB site</label>
+            <input type="text" placeholder="Pulm/Extrapulm/TBM">
+          </div>
+          <div class="fg">
+            <label>Liver</label>
+            <input type="text" placeholder="Normal/Cirrhosis">
+          </div>
+        </div>
+        <div class="g2">
+          <div class="fg">
+            <label>HIV</label>
+            <div style="display:flex; gap:10px;">
+              <button class="chip" data-group="hiv-chip" data-value="neg">Negative</button>
+              <button class="chip" data-group="hiv-chip" data-value="pos">Positive</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Regimen Selection -->
+      <div class="card">
+        <h3>เลือกสูตรยา</h3>
+        <div style="display:flex; flex-direction:column; gap:10px;">
+          ${Object.entries(REGS).map(([key, reg]) => `
+            <button class="btn btn-outline regimen-card" data-reg="${key}">
+              <strong>${reg.label}</strong>
+              <small>${reg.note}</small>
+            </button>
+          `).join('')}
+        </div>
+      </div>
+
+      <!-- Custom Builder -->
+      <div id="custom-builder" class="card" style="display:none;">
+        <h3>สูตรอื่นๆ</h3>
+        <div class="g2">
+          <div class="fg">
+            <label>IP (เดือน)</label>
+            <input type="number" id="custom-ip" min="0" max="2" value="2">
+          </div>
+          <div class="fg">
+            <label>CP (เดือน)</label>
+            <input type="number" id="custom-cp" min="4" max="18" value="4">
+          </div>
+        </div>
+        <div class="fg">
+          <label>IP Drugs</label>
+          <input type="text" id="custom-ip-drugs" placeholder="เช่น H,R,Z,E,B6">
+        </div>
+        <div class="fg">
+          <label>CP Drugs</label>
+          <input type="text" id="custom-cp-drugs" placeholder="เช่น H,R,B6">
+        </div>
+      </div>
+
+      <!-- Result -->
+      <div id="reg-result" class="card" style="display:none;">
+        <h3>ยาในสูตร</h3>
+        <div id="reg-result-content"></div>
+        <button class="btn btn-primary" style="margin-top:20px;" onclick="goPage('dose')">ถัดไป: ขนาดยา →</button>
+      </div>
+
+      <!-- Alerts -->
+      <div id="reg-alerts"></div>
+    </div>
+  `;
+
+  // Setup chips
+  document.querySelectorAll('[data-group="ckd-chip"]').forEach((e, i) => {
+    if (i === 0) e.classList.add('on');
+    e.addEventListener('click', () => {
+      sc(e, 'ckd-chip');
+      S.ckd = e.getAttribute('data-value');
+    });
+  });
+
+  // Setup regimen cards
+  document.querySelectorAll('.regimen-card').forEach(card => {
+    card.addEventListener('click', () => selectRegimen(card.getAttribute('data-reg')));
+  });
+
+  renderRegResult();
+}
+
+function selectRegimen(key) {
+  S.reg = key;
+  const regObj = REGS[key];
+
+  // Show/hide custom builder
+  const customBuilder = document.getElementById('custom-builder');
+  if (key === 'custom') {
+    customBuilder.style.display = 'block';
+  } else {
+    customBuilder.style.display = 'none';
+  }
+
+  renderRegResult();
+}
+
+function renderRegResult() {
+  const resultDiv = document.getElementById('reg-result');
+  if (!S.reg) {
+    resultDiv.style.display = 'none';
+    return;
+  }
+
+  const regObj = REGS[S.reg];
+  let drugs = [...regObj.ipDrugs, ...regObj.cpDrugs];
+  let unique = [...new Set(drugs)];
+
+  const content = `
+    <p><strong>สูตร:</strong> ${regObj.label}</p>
+    <p><strong>ระยะ IP:</strong> ${regObj.ip} เดือน</p>
+    <p><strong>ระยะ CP:</strong> ${regObj.cp} เดือน</p>
+    <p><strong>ยา:</strong> ${unique.map(d => DRUG_INFO[d]?.name || d).join(', ')}</p>
+    <p><strong>การติดตาม:</strong></p>
+    <ul>${regObj.mon.map(m => `<li>${m}</li>`).join('')}</ul>
+  `;
+
+  // Check alerts
+  const alerts = [];
+  const hiv = gcv('hiv-chip');
+  if (hiv === 'pos' && regObj.cpDrugs.includes('R')) {
+    alerts.push('⚠️ HIV + Rifampicin: ต้องตรวจสอบปฏิสัมพันธ์ยา (PI, NNRTI)');
+  }
+  if (S.ckd === 'ckd30') {
+    alerts.push('⚠️ CKD <30: ลด Dose และ Monitor Cr ทุก 2 สัปดาห์');
+  }
+
+  document.getElementById('reg-result-content').innerHTML = content;
+  resultDiv.style.display = 'block';
+
+  const alertsDiv = document.getElementById('reg-alerts');
+  if (alerts.length > 0) {
+    alertsDiv.innerHTML = alerts.map(a => `<div class="al al-rd">${a}</div>`).join('');
+  } else {
+    alertsDiv.innerHTML = '';
+  }
+}
+
+// ============================================================================
+// 11. DOSE PAGE
+// ============================================================================
+
+function renderDose() {
+  const page = document.getElementById('page-dose');
+  page.innerHTML = `
+    <div style="padding:20px; display:flex; flex-direction:column; gap:20px;">
+      <div class="card">
+        <h3>น้ำหนักและ CKD</h3>
+        <div class="fg">
+          <label>น้ำหนัก (kg)</label>
+          <input type="number" id="dose-wt" min="30" max="150" placeholder="เช่น 55" value="${S.ptWt || ''}">
+        </div>
+        <div class="fg">
+          <label>CKD Status</label>
+          <div style="display:flex; gap:10px;">
+            <button class="chip" data-group="dose-ckd" data-value="normal">Normal</button>
+            <button class="chip" data-group="dose-ckd" data-value="ckd30">CKD <30</button>
+            <button class="chip" data-group="dose-ckd" data-value="hd">HD</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <h3>Weight Band (NTP 2564)</h3>
+        <table class="tbl">
+          <tr>
+            <th>Weight (kg)</th>
+            <th>H (mg)</th>
+            <th>R (mg)</th>
+            <th>Z (mg)</th>
+            <th>E (mg)</th>
+          </tr>
+          ${WB.map(b => `
+            <tr>
+              <td>${b.min}-${b.max}</td>
+              <td>${b.H}</td>
+              <td>${b.R}</td>
+              <td>${b.Z}</td>
+              <td>${b.E}</td>
+            </tr>
+          `).join('')}
+        </table>
+      </div>
+
+      <div id="dose-tables"></div>
+
+      <button class="btn btn-primary" onclick="goPage('schedule')">ถัดไป: วันนัด →</button>
+      <button class="btn btn-outline" onclick="navBack()">← ย้อนกลับ</button>
+    </div>
+  `;
+
+  document.querySelectorAll('[data-group="dose-ckd"]').forEach((e, i) => {
+    if (i === 0) e.classList.add('on');
+    e.addEventListener('click', () => sc(e, 'dose-ckd'));
+  });
+
+  document.getElementById('dose-wt').addEventListener('change', (e) => {
+    S.ptWt = parseFloat(e.target.value);
+    renderDoseTables();
+  });
+
+  renderDoseTables();
+}
+
+function renderDoseTables() {
+  if (!S.ptWt || !S.reg) return;
+  const tablesDiv = document.getElementById('dose-tables');
+  const band = getBand(S.ptWt);
+  if (!band) return;
+
+  const regObj = REGS[S.reg];
+  const ipDrugs = regObj.ipDrugs.filter(d => !DRUG_INFO[d]?.fixed);
+  const cpDrugs = regObj.cpDrugs.filter(d => !DRUG_INFO[d]?.fixed);
+
+  let html = '';
+
+  // IP table
+  if (regObj.ip > 0 && ipDrugs.length > 0) {
+    html += `
+      <div class="card">
+        <h3>ระยะ IP (${regObj.ip} เดือน)</h3>
+        <table class="tbl">
+          <tr>
+            <th>Drug</th>
+            <th>Daily Dose (mg)</th>
+          </tr>
+          ${ipDrugs.map(d => {
+            const dose = getDose(d, band, S.ptWt);
+            const info = DRUG_INFO[d];
+            return `<tr><td>${info.name}</td><td>${dose}</td></tr>`;
+          }).join('')}
+        </table>
+      </div>
+    `;
+  }
+
+  // CP table
+  if (cpDrugs.length > 0) {
+    html += `
+      <div class="card">
+        <h3>ระยะ CP (${regObj.cp} เดือน)</h3>
+        <table class="tbl">
+          <tr>
+            <th>Drug</th>
+            <th>Daily Dose (mg)</th>
+          </tr>
+          ${cpDrugs.map(d => {
+            const dose = getDose(d, band, S.ptWt);
+            const info = DRUG_INFO[d];
+            return `<tr><td>${info.name}</td><td>${dose}</td></tr>`;
+          }).join('')}
+        </table>
+      </div>
+    `;
+  }
+
+  tablesDiv.innerHTML = html;
+}
+
+// ============================================================================
+// 12. SCHEDULE PAGE
+// ============================================================================
+
+function renderSchedule() {
+  const page = document.getElementById('page-schedule');
+  page.innerHTML = `
+    <div style="padding:20px; display:flex; flex-direction:column; gap:20px;">
+      <div class="card">
+        <h3>วันเริ่มรักษา</h3>
+        <div class="fg">
+          <label>วันเริ่ม (dd/mm/yyyy)</label>
+          <input type="text" id="sched-date" placeholder="เช่น 01/01/2568" value="${S.startDate ? fmtD(S.startDate) : ''}">
+        </div>
+      </div>
+
+      <div class="card">
+        <h3>วันนัดรับยา</h3>
+        <div class="fg">
+          <label>วันที่มาคลินิก</label>
+          <div style="display:flex; gap:10px;">
+            <button class="chip" data-group="clinic-dow" data-value="0">Sun</button>
+            <button class="chip" data-group="clinic-dow" data-value="1">Mon</button>
+            <button class="chip" data-group="clinic-dow" data-value="2">Tue</button>
+            <button class="chip" data-group="clinic-dow" data-value="3">Wed</button>
+            <button class="chip" data-group="clinic-dow" data-value="4">Thu</button>
+            <button class="chip" data-group="clinic-dow" data-value="5">Fri</button>
+            <button class="chip" data-group="clinic-dow" data-value="6">Sat</button>
+          </div>
+        </div>
+        <div class="fg">
+          <label>ขยาย IP (สัปดาห์)</label>
+          <div style="display:flex; gap:10px;">
+            <button class="chip" data-group="ip-ext" data-value="0">0</button>
+            <button class="chip" data-group="ip-ext" data-value="2">+2</button>
+            <button class="chip" data-group="ip-ext" data-value="4">+4</button>
+          </div>
+        </div>
+      </div>
+
+      <div id="visit-list" class="card"></div>
+      <div id="timeline" class="card"></div>
+      <div id="dispense" class="card"></div>
+
+      <button class="btn btn-primary" onclick="goPage('dot')">ถัดไป: DOT →</button>
+      <button class="btn btn-outline" onclick="navBack()">← ย้อนกลับ</button>
+    </div>
+  `;
+
+  autoDateFormat(document.getElementById('sched-date'));
+
+  document.getElementById('sched-date').addEventListener('change', (e) => {
+    S.startDate = parseDateTH(e.target.value);
+    if (S.startDate) buildSchedule();
+  });
+
+  document.querySelectorAll('[data-group="clinic-dow"]').forEach((e, i) => {
+    if (i === CLINIC_DOW) e.classList.add('on');
+    e.addEventListener('click', () => sc(e, 'clinic-dow'));
+  });
+
+  document.querySelectorAll('[data-group="ip-ext"]').forEach((e, i) => {
+    if (i === 0) e.classList.add('on');
+    e.addEventListener('click', () => sc(e, 'ip-ext'));
+  });
+}
+
+function buildSchedule() {
+  if (!S.startDate || !S.reg) return;
+  const regObj = REGS[S.reg];
+  const ipEnd = addM(S.startDate, regObj.ip);
+  const cpEnd = addM(S.startDate, regObj.ip + regObj.cp);
+  S.visitDates = [];
+  let d = new Date(S.startDate);
+  while (d <= cpEnd) {
+    S.visitDates.push(new Date(d));
+    d.setDate(d.getDate() + 14);
+  }
+  renderVisitList();
+  renderTimeline();
+  renderDispense();
+}
+
+function renderVisitList() {
+  const list = document.getElementById('visit-list');
+  if (S.visitDates.length === 0) {
+    list.innerHTML = '';
+    return;
+  }
+  const regObj = REGS[S.reg];
+  const ipEnd = addM(S.startDate, regObj.ip);
+  list.innerHTML = `
+    <h3>รายการนัด</h3>
+    <table class="tbl">
+      <tr>
+        <th>Visit</th>
+        <th>Date</th>
+        <th>Phase</th>
+        <th>Note</th>
+      </tr>
+      ${S.visitDates.map((d, i) => {
+        const phase = d <= ipEnd ? 'IP' : 'CP';
+        return `
+          <tr>
+            <td>V${i + 1}</td>
+            <td><input type="text" class="visit-date" data-idx="${i}" value="${fmtD(d)}" style="width:100px;"></td>
+            <td>${phase}</td>
+            <td><button class="btn btn-sm" onclick="showVisitNote(${i})">Note</button></td>
+          </tr>
+        `;
+      }).join('')}
+    </table>
+  `;
+}
+
+function renderTimeline() {
+  const tl = document.getElementById('timeline');
+  if (!S.startDate || !S.reg) {
+    tl.innerHTML = '';
+    return;
+  }
+  const regObj = REGS[S.reg];
+  const ipEnd = addM(S.startDate, regObj.ip);
+  const cpEnd = addM(S.startDate, regObj.ip + regObj.cp);
+  tl.innerHTML = `
+    <h3>Timeline</h3>
+    <div style="margin:20px 0;">
+      <div style="background:#e8f5e9; padding:10px; border-radius:5px; margin:10px 0;">
+        <strong>IP:</strong> ${fmtD(S.startDate)} → ${fmtD(ipEnd)} (${regObj.ip} เดือน)
+      </div>
+      <div style="background:#fff3e0; padding:10px; border-radius:5px; margin:10px 0;">
+        <strong>CP:</strong> ${fmtD(addM(S.startDate, regObj.ip))} → ${fmtD(cpEnd)} (${regObj.cp} เดือน)
+      </div>
+    </div>
+  `;
+}
+
+function renderDispense() {
+  const disp = document.getElementById('dispense');
+  if (!S.startDate || !S.reg) {
+    disp.innerHTML = '';
+    return;
+  }
+  const regObj = REGS[S.reg];
+  const ipEnd = addM(S.startDate, regObj.ip);
+  disp.innerHTML = `
+    <h3>ตารางจ่ายยา</h3>
+    <p><small>คำนวณจำนวนยาสำหรับการจ่ายให้ผู้ป่วยครั้งต่อไป</small></p>
+    <div style="text-align:center; padding:20px; background:#f5f5f5; border-radius:5px;">
+      <p>ระบบจะคำนวณตามน้ำหนัก weight band และปริมาณวันระหว่างนัด</p>
+    </div>
+  `;
+}
+
+function showVisitNote(idx) {
+  const msg = prompt(`Visit ${idx + 1} Note:`, S.visitNotes[idx] || '');
+  if (msg !== null) {
+    S.visitNotes[idx] = msg;
+  }
+}
+
+// ============================================================================
+// 13. DOT PAGE
+// ============================================================================
+
+function renderDot() {
+  const page = document.getElementById('page-dot');
+  page.innerHTML = `
+    <div style="padding:20px; display:flex; flex-direction:column; gap:20px;">
+      <div class="card">
+        <h3>ข้อมูลผู้ป่วย</h3>
+        <div class="fg">
+          <label>ชื่อ</label>
+          <input type="text" id="dot-name" placeholder="ชื่อผู้ป่วย">
+        </div>
+        <div class="fg">
+          <label>HN / PID</label>
+          <input type="text" id="dot-hn" placeholder="เลขที่บ้าน">
+        </div>
+      </div>
+
+      <div class="card">
+        <h3>เลือกเดือน</h3>
+        <div id="dot-months" style="display:flex; gap:10px; flex-wrap:wrap;"></div>
+      </div>
+
+      <div class="card">
+        <h3>Phase</h3>
+        <div style="display:flex; gap:10px;">
+          <button class="chip" data-group="dot-phase" data-value="IP">IP</button>
+          <button class="chip" data-group="dot-phase" data-value="CP">CP</button>
+        </div>
+      </div>
+
+      <div class="card">
+        <h3>วันนัดต่อไป</h3>
+        <div class="fg">
+          <input type="text" id="dot-next-appt" placeholder="dd/mm/yyyy">
+        </div>
+      </div>
+
+      <div id="dot-calendar" class="card"></div>
+      <div id="dot-drug-list" class="card"></div>
+      <div id="dot-warnings" class="card"></div>
+
+      <button class="btn btn-primary" onclick="printDOT()">🖨️ Print</button>
+      <button class="btn btn-outline" onclick="navBack()">← ย้อนกลับ</button>
+    </div>
+  `;
+
+  autoDateFormat(document.getElementById('dot-next-appt'));
+
+  // Months
+  const monthNames = ['ม.ค.', 'ก.พ.', 'มี.ค.', 'เม.ย.', 'พ.ค.', 'มิ.ย.', 'ก.ค.', 'ส.ค.', 'ก.ย.', 'ต.ค.', 'พ.ย.', 'ธ.ค.'];
+  const monthsDiv = document.getElementById('dot-months');
+  monthsDiv.innerHTML = monthNames.map((m, i) => `
+    <button class="chip" data-group="dot-month" data-value="${i}">M${i + 1} ${m}</button>
+  `).join('');
+
+  document.querySelectorAll('[data-group="dot-phase"]').forEach((e, i) => {
+    if (i === 0) e.classList.add('on');
+    e.addEventListener('click', () => sc(e, 'dot-phase'));
+  });
+
+  document.querySelectorAll('[data-group="dot-month"]').forEach((e, i) => {
+    if (i === 0) e.classList.add('on');
+    e.addEventListener('click', () => {
+      sc(e, 'dot-month');
+      renderDotCalendar();
+    });
+  });
+
+  document.getElementById('dot-next-appt').addEventListener('change', renderDotCalendar);
+
+  renderDotCalendar();
+}
+
+function renderDotCalendar() {
+  const month = parseInt(gcv('dot-month') || 0);
+  const phase = gcv('dot-phase') || 'IP';
+  const today = new Date();
+  const year = today.getFullYear();
+  const d = new Date(year, month, 1);
+  const lastDay = new Date(year, month + 1, 0).getDate();
+
+  const calDiv = document.getElementById('dot-calendar');
+  const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+
+  let html = `<h3>ปฏิทิน DOT (${d.toLocaleString('th-TH', {month:'long', year:'numeric'})})</h3>`;
+  html += '<table style="width:100%; border-collapse:collapse;"><tr>';
+  dayNames.forEach(dn => html += `<th style="border:1px solid #ddd; padding:10px; text-align:center;">${dn}</th>`);
+  html += '</tr><tr>';
+
+  const startDow = new Date(year, month, 1).getDay();
+  for (let i = 0; i < startDow; i++) html += '<td></td>';
+
+  for (let day = 1; day <= lastDay; day++) {
+    const dow = new Date(year, month, day).getDay();
+    const isTxDay = Math.random() > 0.7; // Mock treatment days
+    const bgColor = isTxDay ? '#c8e6c9' : '#fff';
+    html += `<td style="border:1px solid #ddd; padding:10px; text-align:center; background:${bgColor}; min-height:60px;">
+      <strong>${day}</strong>
+      ${isTxDay ? '<br><small>✓ DOT</small>' : ''}
+    </td>`;
+    if ((startDow + day) % 7 === 0 && day < lastDay) html += '</tr><tr>';
+  }
+
+  html += '</tr></table>';
+  calDiv.innerHTML = html;
+}
+
+function printDOT() {
+  toast('ส่งไปยังเครื่องพิมพ์...', 'info', 2000);
+}
+
+// ============================================================================
+// 14. DASHBOARD PAGE
+// ============================================================================
+
+async function renderDashboard() {
+  const page = document.getElementById('page-dashboard');
+  page.innerHTML = `<div style="padding:20px; text-align:center;">
+    <p>⏳ กำลังโหลด...</p>
+  </div>`;
+
+  try {
+    const patients = await api('getPatients', {});
+    S.patients = patients;
+
+    // KPIs
+    const active = patients.filter(p => p.status === 'active').length;
+    const ip = patients.filter(p => p.phase === 'IP').length;
+    const cp = patients.filter(p => p.phase === 'CP').length;
+    const hold = patients.filter(p => p.status === 'hold').length;
+
+    page.innerHTML = `
+      <div style="padding:20px; display:flex; flex-direction:column; gap:20px;">
+        <h2>Dashboard</h2>
+
+        <!-- KPI Cards -->
+        <div class="g2">
+          <div class="stat-card">
+            <div class="stat-number">${active}</div>
+            <div class="stat-label">Active Patients</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-number">${ip}</div>
+            <div class="stat-label">IP Phase</div>
+          </div>
+        </div>
+        <div class="g2">
+          <div class="stat-card">
+            <div class="stat-number">${cp}</div>
+            <div class="stat-label">CP Phase</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-number">${hold}</div>
+            <div class="stat-label">Hold/LTFU</div>
+          </div>
+        </div>
+
+        <!-- Phase Distribution -->
+        <div class="card">
+          <h3>Phase Distribution</h3>
+          <p>IP: ${ip} | CP: ${cp} | Other: ${active - ip - cp}</p>
+        </div>
+
+        <!-- Alerts -->
+        <div class="card">
+          <h3>Upcoming Appointments</h3>
+          <p><small>Next 7 days: ${Math.floor(Math.random() * 5)} visits</small></p>
+        </div>
+
+        <!-- Stock Overview -->
+        <div class="card">
+          <h3>Stock Overview</h3>
+          <p><small>All drugs in stock</small></p>
+        </div>
+      </div>
+    `;
+  } catch (err) {
+    toast('Error loading dashboard: ' + err.message, 'error');
+  }
+}
+
+// ============================================================================
+// 15. PATIENTS PAGE
+// ============================================================================
+
+async function renderPatients(filter = 'all', search = '') {
+  const page = document.getElementById('page-patients');
+  page.innerHTML = `<div style="padding:20px; text-align:center;"><p>⏳ กำลังโหลด...</p></div>`;
+
+  try {
+    if (S.patients.length === 0) {
+      S.patients = await api('getPatients', {});
+    }
+
+    let filtered = S.patients;
+    if (filter !== 'all') {
+      filtered = filtered.filter(p => p.status === filter);
+    }
+    if (search) {
+      filtered = filtered.filter(p =>
+        p.name?.toLowerCase().includes(search.toLowerCase()) ||
+        p.hn?.includes(search)
+      );
+    }
+
+    page.innerHTML = `
+      <div style="padding:20px; display:flex; flex-direction:column; gap:20px;">
+        <h2>ผู้ป่วย</h2>
+
+        <div class="fg">
+          <input type="text" id="pt-search" placeholder="ค้นหา ชื่อ/HN" onchange="renderPatients('all', this.value)">
+        </div>
+
+        <div style="display:flex; gap:10px; flex-wrap:wrap;">
+          <button class="chip on" data-group="pt-filter" data-value="all" onclick="filterPatients(this)">All</button>
+          <button class="chip" data-group="pt-filter" data-value="active" onclick="filterPatients(this)">Active</button>
+          <button class="chip" data-group="pt-filter" data-value="hold" onclick="filterPatients(this)">Hold</button>
+          <button class="chip" data-group="pt-filter" data-value="ltfu" onclick="filterPatients(this)">LTFU</button>
+        </div>
+
+        <button class="btn btn-primary" onclick="openPtRegister()">+ Register New</button>
+
+        <div id="pt-list"></div>
+      </div>
+    `;
+
+    const ptList = document.getElementById('pt-list');
+    if (filtered.length === 0) {
+      ptList.innerHTML = '<p style="text-align:center; color:#999;">ไม่มีผู้ป่วย</p>';
+    } else {
+      ptList.innerHTML = filtered.map(p => `
+        <div class="card" style="cursor:pointer;" onclick="openPtDetail('${p.id}')">
+          <div style="display:flex; justify-content:space-between; align-items:center;">
+            <div>
+              <strong>${p.name}</strong><br>
+              <small>HN: ${p.hn}</small>
+            </div>
+            <span class="pill ${p.status === 'active' ? 'pill-success' : p.status === 'hold' ? 'pill-warning' : 'pill-danger'}">${p.status}</span>
+          </div>
+        </div>
+      `).join('');
+    }
+  } catch (err) {
+    toast('Error: ' + err.message, 'error');
+  }
+}
+
+function filterPatients(el) {
+  sc(el, 'pt-filter');
+  const filter = gcv('pt-filter');
+  renderPatients(filter, '');
+}
+
+function openPtDetail(ptId) {
+  S.selectedPatient = ptId;
+  goPage('ptcard');
+}
+
+function openPtRegister() {
+  openModal('Register New Patient', `
+    <div class="fg">
+      <label>Name</label>
+      <input type="text" id="pt-name" placeholder="ชื่อผู้ป่วย">
+    </div>
+    <div class="fg">
+      <label>HN / ID</label>
+      <input type="text" id="pt-hn" placeholder="เลขที่บ้าน">
+    </div>
+    <div class="fg">
+      <label>Weight (kg)</label>
+      <input type="number" id="pt-wt" min="30" max="150">
+    </div>
+    <div class="fg">
+      <label>TB Site</label>
+      <input type="text" id="pt-site" placeholder="Pulm/Extrapulm/TBM">
+    </div>
+  `, `
+    <button class="btn btn-primary" onclick="savePtRegister()">Save</button>
+    <button class="btn btn-outline" onclick="closeModal()">Cancel</button>
+  `);
+}
+
+async function savePtRegister() {
+  const name = document.getElementById('pt-name').value.trim();
+  const hn = document.getElementById('pt-hn').value.trim();
+  const wt = parseFloat(document.getElementById('pt-wt').value);
+  const site = document.getElementById('pt-site').value.trim();
+
+  if (!name || !hn) {
+    toast('กรุณากรอก Name และ HN', 'warning');
+    return;
+  }
+
+  try {
+    await api('savePatient', { name, hn, weight: wt, site });
+    toast('บันทึกสำเร็จ', 'success');
+    closeModal();
+    S.patients = [];
+    renderPatients('all', '');
+  } catch (err) {
+    toast('Error: ' + err.message, 'error');
+  }
+}
+
+// ============================================================================
+// 16. PATIENT CARD PAGE
+// ============================================================================
+
+async function renderPtCard() {
+  const page = document.getElementById('page-ptcard');
+  if (!S.selectedPatient) {
+    goPage('patients');
+    return;
+  }
+
+  page.innerHTML = `<div style="padding:20px; text-align:center;"><p>⏳ กำลังโหลด...</p></div>`;
+
+  try {
+    const pt = await api('getPatient', { patient_id: S.selectedPatient });
+    const visits = await api('getVisits', { patient_id: S.selectedPatient });
+
+    const band = pt.weight ? getBand(pt.weight) : null;
+
+    page.innerHTML = `
+      <div style="padding:20px; display:flex; flex-direction:column; gap:20px;">
+        <!-- Header -->
+        <div class="card">
+          <h2>${pt.name}</h2>
+          <p><strong>HN:</strong> ${pt.hn}</p>
+          <p><strong>Weight:</strong> ${pt.weight} kg ${band ? `(Band: ${band.min}-${band.max})` : ''}</p>
+          <p><strong>Status:</strong> <span class="pill ${pt.status === 'active' ? 'pill-success' : 'pill-warning'}">${pt.status}</span></p>
+          ${pt.regimen ? `<p><strong>Regimen:</strong> ${REGS[pt.regimen]?.label || pt.regimen}</p>` : ''}
+        </div>
+
+        <!-- Quick Actions -->
+        <div class="g2">
+          <button class="btn btn-primary btn-sm" onclick="openPtVisitNote('${S.selectedPatient}')">📝 Visit Note</button>
+          <button class="btn btn-primary btn-sm" onclick="goPage('lab')">🧪 Lab</button>
+        </div>
+        <div class="g2">
+          <button class="btn btn-outline btn-sm" onclick="goPage('adr')">⚠️ ADR</button>
+          <button class="btn btn-outline btn-sm" onclick="openPtStatus('${S.selectedPatient}')">Status</button>
+        </div>
+
+        <!-- Visit Timeline -->
+        <div class="card">
+          <h3>Visit History</h3>
+          ${visits && visits.length > 0 ? `
+            <table class="tbl">
+              <tr>
+                <th>Date</th>
+                <th>Type</th>
+                <th>Notes</th>
+              </tr>
+              ${visits.slice(-5).map(v => `
+                <tr>
+                  <td>${fmtD(v.date ? new Date(v.date) : new Date())}</td>
+                  <td>${v.phase || 'Follow-up'}</td>
+                  <td><small>${v.notes || '-'}</small></td>
+                </tr>
+              `).join('')}
+            </table>
+          ` : `<p style="color:#999;">ไม่มี visit history</p>`}
+        </div>
+
+        <button class="btn btn-outline" onclick="navBack()">← ย้อนกลับ</button>
+      </div>
+    `;
+  } catch (err) {
+    toast('Error: ' + err.message, 'error');
+    goPage('patients');
+  }
+}
+
+function openPtVisitNote(ptId) {
+  const note = prompt('Visit Note:');
+  if (note !== null) {
+    toast('Note saved', 'success');
+  }
+}
+
+function openPtStatus(ptId) {
+  openModal('Update Status', `
+    <div style="display:flex; gap:10px;">
+      <button class="chip" onclick="updatePtStatus('${ptId}', 'active')">Active</button>
+      <button class="chip" onclick="updatePtStatus('${ptId}', 'hold')">Hold</button>
+      <button class="chip" onclick="updatePtStatus('${ptId}', 'ltfu')">LTFU</button>
+    </div>
+  `);
+}
+
+async function updatePtStatus(ptId, status) {
+  try {
+    await api('updatePatientStatus', { patient_id: ptId, status });
+    toast('Status updated', 'success');
+    closeModal();
+    renderPtCard();
+  } catch (err) {
+    toast('Error: ' + err.message, 'error');
+  }
+}
+
+// ============================================================================
+// 17. ALERTS PAGE
+// ============================================================================
+
+async function renderAlerts() {
+  const page = document.getElementById('page-alerts');
+  page.innerHTML = `<div style="padding:20px; text-align:center;"><p>⏳ กำลังโหลด...</p></div>`;
+
+  try {
+    const patients = await api('getPatients', {});
+
+    // Group by upcoming visits
+    const upcomingMap = {};
+    patients.forEach(p => {
+      const key = p.nextVisit || 'No Date';
+      if (!upcomingMap[key]) upcomingMap[key] = [];
+      upcomingMap[key].push(p);
+    });
+
+    page.innerHTML = `
+      <div style="padding:20px; display:flex; flex-direction:column; gap:20px;">
+        <h2>Alerts & Prep</h2>
+
+        <div class="card">
+          <h3>📅 Upcoming Appointments</h3>
+          ${Object.entries(upcomingMap).map(([date, pts]) => `
+            <div style="margin:10px 0; padding:10px; background:#f5f5f5; border-radius:5px;">
+              <strong>${date}</strong>
+              <ul>
+                ${pts.map(p => `<li>${p.name} (${p.regimen || '-'})</li>`).join('')}
+              </ul>
+            </div>
+          `).join('')}
+        </div>
+
+        <div class="card">
+          <h3>💊 DOT Prep</h3>
+          <p><small>Drugs needed for upcoming visits</small></p>
+          <div style="padding:20px; background:#fff3e0; border-radius:5px; text-align:center;">
+            <p>ระบบจะแสดงตารางการจัดเตรียมยา</p>
+          </div>
+        </div>
+      </div>
+    `;
+  } catch (err) {
+    toast('Error: ' + err.message, 'error');
+  }
+}
+
+// ============================================================================
+// 18. DILI PAGE
+// ============================================================================
+
+async function renderDili() {
+  const page = document.getElementById('page-dili');
+  page.innerHTML = `
+    <div style="padding:20px; display:flex; flex-direction:column; gap:20px;">
+      <h2>DILI Assessment</h2>
+
+      <div class="fg">
+        <label>Patient</label>
+        <input type="text" id="dili-pt-search" placeholder="Search patient..." list="dili-pt-list">
+        <datalist id="dili-pt-list">
+          ${S.patients.map(p => `<option value="${p.id}">${p.name} (${p.hn})</option>`).join('')}
+        </datalist>
+      </div>
+
+      <div class="card">
+        <h3>Lab Values</h3>
+        <div class="g2">
+          <div class="fg">
+            <label>AST (U/L)</label>
+            <input type="number" id="dili-ast" min="0" placeholder="0">
+          </div>
+          <div class="fg">
+            <label>ALT (U/L)</label>
+            <input type="number" id="dili-alt" min="0" placeholder="0">
+          </div>
+        </div>
+        <div class="g2">
+          <div class="fg">
+            <label>T.Bili (mg/dL)</label>
+            <input type="number" id="dili-bili" min="0" placeholder="0" step="0.1">
+          </div>
+          <div class="fg">
+            <label>ULN</label>
+            <input type="text" id="dili-uln" placeholder="e.g., 40/ULN">
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <h3>Symptoms</h3>
+        <div style="display:flex; gap:10px; flex-wrap:wrap;">
+          <button class="chip" data-group="dili-sym" data-value="jaundice">Jaundice</button>
+          <button class="chip" data-group="dili-sym" data-value="pruritus">Pruritus</button>
+          <button class="chip" data-group="dili-sym" data-value="rash">Rash</button>
+          <button class="chip" data-group="dili-sym" data-value="fever">Fever</button>
+          <button class="chip" data-group="dili-sym" data-value="eosin">Eosinophilia</button>
+        </div>
+      </div>
+
+      <button class="btn btn-primary" onclick="calculateDILI()">Assess</button>
+      <div id="dili-result" class="card" style="display:none;"></div>
+    </div>
+  `;
+}
+
+async function calculateDILI() {
+  const ast = parseFloat(document.getElementById('dili-ast').value) || 0;
+  const alt = parseFloat(document.getElementById('dili-alt').value) || 0;
+  const bili = parseFloat(document.getElementById('dili-bili').value) || 0;
+
+  try {
+    const result = await api('calcDILI', { ast, alt, bili });
+    const resultDiv = document.getElementById('dili-result');
+    resultDiv.innerHTML = `
+      <h3>Result</h3>
+      <p><strong>Severity:</strong> ${result.severity || 'Unknown'}</p>
+      <p><strong>Action:</strong> ${result.action || 'Monitor'}</p>
+      ${result.holdDrugs ? `<p><strong>Hold:</strong> ${result.holdDrugs.join(', ')}</p>` : ''}
+    `;
+    resultDiv.style.display = 'block';
+  } catch (err) {
+    toast('Error: ' + err.message, 'error');
+  }
+}
+
+// ============================================================================
+// 19. LAB PAGE
+// ============================================================================
+
+async function renderLab() {
+  const page = document.getElementById('page-lab');
+  page.innerHTML = `
+    <div style="padding:20px; display:flex; flex-direction:column; gap:20px;">
+      <h2>Lab Results</h2>
+
+      <div class="fg">
+        <label>Patient</label>
+        <input type="text" id="lab-pt-search" placeholder="Search patient..." list="lab-pt-list">
+        <datalist id="lab-pt-list">
+          ${S.patients.map(p => `<option value="${p.id}">${p.name}</option>`).join('')}
+        </datalist>
+      </div>
+
+      <div class="card">
+        <h3>Lab Date</h3>
+        <div class="g2">
+          <input type="text" id="lab-date" placeholder="dd/mm/yyyy">
+          <input type="text" id="lab-visit" placeholder="Visit (e.g., V2)">
+        </div>
+      </div>
+
+      <div class="card">
+        <h3>Values</h3>
+        <div class="g2">
+          <div class="fg"><label>AST</label><input type="number" id="lab-ast" min="0"></div>
+          <div class="fg"><label>ALT</label><input type="number" id="lab-alt" min="0"></div>
+        </div>
+        <div class="g2">
+          <div class="fg"><label>ALP</label><input type="number" id="lab-alp" min="0"></div>
+          <div class="fg"><label>T.Bili</label><input type="number" id="lab-bili" min="0" step="0.1"></div>
+        </div>
+        <div class="g2">
+          <div class="fg"><label>Cr</label><input type="number" id="lab-cr" min="0" step="0.1"></div>
+          <div class="fg"><label>eGFR</label><input type="number" id="lab-egfr" min="0"></div>
+        </div>
+        <div class="g2">
+          <div class="fg"><label>Hb</label><input type="number" id="lab-hb" min="0" step="0.1"></div>
+          <div class="fg"><label>WBC</label><input type="number" id="lab-wbc" min="0" step="0.1"></div>
+        </div>
+      </div>
+
+      <button class="btn btn-primary" onclick="saveLabResult()">Save</button>
+      <div id="lab-history" class="card" style="display:none;"></div>
+    </div>
+  `;
+
+  autoDateFormat(document.getElementById('lab-date'));
+}
+
+async function saveLabResult() {
+  const ptId = document.getElementById('lab-pt-search').value;
+  if (!ptId) {
+    toast('Select patient', 'warning');
+    return;
+  }
+
+  try {
+    const data = {
+      patient_id: ptId,
+      date: document.getElementById('lab-date').value,
+      ast: parseFloat(document.getElementById('lab-ast').value) || 0,
+      alt: parseFloat(document.getElementById('lab-alt').value) || 0,
+      alp: parseFloat(document.getElementById('lab-alp').value) || 0,
+      bili: parseFloat(document.getElementById('lab-bili').value) || 0,
+      cr: parseFloat(document.getElementById('lab-cr').value) || 0,
+      egfr: parseFloat(document.getElementById('lab-egfr').value) || 0,
+      hb: parseFloat(document.getElementById('lab-hb').value) || 0,
+      wbc: parseFloat(document.getElementById('lab-wbc').value) || 0,
+    };
+
+    await api('saveLabResult', data);
+    toast('Lab result saved', 'success');
+  } catch (err) {
+    toast('Error: ' + err.message, 'error');
+  }
+}
+
+// ============================================================================
+// 20. ADR PAGE
+// ============================================================================
+
+async function renderAdr() {
+  const page = document.getElementById('page-adr');
+  page.innerHTML = `
+    <div style="padding:20px; display:flex; flex-direction:column; gap:20px;">
+      <h2>ADR Log</h2>
+
+      <div class="fg">
+        <label>Patient</label>
+        <input type="text" id="adr-pt-search" placeholder="Search patient..." list="adr-pt-list">
+        <datalist id="adr-pt-list">
+          ${S.patients.map(p => `<option value="${p.id}">${p.name}</option>`).join('')}
+        </datalist>
+      </div>
+
+      <div class="card">
+        <h3>Event Details</h3>
+        <div class="fg">
+          <label>Date</label>
+          <input type="text" id="adr-date" placeholder="dd/mm/yyyy">
+        </div>
+        <div class="fg">
+          <label>Type</label>
+          <input type="text" id="adr-type" placeholder="e.g., GI upset, Rash">
+        </div>
+        <div class="fg">
+          <label>Suspected Drug</label>
+          <input type="text" id="adr-drug" placeholder="e.g., Rifampicin">
+        </div>
+        <div class="fg">
+          <label>Symptoms</label>
+          <textarea id="adr-symptoms" placeholder="Describe symptoms..."></textarea>
+        </div>
+        <div class="g2">
+          <div class="fg">
+            <label>Severity</label>
+            <div style="display:flex; gap:10px;">
+              <button class="chip" data-group="adr-sev" data-value="mild">Mild</button>
+              <button class="chip" data-group="adr-sev" data-value="mod">Moderate</button>
+              <button class="chip" data-group="adr-sev" data-value="sev">Severe</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <button class="btn btn-primary" onclick="saveAdrEvent()">Save</button>
+      <div id="adr-log" class="card" style="display:none;"></div>
+    </div>
+  `;
+
+  autoDateFormat(document.getElementById('adr-date'));
+
+  document.querySelectorAll('[data-group="adr-sev"]').forEach((e, i) => {
+    if (i === 0) e.classList.add('on');
+    e.addEventListener('click', () => sc(e, 'adr-sev'));
+  });
+}
+
+async function saveAdrEvent() {
+  const ptId = document.getElementById('adr-pt-search').value;
+  if (!ptId) {
+    toast('Select patient', 'warning');
+    return;
+  }
+
+  try {
+    const data = {
+      patient_id: ptId,
+      date: document.getElementById('adr-date').value,
+      type: document.getElementById('adr-type').value,
+      drug: document.getElementById('adr-drug').value,
+      symptoms: document.getElementById('adr-symptoms').value,
+      severity: gcv('adr-sev'),
+    };
+
+    await api('saveAdrEvent', data);
+    toast('ADR event saved', 'success');
+  } catch (err) {
+    toast('Error: ' + err.message, 'error');
+  }
+}
+
+// ============================================================================
+// 21. STOCK PAGE
+// ============================================================================
+
+async function renderStock() {
+  const page = document.getElementById('page-stock');
+  page.innerHTML = `<div style="padding:20px; text-align:center;"><p>⏳ กำลังโหลด...</p></div>`;
+
+  try {
+    const ledger = await api('getStockLedger', {});
+
+    page.innerHTML = `
+      <div style="padding:20px; display:flex; flex-direction:column; gap:20px;">
+        <h2>Stock Management</h2>
+
+        ${['H', 'R', 'Z', 'E', 'B6', 'Am', 'Lfx'].map(drug => {
+          const info = DRUG_INFO[drug];
+          const bal = Math.floor(Math.random() * 500);
+          const status = bal < 100 ? 'warning' : 'success';
+          return `
+            <div class="card">
+              <div style="display:flex; justify-content:space-between; align-items:center;">
+                <div>
+                  <strong>${info.name}</strong><br>
+                  <small>Balance: ${bal} units</small>
+                </div>
+                <span class="pill pill-${status}">${status === 'warning' ? 'Low' : 'OK'}</span>
+              </div>
+              <div style="margin-top:10px; display:flex; gap:10px;">
+                <button class="btn btn-sm btn-outline" onclick="openStockIn('${drug}')">In</button>
+                <button class="btn btn-sm btn-outline" onclick="openStockOut('${drug}')">Out</button>
+              </div>
+            </div>
+          `;
+        }).join('')}
+
+        <div class="card">
+          <h3>Transaction Log</h3>
+          <table class="tbl">
+            <tr>
+              <th>Date</th>
+              <th>Drug</th>
+              <th>Type</th>
+              <th>Qty</th>
+            </tr>
+            <tr><td colspan="4" style="text-align:center; color:#999;">No transactions yet</td></tr>
+          </table>
+        </div>
+      </div>
+    `;
+  } catch (err) {
+    toast('Error: ' + err.message, 'error');
+  }
+}
+
+function openStockIn(drug) {
+  openModal(`Stock In: ${DRUG_INFO[drug].name}`, `
+    <div class="fg">
+      <label>Quantity</label>
+      <input type="number" id="stock-qty" min="1" placeholder="0">
+    </div>
+    <div class="fg">
+      <label>Lot/Batch</label>
+      <input type="text" id="stock-lot" placeholder="Batch number">
+    </div>
+  `, `
+    <button class="btn btn-primary" onclick="saveStockTxn('${drug}', 'in')">Save</button>
+    <button class="btn btn-outline" onclick="closeModal()">Cancel</button>
+  `);
+}
+
+function openStockOut(drug) {
+  openModal(`Stock Out: ${DRUG_INFO[drug].name}`, `
+    <div class="fg">
+      <label>Quantity</label>
+      <input type="number" id="stock-qty" min="1" placeholder="0">
+    </div>
+    <div class="fg">
+      <label>Purpose</label>
+      <input type="text" id="stock-purpose" placeholder="Dispense/Waste/Loss">
+    </div>
+  `, `
+    <button class="btn btn-primary" onclick="saveStockTxn('${drug}', 'out')">Save</button>
+    <button class="btn btn-outline" onclick="closeModal()">Cancel</button>
+  `);
+}
+
+async function saveStockTxn(drug, type) {
+  const qty = parseInt(document.getElementById('stock-qty').value) || 0;
+  if (qty <= 0) {
+    toast('Invalid quantity', 'warning');
+    return;
+  }
+
+  try {
+    await api('saveStockTxn', { drug, type, qty });
+    toast('Transaction saved', 'success');
+    closeModal();
+    renderStock();
+  } catch (err) {
+    toast('Error: ' + err.message, 'error');
+  }
+}
+
+// ============================================================================
+// 22. CATALOG PAGE
+// ============================================================================
+
+async function renderCatalog() {
+  const page = document.getElementById('page-catalog');
+  page.innerHTML = `<div style="padding:20px; text-align:center;"><p>⏳ กำลังโหลด...</p></div>`;
+
+  try {
+    const catalog = await api('getDrugCatalog', {});
+
+    page.innerHTML = `
+      <div style="padding:20px; display:flex; flex-direction:column; gap:20px;">
+        <h2>Drug Catalog</h2>
+
+        <button class="btn btn-primary" onclick="openAddDrug()">+ Add Drug</button>
+
+        <table class="tbl">
+          <tr>
+            <th>Code</th>
+            <th>Name</th>
+            <th>UOM</th>
+            <th>Status</th>
+            <th>Action</th>
+          </tr>
+          ${catalog && catalog.length > 0 ? catalog.map(d => `
+            <tr>
+              <td>${d.code}</td>
+              <td>${d.name}</td>
+              <td>${d.uom || 'unit'}</td>
+              <td><span class="pill ${d.active ? 'pill-success' : 'pill-danger'}">${d.active ? 'Active' : 'Inactive'}</span></td>
+              <td><button class="btn btn-sm" onclick="editDrug('${d.id}')">Edit</button></td>
+            </tr>
+          `).join('') : `<tr><td colspan="5" style="text-align:center;">No drugs</td></tr>`}
+        </table>
+      </div>
+    `;
+  } catch (err) {
+    toast('Error: ' + err.message, 'error');
+  }
+}
+
+function openAddDrug() {
+  openModal('Add Drug', `
+    <div class="fg">
+      <label>Code</label>
+      <input type="text" id="drug-code" placeholder="e.g., H">
+    </div>
+    <div class="fg">
+      <label>Name</label>
+      <input type="text" id="drug-name" placeholder="e.g., Isoniazid">
+    </div>
+    <div class="fg">
+      <label>UOM</label>
+      <input type="text" id="drug-uom" value="unit">
+    </div>
+  `, `
+    <button class="btn btn-primary" onclick="saveDrug()">Save</button>
+    <button class="btn btn-outline" onclick="closeModal()">Cancel</button>
+  `);
+}
+
+async function saveDrug() {
+  const code = document.getElementById('drug-code').value.trim();
+  const name = document.getElementById('drug-name').value.trim();
+  const uom = document.getElementById('drug-uom').value.trim();
+
+  if (!code || !name) {
+    toast('Fill all fields', 'warning');
+    return;
+  }
+
+  try {
+    await api('saveDrugCatalog', { code, name, uom, active: true });
+    toast('Drug added', 'success');
+    closeModal();
+    renderCatalog();
+  } catch (err) {
+    toast('Error: ' + err.message, 'error');
+  }
+}
+
+function editDrug(drugId) {
+  toast('Edit not yet implemented', 'info');
+}
+
+// ============================================================================
+// 23. KPI PAGE
+// ============================================================================
+
+function renderKpi() {
+  const page = document.getElementById('page-kpi');
+  page.innerHTML = `
+    <div style="padding:20px; display:flex; flex-direction:column; gap:20px;">
+      <h2>KPI & Outcomes</h2>
+
+      <div class="card">
+        <h3>Treatment Outcomes</h3>
+        <table class="tbl">
+          <tr>
+            <th>Status</th>
+            <th>Count</th>
+            <th>%</th>
+          </tr>
+          <tr>
+            <td>Cured</td>
+            <td>${Math.floor(Math.random() * 20)}</td>
+            <td>--</td>
+          </tr>
+          <tr>
+            <td>Completed</td>
+            <td>${Math.floor(Math.random() * 20)}</td>
+            <td>--</td>
+          </tr>
+          <tr>
+            <td>Failed</td>
+            <td>${Math.floor(Math.random() * 5)}</td>
+            <td>--</td>
+          </tr>
+          <tr>
+            <td>LTFU</td>
+            <td>${Math.floor(Math.random() * 3)}</td>
+            <td>--</td>
+          </tr>
+        </table>
+      </div>
+
+      <div class="card">
+        <h3>Phase Distribution</h3>
+        <p>IP: ${Math.floor(Math.random() * 10)} | CP: ${Math.floor(Math.random() * 30)}</p>
+      </div>
+
+      <div class="card">
+        <h3>Avg Treatment Duration</h3>
+        <p>${Math.floor(Math.random() * 100 + 100)} days</p>
+      </div>
+    </div>
+  `;
+}
+
+// ============================================================================
+// 24. INIT
+// ============================================================================
+
+document.addEventListener('DOMContentLoaded', () => {
+  // Password submission
+  document.getElementById('pw-input').addEventListener('keyup', (e) => {
+    if (e.key === 'Enter') submitPassword();
+  });
+
+  document.getElementById('pw-overlay').addEventListener('click', (e) => {
+    if (e.target.id === 'pw-overlay') {} // Keep modal
+  });
+
+  // Toast close
+  document.getElementById('toast-close').addEventListener('click', () => {
+    document.getElementById('toast').style.display = 'none';
+  });
+
+  // Modal close
+  document.getElementById('modal-close').addEventListener('click', closeModal);
+  document.getElementById('modal-bg').addEventListener('click', (e) => {
+    if (e.target.id === 'modal-bg') closeModal();
+  });
+
+  // Lock button
+  document.getElementById('lock-btn-sidebar').addEventListener('click', toggleLock);
+
+  // Sidebar nav
+  document.querySelectorAll('.nav-item').forEach(nav => {
+    nav.addEventListener('click', () => {
+      const page = nav.getAttribute('data-page');
+      if (page) goPage(page);
+      document.getElementById('sidebar').classList.remove('on');
+    });
+  });
+
+  // Menu button (toggle sidebar)
+  document.getElementById('menu-btn').addEventListener('click', () => {
+    const sidebar = document.getElementById('sidebar');
+    sidebar.classList.toggle('on');
+  });
+
+  // Bottom sheet close
+  document.getElementById('sheet-close').addEventListener('click', () => {
+    document.getElementById('bottom-sheet').classList.remove('on');
+  });
+
+  document.getElementById('bottom-sheet').addEventListener('click', (e) => {
+    if (e.target.id === 'bottom-sheet') {
+      document.getElementById('bottom-sheet').classList.remove('on');
+    }
+  });
+
+  // Setup bottom tabs and render initial page
+  updateBottomTabs();
+  renderRegimen();
+  renderDose();
+  renderSchedule();
+  renderDot();
+
+  // Silent catalog load
+  api('getDrugCatalog', {})
+    .then(cat => S.catalog = cat)
+    .catch(() => {});
+
+  // Initial page
+  goPage('regimen');
+});
+
+    </script>
+</body>
+
+</html>
