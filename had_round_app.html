@@ -683,6 +683,31 @@ body {
 .had-card-row.antidote .had-card-label { color: var(--green); }
 .had-card-text { color: var(--ink2); }
 
+/* Lab Monitor section */
+.lab-mon-section {
+  margin-top: 12px; padding: 12px 14px;
+  background: var(--white); border-radius: 16px;
+  border: 1.5px solid var(--ink5);
+}
+.lab-mon-title {
+  font-size: 10px; font-weight: 800; color: var(--ink4);
+  text-transform: uppercase; letter-spacing: 0.6px; margin-bottom: 8px;
+}
+.lab-mon-fields { display: flex; flex-wrap: wrap; gap: 8px; }
+.lab-field {
+  display: flex; align-items: center; gap: 6px;
+  background: var(--ink6); border-radius: 10px; padding: 6px 10px;
+  flex: 1 1 auto; min-width: 120px;
+}
+.lab-label { font-size: 11px; font-weight: 700; color: var(--ink2); white-space: nowrap; }
+.lab-inp {
+  width: 70px; border: none; background: var(--white); border-radius: 8px;
+  padding: 5px 8px; font-size: 13px; font-weight: 600; color: var(--ink1);
+  text-align: center; font-family: 'Google Sans', sans-serif;
+}
+.lab-inp::placeholder { color: var(--ink4); font-size: 10px; font-weight: 400; }
+.lab-unit { font-size: 10px; color: var(--ink4); white-space: nowrap; }
+
 /* ══════════════════════════════════
    DRUG TREND MINI CHART
 ══════════════════════════════════ */
@@ -1185,6 +1210,7 @@ const DRUG_DB = {
     noteClass: 'info',
     incompat: ['amiodarone_nss', 'nahco3', 'blood_plasma'],
     drugColor: 'dt-red',
+    labs: [{ key:'lactate', label:'Lactate', unit:'mmol/L', placeholder:'0.5-2.0' }],
     info: {
       dose: 'Range: 0.05-0.5 mcg/kg/min (ผู้ใหญ่ เริ่ม 8-12 mcg/min ปรับตาม BP) · Common: NE 4mg + D5W 250mL start 5 mL/hr · Central line: 8mg + D5W 250mL (32 mcg/mL)',
       prep: 'NE 4 mg + D5W 250 mL (16 mcg/mL) · สารน้ำ: D5W เท่านั้น',
@@ -1209,6 +1235,7 @@ const DRUG_DB = {
     note: 'ℹ Drip: 1mg/100mL NSS · Push: 1mg/mL undiluted สำหรับ CPR/anaphylaxis',
     noteClass: 'info',
     drugColor: 'dt-red',
+    labs: [{ key:'lactate', label:'Lactate', unit:'mmol/L', placeholder:'0.5-2.0' }],
     info: {
       dose: 'Drip: 0.01-0.5 mcg/kg/min · CPR: 1mg IV q3-5min · Anaphylaxis: 0.3-0.5mg IM · Common: Adr 1mg + NSS 100mL start 6 mL/hr',
       prep: 'Drip: 1 mg + NSS 100 mL (10 mcg/mL) · Push: 1 mg/mL undiluted (CPR)',
@@ -1233,6 +1260,7 @@ const DRUG_DB = {
     note: 'ℹ ยาแก้พิษ: Naloxone · เฝ้าระวัง respiratory depression RR < 10',
     noteClass: 'info',
     drugColor: 'dt-orng',
+    labs: [{ key:'pain', label:'Pain score', unit:'/10', placeholder:'0-10' }],
     info: {
       dose: 'IV: 1-5mg q4h PRN (slow push > 5 นาที) · Drip: 1-5mg/hr · SC/IM: 5-10mg q4h · Common: Morphine 10mg + NSS 10mL → ให้ครั้งละ 2-5mL IV slow',
       prep: 'Drip: 1 mg/mL NSS · Push: IV slow > 5 นาที · สารน้ำ: NSS, D5W',
@@ -1255,6 +1283,7 @@ const DRUG_DB = {
     note: 'ℹ ยาแก้พิษ: Naloxone · max 600 mg/24hr · ระวังในผู้สูงอายุ ผู้ป่วยไตบกพร่อง',
     noteClass: 'info',
     drugColor: 'dt-orng',
+    labs: [{ key:'pain', label:'Pain score', unit:'/10', placeholder:'0-10' }],
     info: {
       dose: 'IM/IV: 25-100mg q3-4h PRN · Max 600mg/24hr · Common: Pethidine 50mg IM PRN q4h for pain · เลี่ยงใช้ > 48 ชม. (norpethidine สะสม)',
       prep: '50 mg/mL amp · IV slow push > 5 นาที หรือ IM · Max 600 mg/24hr',
@@ -1279,6 +1308,10 @@ const DRUG_DB = {
     note: 'ℹ เฝ้าระวัง hypoglycemia · DTx ทุก 1–2 ชม. · ยาแก้พิษ: 50% Glucose IV',
     noteClass: 'info',
     drugColor: 'dt-sky',
+    labs: [
+      { key:'dtx', label:'DTx', unit:'mg/dL', placeholder:'70-180' },
+      { key:'k', label:'K⁺', unit:'mEq/L', placeholder:'3.5-5.0' },
+    ],
     info: {
       dose: 'DKA drip: RI 0.1 u/kg/hr · Hyperkalemia: RI 10u + 50% Glucose 50mL IV · SC sliding scale ตาม DTx · Common: RI 100u + NSS 100mL (1u/mL) start 5 mL/hr',
       prep: 'RI 100 u + NSS 100 mL (1 u/mL) · syringe pump หรือ SC sliding scale',
@@ -1311,6 +1344,7 @@ const DRUG_DB = {
     note: 'ℹ ห้าม IV push — หัวใจหยุดเต้นได้ · ตรวจ K⁺ serum ก่อนและระหว่างให้',
     noteClass: 'info',
     drugColor: 'dt-sky',
+    labs: [{ key:'k', label:'K⁺', unit:'mEq/L', placeholder:'3.5-5.0' }],
     info: {
       dose: 'Peripheral: max 10 mEq/hr · Central: max 40 mEq/hr · Mild (3-3.5): 40-60 mEq/day PO · Moderate (2.5-3): KCl 40mEq + NSS 1000mL · Common: KCl 20mEq + NSS 100mL drip 1 hr (central)',
       prep: 'KCl 40 mEq + NSS 1000 mL · ห้าม IV push เด็ดขาด · Peripheral max 10 mEq/hr',
@@ -1335,6 +1369,7 @@ const DRUG_DB = {
     note: 'ℹ ระวัง Mg toxicity · เช็ค patellar reflex, RR > 16, UO > 25 mL/hr · ยาแก้พิษ: Calcium gluconate',
     noteClass: 'info',
     drugColor: 'dt-grey',
+    labs: [{ key:'mg', label:'Mg²⁺', unit:'mg/dL', placeholder:'1.7-2.4' }],
     modes: { eclampsia: 'Eclampsia/Preeclampsia (1–2 g/hr)', asthma: 'Asthma/COPD (2g/100mL ÷ 4hr = 25 mL/hr)' },
     info: {
       dose: 'Eclampsia: Loading 4g IV 20 นาที → Maint 1-2g/hr · Pre-eclampsia: Loading 4g + IM 5g x2 → 5g IM q4h · Asthma: 2g IV 20 นาที · Common: MgSO4 4g + NSS 100mL drip 20 นาที',
@@ -1352,6 +1387,10 @@ const DRUG_DB = {
     note: 'ℹ IV slow push ≥ 10–20 นาที · ผสมใน NSS · Therapeutic range: 0.8–2 ng/mL · ระวัง digoxin toxicity ใน K⁺ ต่ำ',
     noteClass: 'info',
     drugColor: 'dt-pink',
+    labs: [
+      { key:'digLevel', label:'Digoxin level', unit:'ng/mL', placeholder:'0.8-2.0' },
+      { key:'k', label:'K⁺', unit:'mEq/L', placeholder:'3.5-5.0' },
+    ],
     info: {
       dose: 'PO: 0.125-0.25mg/day (elderly 0.0625-0.125mg) · IV loading: 0.5mg then 0.25mg q6h (max 1-1.5mg/24hr) · Target level: 0.8-2 ng/mL · Common: Digoxin 0.25mg 1x1 PO pc',
       prep: '0.25 mg/mL เจือจาง NSS ≥ 4 เท่า · IV slow push ≥ 10-20 นาที',
@@ -1368,6 +1407,7 @@ const DRUG_DB = {
     note: 'ℹ Target INR ตาม indication · monitor PT/INR · ยาแก้พิษ: Vitamin K · เฝ้าระวัง bleeding',
     noteClass: 'info',
     drugColor: 'dt-pink',
+    labs: [{ key:'inr', label:'INR', unit:'', placeholder:'2.0-3.0' }],
     info: {
       dose: 'PO: 2-10mg/day · Target INR: AF/DVT/PE 2-3 · Mechanical valve 2.5-3.5 · เริ่ม 5mg/day ปรับตาม INR · Common: Warfarin 3mg 1x1 PO hs',
       prep: 'Oral tablet · Target INR ตาม indication',
@@ -1698,9 +1738,13 @@ function openRound(ptId) {
   document.getElementById('round-pt-meta').textContent = `HN ${currentPt.hn} · ${currentPt.age} ปี`;
   document.getElementById('round-pt-wt').textContent = currentPt.weight + ' kg';
 
-  // clear action
+  // clear all form fields from previous round
   document.querySelectorAll('#screen-round .achip').forEach(c => c.classList.remove('on'));
   document.getElementById('action-note').value = '';
+  document.getElementById('v-bp').value = '';
+  document.getElementById('v-hr').value = '';
+  const rrField = document.getElementById('v-rr');
+  if (rrField) rrField.value = '';
 
   renderDrugTabs();
   renderCompat();
@@ -1998,6 +2042,21 @@ function renderDoseBlocks() {
     </div>`;
   }
 
+  // Lab monitoring inputs (per drug)
+  if (drug.labs && drug.labs.length > 0) {
+    html += `<div class="lab-mon-section">
+      <div class="lab-mon-title">📋 Lab Monitor</div>
+      <div class="lab-mon-fields">`;
+    drug.labs.forEach(lab => {
+      html += `<div class="lab-field">
+        <span class="lab-label">${lab.label}</span>
+        <input class="lab-inp" id="lab-${currentDrugTab}-${lab.key}" type="number" placeholder="${lab.placeholder}" inputmode="decimal" step="any">
+        <span class="lab-unit">${lab.unit}</span>
+      </div>`;
+    });
+    html += `</div></div>`;
+  }
+
   html += `</div>`;
   container.innerHTML = html;
 
@@ -2241,6 +2300,42 @@ function saveRound() {
 
   const rr = document.getElementById('v-rr')?.value || '';
 
+  // Capture lab data for each drug
+  const labData = {};
+  currentPt.drugs.forEach(d => {
+    const drug = DRUG_DB[d];
+    if (!drug || !drug.labs) return;
+    drug.labs.forEach(lab => {
+      const inp = document.getElementById(`lab-${d}-${lab.key}`);
+      if (inp && inp.value) {
+        if (!labData[d]) labData[d] = {};
+        labData[d][lab.key] = { value: parseFloat(inp.value), label: lab.label, unit: lab.unit };
+      }
+    });
+  });
+
+  // Parse BP into SBP/DBP numbers for Sheets
+  const bpParts = bp ? bp.split('/') : [];
+  const sbpNum = bpParts[0] ? parseInt(bpParts[0]) || '' : '';
+  const dbpNum = bpParts[1] ? parseInt(bpParts[1]) || '' : '';
+  const hrNum = hr ? parseInt(hr) || '' : '';
+  const rrNum = rr ? parseInt(rr) || '' : '';
+
+  // Flatten labData for Sheets (e.g., lab_kcl_k: 3.5, lab_insulin_dtx: 120)
+  const labFlat = {};
+  Object.entries(labData).forEach(([drug, labs]) => {
+    Object.entries(labs).forEach(([key, val]) => {
+      labFlat[`lab_${drug}_${key}`] = val.value;
+    });
+  });
+
+  // Flatten doseData for Sheets (e.g., dose_ne: 5, dose_ne_conv: 0.019)
+  const doseFlat = {};
+  Object.entries(doseData).forEach(([drug, dd]) => {
+    doseFlat[`dose_${drug}`] = dd.value;
+    if (dd.converted != null) doseFlat[`dose_${drug}_conv`] = parseFloat(dd.converted.toFixed(4));
+  });
+
   const round = {
     id: Date.now().toString(),
     ptId: currentPt.id,
@@ -2249,7 +2344,11 @@ function saveRound() {
     actions,
     note,
     bp, hr, rr,
+    sbp: sbpNum, dbp: dbpNum, hrNum, rrNum,
     doseData,
+    labData,
+    doseFlat,
+    labFlat,
     hasIntervention,
     ts: Date.now(),
   };
@@ -2613,6 +2712,35 @@ function openPtDetail(ptId) {
         </div>`;
       }
     }
+    // Lab trends for this drug
+    if (drug.labs && drug.labs.length > 0) {
+      drug.labs.forEach(lab => {
+        const labEntries = ptRounds
+          .filter(r => r.labData && r.labData[d] && r.labData[d][lab.key])
+          .map(r => ({ ts: r.ts, val: r.labData[d][lab.key].value }));
+
+        if (labEntries.length > 0) {
+          const maxVal = Math.max(...labEntries.map(e => e.val), 0.1);
+          html += `<div style="margin-top:8px;">
+            <div style="font-size:9px;font-weight:700;color:#7B1FA2;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:4px;">📋 ${lab.label} ${lab.unit ? '(' + lab.unit + ')' : ''}</div>
+            <div class="trend-chart">`;
+          labEntries.slice(-10).forEach(le => {
+            const pct = Math.max((le.val / maxVal) * 100, 5);
+            const dt = parseTsToDate(le.ts);
+            const label = `${dt.getDate()}/${dt.getMonth()+1} ${String(dt.getHours()).padStart(2,'0')}:${String(dt.getMinutes()).padStart(2,'0')}`;
+            html += `<div class="trend-bar" style="height:${pct}%;background:#CE93D8;">
+              <div class="trend-tip">${le.val} ${lab.unit} · ${label}</div>
+            </div>`;
+          });
+          html += `</div>`;
+          html += `<div class="trend-labels">
+            <span>ล่าสุด: ${labEntries[labEntries.length-1].val} ${lab.unit}</span>
+          </div>`;
+          html += `</div>`;
+        }
+      });
+    }
+
     html += `</div>`;
   });
 
@@ -2632,6 +2760,7 @@ function openPtDetail(ptId) {
             ${r.hasIntervention?'<span style="font-size:9px;font-weight:800;color:var(--red);background:var(--redlt);padding:1px 6px;border-radius:8px;">Intervention</span>':''}
           </div>
           ${r.bp?`<span style="font-size:10px;color:var(--ink4)">BP ${r.bp} · HR ${r.hr||'-'}</span>`:''}
+          ${r.labData ? `<div style="font-size:10px;color:#7B1FA2;margin-top:1px;">${Object.entries(r.labData).map(([dk,labs]) => Object.entries(labs).map(([lk,lv]) => `${lv.label}: ${lv.value}${lv.unit}`).join(', ')).join(' · ')}</div>` : ''}
           <div style="font-size:11px;color:var(--ink3);margin-top:2px;">${actText}</div>
         </div>
       </div>`;
