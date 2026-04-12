@@ -261,6 +261,9 @@ input[type=password],select,select option,textarea,button { font-family:var(--fo
     overflow-x:hidden;
   }
 
+  /* patients & ptcard ให้กว้างเต็มจอ */
+  #page-patients, #page-ptcard { max-width:100%; }
+
   .g2 { display:grid; grid-template-columns:1fr 1fr; gap:18px; }
   .g3 { display:grid; grid-template-columns:1fr 1fr 1fr; gap:14px; }
   .g4 { display:grid; grid-template-columns:repeat(4,1fr); gap:13px; }
@@ -3427,16 +3430,24 @@ dashboard: `
 .db-alert-row:hover{background:var(--sf2);margin:0 -4px;padding:9px 4px;border-radius:var(--r-xs)}
 .db-alert-row:last-child{border-bottom:none}
 .db-tag{display:inline-flex;padding:3px 10px;border-radius:99px;font-size:12px;font-weight:700;white-space:nowrap;flex-shrink:0}
+@media(max-width:767px){
+  .db-kpi{padding:12px 14px}
+  .db-kpi-n{font-size:24px}
+  .db-kpi-l{font-size:11px}
+  .db-grid-kpi{grid-template-columns:1fr 1fr !important;gap:8px !important}
+  .db-grid-3{grid-template-columns:1fr !important;gap:10px !important}
+  .db-grid-2{grid-template-columns:1fr !important;gap:10px !important}
+}
 </style>
 
-<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:14px">
+<div class="db-grid-kpi" style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:14px">
   <div class="db-kpi"><div class="db-kpi-n" id="s-active">—</div><div class="db-kpi-l">ผู้ป่วย active</div></div>
   <div class="db-kpi"><div class="db-kpi-n" id="s-ip-cp" style="color:var(--g4)">—</div><div class="db-kpi-l">IP · CP</div></div>
   <div class="db-kpi"><div class="db-kpi-n" id="s-phase" style="color:var(--warn)">—</div><div class="db-kpi-l">ใกล้เปลี่ยน phase</div></div>
   <div class="db-kpi"><div class="db-kpi-n" id="s-hold" style="color:var(--red)">—</div><div class="db-kpi-l">Hold / LTFU</div></div>
 </div>
 
-<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-bottom:12px">
+<div class="db-grid-3" style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-bottom:12px">
 
   <div class="card">
     <div class="db-sec"><div class="db-dot" style="background:var(--g3)"></div>สถานะการรักษา</div>
@@ -3485,7 +3496,7 @@ dashboard: `
 
 </div>
 
-<div style="display:grid;grid-template-columns:minmax(0,1.4fr) minmax(0,1fr);gap:12px">
+<div class="db-grid-2" style="display:grid;grid-template-columns:minmax(0,1.4fr) minmax(0,1fr);gap:12px">
 
   <div class="card" style="padding:0;overflow:hidden">
     <div style="padding:12px 16px;border-bottom:1px solid var(--bd);display:flex;align-items:center;justify-content:space-between">
@@ -3547,6 +3558,13 @@ alerts: `
 </div>
 <div id="alerts-list" style="display:flex;flex-direction:column;gap:8px;margin-bottom:16px">
   <div class="al al-g"><span>ℹ️</span><div>ข้อมูลจะแสดงเมื่อมีผู้ป่วยในระบบที่มีนัดสัปดาห์นี้</div></div>
+</div>
+<div class="between mb12" style="margin-top:20px">
+  <div class="ct" style="margin:0;font-size:14.5px"><span class="cd" style="background:var(--red)"></span>ขาดนัด / ไม่มาตามนัด</div>
+  <span class="pill pill-rd" id="missed-count-badge">—</span>
+</div>
+<div id="missed-appt-list" style="display:flex;flex-direction:column;gap:8px;margin-bottom:16px">
+  <div class="al al-g"><span>ℹ️</span><div>กำลังตรวจสอบ...</div></div>
 </div>`,
 
 dili: `
@@ -4212,6 +4230,70 @@ function buildAlertsPage() {
     }
   }
 
+  // ── ขาดนัด / ไม่มาตามนัด ──
+  const missedList = [];
+  const visitsByPt = {};
+  (S.allVisits||[]).forEach(v => {
+    if (!v.patient_id || !v.actual_date) return;
+    if (!visitsByPt[v.patient_id]) visitsByPt[v.patient_id] = new Set();
+    visitsByPt[v.patient_id].add(v.actual_date);
+  });
+
+  pts.forEach(p => {
+    if (!p.visit_dates_json) return;
+    try {
+      const dates = JSON.parse(p.visit_dates_json);
+      if (!Array.isArray(dates)) return;
+      const actualSet = visitsByPt[p.patient_id] || new Set();
+      dates.forEach((d, i) => {
+        if (!d || d >= todayISO) return; // only past dates
+        // check if patient came: actual_date matching this planned date
+        if (actualSet.has(d)) return; // มาแล้ว
+        // also check if any actual_date within ±2 days (tolerance for date recording)
+        const planned = new Date(d+'T00:00:00');
+        let found = false;
+        actualSet.forEach(ad => {
+          const actual = new Date(ad+'T00:00:00');
+          if (Math.abs(actual - planned) <= 2*86400000) found = true;
+        });
+        if (found) return;
+        const daysMissed = Math.round((new Date(todayISO+'T00:00:00') - planned) / 86400000);
+        missedList.push({ name: p.name, ptId: p.patient_id, date: d, daysMissed, visitIdx: i });
+      });
+    } catch(e) {}
+  });
+
+  missedList.sort((a,b) => b.date.localeCompare(a.date)); // recent first
+
+  const missedCountBadge = document.getElementById('missed-count-badge');
+  if (missedCountBadge) missedCountBadge.textContent = missedList.length ? `${missedList.length} ราย` : '—';
+
+  const missedEl = document.getElementById('missed-appt-list');
+  if (missedEl) {
+    if (!missedList.length) {
+      missedEl.innerHTML = '<div class="al al-g"><span>✅</span><div>ไม่มีผู้ป่วยขาดนัด</div></div>';
+    } else {
+      missedEl.innerHTML = missedList.map(m => {
+        const d = new Date(m.date + 'T00:00:00');
+        const dow = DOW_TH2[d.getDay()];
+        const urgency = m.daysMissed >= 14 ? 'background:var(--red1);border-color:var(--red)'
+                      : m.daysMissed >= 7 ? 'background:#FEF3C7;border-color:var(--warn)'
+                      : 'background:var(--sf);border-color:var(--bd)';
+        const urgLabel = m.daysMissed >= 14 ? '<span style="font-size:10px;padding:2px 6px;border-radius:99px;background:var(--red);color:#fff;font-weight:600">ขาดนัดนาน</span>'
+                       : m.daysMissed >= 7 ? '<span style="font-size:10px;padding:2px 6px;border-radius:99px;background:var(--warn);color:#633806;font-weight:500">ขาดนัด</span>'
+                       : '';
+        return `<div style="${urgency};border:1px solid;border-radius:var(--r-md);padding:10px 14px;cursor:pointer" onclick="openPtDetail('${m.ptId}')">
+          <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+            <span style="font-size:14px;font-weight:600;color:var(--tx)">${m.name}</span>
+            ${urgLabel}
+            <span style="font-size:12px;color:var(--tx3);margin-left:auto">นัด ${fmtD(m.date)} (${dow})</span>
+          </div>
+          <div style="font-size:12px;color:var(--tx3);margin-top:3px">ขาดนัดมาแล้ว ${m.daysMissed} วัน</div>
+        </div>`;
+      }).join('');
+    }
+  }
+
   // ── จัดยา DOT ──
   const dotPrepEl  = document.getElementById('dot-prep-table');
   const dotLabelEl = document.getElementById('dot-prep-week-label');
@@ -4425,7 +4507,7 @@ function renderPatients(filter='all', search='') {
     return `<div class="pt-row" onclick="openPtDetail('${p.patient_id}')">
       <div class="pt-av" style="font-size:11px;font-weight:700;flex-shrink:0;${avBg}">${av}</div>
       <div style="flex:1;min-width:0;display:flex;align-items:center;gap:8px;overflow:hidden">
-        <span style="font-size:13px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:150px">${p.name}</span>
+        <span style="font-size:13px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:240px">${p.name}</span>
         <span style="font-size:11px;color:var(--tx3);white-space:nowrap;flex-shrink:0">HN ${p.hn}</span>
         <span style="font-size:11px;color:var(--tx3);white-space:nowrap;flex-shrink:0">${p.regimen_label}</span>
         ${hivBadge}
@@ -4790,25 +4872,55 @@ async function submitLabResult() {
 }
 
 
+let _alertBadgeTimer;
 function updateAlertBadge() {
-  // นับนัดสัปดาห์นี้ (Mon-Fri) จาก S.patients
+  // debounce เพื่อไม่ให้ badge กระพริบเวลาโหลดข้อมูลใหม่
+  clearTimeout(_alertBadgeTimer);
+  _alertBadgeTimer = setTimeout(_doUpdateAlertBadge, 200);
+}
+function _doUpdateAlertBadge() {
   const _cw = getClinicWeek();
   const weekStart = _cw.weekStart;
   const weekEnd   = _cw.weekEnd;
   let cnt = 0;
+  let missed = 0;
+  const todayISO = new Date().toISOString().slice(0,10);
+
+  // สร้าง map actual visits per patient
+  const visitsByPt = {};
+  (S.allVisits||[]).forEach(v => {
+    if (!v.patient_id || !v.actual_date) return;
+    if (!visitsByPt[v.patient_id]) visitsByPt[v.patient_id] = new Set();
+    visitsByPt[v.patient_id].add(v.actual_date);
+  });
+
   (S.patients||[]).filter(p => p.status==='active').forEach(p => {
     try {
       const dates = JSON.parse(p.visit_dates_json||'[]');
       dates.forEach(d => { if (d && d >= weekStart && d <= weekEnd) cnt++; });
       const customs = JSON.parse(p.custom_visits_json||'[]');
       customs.forEach(cv => { if (cv.date && cv.date >= weekStart && cv.date <= weekEnd) cnt++; });
+
+      // Missed: นัดก่อนวันนี้ที่ไม่ได้มาจริง
+      const actualSet = visitsByPt[p.patient_id] || new Set();
+      dates.forEach(d => {
+        if (!d || d >= todayISO) return;
+        if (actualSet.has(d)) return;
+        const planned = new Date(d+'T00:00:00');
+        let found = false;
+        actualSet.forEach(ad => {
+          if (Math.abs(new Date(ad+'T00:00:00') - planned) <= 2*86400000) found = true;
+        });
+        if (!found) missed++;
+      });
     } catch(e) {}
   });
+  const total = cnt + missed;
   ['alert-nb','dr-alert-nb'].forEach(id => {
     const el = document.getElementById(id);
     if (!el) return;
-    if (cnt > 0) { el.textContent = cnt; el.classList.remove('hidden'); }
-    else         { el.classList.add('hidden'); }
+    if (total > 0) { el.textContent = total; el.classList.remove('hidden'); }
+    else           { el.classList.add('hidden'); }
   });
 }
 
@@ -6865,7 +6977,7 @@ async function buildPatientCard(patientId) {
   }).join('');
 
   el.innerHTML = `
-<div style="max-width:900px;margin:0 auto;padding-bottom:40px">
+<div style="max-width:1100px;margin:0 auto;padding-bottom:40px">
 
   <!-- Back bar -->
   <div style="display:flex;align-items:center;gap:8px;margin-bottom:16px;flex-wrap:wrap">
