@@ -4253,33 +4253,47 @@ function buildAlertsPage() {
   }
 
   // ── ขาดนัด / ไม่มาตามนัด ──
-  const missedList = [];
-  const visitsByPt = {};
+  // Debug: log allVisits count เพื่อตรวจสอบว่าโหลดข้อมูลมาหรือยัง
+  console.log('[Missed] S.allVisits count:', (S.allVisits||[]).length,
+    'sample:', (S.allVisits||[]).slice(0,2).map(v => ({pid:v.patient_id,vn:v.visit_num,ad:v.actual_date,pd:v.planned_date})));
+
+  // สร้าง map: patient_id → Set ของ key ที่มีบันทึกแล้ว (match ได้หลายทาง)
+  const visitedKeys = {};
   (S.allVisits||[]).forEach(v => {
-    if (!v.patient_id || !v.actual_date) return;
-    if (!visitsByPt[v.patient_id]) visitsByPt[v.patient_id] = new Set();
-    visitsByPt[v.patient_id].add(v.actual_date);
+    const pid = String(v.patient_id || '').trim();
+    if (!pid) return;
+    if (!visitedKeys[pid]) visitedKeys[pid] = new Set();
+    // เก็บทุก key ที่เป็นไปได้เพื่อ match
+    if (v.visit_num !== undefined && v.visit_num !== null && v.visit_num !== '')
+      visitedKeys[pid].add('n:' + String(v.visit_num));
+    if (v.actual_date)
+      visitedKeys[pid].add('d:' + String(v.actual_date).trim().slice(0,10));
+    if (v.planned_date)
+      visitedKeys[pid].add('p:' + String(v.planned_date).trim().slice(0,10));
   });
 
+  const missedList = [];
   pts.forEach(p => {
     if (!p.visit_dates_json) return;
     try {
       const dates = JSON.parse(p.visit_dates_json);
       if (!Array.isArray(dates)) return;
-      const actualSet = visitsByPt[p.patient_id] || new Set();
+      const pid = String(p.patient_id || '').trim();
+      const recorded = visitedKeys[pid] || new Set();
+
+      // Debug: log ข้อมูลเฉพาะผู้ป่วยที่มี visits
+      if (recorded.size > 0 && dates.some(d => d && d < todayISO)) {
+        console.log('[Missed] Patient:', p.name, 'pid:', pid, 'recorded:', [...recorded]);
+      }
+
       dates.forEach((d, i) => {
         if (!d || d >= todayISO) return; // only past dates
-        // check if patient came: actual_date matching this planned date
-        if (actualSet.has(d)) return; // มาแล้ว
-        // also check if any actual_date within ±2 days (tolerance for date recording)
-        const planned = new Date(d+'T00:00:00');
-        let found = false;
-        actualSet.forEach(ad => {
-          const actual = new Date(ad+'T00:00:00');
-          if (Math.abs(actual - planned) <= 2*86400000) found = true;
-        });
-        if (found) return;
-        const daysMissed = Math.round((new Date(todayISO+'T00:00:00') - planned) / 86400000);
+        const dateStr = String(d).trim().slice(0,10);
+        // ตรวจสอบว่า visit นี้มีบันทึกหรือยัง — ลอง match หลายทาง
+        if (recorded.has('n:' + String(i))) return;    // match by visit_num = index
+        if (recorded.has('d:' + dateStr)) return;      // match by actual_date
+        if (recorded.has('p:' + dateStr)) return;      // match by planned_date
+        const daysMissed = Math.round((new Date(todayISO+'T00:00:00') - new Date(d+'T00:00:00')) / 86400000);
         missedList.push({ name: p.name, ptId: p.patient_id, date: d, daysMissed, visitIdx: i });
       });
     } catch(e) {}
