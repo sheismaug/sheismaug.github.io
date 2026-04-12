@@ -688,6 +688,19 @@ body {
 .guide-chevron { transition:transform 0.2s; }
 .guide-panel.open ~ .guide-chevron,
 div:has(> .guide-panel.open) .guide-chevron { transform:rotate(90deg); }
+
+/* alert timeline */
+.atl-item { display:flex; align-items:flex-start; gap:8px; padding:8px 10px; border-radius:10px; font-size:12px; line-height:1.5; }
+.atl-item.atl-soon { background:#FFF3E0; border:1px solid #FFB74D; }
+.atl-item.atl-info { background:#E3F2FD; border:1px solid #90CAF9; }
+.atl-item.atl-done { background:var(--green2); border:1px solid #A5D6A7; opacity:0.7; }
+.atl-ic { font-size:16px; flex-shrink:0; margin-top:1px; }
+.atl-body { flex:1; }
+.atl-title { font-weight:700; font-size:12px; }
+.atl-desc { font-size:11px; opacity:0.8; margin-top:2px; }
+.atl-time { font-size:10px; font-weight:600; color:var(--pri); margin-top:3px; }
+.atl-toggle { text-align:center; font-size:11px; color:var(--pri); font-weight:600; cursor:pointer; padding:4px; margin-top:4px; }
+
 .had-card-text ul {
   margin: 0; padding: 0 0 0 14px; list-style: none;
 }
@@ -1001,9 +1014,20 @@ div:has(> .guide-panel.open) .guide-chevron { transform:rotate(90deg); }
   <!-- drug tabs -->
   <div class="dtabs" id="round-tabs"></div>
 
+  <!-- interaction alert banner (shown only when critical) -->
+  <div id="compat-banner" style="display:none;margin:0 14px 8px;padding:10px 14px;background:linear-gradient(135deg,#D32F2F,#C62828);border-radius:14px;color:white;font-size:12px;font-weight:600;cursor:pointer;box-shadow:0 2px 8px rgba(211,47,47,0.3);" onclick="document.getElementById('compat-detail').scrollIntoView({behavior:'smooth'})">
+    <div style="display:flex;align-items:center;gap:8px;">
+      <span style="font-size:18px;">⚠</span>
+      <div>
+        <div id="compat-banner-text">Drug Interaction พบ!</div>
+        <div style="font-size:10px;opacity:0.8;font-weight:400;">แตะเพื่อดูรายละเอียด ↓</div>
+      </div>
+    </div>
+  </div>
+
   <!-- compat check -->
-  <div class="compat-wrap">
-    <div class="slabel">Compatibility Check</div>
+  <div class="compat-wrap" id="compat-detail">
+    <div class="slabel" style="display:flex;align-items:center;gap:8px;">Drug Interaction Check <span id="compat-badge" style="display:none;background:var(--red);color:white;font-size:9px;padding:1px 7px;border-radius:10px;font-weight:700;"></span></div>
     <div class="compat-list" id="compat-list"></div>
   </div>
 
@@ -1038,6 +1062,15 @@ div:has(> .guide-panel.open) .guide-chevron { transform:rotate(90deg); }
         <div class="topt" onclick="selTopt(this)">ไม่รู้สึกตัว</div>
       </div>
     </div>
+  </div>
+
+  <!-- alert timeline -->
+  <div class="action-block" id="alert-timeline-block" style="display:none">
+    <div class="slabel" style="margin-bottom:10px">
+      <span style="margin-right:4px">⏰</span> Alert Timeline
+      <span id="alert-count" style="background:var(--pri);color:#fff;font-size:10px;padding:1px 7px;border-radius:10px;margin-left:6px"></span>
+    </div>
+    <div id="alert-timeline" style="display:flex;flex-direction:column;gap:6px"></div>
   </div>
 
   <!-- action -->
@@ -1343,7 +1376,10 @@ const DRUG_DB = {
     note: 'ℹ ยาแก้พิษ: Naloxone · max 600 mg/24hr · ระวังในผู้สูงอายุ ผู้ป่วยไตบกพร่อง',
     noteClass: 'info',
     drugColor: 'dt-orng',
-    labs: [{ key:'pain', label:'Pain score', unit:'/10', placeholder:'0-10' }],
+    labs: [
+      { key:'pain', label:'Pain score', unit:'/10', placeholder:'0-10' },
+      { key:'crcl', label:'CrCl', unit:'mL/min', placeholder:'> 50 ปกติ' },
+    ],
     info: {
       dose: 'ขนาด 50 mg/mL · IM/IV: 25-100 mg q3-4h PRN · ไม่ควรใช้ติดต่อกันเกิน 48 hr · ไม่ควรใช้ขนาดเกิน 600 mg/24 hr · Direct IV: เจือจางน้ำกลั่น 5 mL ฉีดนาน 4-5 นาที · ปรับขนาดในไตบกพร่อง: CrCl 10-50 = 75%, CrCl <10 = 50%',
       prep: '50 mg/mL · IV: เจือจางน้ำกลั่น 5 mL ฉีด 4-5 นาที · IM · เก็บยาให้พ้นแสง 15-30°C · สารละลายหลังเจือจางเก็บอุณภูมิห้อง 24 ชม.',
@@ -1527,13 +1563,36 @@ const DRUG_DB = {
   },
 };
 
-// Compatibility pairs
+// Compatibility / Interaction pairs — อ้างอิง HAD ฉบับปรับปรุง 2567 รพ.ห้วยผึ้ง
 const INCOMPAT_PAIRS = [
-  { drugs: ['ne','amiodarone'], type:'error', msg:'NE + Amiodarone — ผสม D5W เท่านั้น', desc:'Amiodarone ผสมได้เฉพาะ D5W ห้าม NSS เด็ดขาด ถ้าให้พร้อมกันต้องแยก line' },
-  { drugs: ['ne','morphine'],   type:'warn',  msg:'NE + Morphine — ระวัง hypotension', desc:'Morphine อาจเสริมฤทธิ์ลด BP ควร monitor BP ทุก 15 นาที' },
-  { drugs: ['kcl','insulin'],   type:'ok',    msg:'KCl + RI — ใช้ร่วมรักษา hyperkalemia', desc:'RI shift K⁺ เข้าเซลล์ เข้ากันได้ดี ใช้รักษา hyperkalemia ร่วมกัน' },
-  { drugs: ['mgso4','ne'],      type:'warn',  msg:'MgSO4 + NE — ระวัง hypotension', desc:'MgSO4 อาจลด vascular tone ควร monitor BP อย่างใกล้ชิด' },
-  { drugs: ['warfarin','amiodarone'], type:'warn', msg:'Warfarin + Amiodarone — INR ขึ้นสูง', desc:'Amiodarone ยับยั้ง CYP2C9 ทำให้ INR สูงขึ้นมาก ต้องลด warfarin dose และ monitor INR บ่อยขึ้น' },
+  // ═══ IV Incompatibility (ห้ามผสม) ═══
+  { drugs: ['ne','amiodarone'], type:'error', msg:'NE + Amiodarone — แยก line!', desc:'Amiodarone ผสมได้เฉพาะ D5W · NE ใช้ D5W/D5S · ห้ามให้ในสาย IV เดียวกัน' },
+  { drugs: ['ne','kcl'],        type:'error', msg:'NE — ห้ามผสม NaHCO₃ / เลือด / plasma', desc:'NE ห้ามผสม NaHCO₃ และห้ามให้ในสาย IV เดียวกับเลือด/plasma · ห้ามผสมใน NSS เดี่ยว (oxidation)' },
+  { drugs: ['amiodarone','mgso4'], type:'error', msg:'Amiodarone — ห้ามผสมในสารด่าง', desc:'ห้ามผสม Amiodarone ในสารละลายที่เป็นด่าง เช่น NaHCO₃ · ใช้ D5W เท่านั้น!' },
+  { drugs: ['mgso4','morphine'], type:'warn', msg:'MgSO4 ≠ Morphine — ชื่อคล้าย!', desc:'⚠ ระมัดระวังยาชื่อสับสนกัน (Look-alike/Sound-alike) ตรวจสอบให้ดีก่อนบริหารยา' },
+  { drugs: ['adr','adenosine'],  type:'warn', msg:'Adrenaline ≠ Adenosine — ชื่อคล้าย!', desc:'⚠ ยาชื่อคล้ายกัน Double check ก่อนบริหารยาทุกครั้ง' },
+
+  // ═══ Drug Interactions จาก PDF — Digoxin ═══
+  { drugs: ['digoxin','amiodarone'], type:'error', msg:'Digoxin + Amiodarone — Digoxin↑↑', desc:'Amiodarone เพิ่มระดับ Digoxin ในเลือดมาก → เสี่ยง Digoxin toxicity · ต้องลดขนาด Digoxin เริ่มต้นและขนาดต่อเนื่อง · monitor Digoxin level อย่างใกล้ชิด' },
+  { drugs: ['digoxin','kcl'],       type:'warn',  msg:'Digoxin + KCl — K⁺ ต่ำ = Dig toxicity', desc:'ภาวะ Hypokalemia เพิ่มความเสี่ยง Digoxin toxicity มาก · ต้องรักษา K⁺ ให้อยู่ในเกณฑ์ปกติ (3.5-5.0) · ถ้าให้ KCl ร่วม = ดี แต่ต้อง monitor K⁺' },
+  { drugs: ['digoxin','insulin'],    type:'warn',  msg:'Digoxin + RI — K⁺ shift อาจทำ Dig toxic', desc:'RI ทำให้ K⁺ shift เข้าเซลล์ → K⁺ ในเลือดลดลง → เพิ่มความเสี่ยง Digoxin toxicity · monitor K⁺ และ Digoxin level' },
+  { drugs: ['digoxin','mgso4'],      type:'warn',  msg:'Digoxin + MgSO4 — Mg ผิดปกติ = Dig toxic', desc:'ภาวะ Hypomagnesemia เพิ่มความเสี่ยง Digoxin toxicity เช่นเดียวกับ Hypokalemia · ต้องรักษา Mg ให้ปกติ' },
+
+  // ═══ Drug Interactions — Warfarin ═══
+  { drugs: ['warfarin','amiodarone'], type:'error', msg:'Warfarin + Amiodarone — INR↑↑ สูงมาก!', desc:'Amiodarone ยับยั้ง CYP2C9 → Warfarin level สูงขึ้นมาก · ต้องลด Warfarin dose 30-50% · monitor INR บ่อยขึ้น (ทุก 1-2 สัปดาห์)' },
+  { drugs: ['warfarin','streptokinase'], type:'error', msg:'Warfarin + SK — เลือดออกรุนแรง!', desc:'ใช้ร่วมกันเพิ่มความเสี่ยง major bleeding อย่างมาก · งด Warfarin ขณะให้ SK · monitor signs of bleeding ทุก 15 นาที' },
+
+  // ═══ Hemodynamic Interactions ═══
+  { drugs: ['ne','morphine'],   type:'warn',  msg:'NE + Morphine — ระวัง BP ต่ำ', desc:'Morphine อาจเสริมฤทธิ์ลด BP ถ้าใช้ร่วมกับ NE · monitor BP ทุก 15 นาที · อาจต้องเพิ่ม NE rate' },
+  { drugs: ['ne','pethidine'],  type:'warn',  msg:'NE + Pethidine — ระวัง BP ต่ำ', desc:'Pethidine อาจเสริมฤทธิ์ลด BP · monitor BP ทุก 15 นาที' },
+  { drugs: ['mgso4','ne'],      type:'warn',  msg:'MgSO4 + NE — ระวัง BP ต่ำ', desc:'MgSO4 อาจลด vascular tone · ควร monitor BP อย่างใกล้ชิด · อาจต้องปรับ NE rate' },
+  { drugs: ['morphine','pethidine'], type:'error', msg:'Morphine + Pethidine — ห้ามใช้ร่วม!', desc:'ห้ามให้ narcotic 2 ตัวร่วมกัน เสี่ยง respiratory depression รุนแรง · ใช้ตัวเดียว' },
+  { drugs: ['morphine','mgso4'],type:'warn',  msg:'Morphine + MgSO4 — กด CNS ร่วม', desc:'ทั้งสองตัวกด CNS · เสี่ยง respiratory depression · monitor RR, sedation level อย่างใกล้ชิด' },
+  { drugs: ['pethidine','mgso4'],type:'warn', msg:'Pethidine + MgSO4 — กด CNS ร่วม', desc:'ทั้งสองตัวกด CNS · เสี่ยง respiratory depression · monitor RR อย่างใกล้ชิด' },
+
+  // ═══ Beneficial combinations ═══
+  { drugs: ['kcl','insulin'],   type:'ok',    msg:'KCl + RI — ใช้ร่วมรักษา hyperkalemia ✓', desc:'RI shift K⁺ เข้าเซลล์ → แก้ hyperkalemia · ให้ Dextrose 0.5-1 mL/kg ร่วมกับ RI 1 unit ต่อ dextrose 4-5 g · เข้ากันได้ดี' },
+  { drugs: ['adr','amiodarone'], type:'ok',   msg:'Adr + Amiodarone — ใช้ร่วมใน ACLS ✓', desc:'ใช้ร่วมกันใน cardiac arrest protocol ได้ · แต่ต้องแยก line (Amiodarone = D5W, Adr = NSS)' },
 ];
 
 // ══════════════════════════════════
@@ -1812,6 +1871,7 @@ function openRound(ptId) {
 
   renderDrugTabs();
   renderCompat();
+  renderAlertTimeline();
   goScreen('round');
 }
 
@@ -1841,6 +1901,9 @@ function selectDrugTab(drugKey, btn) {
 function renderCompat() {
   const drugs = currentPt.drugs;
   const list = document.getElementById('compat-list');
+  const banner = document.getElementById('compat-banner');
+  const bannerText = document.getElementById('compat-banner-text');
+  const badge = document.getElementById('compat-badge');
   const items = [];
 
   INCOMPAT_PAIRS.forEach(pair => {
@@ -1849,8 +1912,41 @@ function renderCompat() {
     }
   });
 
+  // Sort: errors first, then warns, then ok
+  items.sort((a,b) => {
+    const order = {error:0, warn:1, ok:2};
+    return (order[a.type]||9) - (order[b.type]||9);
+  });
+
+  const errors = items.filter(i => i.type === 'error');
+  const warns = items.filter(i => i.type === 'warn');
+
+  // Show/hide critical banner
+  if (errors.length > 0) {
+    banner.style.display = 'block';
+    bannerText.textContent = errors.length === 1
+      ? errors[0].msg
+      : `พบ Drug Interaction ${errors.length} คู่ที่ต้องระวัง!`;
+  } else if (warns.length > 0) {
+    banner.style.display = 'block';
+    banner.style.background = 'linear-gradient(135deg,#E65100,#BF360C)';
+    bannerText.textContent = `ข้อควรระวัง ${warns.length} รายการ`;
+  } else {
+    banner.style.display = 'none';
+    banner.style.background = 'linear-gradient(135deg,#D32F2F,#C62828)';
+  }
+
+  // Badge count
+  const alertCount = errors.length + warns.length;
+  if (alertCount > 0) {
+    badge.style.display = 'inline';
+    badge.textContent = alertCount;
+  } else {
+    badge.style.display = 'none';
+  }
+
   if (items.length === 0) {
-    list.innerHTML = `<div class="ci ok"><span class="ci-ico">✓</span><div><div class="ci-t">ไม่พบ incompatibility ในยาที่เลือก</div></div></div>`;
+    list.innerHTML = `<div class="ci ok"><span class="ci-ico">✓</span><div><div class="ci-t">ไม่พบ Drug Interaction ในยาที่เลือก</div></div></div>`;
   } else {
     list.innerHTML = items.map(item => `
       <div class="ci ${item.type}">
@@ -2127,11 +2223,13 @@ function renderDoseBlocks() {
     drug.labs.forEach(lab => {
       html += `<div class="lab-field">
         <span class="lab-label">${lab.label}</span>
-        <input class="lab-inp" id="lab-${currentDrugTab}-${lab.key}" type="number" placeholder="${lab.placeholder}" inputmode="decimal" step="any">
+        <input class="lab-inp" id="lab-${currentDrugTab}-${lab.key}" type="number" placeholder="${lab.placeholder}" inputmode="decimal" step="any" oninput="updateSmartCalc('${currentDrugTab}')">
         <span class="lab-unit">${lab.unit}</span>
       </div>`;
     });
-    html += `</div></div>`;
+    html += `</div>
+    <div id="smart-calc-${currentDrugTab}" style="margin-top:8px;"></div>
+    </div>`;
   }
 
   html += `</div>`;
@@ -2236,6 +2334,338 @@ function checkMgAsthma(val) {
   } else {
     fb.innerHTML = `<div class="fb ok"><span class="fb-ic">✓</span><span>Rate ${rate} mL/hr ปกติสำหรับ MgSO4 asthma protocol</span></div>`;
   }
+}
+
+// ══════════════════════════════════
+// SMART DOSE CALCULATORS
+// ══════════════════════════════════
+function updateSmartCalc(drugKey) {
+  const el = document.getElementById(`smart-calc-${drugKey}`);
+  if (!el) return;
+
+  if (drugKey === 'kcl')       return smartCalcKCl(el);
+  if (drugKey === 'pethidine') return smartCalcPethidine(el);
+  if (drugKey === 'insulin')   return smartCalcInsulinK(el);
+  if (drugKey === 'digoxin')   return smartCalcDigoxin(el);
+  if (drugKey === 'warfarin')  return smartCalcWarfarin(el);
+  if (drugKey === 'mgso4')     return smartCalcMg(el);
+  el.innerHTML = '';
+}
+
+/* ── KCl: dose by K⁺ level (HAD 2567 p.17) ── */
+function smartCalcKCl(el) {
+  const kVal = parseFloat(document.getElementById('lab-kcl-k')?.value);
+  if (!kVal || kVal <= 0) { el.innerHTML = ''; return; }
+  const wt = currentPt?.weight || 60;
+  let html = '';
+
+  if (kVal >= 5.3) {
+    html = `<div class="fb bad"><span class="fb-ic">🚨</span><span>
+      <strong>Hyperkalemia (K⁺ ${kVal})</strong> — หยุด KCl ทันที!<br>
+      <span style="font-size:11px;opacity:0.85">
+      ① Ca gluconate 1g slow IV push 5-10 นาที<br>
+      ② RI 10u + 50% glucose 50 mL IV drip 15-30 นาที<br>
+      ③ NaHCO₃ 50-100 mEq IV push 2-5 นาที<br>
+      ④ Kalimate 15-60 g PO ทุก 6 ชม.</span>
+    </span></div>`;
+  } else if (kVal > 3.5) {
+    html = `<div class="fb ok"><span class="fb-ic">✓</span><span>K⁺ ${kVal} mEq/L อยู่ในเกณฑ์ปกติ (3.5-5.3) — ไม่จำเป็นต้องเสริม KCl</span></div>`;
+  } else if (kVal >= 3.0) {
+    // Mild
+    html = `<div class="fb warn" style="background:#FFF8E1;border-color:#FFB300"><span class="fb-ic">💊</span><span>
+      <strong>Mild Hypokalemia (K⁺ ${kVal})</strong><br>
+      <span style="font-size:11.5px">
+      PO: Elixir 40-100 mEq/day แบ่ง 2-5 ครั้ง (20-25 mEq/dose)<br>
+      ℹ ทุก 10 mEq จะเพิ่ม K⁺ ≈ 0.1 mEq/L</span>
+    </span></div>`;
+  } else if (kVal >= 2.5) {
+    // Moderate
+    const ivDose = Math.round(wt * 2.5);
+    html = `<div class="fb warn"><span class="fb-ic">⚠</span><span>
+      <strong>Moderate Hypokalemia (K⁺ ${kVal})</strong><br>
+      <span style="font-size:11.5px">
+      PO: Elixir 120-130 mEq/day แบ่ง 3-4 ครั้ง (40-60 mEq/dose)<br>
+      หรือ IV: BW × 2-3 = <strong>${Math.round(wt*2)}-${Math.round(wt*3)} mEq</strong> (50% slow infusion > 12 ชม.)<br>
+      Max Conc <strong>40 mEq/L</strong> · Max dose/day ≤ 200 mEq · Max rate <strong>10 mEq/hr</strong></span>
+    </span></div>`;
+  } else if (kVal >= 2.0) {
+    // Severe
+    html = `<div class="fb bad"><span class="fb-ic">🚨</span><span>
+      <strong>Severe Hypokalemia (K⁺ ${kVal})</strong><br>
+      <span style="font-size:11.5px">
+      IV: <strong>5-10 mEq/hr</strong><br>
+      Max Conc <strong>80 mEq/L</strong> · Max dose/day ≤ 400 mEq · Max rate <strong>40 mEq/hr</strong><br>
+      <span style="color:#C62828">⚡ ทำ EKG เมื่อ rate > 10 mEq/hr</span></span>
+    </span></div>`;
+  } else {
+    // Very severe < 2
+    html = `<div class="fb bad"><span class="fb-ic">🚨</span><span>
+      <strong>Very Severe Hypokalemia (K⁺ ${kVal})</strong> — ภาวะวิกฤต!<br>
+      <span style="font-size:11.5px">
+      IV: rate up to <strong>50 mEq/hr</strong> ร่วมกับ monitor EKG<br>
+      Max Conc <strong>80 mEq/L</strong> · Max dose/day ≤ 400 mEq<br>
+      <span style="color:#C62828">⚡ ต้องทำ EKG monitor ตลอด · Max dose/day ไม่เกิน 3 mEq/kg</span></span>
+    </span></div>`;
+  }
+  el.innerHTML = html;
+}
+
+/* ── Pethidine: dose adjustment by CrCl ── */
+function smartCalcPethidine(el) {
+  const crcl = parseFloat(document.getElementById('lab-pethidine-crcl')?.value);
+  const pain = document.getElementById('lab-pethidine-pain')?.value;
+  if (!crcl || crcl <= 0) { el.innerHTML = ''; return; }
+
+  let html = '';
+  if (crcl > 50) {
+    html = `<div class="fb ok"><span class="fb-ic">✓</span><span>
+      CrCl ${crcl} mL/min — ไม่ต้องปรับขนาด (ใช้ dose ปกติ 25-100 mg)
+    </span></div>`;
+  } else if (crcl >= 10) {
+    html = `<div class="fb warn"><span class="fb-ic">⚠</span><span>
+      <strong>CrCl ${crcl} mL/min → ลดขนาดเหลือ 75%</strong><br>
+      <span style="font-size:11.5px">
+      Dose ปกติ 25 mg → <strong>19 mg</strong> · 50 mg → <strong>37.5 mg</strong> · 75 mg → <strong>56 mg</strong> · 100 mg → <strong>75 mg</strong><br>
+      ⚠ ระวัง norpethidine สะสม → ชักได้ · ไม่ควรใช้ > 48 ชม.</span>
+    </span></div>`;
+  } else {
+    html = `<div class="fb bad"><span class="fb-ic">🚨</span><span>
+      <strong>CrCl ${crcl} mL/min → ลดขนาดเหลือ 50%</strong><br>
+      <span style="font-size:11.5px">
+      Dose ปกติ 25 mg → <strong>12.5 mg</strong> · 50 mg → <strong>25 mg</strong> · 100 mg → <strong>50 mg</strong><br>
+      <span style="color:#C62828">🚨 ไตบกพร่องรุนแรง — พิจารณาเลี่ยง Pethidine (norpethidine สะสมมาก)</span></span>
+    </span></div>`;
+  }
+  el.innerHTML = html;
+}
+
+/* ── Insulin: K⁺ context when giving RI ── */
+function smartCalcInsulinK(el) {
+  const dtx = parseFloat(document.getElementById('lab-insulin-dtx')?.value);
+  const kVal = parseFloat(document.getElementById('lab-insulin-k')?.value);
+  let parts = [];
+
+  if (kVal && kVal > 0) {
+    if (kVal > 5.3) {
+      parts.push(`<div class="fb warn"><span class="fb-ic">⚡</span><span>
+        <strong>K⁺ ${kVal} — Hyperkalemia</strong><br>
+        <span style="font-size:11.5px">Dextrose 0.5-1 mL/kg + RI 1 unit ต่อ dextrose 4-5 g<br>
+        RI จะ shift K⁺ เข้าเซลล์ → ช่วยลด K⁺</span>
+      </span></div>`);
+    } else if (kVal < 3.5) {
+      parts.push(`<div class="fb bad"><span class="fb-ic">🚨</span><span>
+        <strong>K⁺ ${kVal} — Hypokalemia!</strong> RI จะทำให้ K⁺ ต่ำลงอีก<br>
+        <span style="font-size:11.5px">ต้องเสริม KCl ก่อน/ร่วมกับ RI · เป้าหมาย K⁺ ≥ 3.5 mEq/L</span>
+      </span></div>`);
+    }
+  }
+
+  if (dtx && dtx > 0 && dtx < 70) {
+    parts.push(`<div class="fb bad"><span class="fb-ic">🚨</span><span>
+      <strong>DTx ${dtx} — Hypoglycemia!</strong> หยุด RI ทันที<br>
+      <span style="font-size:11.5px">ให้ 50% Glucose 50 mL IV push · เจาะ DTx ซ้ำใน 15 นาที</span>
+    </span></div>`);
+  }
+
+  el.innerHTML = parts.join('');
+}
+
+/* ── Digoxin: K⁺ + Dig level context ── */
+function smartCalcDigoxin(el) {
+  const kVal = parseFloat(document.getElementById('lab-digoxin-k')?.value);
+  const digLvl = parseFloat(document.getElementById('lab-digoxin-digLevel')?.value);
+  let parts = [];
+
+  if (kVal && kVal > 0 && kVal < 3.5) {
+    parts.push(`<div class="fb bad"><span class="fb-ic">🚨</span><span>
+      <strong>K⁺ ${kVal} + Digoxin = เสี่ยง Dig toxicity สูงมาก!</strong><br>
+      <span style="font-size:11.5px">ต้องเสริม KCl ให้ K⁺ อยู่ 3.5-5.0 · monitor EKG</span>
+    </span></div>`);
+  }
+
+  if (digLvl && digLvl > 2.0) {
+    parts.push(`<div class="fb bad"><span class="fb-ic">🚨</span><span>
+      <strong>Digoxin level ${digLvl} ng/mL — เกิน therapeutic range!</strong> (เป้า 0.8-2.0)<br>
+      <span style="font-size:11.5px">หยุดยาและแจ้งแพทย์ · สังเกตอาการ toxicity: คลื่นไส้ เบื่ออาหาร ตาพร่า หัวใจเต้นผิดจังหวะ</span>
+    </span></div>`);
+  } else if (digLvl && digLvl > 0 && digLvl < 0.8) {
+    parts.push(`<div class="fb warn" style="background:#FFF8E1;border-color:#FFB300"><span class="fb-ic">📊</span><span>
+      Digoxin level ${digLvl} ng/mL — <strong>ต่ำกว่า therapeutic range</strong> (เป้า 0.8-2.0)
+    </span></div>`);
+  } else if (digLvl) {
+    parts.push(`<div class="fb ok"><span class="fb-ic">✓</span><span>Digoxin level ${digLvl} ng/mL — อยู่ใน therapeutic range (0.8-2.0) ✓</span></div>`);
+  }
+
+  el.innerHTML = parts.join('');
+}
+
+/* ── Warfarin: INR context ── */
+function smartCalcWarfarin(el) {
+  const inr = parseFloat(document.getElementById('lab-warfarin-inr')?.value);
+  if (!inr || inr <= 0) { el.innerHTML = ''; return; }
+
+  let html = '';
+  if (inr < 2.0) {
+    html = `<div class="fb warn" style="background:#FFF8E1;border-color:#FFB300"><span class="fb-ic">📊</span><span>
+      INR ${inr} — <strong>ต่ำกว่า therapeutic range</strong> (เป้า 2.0-3.0)<br>
+      <span style="font-size:11.5px">อาจต้องเพิ่มขนาด Warfarin · ส่งเสริม compliance</span>
+    </span></div>`;
+  } else if (inr <= 3.0) {
+    html = `<div class="fb ok"><span class="fb-ic">✓</span><span>INR ${inr} — อยู่ใน therapeutic range (2.0-3.0) ✓</span></div>`;
+  } else if (inr <= 5.0) {
+    html = `<div class="fb warn"><span class="fb-ic">⚠</span><span>
+      <strong>INR ${inr} — เกิน therapeutic range</strong><br>
+      <span style="font-size:11.5px">ลดขนาดหรืองดยา 1-2 วัน · เจาะ INR ซ้ำใน 1-2 วัน · ระวังเลือดออก</span>
+    </span></div>`;
+  } else {
+    html = `<div class="fb bad"><span class="fb-ic">🚨</span><span>
+      <strong>INR ${inr} — เสี่ยงเลือดออกรุนแรง!</strong><br>
+      <span style="font-size:11.5px">หยุด Warfarin · ให้ Vitamin K 2.5-5 mg PO/IV · ถ้าเลือดออกรุนแรง FFP<br>
+      แจ้งแพทย์ทันที</span>
+    </span></div>`;
+  }
+  el.innerHTML = html;
+}
+
+/* ── MgSO4: Mg level context ── */
+function smartCalcMg(el) {
+  const mg = parseFloat(document.getElementById('lab-mgso4-mg')?.value);
+  if (!mg || mg <= 0) { el.innerHTML = ''; return; }
+
+  let html = '';
+  if (mg > 9) {
+    html = `<div class="fb bad"><span class="fb-ic">🚨</span><span>
+      <strong>Mg ${mg} — ภาวะวิกฤต!</strong> Respiratory paralysis/Cardiac arrest<br>
+      <span style="font-size:11.5px">หยุด MgSO₄ ทันที · ให้ Ca gluconate 1g IV push 5-10 นาที · Intubation standby</span>
+    </span></div>`;
+  } else if (mg > 5) {
+    html = `<div class="fb bad"><span class="fb-ic">🚨</span><span>
+      <strong>Mg ${mg} — HyperMagnesemia</strong><br>
+      <span style="font-size:11.5px">หยุด MgSO₄ · ตรวจ Patellar reflex (ถ้าหายไป = Mg สูงเกิน) · ให้ Ca gluconate ถ้าจำเป็น</span>
+    </span></div>`;
+  } else if (mg >= 1.7) {
+    html = `<div class="fb ok"><span class="fb-ic">✓</span><span>Mg ${mg} mg/dL อยู่ในเกณฑ์ปกติ (1.7-2.4)</span></div>`;
+  } else {
+    html = `<div class="fb warn"><span class="fb-ic">⚠</span><span>
+      <strong>Mg ${mg} — Hypomagnesemia</strong><br>
+      <span style="font-size:11.5px">พิจารณาเสริม MgSO₄ · Eclampsia protocol: Loading 4g IV 20 นาที → Maint 1-2 g/hr</span>
+    </span></div>`;
+  }
+  el.innerHTML = html;
+}
+
+// ══════════════════════════════════
+// ALERT TIMELINE
+// ══════════════════════════════════
+const DRUG_ALERTS = {
+  ne: [
+    { after:60, ic:'🩸', title:'ตรวจ Lactate ซ้ำ', desc:'NE drip > 1 ชม. → ประเมิน tissue perfusion' },
+    { after:240, ic:'📊', title:'ประเมิน dose NE', desc:'ถ้า MAP on-target > 4 ชม. พิจารณา weaning' },
+  ],
+  adr: [
+    { after:30, ic:'💓', title:'ตรวจ HR/EKG', desc:'Adrenaline drip > 30 นาที → ตรวจ arrhythmia' },
+    { after:120, ic:'🩸', title:'เจาะ Lactate/K⁺', desc:'Adrenaline → ↑Lactate, ↓K⁺ ได้' },
+  ],
+  kcl: [
+    { after:240, ic:'🧪', title:'เจาะ K⁺ ซ้ำ', desc:'KCl drip ครบ 4 ชม. → เจาะ serum K⁺ ซ้ำ' },
+    { after:60, ic:'💉', title:'ตรวจ IV site', desc:'ตรวจ extravasation/บวมแดงที่ตำแหน่งให้ยา' },
+  ],
+  mgso4: [
+    { after:60, ic:'🦵', title:'ตรวจ Patellar reflex', desc:'MgSO₄ > 1 ชม. → ตรวจ deep tendon reflex' },
+    { after:60, ic:'💨', title:'เช็ค RR + UO', desc:'RR ≥ 16, UO ≥ 25 mL/hr → ปลอดภัยให้ต่อ' },
+    { after:240, ic:'🧪', title:'เจาะ Mg²⁺ ซ้ำ', desc:'Maint drip ครบ 4 ชม. → ตรวจระดับ Mg ซ้ำ' },
+  ],
+  insulin: [
+    { after:60, ic:'🩸', title:'เจาะ DTx ซ้ำ', desc:'RI drip → DTx ทุก 1-2 ชม.' },
+    { after:120, ic:'🩸', title:'DTx + K⁺ ซ้ำ', desc:'RI drip > 2 ชม. → ตรวจ DTx และ K⁺' },
+  ],
+  morphine: [
+    { after:30, ic:'💨', title:'ประเมิน RR + Sedation', desc:'Morphine ให้แล้ว 30 นาที → RR ≥ 10? Sedation score?' },
+    { after:120, ic:'📊', title:'ประเมิน Pain score ซ้ำ', desc:'2 ชม. หลังให้ยา → ประเมินผลของยา' },
+  ],
+  pethidine: [
+    { after:30, ic:'💨', title:'ประเมิน RR + Sedation', desc:'Pethidine ให้แล้ว 30 นาที → RR ≥ 10?' },
+    { after:120, ic:'📊', title:'ประเมิน Pain score ซ้ำ', desc:'2 ชม. หลังให้ยา → ประเมินผลของยา' },
+  ],
+  digoxin: [
+    { after:360, ic:'🧪', title:'เจาะ Digoxin level', desc:'เจาะ ≥ 6 ชม. หลังให้ยา (true level)' },
+    { after:60, ic:'💓', title:'ตรวจ HR/EKG', desc:'Digoxin → monitor bradycardia, arrhythmia' },
+  ],
+  warfarin: [
+    { after:4320, ic:'🧪', title:'เจาะ INR ซ้ำ', desc:'Warfarin → ตรวจ INR ทุก 3 วัน (72 ชม.)' },
+    { after:1440, ic:'📋', title:'ตรวจอาการเลือดออก', desc:'สังเกต bruising, gum bleeding, melena ทุกวัน' },
+  ],
+  amiodarone: [
+    { after:60, ic:'💓', title:'ตรวจ EKG/HR', desc:'Amiodarone > 1 ชม. → ตรวจ QTc, HR' },
+    { after:360, ic:'📊', title:'ประเมิน rhythm', desc:'6 ชม. → ประเมินผลของยาต่อ rhythm' },
+  ],
+  streptokinase: [
+    { after:30, ic:'🩸', title:'เช็คอาการเลือดออก', desc:'30 นาที หลังให้ SK → ตรวจ bleeding site' },
+    { after:60, ic:'💓', title:'ตรวจ EKG ซ้ำ', desc:'1 ชม. → ดู reperfusion signs (ST resolution)' },
+    { after:180, ic:'🧪', title:'เจาะ coagulation', desc:'3 ชม. → PT, aPTT, fibrinogen' },
+  ],
+};
+
+let alertTimers = [];
+
+function renderAlertTimeline() {
+  const block = document.getElementById('alert-timeline-block');
+  const container = document.getElementById('alert-timeline');
+  const badge = document.getElementById('alert-count');
+  if (!block || !container) return;
+
+  // collect alerts for selected drugs
+  const selectedDrugs = [];
+  document.querySelectorAll('#screen-round .dchip.on').forEach(c => {
+    const key = c.dataset.drug;
+    if (key && DRUG_ALERTS[key]) selectedDrugs.push(key);
+  });
+
+  if (selectedDrugs.length === 0) {
+    block.style.display = 'none';
+    return;
+  }
+
+  let allAlerts = [];
+  selectedDrugs.forEach(dk => {
+    DRUG_ALERTS[dk].forEach(a => {
+      allAlerts.push({ ...a, drug: dk, drugName: DRUG_DB[dk].name });
+    });
+  });
+
+  // sort by time
+  allAlerts.sort((a,b) => a.after - b.after);
+
+  block.style.display = '';
+  badge.textContent = allAlerts.length;
+
+  let html = '';
+  allAlerts.forEach((a, i) => {
+    const hrs = Math.floor(a.after / 60);
+    const mins = a.after % 60;
+    let timeStr = '';
+    if (hrs > 0 && mins > 0) timeStr = `${hrs} ชม. ${mins} นาที หลังเริ่มยา`;
+    else if (hrs > 0) timeStr = `${hrs} ชม. หลังเริ่มยา`;
+    else timeStr = `${mins} นาที หลังให้ยา`;
+
+    if (a.after >= 1440) {
+      const days = Math.floor(a.after / 1440);
+      timeStr = `${days} วัน หลังเริ่มยา`;
+    }
+
+    const cls = a.after <= 60 ? 'atl-soon' : 'atl-info';
+    html += `<div class="atl-item ${cls}" id="atl-${i}">
+      <span class="atl-ic">${a.ic}</span>
+      <div class="atl-body">
+        <div class="atl-title">${a.title} <span style="font-weight:400;opacity:0.6;font-size:10.5px">(${a.drugName})</span></div>
+        <div class="atl-desc">${a.desc}</div>
+        <div class="atl-time">⏱ ${timeStr}</div>
+      </div>
+      <span style="cursor:pointer;font-size:14px;opacity:0.4" onclick="this.parentElement.classList.add('atl-done');this.textContent='✓';this.style.opacity='0.8';this.style.color='var(--green)'">○</span>
+    </div>`;
+  });
+
+  container.innerHTML = html;
 }
 
 // ══════════════════════════════════
