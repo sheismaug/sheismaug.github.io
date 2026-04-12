@@ -682,6 +682,38 @@ body {
 .had-card-row.antidote { background: var(--green2); }
 .had-card-row.antidote .had-card-label { color: var(--green); }
 .had-card-text { color: var(--ink2); }
+.had-card-text ul {
+  margin: 0; padding: 0 0 0 14px; list-style: none;
+}
+.had-card-text ul li {
+  position: relative; padding: 2px 0 2px 6px; line-height: 1.55;
+}
+.had-card-text ul li::before {
+  content: ''; position: absolute; left: -10px; top: 9px;
+  width: 4px; height: 4px; border-radius: 50%;
+  background: currentColor; opacity: 0.35;
+}
+/* highlight numbers in dose items */
+.had-card-text .hi {
+  font-weight: 700; color: #6A1B9A; background: #EDE7F6;
+  padding: 0 3px; border-radius: 4px; font-size: 11.5px;
+}
+.had-card-row.prep .had-card-text .hi { color: #006090; background: #E0F2FF; }
+.had-card-row.monitoring .had-card-text .hi { color: #2E7D32; background: #E8F5E9; }
+.had-card-row.alarm .had-card-text .hi { color: #E65100; background: #FFF3E0; }
+.had-card-row.sae .had-card-text .hi { color: #C62828; background: #FFEBEE; }
+.had-card-row.antidote .had-card-text .hi { color: #1B5E20; background: #E8F5E9; }
+/* warning badge inside dose */
+.had-card-text .badge-warn {
+  display: inline-block; background: #FFF3E0; color: #E65100;
+  font-weight: 700; font-size: 9px; padding: 1px 6px;
+  border-radius: 6px; margin-left: 2px;
+}
+.had-card-text .badge-ok {
+  display: inline-block; background: #E8F5E9; color: #2E7D32;
+  font-weight: 700; font-size: 9px; padding: 1px 6px;
+  border-radius: 6px; margin-left: 2px;
+}
 
 /* Lab Monitor section */
 .lab-mon-section {
@@ -2011,33 +2043,46 @@ function renderDoseBlocks() {
 
   // Drug Info button + HAD Card panel
   if (drug.info) {
+    // Helper: split " · " into bullet list + highlight key numbers
+    const fmtCard = (txt) => {
+      if (!txt) return '';
+      const items = txt.split(' · ').map(s => s.trim()).filter(Boolean);
+      if (items.length <= 1) {
+        return hiNums(txt);
+      }
+      return '<ul>' + items.map(i => `<li>${hiNums(i)}</li>`).join('') + '</ul>';
+    };
+    const hiNums = (s) => {
+      // highlight numbers with units (e.g. 150 mg, 0.5 mg/min, 10 mEq/hr, 4-5 g, 24 ชม.)
+      return s.replace(/(\d+[\.,]?\d*)\s*(mg\/m[Ll]|mg\/min|mg|mL\/hr|mL|mEq\/L|mEq\/hr|mEq|mcg\/mL|mcg\/kg\/min|mcg\/min|mcg|u\/kg\/hr|u\/kg|unit[s]?\/hour|unit[s]?|g\/hr|g\/mL|g |ng\/mL|%|°C|mmHg|ชม\.|นาที|วินาที|วัน|BPM)/gi, '<span class="hi">$1 $2</span>');
+    };
     html += `<div style="margin-top:10px;display:flex;justify-content:flex-end;">
       <div class="dinfo-btn" onclick="toggleDrugInfo('${currentDrugTab}')">ℹ HAD Card · ${drug.short}</div>
     </div>
     <div class="dinfo-panel" id="dinfo-${currentDrugTab}">
       ${drug.info.dose ? `<div class="had-card-row dose">
-        <div class="had-card-label">Dose & Common Orders</div>
-        <div class="had-card-text">${drug.info.dose}</div>
+        <div class="had-card-label">DOSE & COMMON ORDERS</div>
+        <div class="had-card-text">${fmtCard(drug.info.dose)}</div>
       </div>` : ''}
       <div class="had-card-row prep">
-        <div class="had-card-label">Preparation</div>
-        <div class="had-card-text">${drug.info.prep}</div>
+        <div class="had-card-label">PREPARATION</div>
+        <div class="had-card-text">${fmtCard(drug.info.prep)}</div>
       </div>
       <div class="had-card-row monitoring">
-        <div class="had-card-label">Monitoring</div>
-        <div class="had-card-text">${drug.info.monitoring}</div>
+        <div class="had-card-label">MONITORING</div>
+        <div class="had-card-text">${fmtCard(drug.info.monitoring)}</div>
       </div>
       <div class="had-card-row alarm">
-        <div class="had-card-label">Alarm Sign</div>
-        <div class="had-card-text">${drug.info.alarm}</div>
+        <div class="had-card-label">ALARM SIGN</div>
+        <div class="had-card-text">${fmtCard(drug.info.alarm)}</div>
       </div>
       <div class="had-card-row sae">
-        <div class="had-card-label">Serious Adverse Event</div>
-        <div class="had-card-text">${drug.info.sae}</div>
+        <div class="had-card-label">SERIOUS ADVERSE EVENT</div>
+        <div class="had-card-text">${fmtCard(drug.info.sae)}</div>
       </div>
       ${drug.info.antidote && drug.info.antidote !== '-' ? `<div class="had-card-row antidote">
-        <div class="had-card-label">Antidote</div>
-        <div class="had-card-text">${drug.info.antidote}</div>
+        <div class="had-card-label">ANTIDOTE</div>
+        <div class="had-card-text">${fmtCard(drug.info.antidote)}</div>
       </div>` : ''}
     </div>`;
   }
