@@ -682,6 +682,12 @@ body {
 .had-card-row.antidote { background: var(--green2); }
 .had-card-row.antidote .had-card-label { color: var(--green); }
 .had-card-text { color: var(--ink2); }
+/* Guide accordion */
+.guide-panel { max-height:0; overflow:hidden; transition:max-height 0.3s ease; }
+.guide-panel.open { max-height:3000px; }
+.guide-chevron { transition:transform 0.2s; }
+.guide-panel.open ~ .guide-chevron,
+div:has(> .guide-panel.open) .guide-chevron { transform:rotate(90deg); }
 .had-card-text ul {
   margin: 0; padding: 0 0 0 14px; list-style: none;
 }
@@ -1172,6 +1178,25 @@ body {
   </div>
 </div>
 
+<!-- ══════ HAD GUIDE SCREEN ══════ -->
+<div class="screen" id="screen-guide">
+  <div class="hist-hd" style="position:relative;overflow:hidden;">
+    <div style="position:absolute;top:-20px;right:-8px;font-size:100px;font-weight:900;color:rgba(255,255,255,0.06);line-height:1;pointer-events:none;letter-spacing:-3px;">HAD</div>
+    <div class="hist-title">คู่มือ HAD · รพ.ห้วยผึ้ง</div>
+    <div style="font-size:11px;color:rgba(255,255,255,0.5);">ฉบับปรับปรุง 2567 · แตะชื่อยาเพื่อดู HAD Card</div>
+  </div>
+
+  <!-- Search -->
+  <div style="padding:12px 14px 6px;">
+    <input id="guide-search" type="search" placeholder="🔍 ค้นหายา..."
+      style="width:100%;padding:10px 14px;border:1.5px solid var(--ink5);border-radius:14px;font-size:13px;font-family:'Google Sans',sans-serif;background:white;box-sizing:border-box;"
+      oninput="filterGuide(this.value)">
+  </div>
+
+  <!-- Drug grid -->
+  <div id="guide-list" style="padding:8px 14px 100px;display:flex;flex-direction:column;gap:8px;"></div>
+</div>
+
 <nav class="bnav">
   <div class="bt on" id="bt-home" onclick="goScreen('home')">
     <span class="bt-ic">◎</span><span class="bt-lb">Home</span>
@@ -1181,6 +1206,9 @@ body {
   </div>
   <div class="bt" id="bt-kpi" onclick="goScreen('kpi')">
     <span class="bt-ic">📊</span><span class="bt-lb">KPI</span>
+  </div>
+  <div class="bt" id="bt-guide" onclick="goScreen('guide')">
+    <span class="bt-ic">💊</span><span class="bt-lb">คู่มือ</span>
   </div>
 </nav>
 
@@ -1538,6 +1566,10 @@ function goScreen(name) {
     document.getElementById('bt-kpi').classList.add('on');
     fab.style.display = 'none';
     renderKPI();
+  } else if (name === 'guide') {
+    document.getElementById('bt-guide').classList.add('on');
+    fab.style.display = 'none';
+    renderGuide();
   } else {
     fab.style.display = 'none';
   }
@@ -2856,6 +2888,108 @@ function onRoundsLoaded(data) {
     rounds = data.rounds;
     saveLocal();
   }
+}
+
+// ══════════════════════════════════
+// HAD GUIDE (Quick Reference)
+// ══════════════════════════════════
+
+const DRUG_GROUPS = {
+  'Vasopressor / Inotrope': ['ne', 'adr'],
+  'Antiarrhythmic': ['amiodarone', 'adenosine', 'digoxin'],
+  'Narcotic / Pain': ['morphine', 'pethidine'],
+  'Electrolyte': ['kcl', 'mgso4'],
+  'Insulin': ['insulin'],
+  'Thrombolytic / Anticoagulant': ['streptokinase', 'warfarin'],
+};
+
+function renderGuide(filter) {
+  const container = document.getElementById('guide-list');
+  const q = (filter || '').trim().toLowerCase();
+
+  // helper to format card text (reuse from renderDoseBlocks)
+  const fmtCard = (txt) => {
+    if (!txt) return '';
+    const items = txt.split(' · ').map(s => s.trim()).filter(Boolean);
+    if (items.length <= 1) return hiNums(txt);
+    return '<ul>' + items.map(i => '<li>' + hiNums(i) + '</li>').join('') + '</ul>';
+  };
+  const hiNums = (s) => {
+    return s.replace(/(\d+[\.,]?\d*)\s*(mg\/m[Ll]|mg\/min|mg|mL\/hr|mL|mEq\/L|mEq\/hr|mEq|mcg\/mL|mcg\/kg\/min|mcg\/min|mcg|u\/kg\/hr|u\/kg|unit[s]?\/hour|unit[s]?|g\/hr|g\/mL|g |ng\/mL|%|°C|mmHg|ชม\.|นาที|วินาที|วัน|BPM)/gi, '<span class="hi">$1 $2</span>');
+  };
+
+  let html = '';
+
+  Object.entries(DRUG_GROUPS).forEach(([groupName, keys]) => {
+    const filtered = keys.filter(k => {
+      if (!q) return true;
+      const d = DRUG_DB[k];
+      return d.name.toLowerCase().includes(q) || d.short.toLowerCase().includes(q) || k.includes(q);
+    });
+    if (filtered.length === 0) return;
+
+    html += `<div style="font-size:10px;font-weight:800;color:var(--ink4);text-transform:uppercase;letter-spacing:0.8px;margin:8px 0 4px 4px;">${groupName}</div>`;
+
+    filtered.forEach(k => {
+      const d = DRUG_DB[k];
+      if (!d.info) return;
+      const panelId = 'guide-card-' + k;
+      const colorMap = { 'dt-red':'#E53935','dt-orng':'#FB8C00','dt-sky':'#039BE5','dt-pink':'#D81B60','dt-grey':'#546E7A','dt-lime':'#7CB342' };
+      const dotColor = colorMap[d.drugColor] || '#90A4AE';
+
+      html += `<div style="background:white;border-radius:16px;border:1.5px solid var(--ink5);overflow:hidden;box-shadow:0 1px 4px rgba(0,0,0,0.04);">
+        <div onclick="document.getElementById('${panelId}').classList.toggle('open')" style="padding:12px 16px;cursor:pointer;display:flex;align-items:center;gap:10px;">
+          <div style="width:8px;height:8px;border-radius:50%;background:${dotColor};flex-shrink:0;"></div>
+          <div style="flex:1;min-width:0;">
+            <div style="font-size:14px;font-weight:700;color:var(--ink1);">${d.name}</div>
+            <div style="font-size:10px;color:var(--ink4);margin-top:1px;">${d.short} · ${d.badge || ''}</div>
+          </div>
+          <div style="font-size:16px;color:var(--ink4);transition:transform 0.2s;" class="guide-chevron">›</div>
+        </div>
+        <div id="${panelId}" class="guide-panel">
+          <div style="padding:0 14px 14px;display:flex;flex-direction:column;gap:6px;">
+            ${d.info.dose ? `<div class="had-card-row dose">
+              <div class="had-card-label">DOSE & COMMON ORDERS</div>
+              <div class="had-card-text">${fmtCard(d.info.dose)}</div>
+            </div>` : ''}
+            <div class="had-card-row prep">
+              <div class="had-card-label">PREPARATION</div>
+              <div class="had-card-text">${fmtCard(d.info.prep)}</div>
+            </div>
+            <div class="had-card-row monitoring">
+              <div class="had-card-label">MONITORING</div>
+              <div class="had-card-text">${fmtCard(d.info.monitoring)}</div>
+            </div>
+            <div class="had-card-row alarm">
+              <div class="had-card-label">ALARM SIGN</div>
+              <div class="had-card-text">${fmtCard(d.info.alarm)}</div>
+            </div>
+            <div class="had-card-row sae">
+              <div class="had-card-label">SERIOUS ADVERSE EVENT</div>
+              <div class="had-card-text">${fmtCard(d.info.sae)}</div>
+            </div>
+            ${d.info.antidote && d.info.antidote !== '-' ? `<div class="had-card-row antidote">
+              <div class="had-card-label">ANTIDOTE</div>
+              <div class="had-card-text">${fmtCard(d.info.antidote)}</div>
+            </div>` : ''}
+            ${d.note ? `<div style="font-size:10px;color:var(--ink3);padding:6px 0 0;border-top:1px dashed var(--ink5);">
+              ${d.note.replace(/^[ℹ⚠] /,'')}
+            </div>` : ''}
+          </div>
+        </div>
+      </div>`;
+    });
+  });
+
+  if (!html) {
+    html = '<div style="text-align:center;padding:40px 20px;color:var(--ink4);font-size:13px;">ไม่พบยาที่ค้นหา</div>';
+  }
+
+  container.innerHTML = html;
+}
+
+function filterGuide(val) {
+  renderGuide(val);
 }
 
 // ══════════════════════════════════
