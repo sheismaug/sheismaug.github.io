@@ -6405,7 +6405,7 @@ async function ccConfirm(drugId) {
       await callScript('saveRestock', {
         pharmacistName : APP.userName,
         drug_id        : drugId,
-        qty_restock    : qty,
+        qty_added      : qty,
         lot_number     : '',
         exp_date       : st.newLotExp,
       });
@@ -6462,7 +6462,7 @@ async function ccConfirm(drugId) {
     await callScript('saveRestock', {
       pharmacistName : APP.userName,
       drug_id        : drugId,
-      qty_restock    : totalDisp,
+      qty_added      : totalDisp,
       lot_number     : '',
       exp_date       : restockExp,
     });
