@@ -121,8 +121,8 @@ input[type=password],select,select option,textarea,button { font-family:var(--fo
   position:relative;
 }
 .bti-ic { font-size:18px; line-height:1; }
-.bti-lbl { font-size:10px; color:var(--tx3); font-weight:500; }
-.bti.on .bti-lbl { color:var(--g3); font-weight:700; }
+.bti-lbl { font-size:10px; color:var(--sb-txt); font-weight:500; }
+.bti.on .bti-lbl { color:var(--g5); font-weight:700; }
 .bti-dot {
   width:4px; height:4px; border-radius:50%;
   background:var(--sb-acc); margin-top:0px;
@@ -276,8 +276,15 @@ input[type=password],select,select option,textarea,button { font-family:var(--fo
     flex:1;
     display:flex;
     flex-direction:column;
-    overflow:hidden;
+    overflow:visible;
     min-width:0;
+    min-height:0;
+  }
+  .content {
+    flex:1;
+    overflow-y:auto !important;
+    overflow-x:hidden;
+    -webkit-overflow-scrolling:touch;
     min-height:0;
   }
   .g2 { display:flex; flex-direction:column; gap:12px; }
@@ -1578,7 +1585,17 @@ async function refreshCurrentPage() {
     } else if (page === 'alerts') {
       const hasBackend2 = APPS_SCRIPT_URL && !APPS_SCRIPT_URL.includes('YOUR_APPS');
       if (hasBackend2) {
-        api('getPatients',{}).then(d => { if (d?.length) S.patients = d; buildAlertsPage(); }).catch(() => buildAlertsPage());
+        try {
+          const pts2 = await api('getPatients',{});
+          if (pts2?.length) S.patients = pts2;
+          // โหลด visits ของคนไข้ active เพื่อตรวจสอบขาดนัด
+          const activePts2 = S.patients.filter(p => p.status === 'active');
+          const visArrays2 = await Promise.all(
+            activePts2.map(p => api('getVisits',{ patient_id: p.patient_id }).catch(()=>[]))
+          );
+          S.allVisits = visArrays2.flat();
+        } catch(e) {}
+        buildAlertsPage();
       } else { buildAlertsPage(); }
 
     } else if (page === 'dashboard') {
@@ -3224,9 +3241,14 @@ function buildPharmPage(key) {
       } else updateDashboardStats();
     }
     if (key==='alerts') {
-      if (hasBackend && !S.patients.length) {
+      if (hasBackend) {
         api('getPatients',{}).then(d => {
           if (d?.length) S.patients = d;
+          // โหลด visits ทั้งหมดเพื่อตรวจสอบขาดนัด
+          const actPts = S.patients.filter(p => p.status==='active');
+          return Promise.all(actPts.map(p => api('getVisits',{ patient_id: p.patient_id }).catch(()=>[])));
+        }).then(visArrays => {
+          if (visArrays) S.allVisits = visArrays.flat();
           buildAlertsPage();
         }).catch(() => buildAlertsPage());
       } else {
@@ -4879,48 +4901,24 @@ function updateAlertBadge() {
   _alertBadgeTimer = setTimeout(_doUpdateAlertBadge, 200);
 }
 function _doUpdateAlertBadge() {
+  // badge แสดงเฉพาะจำนวนนัดสัปดาห์นี้ (Mon-Fri)
   const _cw = getClinicWeek();
   const weekStart = _cw.weekStart;
   const weekEnd   = _cw.weekEnd;
   let cnt = 0;
-  let missed = 0;
-  const todayISO = new Date().toISOString().slice(0,10);
-
-  // สร้าง map actual visits per patient
-  const visitsByPt = {};
-  (S.allVisits||[]).forEach(v => {
-    if (!v.patient_id || !v.actual_date) return;
-    if (!visitsByPt[v.patient_id]) visitsByPt[v.patient_id] = new Set();
-    visitsByPt[v.patient_id].add(v.actual_date);
-  });
-
   (S.patients||[]).filter(p => p.status==='active').forEach(p => {
     try {
       const dates = JSON.parse(p.visit_dates_json||'[]');
       dates.forEach(d => { if (d && d >= weekStart && d <= weekEnd) cnt++; });
       const customs = JSON.parse(p.custom_visits_json||'[]');
       customs.forEach(cv => { if (cv.date && cv.date >= weekStart && cv.date <= weekEnd) cnt++; });
-
-      // Missed: นัดก่อนวันนี้ที่ไม่ได้มาจริง
-      const actualSet = visitsByPt[p.patient_id] || new Set();
-      dates.forEach(d => {
-        if (!d || d >= todayISO) return;
-        if (actualSet.has(d)) return;
-        const planned = new Date(d+'T00:00:00');
-        let found = false;
-        actualSet.forEach(ad => {
-          if (Math.abs(new Date(ad+'T00:00:00') - planned) <= 2*86400000) found = true;
-        });
-        if (!found) missed++;
-      });
     } catch(e) {}
   });
-  const total = cnt + missed;
   ['alert-nb','dr-alert-nb'].forEach(id => {
     const el = document.getElementById(id);
     if (!el) return;
-    if (total > 0) { el.textContent = total; el.classList.remove('hidden'); }
-    else           { el.classList.add('hidden'); }
+    if (cnt > 0) { el.textContent = cnt; el.classList.remove('hidden'); }
+    else         { el.classList.add('hidden'); }
   });
 }
 
