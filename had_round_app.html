@@ -620,6 +620,153 @@ body {
 .search-inp:focus { border-color: var(--red); }
 .search-inp::placeholder { color: var(--ink5); }
 
+/* ══════════════════════════════════
+   HN MATCH BANNER
+══════════════════════════════════ */
+.hn-banner {
+  margin: 0 14px 6px; padding: 12px 14px;
+  background: var(--lime2); border: 1.5px solid rgba(198,241,53,0.5);
+  border-radius: 16px; animation: slideDown 0.2s ease;
+}
+.hn-banner-title {
+  font-size: 12px; font-weight: 800; color: #5A7000; margin-bottom: 6px;
+  display: flex; align-items: center; gap: 6px;
+}
+.hn-banner-info { font-size: 11px; color: var(--ink3); margin-bottom: 8px; line-height: 1.5; }
+.hn-banner-btns { display: flex; gap: 8px; }
+.hn-banner-btn {
+  padding: 6px 14px; border-radius: 20px; font-size: 11px; font-weight: 700;
+  border: none; cursor: pointer; transition: all 0.15s;
+}
+.hn-banner-btn.primary { background: var(--green); color: white; }
+.hn-banner-btn.secondary { background: var(--ink6); color: var(--ink3); }
+
+/* ══════════════════════════════════
+   DRUG INFO PANEL (HAD CARD STYLE)
+══════════════════════════════════ */
+.dinfo-btn {
+  display: inline-flex; align-items: center; gap: 4px;
+  background: var(--sky2); color: #006090;
+  font-size: 10px; font-weight: 800; padding: 4px 10px; border-radius: 14px;
+  cursor: pointer; border: 1px solid rgba(91,200,245,0.3);
+  transition: all 0.15s;
+}
+.dinfo-btn:active { transform: scale(0.95); }
+.dinfo-panel {
+  display: none; margin-top: 10px;
+  animation: slideDown 0.2s ease;
+}
+.dinfo-panel.show { display: block; }
+@keyframes slideDown { from { opacity:0; transform:translateY(-6px); } to { opacity:1; transform:translateY(0); } }
+
+/* HAD Card rows */
+.had-card-row {
+  padding: 8px 12px; border-radius: 12px; margin-bottom: 6px;
+  font-size: 11px; line-height: 1.5;
+}
+.had-card-row:last-child { margin-bottom: 0; }
+.had-card-label {
+  font-size: 9px; font-weight: 800; text-transform: uppercase;
+  letter-spacing: 0.6px; margin-bottom: 3px;
+}
+.had-card-row.monitoring { background: #E8F5E9; }
+.had-card-row.monitoring .had-card-label { color: #2E7D32; }
+.had-card-row.alarm { background: #FFF3E0; }
+.had-card-row.alarm .had-card-label { color: #E65100; }
+.had-card-row.sae { background: #FFEBEE; }
+.had-card-row.sae .had-card-label { color: #C62828; }
+.had-card-row.dose { background: #F3E5F5; }
+.had-card-row.dose .had-card-label { color: #7B1FA2; }
+.had-card-row.prep { background: var(--sky2); }
+.had-card-row.prep .had-card-label { color: #006090; }
+.had-card-row.antidote { background: var(--green2); }
+.had-card-row.antidote .had-card-label { color: var(--green); }
+.had-card-text { color: var(--ink2); }
+
+/* ══════════════════════════════════
+   DRUG TREND MINI CHART
+══════════════════════════════════ */
+.trend-wrap {
+  margin-top: 10px; padding: 12px 14px;
+  background: var(--white); border-radius: 16px;
+  border: 1.5px solid var(--ink5);
+}
+.trend-title {
+  font-size: 9px; font-weight: 800; color: var(--ink4);
+  text-transform: uppercase; letter-spacing: 0.8px; margin-bottom: 8px;
+  display: flex; align-items: center; gap: 6px;
+}
+.trend-chart {
+  display: flex; align-items: flex-end; gap: 3px; height: 50px;
+  padding: 0 2px;
+}
+.trend-bar {
+  flex: 1; min-width: 8px; max-width: 24px;
+  border-radius: 4px 4px 0 0; background: var(--red);
+  opacity: 0.7; transition: all 0.3s;
+  position: relative;
+}
+.trend-bar:last-child { opacity: 1; }
+.trend-bar:hover { opacity: 1; }
+.trend-bar .trend-tip {
+  display: none; position: absolute; bottom: calc(100% + 4px); left: 50%;
+  transform: translateX(-50%); background: var(--ink); color: white;
+  font-size: 9px; font-weight: 700; padding: 3px 7px; border-radius: 6px;
+  white-space: nowrap; z-index: 10;
+}
+.trend-bar:hover .trend-tip { display: block; }
+.trend-labels {
+  display: flex; justify-content: space-between;
+  margin-top: 4px; font-size: 9px; color: var(--ink4);
+}
+.trend-empty {
+  text-align: center; padding: 10px; font-size: 11px; color: var(--ink4);
+}
+
+/* ══════════════════════════════════
+   DRUG UTIL REPORT
+══════════════════════════════════ */
+.util-drug-row {
+  display: flex; align-items: center; gap: 10px;
+  padding: 8px 0; border-bottom: 1px solid var(--ink6);
+}
+.util-drug-row:last-child { border-bottom: none; }
+.util-drug-name {
+  font-size: 12px; font-weight: 700; color: var(--ink2);
+  min-width: 80px;
+}
+.util-drug-bar {
+  flex: 1; height: 6px; background: var(--ink6); border-radius: 3px;
+  overflow: hidden;
+}
+.util-drug-fill {
+  height: 100%; border-radius: 3px; transition: width 0.5s;
+}
+.util-drug-count {
+  font-size: 11px; font-weight: 800; min-width: 50px; text-align: right;
+}
+
+/* Patient Detail Modal */
+.pt-detail-overlay {
+  display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(0,0,0,0.4); z-index: 200;
+  justify-content: center; align-items: flex-end;
+}
+.pt-detail-overlay.show { display: flex; }
+.pt-detail-sheet {
+  background: var(--white); border-radius: 24px 24px 0 0;
+  width: 100%; max-width: 430px; max-height: 85vh;
+  overflow-y: auto; padding: 20px 18px 30px;
+  animation: sheetUp 0.25s ease;
+}
+@keyframes sheetUp { from { transform:translateY(100%); } to { transform:translateY(0); } }
+.pt-detail-handle {
+  width: 36px; height: 4px; background: var(--ink5);
+  border-radius: 2px; margin: 0 auto 16px;
+}
+.pt-detail-name { font-size: 18px; font-weight: 800; color: var(--ink); margin-bottom: 2px; }
+.pt-detail-meta { font-size: 12px; color: var(--ink4); margin-bottom: 16px; }
+
 </style>
 </head>
 <body>
@@ -678,6 +825,10 @@ body {
     </div>
   </div>
 
+  <div class="search-wrap">
+    <input class="search-inp" id="search-inp" type="text" placeholder="ค้นหาชื่อ หรือ HN..." oninput="renderHome()">
+  </div>
+
   <div class="date-row">
     <span class="date-t" id="date-text">กำลังโหลด...</span>
     <span class="shift-pill" id="shift-text">—</span>
@@ -703,6 +854,15 @@ body {
   </div>
   <div class="plist" id="done-list"></div>
 
+  <!-- Discharged patients -->
+  <div id="dc-section" style="display:none">
+    <div class="sec-row">
+      <div class="sec-dot" style="background:var(--ink4)"></div>
+      <span class="sec-ttl">Discharge แล้ว</span>
+      <span class="sec-pill done">0 ราย</span>
+    </div>
+    <div class="plist" id="dc-list"></div>
+  </div>
 
 </div>
 
@@ -721,8 +881,9 @@ body {
       <div class="fbe">ข้อมูลคนไข้</div>
       <div class="finp-row">
         <span class="finp-label">HN</span>
-        <input class="finp" id="inp-hn" type="text" placeholder="เช่น 64-012341" inputmode="text">
+        <input class="finp" id="inp-hn" type="text" placeholder="เช่น 64-012341" inputmode="text" oninput="checkHnMatch()">
       </div>
+      <div id="hn-match-banner" style="display:none;"></div>
       <div class="finp-row">
         <span class="finp-label">ชื่อ-สกุล</span>
         <input class="finp" id="inp-name" type="text" placeholder="ชื่อ นามสกุล">
@@ -940,6 +1101,17 @@ body {
       </div>
     </div>
 
+    <!-- K5: Drug Utilization Report -->
+    <div style="background:white;border-radius:20px;border:1.5px solid var(--ink5);padding:16px 18px;box-shadow:0 2px 8px rgba(0,0,0,0.05);">
+      <div style="font-size:10px;font-weight:800;color:var(--ink4);text-transform:uppercase;letter-spacing:1px;margin-bottom:10px;display:flex;align-items:center;gap:7px;">
+        <span style="display:inline-block;width:14px;height:3px;background:var(--sky);border-radius:2px;"></span>
+        Drug Utilization Report
+      </div>
+      <div id="kpi-drug-util" style="display:flex;flex-direction:column;gap:2px;">
+        <div style="text-align:center;padding:20px;color:var(--ink4);font-size:12px;">ยังไม่มีข้อมูล</div>
+      </div>
+    </div>
+
   </div>
 </div>
 
@@ -966,6 +1138,16 @@ body {
   <div class="ctx-item" id="ctx-dc" onclick="ctxDischarge()">🏠 Discharge / หยุดยา</div>
   <div class="ctx-divider"></div>
   <div class="ctx-item danger" id="ctx-delete" onclick="ctxDelete()">🗑 ลบออกจากระบบ</div>
+</div>
+
+<!-- PATIENT DETAIL MODAL -->
+<div class="pt-detail-overlay" id="pt-detail-overlay" onclick="closePtDetail(event)">
+  <div class="pt-detail-sheet" id="pt-detail-sheet">
+    <div class="pt-detail-handle"></div>
+    <div class="pt-detail-name" id="ptd-name">—</div>
+    <div class="pt-detail-meta" id="ptd-meta">—</div>
+    <div id="ptd-body"></div>
+  </div>
 </div>
 
 <!-- TOAST -->
@@ -1003,11 +1185,19 @@ const DRUG_DB = {
     noteClass: 'info',
     incompat: ['amiodarone_nss', 'nahco3', 'blood_plasma'],
     drugColor: 'dt-red',
+    info: {
+      dose: 'Range: 0.05-0.5 mcg/kg/min (ผู้ใหญ่ เริ่ม 8-12 mcg/min ปรับตาม BP) · Common: NE 4mg + D5W 250mL start 5 mL/hr · Central line: 8mg + D5W 250mL (32 mcg/mL)',
+      prep: 'NE 4 mg + D5W 250 mL (16 mcg/mL) · สารน้ำ: D5W เท่านั้น',
+      monitoring: 'BP ทุก 2 นาที จนคงที่ → ต่อทุก 5 นาที, HR, ECG, UO, ดู IV site ทุก 1 ชม.',
+      alarm: 'ผิวซีด/ขาว/เย็นบริเวณ IV site (extravasation), BP สูง/ต่ำผิดปกติ',
+      sae: 'Tissue necrosis จาก extravasation, Tachyarrhythmia',
+      antidote: 'Phentolamine (extravasation)',
+    },
   },
   adr: {
     name: 'Adrenaline', short: 'Adr',
     badge: 'IV drip/push', badgeClass: 'badge-push',
-    mode: 'dual', // drip or push
+    mode: 'dual',
     inputUnit: 'mL/hr', convUnit: 'mcg/kg/min',
     conc: 10, // mcg/mL (1mg/100mL NSS)
     weightBased: true,
@@ -1019,11 +1209,19 @@ const DRUG_DB = {
     note: 'ℹ Drip: 1mg/100mL NSS · Push: 1mg/mL undiluted สำหรับ CPR/anaphylaxis',
     noteClass: 'info',
     drugColor: 'dt-red',
+    info: {
+      dose: 'Drip: 0.01-0.5 mcg/kg/min · CPR: 1mg IV q3-5min · Anaphylaxis: 0.3-0.5mg IM · Common: Adr 1mg + NSS 100mL start 6 mL/hr',
+      prep: 'Drip: 1 mg + NSS 100 mL (10 mcg/mL) · Push: 1 mg/mL undiluted (CPR)',
+      monitoring: 'HR, BP, ECG monitor ต่อเนื่อง',
+      alarm: 'Tachycardia, ปลายมือ/เท้า เย็น ซีด เขียว',
+      sae: 'Tachyarrhythmia',
+      antidote: 'Phentolamine (extravasation)',
+    },
   },
   morphine: {
     name: 'Morphine', short: 'Mor',
     badge: 'Drip/PRN', badgeClass: 'badge-drip',
-    mode: 'dual', // drip or prn
+    mode: 'dual',
     inputUnit: 'mL/hr', convUnit: 'mg/hr',
     conc: 1, // mg/mL (1mg/mL NSS)
     weightBased: false,
@@ -1035,6 +1233,14 @@ const DRUG_DB = {
     note: 'ℹ ยาแก้พิษ: Naloxone · เฝ้าระวัง respiratory depression RR < 10',
     noteClass: 'info',
     drugColor: 'dt-orng',
+    info: {
+      dose: 'IV: 1-5mg q4h PRN (slow push > 5 นาที) · Drip: 1-5mg/hr · SC/IM: 5-10mg q4h · Common: Morphine 10mg + NSS 10mL → ให้ครั้งละ 2-5mL IV slow',
+      prep: 'Drip: 1 mg/mL NSS · Push: IV slow > 5 นาที · สารน้ำ: NSS, D5W',
+      monitoring: 'RR, HR, BP, pain score, sedation level, ผลข้างเคียง (ท้องผูก คลื่นไส้ ง่วงซึม)',
+      alarm: 'RR < 10, ง่วงซึมมาก, BP ต่ำ, รูม่านตาเล็ก',
+      sae: 'Respiratory depression → หยุดหายใจ',
+      antidote: 'Naloxone 0.4 mg IV ซ้ำได้ทุก 2-3 นาที',
+    },
   },
   pethidine: {
     name: 'Pethidine', short: 'Peth',
@@ -1049,6 +1255,14 @@ const DRUG_DB = {
     note: 'ℹ ยาแก้พิษ: Naloxone · max 600 mg/24hr · ระวังในผู้สูงอายุ ผู้ป่วยไตบกพร่อง',
     noteClass: 'info',
     drugColor: 'dt-orng',
+    info: {
+      dose: 'IM/IV: 25-100mg q3-4h PRN · Max 600mg/24hr · Common: Pethidine 50mg IM PRN q4h for pain · เลี่ยงใช้ > 48 ชม. (norpethidine สะสม)',
+      prep: '50 mg/mL amp · IV slow push > 5 นาที หรือ IM · Max 600 mg/24hr',
+      monitoring: 'RR, BP, pain score, อาการชัก',
+      alarm: 'RR < 10, ชัก (norpethidine สะสม), ง่วงซึมมาก',
+      sae: 'Respiratory depression, Seizure (ไตบกพร่อง)',
+      antidote: 'Naloxone 0.4 mg IV',
+    },
   },
   insulin: {
     name: 'Regular Insulin', short: 'RI',
@@ -1065,6 +1279,14 @@ const DRUG_DB = {
     note: 'ℹ เฝ้าระวัง hypoglycemia · DTx ทุก 1–2 ชม. · ยาแก้พิษ: 50% Glucose IV',
     noteClass: 'info',
     drugColor: 'dt-sky',
+    info: {
+      dose: 'DKA drip: RI 0.1 u/kg/hr · Hyperkalemia: RI 10u + 50% Glucose 50mL IV · SC sliding scale ตาม DTx · Common: RI 100u + NSS 100mL (1u/mL) start 5 mL/hr',
+      prep: 'RI 100 u + NSS 100 mL (1 u/mL) · syringe pump หรือ SC sliding scale',
+      monitoring: 'DTx ทุก 1-2 ชม. (drip) / ก่อนมื้อ (SC), K+, signs of hypoglycemia',
+      alarm: 'DTx < 70 mg/dL, เหงื่อออก ใจสั่น มือสั่น สับสน',
+      sae: 'Severe hypoglycemia → หมดสติ/ชัก',
+      antidote: '50% Glucose 50 mL IV push',
+    },
     scale: [
       { min:200, max:250, dose:4 },
       { min:251, max:300, dose:6 },
@@ -1089,6 +1311,14 @@ const DRUG_DB = {
     note: 'ℹ ห้าม IV push — หัวใจหยุดเต้นได้ · ตรวจ K⁺ serum ก่อนและระหว่างให้',
     noteClass: 'info',
     drugColor: 'dt-sky',
+    info: {
+      dose: 'Peripheral: max 10 mEq/hr · Central: max 40 mEq/hr · Mild (3-3.5): 40-60 mEq/day PO · Moderate (2.5-3): KCl 40mEq + NSS 1000mL · Common: KCl 20mEq + NSS 100mL drip 1 hr (central)',
+      prep: 'KCl 40 mEq + NSS 1000 mL · ห้าม IV push เด็ดขาด · Peripheral max 10 mEq/hr',
+      monitoring: 'K+ serum ก่อน/หลัง, ECG, UO > 0.5 mL/kg/hr, ปวดแสบบริเวณ IV site',
+      alarm: 'ECG changes (peaked T, wide QRS), ปวด/บวมบริเวณ IV site',
+      sae: 'Cardiac arrest (ถ้า IV push หรือ rate เร็วเกินไป)',
+      antidote: 'Calcium gluconate 10% IV slow push',
+    },
   },
   mgso4: {
     name: 'MgSO4', short: 'Mg',
@@ -1105,7 +1335,15 @@ const DRUG_DB = {
     note: 'ℹ ระวัง Mg toxicity · เช็ค patellar reflex, RR > 16, UO > 25 mL/hr · ยาแก้พิษ: Calcium gluconate',
     noteClass: 'info',
     drugColor: 'dt-grey',
-    modes: { eclampsia: 'Eclampsia/Preeclampsia (1–2 g/hr)', asthma: 'Asthma/COPD (2g/100mL ÷ 4hr = 25 mL/hr)' }
+    modes: { eclampsia: 'Eclampsia/Preeclampsia (1–2 g/hr)', asthma: 'Asthma/COPD (2g/100mL ÷ 4hr = 25 mL/hr)' },
+    info: {
+      dose: 'Eclampsia: Loading 4g IV 20 นาที → Maint 1-2g/hr · Pre-eclampsia: Loading 4g + IM 5g x2 → 5g IM q4h · Asthma: 2g IV 20 นาที · Common: MgSO4 4g + NSS 100mL drip 20 นาที',
+      prep: 'Eclampsia: 4g + NSS 100 mL (loading) → 1-2 g/hr · Asthma: 2g + NSS 100 mL drip 4 hr',
+      monitoring: 'Patellar reflex (ต้องยังมี!), RR > 16, UO > 25 mL/hr, Mg level',
+      alarm: 'Patellar reflex หายไป, RR < 16, UO < 25 mL/hr → หยุดยาทันที',
+      sae: 'Respiratory arrest, Cardiac arrest',
+      antidote: 'Calcium gluconate 1g IV slow push 10 นาที',
+    },
   },
   digoxin: {
     name: 'Digoxin', short: 'Dig',
@@ -1114,6 +1352,14 @@ const DRUG_DB = {
     note: 'ℹ IV slow push ≥ 10–20 นาที · ผสมใน NSS · Therapeutic range: 0.8–2 ng/mL · ระวัง digoxin toxicity ใน K⁺ ต่ำ',
     noteClass: 'info',
     drugColor: 'dt-pink',
+    info: {
+      dose: 'PO: 0.125-0.25mg/day (elderly 0.0625-0.125mg) · IV loading: 0.5mg then 0.25mg q6h (max 1-1.5mg/24hr) · Target level: 0.8-2 ng/mL · Common: Digoxin 0.25mg 1x1 PO pc',
+      prep: '0.25 mg/mL เจือจาง NSS ≥ 4 เท่า · IV slow push ≥ 10-20 นาที',
+      monitoring: 'HR (เช็คก่อนให้ ห้าม < 60), K+, digoxin level (0.8-2 ng/mL), ECG',
+      alarm: 'HR < 60, คลื่นไส้อาเจียน, มองเห็นสีเหลือง, arrhythmia ใหม่',
+      sae: 'Digoxin toxicity → fatal arrhythmia (โดยเฉพาะถ้า K+ ต่ำ)',
+      antidote: 'Digoxin immune Fab (DigiFab)',
+    },
   },
   warfarin: {
     name: 'Warfarin', short: 'War',
@@ -1122,6 +1368,14 @@ const DRUG_DB = {
     note: 'ℹ Target INR ตาม indication · monitor PT/INR · ยาแก้พิษ: Vitamin K · เฝ้าระวัง bleeding',
     noteClass: 'info',
     drugColor: 'dt-pink',
+    info: {
+      dose: 'PO: 2-10mg/day · Target INR: AF/DVT/PE 2-3 · Mechanical valve 2.5-3.5 · เริ่ม 5mg/day ปรับตาม INR · Common: Warfarin 3mg 1x1 PO hs',
+      prep: 'Oral tablet · Target INR ตาม indication',
+      monitoring: 'PT/INR, signs of bleeding (จ้ำเลือด ปัสสาวะเป็นเลือด เลือดออกตามไรฟัน)',
+      alarm: 'INR > 4, เลือดออกผิดปกติ, ปวดท้องรุนแรง, อุจจาระดำ',
+      sae: 'Major bleeding (GI, intracranial)',
+      antidote: 'Vitamin K 2.5-10 mg IV/PO, FFP',
+    },
   },
   amiodarone: {
     name: 'Amiodarone', short: 'Amio',
@@ -1130,6 +1384,14 @@ const DRUG_DB = {
     note: 'ℹ ผสมใน D5W เท่านั้น ห้าม NSS · ความเข้มข้น > 2 mg/mL ให้ทาง central line · ห้ามผสมใน NaHCO3',
     noteClass: 'warn',
     drugColor: 'dt-grey',
+    info: {
+      dose: 'VT/VF: 300mg IV push (arrest) · Stable VT loading: 150mg + D5W 100mL over 10 นาที → 1mg/min x6hr → 0.5mg/min · Common: Amiodarone 300mg + D5W 100mL drip 1 hr → 900mg + D5W 500mL drip 24 hr',
+      prep: 'Loading: 300 mg + D5W 100 mL (1 hr) · Maint: 900 mg + D5W 500 mL (24 hr) · D5W เท่านั้น!',
+      monitoring: 'ECG (QTc), HR, BP, IV site (phlebitis)',
+      alarm: 'QTc prolongation, HR < 50, BP ต่ำ, ปวด/บวมบริเวณ IV site',
+      sae: 'Fatal arrhythmia (Torsades de Pointes), Phlebitis',
+      antidote: '-',
+    },
   },
   adenosine: {
     name: 'Adenosine', short: 'Aden',
@@ -1138,6 +1400,14 @@ const DRUG_DB = {
     note: 'ℹ 6 mg IV bolus เร็วที่สุด ตามด้วย NSS flush ทันที · half-life < 10 วินาที · ห้ามใช้ใน asthma, AV block Gr 2–3',
     noteClass: 'info',
     drugColor: 'dt-lime',
+    info: {
+      dose: '1st dose: 6mg rapid IV push → ถ้าไม่ตอบสนองใน 1-2 นาที → 12mg → 12mg · Max 0.3mg/kg · ฉีดให้เร็วที่สุด + NSS flush 20mL ตามทันที · Common: Adenosine 6mg IV rapid bolus',
+      prep: '6 mg/2 mL IV rapid bolus เร็วที่สุด + NSS flush 20 mL ตามทันที',
+      monitoring: 'ECG monitor ต่อเนื่อง, เตรียม defibrillator',
+      alarm: 'Asystole > 10 วินาที, Bronchospasm, หน้ามืด แน่นหน้าอก',
+      sae: 'Prolonged asystole, Severe bronchospasm',
+      antidote: 'Aminophylline (bronchospasm)',
+    },
   },
   streptokinase: {
     name: 'Streptokinase', short: 'SK',
@@ -1146,6 +1416,14 @@ const DRUG_DB = {
     note: 'ℹ 1,500,000 u + NSS/D5W 100 mL drip 60 นาที · ห้าม IM · monitor bleeding ทุก 15 นาที ชั่วโมงแรก',
     noteClass: 'warn',
     drugColor: 'dt-grey',
+    info: {
+      dose: 'STEMI: 1,500,000 u + NSS 100mL drip 60 นาที (dose เดียว) · ห้ามให้ซ้ำถ้าเคยได้ > 5 วัน · Common: SK 1.5 MU + NSS 100mL IV drip 1 hr',
+      prep: '1,500,000 u + NSS 100 mL drip 60 นาที · ห้ามให้ซ้ำ (>5 วันจากครั้งแรก)',
+      monitoring: 'Bleeding ทุก 15 นาทีชั่วโมงแรก, BP, HR, ECG (reperfusion signs)',
+      alarm: 'เลือดออกผิดปกติ (IV site, เหงือก, ปัสสาวะ), Allergic reaction, BP ต่ำ',
+      sae: 'Major hemorrhage (intracranial, GI), Anaphylaxis',
+      antidote: 'Aminocaproic acid / Tranexamic acid',
+    },
   },
 };
 
@@ -1236,7 +1514,8 @@ function renderHome() {
     (!q || p.name.toLowerCase().includes(q) || String(p.hn).toLowerCase().includes(q)));
   const todo       = active.filter(p => !doneIds.has(p.id));
   const done       = active.filter(p =>  doneIds.has(p.id));
-  const discharged = patients.filter(p => p.active === false);
+  const discharged = patients.filter(p => p.active === false &&
+    (!q || p.name.toLowerCase().includes(q) || String(p.hn).toLowerCase().includes(q)));
 
   // kpi
   document.getElementById('kpi-todo').textContent = todo.length;
@@ -1289,11 +1568,10 @@ function renderPCard(pt) {
   const hasRoundToday = lastRound && parseTsToDate(lastRound.ts).toDateString() === new Date().toDateString();
 
   return `
-    <div class="pcard ${isDischarge ? 'done' : ''}"
-         onclick="${isDischarge ? '' : `openRound('${pt.id}')`}">
+    <div class="pcard ${isDischarge ? 'done' : ''}">
       <div class="pc-top">
-        <div>
-          <div class="pc-name">${pt.name}</div>
+        <div onclick="openPtDetail('${pt.id}')" style="cursor:pointer;">
+          <div class="pc-name">${pt.name} <span style="font-size:10px;color:var(--sky);font-weight:600;vertical-align:middle;">ดูข้อมูล</span></div>
           <div class="pc-sub">HN ${pt.hn} · ${pt.age} ปี · ${pt.weight} kg</div>
         </div>
         ${isDischarge
@@ -1358,7 +1636,8 @@ function toggleDrugChip(chip) {
 }
 
 function addPatient() {
-  const hn     = document.getElementById('inp-hn').value.trim();
+  const hnInput = document.getElementById('inp-hn');
+  const hn     = hnInput.value.trim();
   const name   = document.getElementById('inp-name').value.trim();
   const age    = parseInt(document.getElementById('inp-age').value) || 0;
   const weight = parseFloat(document.getElementById('inp-weight').value) || 0;
@@ -1369,21 +1648,41 @@ function addPatient() {
     return;
   }
 
-  const pt = { id: Date.now().toString(), hn, name, age, weight, drugs, active: true, createdAt: Date.now() };
-  patients.push(pt);
-  saveLocal();
+  // Check if this is a re-admit (autofilled from discharged patient)
+  const readmitId = hnInput.dataset.readmitId;
+  let pt;
+  if (readmitId) {
+    pt = patients.find(p => p.id === readmitId);
+    if (pt) {
+      // Re-activate existing patient with updated info
+      pt.active = true;
+      pt.dischargedAt = null;
+      pt.name = name;
+      pt.age = age;
+      pt.weight = weight;
+      pt.drugs = drugs;
+      saveLocal();
+      showToast('✓ Re-admit ' + pt.name + ' เรียบร้อย');
+      saveToSheets({ action: 'readmitPatient', data: pt });
+    }
+    delete hnInput.dataset.readmitId;
+  }
+
+  if (!pt) {
+    // Brand new patient
+    pt = { id: Date.now().toString(), hn, name, age, weight, drugs, active: true, createdAt: Date.now() };
+    patients.push(pt);
+    saveLocal();
+    showToast('✓ เพิ่มคนไข้เรียบร้อย');
+    saveToSheets({ action:'addPatient', data: pt });
+  }
 
   // reset form
-  document.getElementById('inp-hn').value = '';
+  hnInput.value = '';
   document.getElementById('inp-name').value = '';
   document.getElementById('inp-age').value = '';
   document.getElementById('inp-weight').value = '';
   document.querySelectorAll('.dchip.on').forEach(c => c.classList.remove('on'));
-
-  showToast('✓ เพิ่มคนไข้เรียบร้อย');
-
-  // try save to Sheets
-  saveToSheets({ action:'addPatient', data: pt });
 
   goScreen('home');
 }
@@ -1666,6 +1965,39 @@ function renderDoseBlocks() {
     </div>`;
   }
 
+  // Drug Info button + HAD Card panel
+  if (drug.info) {
+    html += `<div style="margin-top:10px;display:flex;justify-content:flex-end;">
+      <div class="dinfo-btn" onclick="toggleDrugInfo('${currentDrugTab}')">ℹ HAD Card · ${drug.short}</div>
+    </div>
+    <div class="dinfo-panel" id="dinfo-${currentDrugTab}">
+      ${drug.info.dose ? `<div class="had-card-row dose">
+        <div class="had-card-label">Dose & Common Orders</div>
+        <div class="had-card-text">${drug.info.dose}</div>
+      </div>` : ''}
+      <div class="had-card-row prep">
+        <div class="had-card-label">Preparation</div>
+        <div class="had-card-text">${drug.info.prep}</div>
+      </div>
+      <div class="had-card-row monitoring">
+        <div class="had-card-label">Monitoring</div>
+        <div class="had-card-text">${drug.info.monitoring}</div>
+      </div>
+      <div class="had-card-row alarm">
+        <div class="had-card-label">Alarm Sign</div>
+        <div class="had-card-text">${drug.info.alarm}</div>
+      </div>
+      <div class="had-card-row sae">
+        <div class="had-card-label">Serious Adverse Event</div>
+        <div class="had-card-text">${drug.info.sae}</div>
+      </div>
+      ${drug.info.antidote && drug.info.antidote !== '-' ? `<div class="had-card-row antidote">
+        <div class="had-card-label">Antidote</div>
+        <div class="had-card-text">${drug.info.antidote}</div>
+      </div>` : ''}
+    </div>`;
+  }
+
   html += `</div>`;
   container.innerHTML = html;
 
@@ -1819,8 +2151,9 @@ function selTopt(el) {
 function dischargePatient(ptId) {
   const pt = patients.find(p => p.id === ptId);
   if (!pt) return;
-  if (!confirm(pt.name + '\nD/C ออกจากระบบ? (ลงทะเบียนใหม่ได้เสมอ)')) return;
-  patients = patients.filter(p => p.id !== ptId);
+  if (!confirm(pt.name + '\nD/C ออกจากระบบ? (สามารถ re-admit ได้ภายหลัง)')) return;
+  pt.active = false;
+  pt.dischargedAt = Date.now();
   saveLocal();
   renderHome();
   showToast('🏠 D/C ' + pt.name + ' แล้ว');
@@ -1885,6 +2218,29 @@ function saveRound() {
 
   const hasIntervention = actions.some(a => a.includes('แจ้งแพทย์') || a.includes('แนะนำ'));
 
+  // Capture dose data for each drug
+  const doseData = {};
+  currentPt.drugs.forEach(d => {
+    const drug = DRUG_DB[d];
+    if (!drug) return;
+    const inp = document.getElementById(`inp-${d}`);
+    if (inp && inp.value) {
+      const val = parseFloat(inp.value) || 0;
+      if (val > 0) {
+        let unit = drug.inputUnit;
+        // Also store converted value
+        let converted = null;
+        if (drug.convFn) {
+          converted = drug.weightBased ? drug.convFn(val, currentPt.weight || 70) : drug.convFn(val);
+          unit = drug.convUnit || drug.inputUnit;
+        }
+        doseData[d] = { value: val, unit: drug.inputUnit, converted: converted, convUnit: drug.convUnit };
+      }
+    }
+  });
+
+  const rr = document.getElementById('v-rr')?.value || '';
+
   const round = {
     id: Date.now().toString(),
     ptId: currentPt.id,
@@ -1892,7 +2248,8 @@ function saveRound() {
     drugs: currentPt.drugs,
     actions,
     note,
-    bp, hr,
+    bp, hr, rr,
+    doseData,
     hasIntervention,
     ts: Date.now(),
   };
@@ -2086,6 +2443,209 @@ function renderKPI() {
         </div>
       </div>`;
     }).join('');
+  }
+
+  // K5 — Drug Utilization Report
+  renderDrugUtilization(monthRounds);
+}
+
+function renderDrugUtilization(monthRounds) {
+  const utilEl = document.getElementById('kpi-drug-util');
+  if (!utilEl) return;
+
+  // Count how many rounds each drug appears in
+  const drugStats = {};
+  monthRounds.forEach(r => {
+    (r.drugs || []).forEach(d => {
+      if (!drugStats[d]) drugStats[d] = { count: 0, interventions: 0, patients: new Set() };
+      drugStats[d].count++;
+      if (r.hasIntervention) drugStats[d].interventions++;
+      drugStats[d].patients.add(r.ptId);
+    });
+  });
+
+  const sortedDrugs = Object.entries(drugStats).sort((a,b) => b[1].count - a[1].count);
+
+  if (sortedDrugs.length === 0) {
+    utilEl.innerHTML = '<div style="text-align:center;padding:20px;color:var(--ink4);font-size:12px;">ยังไม่มีข้อมูลยา HAD เดือนนี้</div>';
+    return;
+  }
+
+  const maxCount = sortedDrugs[0][1].count;
+  const colors = ['#C0202A','#F56B00','#F59E00','#5BC8F5','#16A34A','#9A3090','#666666','#C0202A','#F56B00','#F59E00','#5BC8F5','#16A34A'];
+
+  utilEl.innerHTML = sortedDrugs.map(([drug, stats], i) => {
+    const name = DRUG_DB[drug]?.name || drug;
+    const short = DRUG_DB[drug]?.short || drug;
+    const pct = Math.round(stats.count / maxCount * 100);
+    const intPct = stats.count > 0 ? Math.round(stats.interventions / stats.count * 100) : 0;
+    const color = colors[i % colors.length];
+    return `<div class="util-drug-row">
+      <div class="util-drug-name">
+        <span class="dtag ${drugTagClass(drug)}" style="font-size:10px;padding:2px 7px;">${short}</span>
+      </div>
+      <div style="flex:1;">
+        <div class="util-drug-bar">
+          <div class="util-drug-fill" style="width:${pct}%;background:${color};"></div>
+        </div>
+        <div style="display:flex;justify-content:space-between;margin-top:2px;">
+          <span style="font-size:9px;color:var(--ink4);">${stats.patients.size} คนไข้</span>
+          <span style="font-size:9px;color:${intPct > 15 ? 'var(--red)' : 'var(--ink4)'};">${intPct}% intervention</span>
+        </div>
+      </div>
+      <div class="util-drug-count" style="color:${color};">${stats.count} ครั้ง</div>
+    </div>`;
+  }).join('');
+}
+
+// ── HN AUTO-DETECT ───────────────────────────────────────────
+let hnMatchTimeout = null;
+function checkHnMatch() {
+  clearTimeout(hnMatchTimeout);
+  hnMatchTimeout = setTimeout(() => {
+    const hn = (document.getElementById('inp-hn')?.value || '').trim();
+    const banner = document.getElementById('hn-match-banner');
+    if (!banner || !hn || hn.length < 3) { banner.style.display = 'none'; return; }
+
+    // Search all patients (active + discharged) for matching HN
+    const match = patients.find(p => String(p.hn).trim() === hn);
+    if (!match) { banner.style.display = 'none'; return; }
+
+    const isActive = match.active !== false;
+    const drugNames = (match.drugs || []).map(d => DRUG_DB[d]?.short || d).join(', ');
+
+    if (isActive) {
+      // Already active — tell user this patient exists
+      banner.innerHTML = `<div class="hn-banner" style="background:var(--amber2);border-color:rgba(245,158,0,0.3);">
+        <div class="hn-banner-title" style="color:var(--orng);">⚠ HN นี้มีในระบบแล้ว</div>
+        <div class="hn-banner-info"><strong>${match.name}</strong> · ${match.age} ปี · ${match.weight} kg<br>ยา: ${drugNames}<br>คนไข้ยัง active อยู่ — ไม่ต้องเพิ่มซ้ำ กลับหน้า Home เพื่อ round ได้เลย</div>
+        <div class="hn-banner-btns">
+          <div class="hn-banner-btn primary" style="background:var(--red)" onclick="goScreen('home')">← กลับ Home</div>
+        </div>
+      </div>`;
+    } else {
+      // Discharged — single button: autofill into form for editing before save
+      banner.innerHTML = `<div class="hn-banner">
+        <div class="hn-banner-title">พบประวัติเดิม — Re-admit?</div>
+        <div class="hn-banner-info"><strong>${match.name}</strong> · ${match.age} ปี · ${match.weight} kg<br>ยาเดิม: ${drugNames}<br>กดปุ่มด้านล่างเพื่อดึงข้อมูลเดิม แก้ไขยาได้ก่อนบันทึก</div>
+        <div class="hn-banner-btns">
+          <div class="hn-banner-btn primary" onclick="autofillFromMatch('${match.id}')">ดึงข้อมูลเดิม & Re-admit</div>
+        </div>
+      </div>`;
+    }
+    banner.style.display = '';
+  }, 300);
+}
+
+function autofillFromMatch(ptId) {
+  const pt = patients.find(p => p.id === ptId);
+  if (!pt) return;
+
+  // Store ref so addPatient() knows this is a re-admit
+  document.getElementById('inp-hn').dataset.readmitId = ptId;
+
+  document.getElementById('inp-name').value = pt.name;
+  document.getElementById('inp-age').value = pt.age || '';
+  document.getElementById('inp-weight').value = pt.weight || '';
+
+  // Toggle drug chips
+  document.querySelectorAll('.dchip').forEach(c => c.classList.remove('on'));
+  (pt.drugs || []).forEach(d => {
+    const chip = document.querySelector(`.dchip[data-drug="${d}"]`);
+    if (chip) chip.classList.add('on');
+  });
+
+  document.getElementById('hn-match-banner').style.display = 'none';
+  showToast('ดึงข้อมูลเดิมมาแล้ว — แก้ไขยาแล้วกด "เพิ่มคนไข้" เพื่อ re-admit');
+}
+
+// ── DRUG INFO TOGGLE ─────────────────────────────────────────
+function toggleDrugInfo(drugKey) {
+  const panel = document.getElementById('dinfo-' + drugKey);
+  if (panel) panel.classList.toggle('show');
+}
+
+// ── PATIENT DETAIL MODAL ─────────────────────────────────────
+function openPtDetail(ptId) {
+  const pt = patients.find(p => p.id === ptId);
+  if (!pt) return;
+
+  document.getElementById('ptd-name').textContent = pt.name;
+  document.getElementById('ptd-meta').textContent = `HN ${pt.hn} · ${pt.age} ปี · ${pt.weight} kg`;
+
+  const ptRounds = rounds.filter(r => r.ptId === pt.id).sort((a,b) => parseTsToDate(a.ts) - parseTsToDate(b.ts));
+  let html = '';
+
+  // Drug dose trends
+  pt.drugs.forEach(d => {
+    const drug = DRUG_DB[d];
+    if (!drug) return;
+    const doseData = ptRounds
+      .filter(r => r.doseData && r.doseData[d])
+      .map(r => ({ ts: r.ts, dose: r.doseData[d].value, unit: r.doseData[d].unit }));
+
+    html += `<div class="trend-wrap">
+      <div class="trend-title">
+        <span class="dtag ${drugTagClass(d)}" style="margin:0;padding:2px 8px;font-size:10px;">${drug.short}</span>
+        <span>${drug.name}</span>
+      </div>`;
+
+    if (doseData.length === 0) {
+      html += `<div class="trend-empty">ยังไม่มีข้อมูล dose — จะแสดงหลัง round ครั้งถัดไป</div>`;
+    } else {
+      const maxDose = Math.max(...doseData.map(d => d.dose), 1);
+      html += `<div class="trend-chart">`;
+      doseData.slice(-10).forEach(dd => {
+        const pct = Math.max((dd.dose / maxDose) * 100, 5);
+        const dt = parseTsToDate(dd.ts);
+        const label = `${dt.getDate()}/${dt.getMonth()+1} ${String(dt.getHours()).padStart(2,'0')}:${String(dt.getMinutes()).padStart(2,'0')}`;
+        html += `<div class="trend-bar" style="height:${pct}%;">
+          <div class="trend-tip">${dd.dose} ${dd.unit} · ${label}</div>
+        </div>`;
+      });
+      html += `</div>`;
+      if (doseData.length > 0) {
+        const first = parseTsToDate(doseData[0].ts);
+        const last = parseTsToDate(doseData[doseData.length-1].ts);
+        html += `<div class="trend-labels">
+          <span>${first.getDate()}/${first.getMonth()+1}</span>
+          <span>ล่าสุด: ${doseData[doseData.length-1].dose} ${doseData[doseData.length-1].unit}</span>
+        </div>`;
+      }
+    }
+    html += `</div>`;
+  });
+
+  // Round history list
+  if (ptRounds.length > 0) {
+    html += `<div style="margin-top:14px;">
+      <div class="trend-title" style="margin-bottom:6px;">ประวัติ Round (${ptRounds.length} ครั้ง)</div>`;
+    ptRounds.slice().reverse().slice(0,10).forEach(r => {
+      const dt = parseTsToDate(r.ts);
+      const dateStr = `${dt.getDate()}/${dt.getMonth()+1} ${String(dt.getHours()).padStart(2,'0')}:${String(dt.getMinutes()).padStart(2,'0')}`;
+      const actText = r.actions?.length ? r.actions[0] : (r.note || 'ไม่มี intervention');
+      html += `<div style="padding:8px 0;border-bottom:1px solid var(--ink6);display:flex;gap:8px;align-items:flex-start;">
+        <div style="width:6px;height:6px;border-radius:50%;margin-top:5px;flex-shrink:0;background:${r.hasIntervention?'var(--red)':'var(--ink5)'}"></div>
+        <div style="flex:1;">
+          <div style="display:flex;justify-content:space-between;">
+            <span style="font-size:11px;font-weight:700;color:var(--ink2)">${dateStr}</span>
+            ${r.hasIntervention?'<span style="font-size:9px;font-weight:800;color:var(--red);background:var(--redlt);padding:1px 6px;border-radius:8px;">Intervention</span>':''}
+          </div>
+          ${r.bp?`<span style="font-size:10px;color:var(--ink4)">BP ${r.bp} · HR ${r.hr||'-'}</span>`:''}
+          <div style="font-size:11px;color:var(--ink3);margin-top:2px;">${actText}</div>
+        </div>
+      </div>`;
+    });
+    html += `</div>`;
+  }
+
+  document.getElementById('ptd-body').innerHTML = html;
+  document.getElementById('pt-detail-overlay').classList.add('show');
+}
+
+function closePtDetail(e) {
+  if (e.target.id === 'pt-detail-overlay') {
+    document.getElementById('pt-detail-overlay').classList.remove('show');
   }
 }
 
