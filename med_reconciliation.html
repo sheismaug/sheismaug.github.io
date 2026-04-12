@@ -1355,12 +1355,55 @@ function renderList(rows) {
 
     // ยังไม่ทำ MR
     if (r['สถานะ_MR'] === 'ไม่ได้ทำ MR') {
-      return `<tr style="background:#fff8fe">
+      return `<tr id="list-row-${r['MR_ID']}" style="background:#fff8fe">
         <td><div class="fw7">${r['HN']||''}</div><div class="sm mut">${r['ชื่อ_สกุล']||''}</div></td>
         <td><div class="sm">${r['วันที่_admit']||''}</div>${shiftTag(r['เวร_admit'])}</td>
         <td>${medBdg}</td>
         <td colspan="6" style="color:var(--fail);font-weight:700">⏳ ยังไม่ได้ทำ MR</td>
-        <td><button class="btn btn-plum btn-sm" onclick="gt('batch')">บันทึก MR</button></td>
+        <td><button class="btn btn-plum btn-sm" onclick="openEditRow('${r['MR_ID']}')">บันทึก MR</button></td>
+      </tr>
+      <tr id="edit-row-${r['MR_ID']}" style="display:none;background:var(--plum-ll)">
+        <td colspan="10" style="padding:16px 18px">
+          <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:10px">
+            <span style="font-size:11px;font-weight:800;color:var(--plum2)">แก้ไข MR_ID: ${r['MR_ID']}</span>
+            <div style="display:flex;align-items:center;gap:6px">
+              <span style="font-size:12px;font-weight:600;color:var(--ink2)">สถานะ MR</span>
+              <select id="e-status-${r['MR_ID']}" style="border:1.5px solid var(--rule);padding:5px 8px;border-radius:8px;font-size:13px;font-family:inherit">
+                <option value="มีรายการ MR" ${r['สถานะ_MR']==='มีรายการ MR'?'selected':''}>✓ มีรายการ MR</option>
+                <option value="ไม่พบรายการยาเดิม" ${r['สถานะ_MR']==='ไม่พบรายการยาเดิม'?'selected':''}>— ไม่พบรายการยาเดิม</option>
+                <option value="ไม่ได้ทำ MR" ${r['สถานะ_MR']==='ไม่ได้ทำ MR'?'selected':''}>✗ ไม่ได้ทำ MR</option>
+                <option value="ติดตามไม่ได้" ${r['สถานะ_MR']==='ติดตามไม่ได้'?'selected':''}>⚠ ติดตามไม่ได้</option>
+              </select>
+            </div>
+            <div style="display:flex;align-items:center;gap:6px">
+              <span style="font-size:12px;font-weight:600;color:var(--ink2)">เวร MR</span>
+              <div class="sp-w">
+                <button class="sp am ${r['เวร_MR_เสร็จ']==='เช้า'?'on':''}" onclick="ps(this)">เช้า</button>
+                <button class="sp pm ${r['เวร_MR_เสร็จ']==='บ่าย'?'on':''}" onclick="ps(this)">บ่าย</button>
+                <button class="sp ni ${r['เวร_MR_เสร็จ']==='ดึก'?'on':''}" onclick="ps(this)">ดึก</button>
+              </div>
+            </div>
+            <div style="display:flex;align-items:center;gap:6px">
+              <span style="font-size:12px;font-weight:600;color:var(--ink2)">วันที่ MD Review</span>
+              <input id="e-mddt-${r['MR_ID']}" value="${r['วันที่_MD_review']||''}" placeholder="dd/mm/yyyy"
+                style="width:130px;padding:5px 9px;border-radius:8px;border:1.5px solid var(--rule);font-size:13px;font-family:inherit"
+                oninput="autoFmtDate(this)">
+            </div>
+            <div style="display:flex;align-items:center;gap:6px">
+              <span style="font-size:12px;font-weight:600;color:var(--ink2)">เวร MD</span>
+              <div class="sp-w" id="e-mdsh-${r['MR_ID']}">
+                <button class="sp am ${r['เวร_MD_review']==='เช้า'?'on':''}" onclick="ps(this)">เช้า</button>
+                <button class="sp pm ${r['เวร_MD_review']==='บ่าย'?'on':''}" onclick="ps(this)">บ่าย</button>
+                <button class="sp ni ${r['เวร_MD_review']==='ดึก'?'on':''}" onclick="ps(this)">ดึก</button>
+                <button class="sp dc-btn ${r['เวร_MD_review']==='d/c แล้ว'?'on':''}" onclick="psDC(this)">d/c</button>
+              </div>
+            </div>
+          </div>
+          <div style="display:flex;gap:8px">
+            <button class="btn btn-plum btn-sm" onclick="saveEdit('${r['MR_ID']}')">💾 บันทึก</button>
+            <button class="btn btn-ghost btn-sm" onclick="closeEditRow('${r['MR_ID']}')">ยกเลิก</button>
+          </div>
+        </td>
       </tr>`;
     }
 
@@ -1517,8 +1560,12 @@ async function loadWorklist() {
     }
     const all = filterMRListLocal(_cache.mrList, params);
 
-    // เคสยังไม่ทำ MR
-    const notDone = all.filter(r => r['สถานะ_MR'] === 'ไม่ได้ทำ MR');
+    // เคสยังไม่ทำ MR (ยกเว้น d/c แล้ว → จบเคส)
+    const notDone = all.filter(r => {
+      if (r['สถานะ_MR'] !== 'ไม่ได้ทำ MR') return false;
+      if (r['เวร_MD_review'] === 'd/c แล้ว') return false;
+      return true;
+    });
     // เคสรอ MD review (มี MR แล้วแต่ MD ยังไม่ตอบ และไม่ใช่ d/c)
     // Sheet เก็บแค่ `เวร_MD_review` อย่างเดียว (ไม่มี column วันที่_MD_review)
     // → ถ้า shift ว่าง = รอ / ถ้ามีค่า (เช้า/บ่าย/ดึก) = เสร็จแล้ว / ถ้า d/c แล้ว = ไม่เข้า worklist
@@ -1556,7 +1603,7 @@ async function loadWorklist() {
           </div>
         </div>
         ${type === 'red' && msg === 'ยังไม่ได้ทำ MR'
-          ? `<button class="btn btn-plum btn-sm" onclick="gt('batch')">บันทึก MR</button>`
+          ? `<button class="btn btn-plum btn-sm" onclick="goEditMR('${r["MR_ID"]}', '${r["HN"]}')">บันทึก MR</button>`
           : `<button class="btn btn-ghost btn-sm" onclick="goEditMR('${r["MR_ID"]}', '${r["HN"]}')">แก้ไข MD Review</button>`
         }
       </div>`).join('');
