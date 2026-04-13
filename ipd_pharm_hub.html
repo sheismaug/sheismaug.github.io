@@ -782,6 +782,24 @@
         .had-info-item { padding: 6px 10px; background: #f9f8f6; border-radius: 6px; line-height: 1.5; }
         .had-info-item strong { display: block; font-size: 10px; text-transform: uppercase; color: #999; letter-spacing: 0.5px; margin-bottom: 2px; }
 
+        /* ADR Timeline */
+        .adr-tl { position: relative; min-width: 400px; }
+        .adr-tl-dates { display: flex; justify-content: space-between; padding: 0 0 6px 100px; border-bottom: 1px solid #e8e5e0; margin-bottom: 4px; }
+        .adr-tl-dates span { font-size: 10px; color: #999; text-align: center; min-width: 36px; }
+        .adr-tl-row { display: flex; align-items: center; height: 36px; border-bottom: 1px dashed #f0eeeb; }
+        .adr-tl-label { width: 100px; font-size: 11px; font-weight: 600; color: #2e3f58; flex-shrink: 0; padding-right: 8px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .adr-tl-label.suspect { color: #c04040; }
+        .adr-tl-track { flex: 1; position: relative; height: 100%; }
+        .adr-tl-bar { position: absolute; top: 10px; height: 16px; border-radius: 8px; opacity: 0.85; }
+        .adr-tl-onset { position: absolute; top: 0; bottom: 0; width: 2px; background: #c04040; z-index: 2; }
+        .adr-tl-onset::before { content: ''; position: absolute; top: -3px; left: -4px; width: 10px; height: 10px; background: #c04040; border-radius: 50%; }
+        .adr-tl-stop { position: absolute; top: 13px; width: 10px; height: 10px; background: white; border: 2.5px solid #333; border-radius: 50%; z-index: 3; transform: translateX(-5px); }
+
+        /* ADR photos */
+        .adr-thumb { width: 64px; height: 64px; object-fit: cover; border-radius: 6px; border: 1px solid #e8e5e0; cursor: pointer; }
+        .adr-thumb-wrap { position: relative; display: inline-block; }
+        .adr-thumb-del { position: absolute; top: -6px; right: -6px; width: 18px; height: 18px; border-radius: 50%; background: #c04040; color: white; font-size: 12px; border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; line-height: 1; }
+
         /* Shift Buttons */
         .shift-btns { display: inline-flex; gap: 4px; }
         .shift-btn {
@@ -1714,16 +1732,42 @@
 
             <!-- Sub-Tab 6: ADR Monitoring -->
             <div class="subtab-content" id="adr">
-                <div style="margin-bottom: 20px; padding: 16px; background: white; border: 0.5px solid #e8e5e0; border-radius: 8px;">
-                    <h4 style="margin-bottom: 12px; color: #2e3f58;">ADR Timeline</h4>
-                    <svg id="adrTimeline" style="width: 100%; height: 200px;"></svg>
+                <!-- Timeline -->
+                <div id="adrTimelineWrap" style="margin-bottom: 20px; padding: 16px; background: white; border: 0.5px solid #e8e5e0; border-radius: 8px;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+                        <h4 style="color: #2e3f58;">ADR Timeline</h4>
+                        <div style="display: flex; gap: 6px;">
+                            <button class="btn btn-secondary" style="font-size: 11px; padding: 4px 10px;" onclick="exportADRPng()">PNG</button>
+                            <button class="btn btn-secondary" style="font-size: 11px; padding: 4px 10px;" onclick="printADRSheet()">Print</button>
+                        </div>
+                    </div>
+                    <div id="adrTimelineCanvas" style="overflow-x: auto;"></div>
+                    <div id="adrTimelineEmpty" style="padding: 24px; text-align: center; color: #bbb; font-size: 13px;">
+                        ยังไม่มีข้อมูลยา — เพิ่มยาด้านล่าง
+                    </div>
+                    <!-- Legend -->
+                    <div id="adrLegend" style="display: none; margin-top: 12px; display: flex; gap: 16px; font-size: 11px; color: #666; flex-wrap: wrap;">
+                        <span style="display:flex;align-items:center;gap:4px;"><span style="width:20px;height:6px;border-radius:3px;background:#5b8def;display:inline-block;"></span> ช่วงใช้ยา</span>
+                        <span style="display:flex;align-items:center;gap:4px;"><span style="width:2px;height:14px;background:#c04040;display:inline-block;"></span> วันพบอาการ</span>
+                        <span style="display:flex;align-items:center;gap:4px;"><span style="width:8px;height:8px;border-radius:50%;border:2px solid #333;display:inline-block;"></span> หยุดยา</span>
+                        <span style="display:flex;align-items:center;gap:4px;"><span style="color:#c04040;font-weight:700;">⚠</span> ยาที่สงสัย</span>
+                    </div>
                 </div>
 
-                <div style="background: white; border: 0.5px solid #e8e5e0; border-radius: 8px; padding: 16px;">
-                    <h4 style="margin-bottom: 12px; color: #2e3f58;">ADR Form</h4>
+                <!-- Drug list table -->
+                <div id="adrDrugListWrap" style="margin-bottom: 16px; display: none;">
+                    <table class="editable-table">
+                        <thead><tr><th>ยา</th><th>เริ่มใช้</th><th>หยุด</th><th>สงสัย</th><th></th></tr></thead>
+                        <tbody id="adrDrugListBody"></tbody>
+                    </table>
+                </div>
+
+                <!-- Add drug form -->
+                <div style="background: white; border: 0.5px solid #e8e5e0; border-radius: 8px; padding: 16px; margin-bottom: 16px;">
+                    <h4 style="margin-bottom: 12px; color: #2e3f58;">เพิ่มยาใน Timeline</h4>
                     <div class="form-group">
-                        <label class="form-label">ยาที่สงสัย</label>
-                        <input type="text" class="form-input" id="adrDrug">
+                        <label class="form-label">ชื่อยา</label>
+                        <input type="text" class="form-input" id="adrDrug" placeholder="เช่น Allopurinol 100mg OD">
                     </div>
                     <div class="grid-2">
                         <div class="form-group">
@@ -1731,31 +1775,64 @@
                             <input type="text" class="form-input date-input" id="adrStartDate">
                         </div>
                         <div class="form-group">
-                            <label class="form-label">วันพบอาการ</label>
-                            <input type="text" class="form-input date-input" id="adrSymptomDate">
+                            <label class="form-label">วันหยุดยา (ว่าง = ยังใช้อยู่)</label>
+                            <input type="text" class="form-input date-input" id="adrStopDate">
                         </div>
                     </div>
                     <div class="form-group">
-                        <label class="form-label">วันหยุดยา</label>
-                        <input type="text" class="form-input date-input" id="adrStopDate">
+                        <label style="display:flex;align-items:center;gap:8px;">
+                            <input type="checkbox" id="adrIsSuspect"> <span class="form-label" style="margin:0;">ยาที่สงสัยว่าทำให้แพ้</span>
+                        </label>
+                    </div>
+                    <button class="btn btn-accent" onclick="addADRDrug()">+ เพิ่มยา</button>
+                </div>
+
+                <!-- ADR Event info -->
+                <div style="background: white; border: 0.5px solid #e8e5e0; border-radius: 8px; padding: 16px; margin-bottom: 16px;">
+                    <h4 style="margin-bottom: 12px; color: #2e3f58;">อาการแพ้ยา</h4>
+                    <div class="grid-2">
+                        <div class="form-group">
+                            <label class="form-label">วันพบอาการ</label>
+                            <input type="text" class="form-input date-input" id="adrSymptomDate">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Severity</label>
+                            <select class="form-select" id="adrSeverity">
+                                <option>Mild — ไม่ต้องรักษา</option>
+                                <option>Moderate — ต้องรักษา/หยุดยา</option>
+                                <option>Severe — อันตรายต่อชีวิต</option>
+                                <option>Fatal</option>
+                            </select>
+                        </div>
                     </div>
                     <div class="form-group">
                         <label class="form-label">อาการที่พบ</label>
-                        <textarea class="form-textarea" id="adrSymptoms"></textarea>
+                        <textarea class="form-textarea" id="adrSymptoms" placeholder="เช่น ผื่น maculopapular rash ที่ลำตัวและแขน"></textarea>
                     </div>
-                    <button class="btn btn-secondary" onclick="addADRDrug()">+ เพิ่มยาในรายการ</button>
+                    <!-- Photo upload -->
+                    <div class="form-group">
+                        <label class="form-label">แนบรูปภาพ (ถ้ามี)</label>
+                        <div id="adrPhotos" style="display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 8px;"></div>
+                        <label class="btn btn-secondary" style="display: inline-flex; align-items: center; gap: 6px; cursor: pointer;">
+                            📷 เลือกรูป
+                            <input type="file" accept="image/*" multiple style="display:none;" onchange="adrAddPhotos(this.files)">
+                        </label>
+                        <span style="font-size: 11px; color: #999; margin-left: 8px;">รูปจะถูกอัปโหลดเข้า Google Drive</span>
+                    </div>
                 </div>
 
-                <h4 style="margin-top: 24px; margin-bottom: 12px; color: #2e3f58;">Naranjo Algorithm</h4>
+                <!-- Naranjo Algorithm -->
+                <h4 style="margin-bottom: 12px; color: #2e3f58;">Naranjo Algorithm</h4>
                 <div id="naranjoQuestions"></div>
                 <div class="naranjo-score" style="margin-top: 16px;">
                     <div style="font-size: 12px;">Score</div>
                     <div style="font-size: 20px; font-weight: 700;" id="naranjoScore">0</div>
                     <div style="font-size: 12px;" id="naranjoLevel">ยังไม่มีข้อมูล</div>
                 </div>
+
+                <!-- Actions -->
                 <div style="display: flex; gap: 8px; margin-top: 16px;">
                     <button class="btn btn-primary" style="flex: 1;" onclick="saveADRData()">บันทึก ADR</button>
-                    <button class="btn btn-secondary" onclick="printADRSheet()">Print A4</button>
                 </div>
             </div>
 
@@ -3088,52 +3165,351 @@
         });
     }
 
-    // ADR Naranjo Algorithm
+    // ══════════════════════════════════════════════
+    //  ADR Timeline — full implementation
+    // ══════════════════════════════════════════════
+    let adrDrugList = [];          // [{name, start, stop, suspect}]
+    let adrPhotoFiles = [];        // File objects pending upload
+    let adrPhotoLinks = [];        // Drive links after upload
+    const ADR_COLORS = ['#5b8def','#f5a623','#7ec699','#c084d8','#6ecfcf','#e88fa5','#a0a0a0','#c9b458'];
+
+    function addADRDrug() {
+        let name  = document.getElementById('adrDrug').value.trim();
+        let start = document.getElementById('adrStartDate').value.trim();
+        let stop  = document.getElementById('adrStopDate').value.trim();
+        let sus   = document.getElementById('adrIsSuspect').checked;
+        if (!name || !start) { alert('กรุณากรอกชื่อยาและวันเริ่มใช้ยา'); return; }
+
+        adrDrugList.push({ name: name, start: start, stop: stop, suspect: sus });
+
+        // clear form
+        document.getElementById('adrDrug').value = '';
+        document.getElementById('adrStopDate').value = '';
+        document.getElementById('adrIsSuspect').checked = false;
+
+        renderADRDrugTable();
+        renderADRTimeline();
+    }
+
+    function removeADRDrug(idx) {
+        adrDrugList.splice(idx, 1);
+        renderADRDrugTable();
+        renderADRTimeline();
+    }
+
+    function renderADRDrugTable() {
+        let wrap = document.getElementById('adrDrugListWrap');
+        let tbody = document.getElementById('adrDrugListBody');
+        tbody.innerHTML = '';
+        if (adrDrugList.length === 0) { wrap.style.display = 'none'; return; }
+        wrap.style.display = 'block';
+
+        for (let i = 0; i < adrDrugList.length; i++) {
+            let d = adrDrugList[i];
+            let tr = document.createElement('tr');
+            if (d.suspect) tr.style.background = '#fff5f5';
+            tr.innerHTML =
+                '<td style="font-weight:' + (d.suspect ? '700;color:#c04040' : '400') + '">' + (d.suspect ? '⚠ ' : '') + d.name + '</td>' +
+                '<td>' + d.start + '</td>' +
+                '<td>' + (d.stop || 'ยังใช้') + '</td>' +
+                '<td>' + (d.suspect ? '✓' : '') + '</td>' +
+                '<td><button class="btn btn-secondary" style="font-size:10px;padding:2px 8px;" onclick="removeADRDrug(' + i + ')">ลบ</button></td>';
+            tbody.appendChild(tr);
+        }
+    }
+
+    // ─── Parse date string DD/MM/YYYY (พ.ศ. or ค.ศ.) → JS Date ───
+    function adrParseDate(str) {
+        if (!str) return null;
+        let p = str.split('/');
+        if (p.length !== 3) return null;
+        let d = parseInt(p[0]), m = parseInt(p[1]) - 1, y = parseInt(p[2]);
+        if (y > 2400) y -= 543; // พ.ศ. → ค.ศ.
+        return new Date(y, m, d);
+    }
+
+    // ─── Render SVG-like timeline using DIVs ───
+    function renderADRTimeline() {
+        let canvas = document.getElementById('adrTimelineCanvas');
+        let empty  = document.getElementById('adrTimelineEmpty');
+        let legend = document.getElementById('adrLegend');
+
+        if (adrDrugList.length === 0) {
+            canvas.innerHTML = '';
+            empty.style.display = 'block';
+            legend.style.display = 'none';
+            return;
+        }
+        empty.style.display = 'none';
+        legend.style.display = 'flex';
+
+        // find date range
+        let minD = null, maxD = null;
+        let symptomDate = adrParseDate(document.getElementById('adrSymptomDate').value);
+        let today = new Date();
+
+        for (let i = 0; i < adrDrugList.length; i++) {
+            let s = adrParseDate(adrDrugList[i].start);
+            let e = adrParseDate(adrDrugList[i].stop) || today;
+            if (s && (!minD || s < minD)) minD = s;
+            if (e && (!maxD || e > maxD)) maxD = e;
+        }
+        if (symptomDate) {
+            if (!minD || symptomDate < minD) minD = symptomDate;
+            if (!maxD || symptomDate > maxD) maxD = symptomDate;
+        }
+        if (!minD || !maxD) { canvas.innerHTML = ''; return; }
+
+        // add 1 day padding
+        minD = new Date(minD.getTime() - 86400000);
+        maxD = new Date(maxD.getTime() + 86400000);
+        let range = maxD.getTime() - minD.getTime();
+        if (range <= 0) range = 86400000;
+
+        function pct(dt) { return ((dt.getTime() - minD.getTime()) / range * 100); }
+
+        // build date labels (every day if ≤14 days, else every 2-3 days)
+        let dayCount = Math.round(range / 86400000);
+        let step = dayCount <= 14 ? 1 : dayCount <= 30 ? 2 : 3;
+        let dateLabels = '';
+        for (let i = 0; i <= dayCount; i += step) {
+            let dt = new Date(minD.getTime() + i * 86400000);
+            let left = pct(dt);
+            dateLabels += '<span style="position:absolute;left:' + left + '%;transform:translateX(-50%);font-size:10px;color:#999;">' +
+                dt.getDate() + '/' + (dt.getMonth() + 1) + '</span>';
+        }
+
+        let html = '<div class="adr-tl">';
+        // date header
+        html += '<div style="position:relative;height:20px;margin-left:100px;margin-bottom:6px;border-bottom:1px solid #e8e5e0;">' + dateLabels + '</div>';
+
+        // drug rows
+        for (let i = 0; i < adrDrugList.length; i++) {
+            let d = adrDrugList[i];
+            let s = adrParseDate(d.start);
+            let e = adrParseDate(d.stop) || today;
+            if (!s) continue;
+
+            let left = pct(s);
+            let right = pct(e);
+            let width = right - left;
+            if (width < 1) width = 1;
+            let color = d.suspect ? '#c04040' : ADR_COLORS[i % ADR_COLORS.length];
+            let bgRow = d.suspect ? 'background:#fff5f5;' : '';
+
+            html += '<div class="adr-tl-row" style="' + bgRow + '">';
+            html += '<div class="adr-tl-label' + (d.suspect ? ' suspect' : '') + '" title="' + d.name + '">' + (d.suspect ? '⚠ ' : '') + d.name + '</div>';
+            html += '<div class="adr-tl-track">';
+
+            // drug bar
+            html += '<div class="adr-tl-bar" style="left:' + left + '%;width:' + width + '%;background:' + color + ';"></div>';
+
+            // stop marker
+            if (d.stop) {
+                html += '<div class="adr-tl-stop" style="left:' + right + '%;' + (d.suspect ? 'border-color:#c04040;' : '') + '"></div>';
+            }
+
+            // symptom onset line
+            if (symptomDate) {
+                let onsetPct = pct(symptomDate);
+                html += '<div class="adr-tl-onset" style="left:' + onsetPct + '%;"></div>';
+            }
+
+            html += '</div></div>';
+        }
+        html += '</div>';
+
+        canvas.innerHTML = html;
+    }
+
+    // ─── Photo handling ───
+    function adrAddPhotos(files) {
+        for (let i = 0; i < files.length; i++) {
+            adrPhotoFiles.push(files[i]);
+        }
+        renderADRPhotos();
+    }
+
+    function adrRemovePhoto(idx) {
+        adrPhotoFiles.splice(idx, 1);
+        renderADRPhotos();
+    }
+
+    function renderADRPhotos() {
+        let container = document.getElementById('adrPhotos');
+        container.innerHTML = '';
+        for (let i = 0; i < adrPhotoFiles.length; i++) {
+            let url = URL.createObjectURL(adrPhotoFiles[i]);
+            let div = document.createElement('div');
+            div.className = 'adr-thumb-wrap';
+            div.innerHTML = '<img src="' + url + '" class="adr-thumb">' +
+                '<button class="adr-thumb-del" onclick="adrRemovePhoto(' + i + ')">×</button>';
+            container.appendChild(div);
+        }
+    }
+
+    // ─── Upload photos to Google Drive via GAS ───
+    function adrUploadPhotos(callback) {
+        if (adrPhotoFiles.length === 0) { callback([]); return; }
+
+        let links = [];
+        let done = 0;
+        let total = adrPhotoFiles.length;
+
+        for (let i = 0; i < total; i++) {
+            (function(file) {
+                let reader = new FileReader();
+                reader.onload = function(e) {
+                    let base64 = e.target.result.split(',')[1];
+                    gasPost('uploadADRPhoto', {
+                        hn: currentPatientHN,
+                        fileName: file.name,
+                        mimeType: file.type,
+                        base64: base64
+                    }, function(res) {
+                        if (res && res.url) links.push(res.url);
+                        done++;
+                        if (done === total) callback(links);
+                    });
+                };
+                reader.readAsDataURL(file);
+            })(adrPhotoFiles[i]);
+        }
+    }
+
+    // ─── Export PNG ───
+    function exportADRPng() {
+        let el = document.getElementById('adrTimelineWrap');
+        if (typeof html2canvas === 'undefined') {
+            // load html2canvas dynamically
+            let s = document.createElement('script');
+            s.src = 'https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js';
+            s.onload = function() { doCapture(el); };
+            document.head.appendChild(s);
+        } else {
+            doCapture(el);
+        }
+    }
+    function doCapture(el) {
+        html2canvas(el, { backgroundColor: '#ffffff', scale: 2 }).then(function(canvas) {
+            let a = document.createElement('a');
+            a.download = 'ADR_Timeline_' + (currentPatientHN || '') + '.png';
+            a.href = canvas.toDataURL('image/png');
+            a.click();
+        });
+    }
+
+    // ─── Print ADR ───
+    function printADRSheet() {
+        let el = document.getElementById('adr');
+        let win = window.open('', 'print');
+        win.document.write('<html><head><title>ADR Report</title>');
+        win.document.write('<link href="https://fonts.googleapis.com/css2?family=Google+Sans:wght@400;500;700&family=Noto+Sans+Thai:wght@400;500;700&display=swap" rel="stylesheet">');
+        win.document.write('<style>body{font-family:"Google Sans","Noto Sans Thai",sans-serif;padding:24px;} table{border-collapse:collapse;width:100%;} th,td{border:1px solid #ccc;padding:6px 10px;font-size:12px;} .naranjo-btn,.btn{display:none;} .adr-tl-bar{position:absolute;height:16px;border-radius:8px;} .adr-tl-onset{position:absolute;top:0;bottom:0;width:2px;background:#c04040;} .adr-tl-stop{position:absolute;width:10px;height:10px;background:white;border:2.5px solid #333;border-radius:50%;transform:translateX(-5px);} .adr-thumb{width:80px;height:80px;object-fit:cover;border-radius:6px;}</style>');
+        win.document.write('</head><body>');
+        win.document.write('<h2>ADR Monitoring Report — HN: ' + (currentPatientHN || '') + '</h2>');
+        win.document.write(el.innerHTML);
+        win.document.write('</body></html>');
+        win.document.close();
+        setTimeout(function() { win.print(); }, 500);
+    }
+
+    // ─── Save ADR ───
+    function saveADRData() {
+        if (!currentPatientHN) return;
+
+        // upload photos first, then save
+        adrUploadPhotos(function(photoLinks) {
+            adrPhotoLinks = adrPhotoLinks.concat(photoLinks);
+
+            let suspectedDrug = '';
+            for (let i = 0; i < adrDrugList.length; i++) {
+                if (adrDrugList[i].suspect) {
+                    if (suspectedDrug) suspectedDrug += ', ';
+                    suspectedDrug += adrDrugList[i].name;
+                }
+            }
+
+            let adrData = {
+                hn: currentPatientHN,
+                suspectedDrug: suspectedDrug,
+                startDate: adrDrugList.length > 0 ? adrDrugList[0].start : '',
+                eventDate: document.getElementById('adrSymptomDate').value,
+                stopDate: '',
+                adrEvent: document.getElementById('adrSymptoms').value,
+                severity: document.getElementById('adrSeverity').value,
+                naranjo: naranjoAnswers,
+                score: parseInt(document.getElementById('naranjoScore').textContent) || 0,
+                verdict: document.getElementById('naranjoLevel').textContent,
+                drugList: JSON.stringify(adrDrugList),
+                photoLinks: adrPhotoLinks.join(', ')
+            };
+
+            gasPost('saveADR', adrData, function() {
+                alert('บันทึก ADR สำเร็จ');
+                adrPhotoFiles = [];
+            });
+        });
+    }
+
+    // ─── Naranjo Algorithm (proper scoring) ───
+    let naranjoAnswers = [];
+    const NARANJO_WEIGHTS = [1, 2, 1, 2, -1, -1, 1, 1, 1, 1]; // +score for "ใช่"
+
     function renderNaranjoQuestions() {
         let questions = [
-            '1. มีรายงานเกี่ยวกับอาการไม่พึงประสงค์จากยานี้มาก่อนหรือไม่?',
-            '2. อาการไม่พึงประสงค์เกิดขึ้นหลังจากได้รับยาที่สงสัยหรือไม่?',
-            '3. อาการดีขึ้นเมื่อหยุดยาหรือเมื่อให้ยาต้านฤทธิ์หรือไม่?',
+            '1. มีรายงานเกี่ยวกับ ADR จากยานี้มาก่อนหรือไม่?',
+            '2. อาการเกิดขึ้นหลังจากได้รับยาที่สงสัยหรือไม่?',
+            '3. อาการดีขึ้นเมื่อหยุดยาหรือให้ยาต้านฤทธิ์หรือไม่?',
             '4. อาการเกิดขึ้นอีกเมื่อให้ยาซ้ำหรือไม่?',
-            '5. มีสาเหตุอื่น (นอกจากยา) ที่อาจทำให้เกิดอาการหรือไม่?',
+            '5. มีสาเหตุอื่นที่อาจทำให้เกิดอาการนี้ได้หรือไม่?',
             '6. อาการเกิดขึ้นอีกเมื่อให้ placebo หรือไม่?',
-            '7. ตรวจพบยาในเลือด/สารน้ำในร่างกายในระดับที่เป็นพิษหรือไม่?',
-            '8. อาการรุนแรงขึ้นเมื่อเพิ่มขนาดยา หรือลดลงเมื่อลดขนาดยาหรือไม่?',
-            '9. ผู้ป่วยเคยมีอาการเช่นนี้จากยาเดิมหรือยาคล้ายกันมาก่อนหรือไม่?',
-            '10. มีหลักฐานยืนยันจากการตรวจทางห้องปฏิบัติการหรือไม่?'
+            '7. ตรวจพบระดับยาในเลือดที่เป็นพิษหรือไม่?',
+            '8. อาการรุนแรงขึ้นเมื่อเพิ่มขนาดยา / ลดลงเมื่อลดขนาดหรือไม่?',
+            '9. ผู้ป่วยเคยมีอาการเช่นนี้จากยาเดิมหรือคล้ายกันมาก่อนหรือไม่?',
+            '10. มีหลักฐานจากการตรวจทาง lab ยืนยันหรือไม่?'
         ];
 
+        naranjoAnswers = new Array(questions.length).fill(null);
         let container = document.getElementById('naranjoQuestions');
         container.innerHTML = '';
 
         for (let i = 0; i < questions.length; i++) {
-            let q = questions[i];
             let html = '<div class="naranjo-question">' +
-                '<div class="naranjo-text">' + q + '</div>' +
-                '<div class="naranjo-buttons">' +
-                '<button class="naranjo-btn" onclick="setNaranjoAnswer(' + i + ', 1)">ใช่</button>' +
-                '<button class="naranjo-btn" onclick="setNaranjoAnswer(' + i + ', 0)">ไม่</button>' +
-                '<button class="naranjo-btn" onclick="setNaranjoAnswer(' + i + ', -1)">ไม่ทราบ</button>' +
-                '</div>' +
-                '</div>';
+                '<div class="naranjo-text">' + questions[i] + '</div>' +
+                '<div class="naranjo-buttons" id="naranjo-btns-' + i + '">' +
+                '<button class="naranjo-btn" onclick="setNaranjoAnswer(' + i + ', 1, this)">ใช่</button>' +
+                '<button class="naranjo-btn" onclick="setNaranjoAnswer(' + i + ', 0, this)">ไม่ทราบ</button>' +
+                '<button class="naranjo-btn" onclick="setNaranjoAnswer(' + i + ', -1, this)">ไม่</button>' +
+                '</div></div>';
             container.innerHTML += html;
         }
     }
 
-    function setNaranjoAnswer(idx, val) {
-        // Score calculation logic here
+    function setNaranjoAnswer(idx, val, btn) {
+        naranjoAnswers[idx] = val;
+        // highlight selected button
+        let btns = document.getElementById('naranjo-btns-' + idx).querySelectorAll('.naranjo-btn');
+        btns.forEach(function(b) { b.classList.remove('selected'); });
+        if (btn) btn.classList.add('selected');
         updateNaranjoScore();
     }
 
     function updateNaranjoScore() {
-        // Dummy implementation
-        let score = 5;
-        let levelText = 'Probable';
-        let levelClass = 'probable';
+        let score = 0;
+        for (let i = 0; i < naranjoAnswers.length; i++) {
+            let ans = naranjoAnswers[i];
+            if (ans === null) continue;
+            if (ans === 1)  score += NARANJO_WEIGHTS[i];      // ใช่
+            else if (ans === -1) score -= (i === 4 ? -1 : 0);  // ไม่ (ข้อ 5 กลับคะแนน)
+            // ไม่ทราบ = 0
+        }
 
-        if (score >= 9) { levelText = 'Definite'; levelClass = 'definite'; }
-        else if (score <= 0) { levelText = 'Doubtful'; levelClass = 'doubtful'; }
-        else if (score <= 4) { levelText = 'Possible'; levelClass = 'possible'; }
+        let levelText, levelClass;
+        if (score >= 9)      { levelText = 'Definite ADR'; levelClass = 'definite'; }
+        else if (score >= 5) { levelText = 'Probable ADR'; levelClass = 'probable'; }
+        else if (score >= 1) { levelText = 'Possible ADR'; levelClass = 'possible'; }
+        else                 { levelText = 'Doubtful';      levelClass = 'doubtful'; }
 
         let elem = document.querySelector('.naranjo-score');
         if (elem) {
@@ -3143,13 +3519,13 @@
         }
     }
 
+    // Re-render timeline when symptom date changes
+    document.addEventListener('change', function(e) {
+        if (e.target && e.target.id === 'adrSymptomDate') renderADRTimeline();
+    });
+
     // Helper: Add D/C med row
     function addDCMedRow() {
-        // Implementation
-    }
-
-    // Helper: Add ADR drug
-    function addADRDrug() {
         // Implementation
     }
 </script>
