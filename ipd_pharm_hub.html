@@ -2275,7 +2275,7 @@
             dcToday: false
         };
 
-        gasPost('addPatient', newPatient, function() {
+        gasPost('savePatient', newPatient, function() {
             loadPatients();
             document.getElementById('formHN').value = '';
             document.getElementById('formName').value = '';
