@@ -2543,10 +2543,8 @@
     }
 
     function renderDashboard(data) {
-        // KPI row
-        let mrTotal = data.mr ? data.mr.total : 0;
-        let ptTotal = data.patients ? data.patients.total : 0;
-        let mrPct = ptTotal > 0 ? Math.round(mrTotal / ptTotal * 100) : 0;
+        // KPI row — coveragePct from GAS: distinct patients with MR / total patients, capped 100%
+        let mrPct = data.mr ? (data.mr.coveragePct || 0) : 0;
         document.getElementById('dashMRCov').textContent = mrPct + '%';
         document.getElementById('dashMedErr').textContent = data.medError ? data.medError.total : 0;
         let drpTotal = data.drp ? data.drp.total : 0;
