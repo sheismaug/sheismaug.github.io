@@ -1455,10 +1455,6 @@
                             <input type="hidden" id="mrMDShift">
                         </div>
                     </div>
-                    <div class="form-group" style="margin-top: 8px;">
-                        <label class="form-label">แพทย์</label>
-                        <select class="form-select" id="mrDoctor"></select>
-                    </div>
                 </div>
 
                 <!-- Row 5: Home Med paste area -->
@@ -1840,15 +1836,35 @@
     };
 
     // Initialize
+    let appSettings = {};
+
     window.addEventListener('load', function() {
         checkPIN();
         updateDate();
+        loadSettings();
         loadPatients();
         setupEventListeners();
         initDateInputs();
-        switchMainTab('patient-list'); // activate first tab with proper styling
+        switchMainTab('patient-list');
         setInterval(updateDate, 60000);
     });
+
+    function loadSettings() {
+        gasGet('getSettings', {}, function(data) {
+            if (!data || !data.settings) return;
+            appSettings = data.settings;
+
+            // เติม dropdown ผู้ทำ MR (เภสัชกร + จพ.)
+            let pharmSel = document.getElementById('mrPharmacist');
+            pharmSel.innerHTML = '<option value="">-- เลือก --</option>';
+            (appSettings['รายชื่อเภสัชกร'] || []).forEach(function(name) {
+                let o = document.createElement('option');
+                o.value = name; o.textContent = name;
+                pharmSel.appendChild(o);
+            });
+
+        });
+    }
 
     // PIN Lock
     function checkPIN() {
@@ -2460,7 +2476,6 @@
             timePass: document.getElementById('mrTimePass').value,
             mdDate: document.getElementById('mrMDDate').value,
             mdShift: document.getElementById('mrMDShift').value,
-            doctor: document.getElementById('mrDoctor').value,
             medType: document.getElementById('mrMedType').value,
             meds: meds
         };
