@@ -68,18 +68,20 @@
         }
 
         .hero-sticky {
+            border-radius: 0 0 28px 28px;
+            overflow: hidden;
+        }
+        .hero-wrap {
             background: #2e3f58;
             border-radius: 0 0 28px 28px;
             overflow: hidden;
             position: relative;
         }
         .app-header {
-            background: #2e3f58;
             color: white;
             padding: 24px 28px 0;
             position: relative;
             overflow: hidden;
-            flex-shrink: 0;
         }
 
         .wm {
@@ -1044,10 +1046,11 @@
 <div class="window-container">
     <div class="window">
         <!-- App Header -->
-        <div class="hero-sticky">
-          <div class="app-header">
-            <div class="wm">IPD</div>
-            <div class="header-content">
+        <div class="hero-sticky" id="heroSticky">
+          <div class="hero-wrap">
+            <div class="app-header">
+              <div class="wm">IPD</div>
+              <div class="header-content">
                 <div class="eyebrow">IPD · บริบาลเภสัชกรรม</div>
                 <div class="header-title">IPD <em>Pharm Hub</em></div>
                 <div class="header-subtitle" id="headerSubtitle">ติดตามคนไข้ · รพ.ห้วยผึ้ง · 13/04/2568</div>
@@ -1058,8 +1061,8 @@
                     <div class="kpi-chip" id="kpiMRTodo">ต้องทำ MR: 0</div>
                     <div class="kpi-chip" id="kpiDC">D/C วันนี้: 0</div>
                 </div>
+              </div>
             </div>
-            <!-- Tab strip inside dark header, just like med_reconciliation -->
             <div class="tab-strip" id="mainTabs">
                 <div class="tab-item active" data-tab="patient-list">รายชื่อ</div>
                 <div class="tab-item" data-tab="dashboard">Dashboard</div>
