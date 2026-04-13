@@ -750,6 +750,47 @@
             transform: rotate(180deg);
         }
 
+        /* HAD Calculator */
+        .had-chip { padding: 6px 14px; border-radius: 99px; font-size: 12px; font-weight: 600; cursor: pointer; border: 1.5px solid #d0d0d0; background: #fff; color: #555; transition: all 0.15s; user-select: none; }
+        .had-chip.on { background: #2e3f58; color: #fff; border-color: #2e3f58; }
+        .had-block { background: #fff; border: 1px solid #e8e5e0; border-radius: 12px; padding: 16px; margin-bottom: 14px; }
+        .had-block h4 { margin: 0 0 4px; font-size: 14px; color: #2e3f58; }
+        .had-block .had-badge { display: inline-block; font-size: 10px; font-weight: 700; padding: 2px 8px; border-radius: 99px; background: #e8e5e0; color: #555; margin-left: 6px; vertical-align: middle; }
+        .had-note { font-size: 11.5px; padding: 8px 12px; border-radius: 8px; margin-bottom: 12px; line-height: 1.5; background: #f0f7ff; border-left: 3px solid #5b8def; color: #334; }
+        .had-note.warn-note { background: #fff8e1; border-color: #ffb300; }
+        .had-calc-row { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; flex-wrap: wrap; }
+        .had-calc-row label { font-size: 12px; color: #666; min-width: 60px; }
+        .had-calc-row input { width: 90px; padding: 6px 10px; border: 1.5px solid #d0d0d0; border-radius: 8px; font-size: 14px; font-weight: 600; text-align: center; font-family: inherit; }
+        .had-calc-row input.ok { border-color: #43a047; background: #f0fff0; }
+        .had-calc-row input.warn { border-color: #ffb300; background: #fff8e1; }
+        .had-calc-row input.bad { border-color: #e53935; background: #fff0f0; }
+        .had-conv { font-size: 13px; font-weight: 600; color: #555; }
+        .had-conv.ok { color: #2e7d32; } .had-conv.warn { color: #e65100; } .had-conv.bad { color: #c62828; }
+        .had-bar { height: 6px; border-radius: 99px; background: #eee; position: relative; margin: 6px 0 10px; overflow: hidden; }
+        .had-bar-fill { height: 100%; border-radius: 99px; background: #43a047; transition: width 0.2s, background 0.2s; }
+        .had-bar-fill.warn { background: #ffb300; } .had-bar-fill.bad { background: #e53935; }
+        .had-fb { font-size: 12px; padding: 8px 12px; border-radius: 8px; display: flex; align-items: flex-start; gap: 6px; line-height: 1.5; margin-top: 6px; }
+        .had-fb.ok { background: #e8f5e9; color: #2e7d32; } .had-fb.warn { background: #fff8e1; color: #e65100; } .had-fb.bad { background: #ffebee; color: #c62828; }
+        .had-lab-row { display: flex; align-items: center; gap: 8px; margin-top: 8px; }
+        .had-lab-row label { font-size: 11.5px; color: #888; }
+        .had-lab-row input { width: 80px; padding: 5px 8px; border: 1px solid #d0d0d0; border-radius: 6px; font-size: 13px; text-align: center; font-family: inherit; }
+        .had-scale { border-collapse: collapse; font-size: 12px; margin: 8px 0; width: 100%; }
+        .had-scale td { padding: 5px 10px; border: 1px solid #e8e5e0; }
+        .had-scale tr.active td { background: #e8f5e9; font-weight: 600; }
+        .had-scale tr.alert td { background: #ffebee; font-weight: 600; color: #c62828; }
+        .had-info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; margin-top: 10px; font-size: 11.5px; }
+        .had-info-item { padding: 6px 10px; background: #f9f8f6; border-radius: 6px; line-height: 1.5; }
+        .had-info-item strong { display: block; font-size: 10px; text-transform: uppercase; color: #999; letter-spacing: 0.5px; margin-bottom: 2px; }
+
+        /* Shift Buttons */
+        .shift-btns { display: inline-flex; gap: 4px; }
+        .shift-btn {
+            padding: 4px 12px; border-radius: 99px; font-size: 12px; font-weight: 500;
+            border: 1.5px solid #d0d0d0; background: #fff; color: #555;
+            cursor: pointer; transition: all 0.15s; user-select: none;
+        }
+        .shift-btn.active { background: #2e3f58; color: #fff; border-color: #2e3f58; }
+
         /* List Styles */
         .editable-table {
             width: 100%;
@@ -1317,88 +1358,133 @@
 
             <!-- Sub-Tab 1: MR -->
             <div class="subtab-content active" id="mr">
-                <div class="form-row">
-                    <div class="form-group">
-                        <label class="form-label">วันที่บันทึก</label>
-                        <input type="text" class="form-input date-input" id="mrDate">
+                <!-- Row 1: Admit info -->
+                <div style="padding: 14px 16px; background: #f5f4f2; border-radius: 10px; margin-bottom: 12px;">
+                    <div class="form-row" style="margin-bottom: 10px;">
+                        <div class="form-group" style="flex:1;">
+                            <label class="form-label">วันที่ Admit</label>
+                            <input type="text" class="form-input date-input" id="mrAdmitDate" readonly>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">เวร Admit</label>
+                            <div class="shift-btns" id="mrAdmitShiftBtns">
+                                <button type="button" class="shift-btn" data-val="เช้า" onclick="pickShift(this,'mrAdmitShift')">เช้า</button>
+                                <button type="button" class="shift-btn" data-val="บ่าย" onclick="pickShift(this,'mrAdmitShift')">บ่าย</button>
+                                <button type="button" class="shift-btn" data-val="ดึก" onclick="pickShift(this,'mrAdmitShift')">ดึก</button>
+                            </div>
+                            <input type="hidden" id="mrAdmitShift">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">รพ.</label>
+                            <select class="form-select" id="mrHospital">
+                                <option>รพ.ห้วยผึ้ง</option>
+                                <option>รพ.อื่น</option>
+                            </select>
+                        </div>
                     </div>
-                    <div class="form-group">
-                        <label class="form-label">กะ</label>
-                        <select class="form-select" id="mrShift">
-                            <option>เช้า</option>
-                            <option>บ่าย</option>
-                            <option>ดึก</option>
-                        </select>
+
+                    <!-- Row 2: MR status & pharmacist -->
+                    <div class="form-row">
+                        <div class="form-group" style="flex:1;">
+                            <label class="form-label">สถานะ MR</label>
+                            <select class="form-select" id="mrStatus">
+                                <option>มีรายการ MR</option>
+                                <option>ไม่พบรายการยาเดิม</option>
+                                <option>ไม่ได้ทำ MR</option>
+                                <option>ติดตามไม่ได้</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">ผู้ทำ MR</label>
+                            <select class="form-select" id="mrPharmacist"></select>
+                        </div>
                     </div>
                 </div>
 
-                <div class="form-group">
-                    <label class="form-label">วันที่แพทย์ review</label>
-                    <input type="text" class="form-input date-input" id="mrMDDate">
+                <!-- Row 3: MR completion -->
+                <div style="padding: 14px 16px; background: white; border: 1px solid #e8e5e0; border-radius: 10px; margin-bottom: 12px;">
+                    <div class="form-row">
+                        <div class="form-group" style="flex:1;">
+                            <label class="form-label">วันที่ MR เสร็จ</label>
+                            <input type="text" class="form-input date-input" id="mrDate">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">เวร MR</label>
+                            <div class="shift-btns">
+                                <button type="button" class="shift-btn" data-val="เช้า" onclick="pickShift(this,'mrDoneShift')">เช้า</button>
+                                <button type="button" class="shift-btn" data-val="บ่าย" onclick="pickShift(this,'mrDoneShift')">บ่าย</button>
+                                <button type="button" class="shift-btn" data-val="ดึก" onclick="pickShift(this,'mrDoneShift')">ดึก</button>
+                            </div>
+                            <input type="hidden" id="mrDoneShift">
+                        </div>
+                    </div>
+                    <div class="form-row" style="margin-top: 8px;">
+                        <div class="form-group" style="flex:1;">
+                            <label class="form-label">คุณภาพ MR</label>
+                            <select class="form-select" id="mrQuality">
+                                <option>ครบถ้วน</option>
+                                <option>ไม่ครบ</option>
+                            </select>
+                        </div>
+                        <div class="form-group" style="flex:1;">
+                            <label class="form-label">ผ่านเกณฑ์เวลา</label>
+                            <select class="form-select" id="mrTimePass">
+                                <option>ผ่าน</option>
+                                <option>ไม่ผ่าน</option>
+                                <option>ผ่าน (ไม่พบยา)</option>
+                            </select>
+                        </div>
+                    </div>
                 </div>
 
-                <div class="form-group">
-                    <label class="form-label">Paste Home Med (tab-separated)</label>
-                    <textarea class="form-textarea" id="mrPaste" placeholder="med_name\tsig\tqty\tdate"></textarea>
-                </div>
-
-                <button class="btn btn-accent" onclick="parseMRData()">Parse ยา home med</button>
-
-                <table class="editable-table" style="margin-top: 16px;">
-                    <thead>
-                        <tr>
-                            <th>Med Name</th>
-                            <th>Sig</th>
-                            <th>Qty</th>
-                            <th>Date</th>
-                        </tr>
-                    </thead>
-                    <tbody id="mrTable"></tbody>
-                </table>
-
-                <div style="margin-top: 16px; padding: 16px; background: #f5f4f2; border-radius: 8px;">
-                    <div class="form-group">
+                <!-- Row 4: MD Review -->
+                <div style="padding: 14px 16px; background: white; border: 1px solid #e8e5e0; border-radius: 10px; margin-bottom: 12px;">
+                    <div class="form-row">
+                        <div class="form-group" style="flex:1;">
+                            <label class="form-label">วันที่ MD Review</label>
+                            <input type="text" class="form-input date-input" id="mrMDDate">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">เวร MD</label>
+                            <div class="shift-btns">
+                                <button type="button" class="shift-btn" data-val="เช้า" onclick="pickShift(this,'mrMDShift')">เช้า</button>
+                                <button type="button" class="shift-btn" data-val="บ่าย" onclick="pickShift(this,'mrMDShift')">บ่าย</button>
+                                <button type="button" class="shift-btn" data-val="ดึก" onclick="pickShift(this,'mrMDShift')">ดึก</button>
+                                <button type="button" class="shift-btn" data-val="d/c" onclick="pickShift(this,'mrMDShift')">d/c</button>
+                            </div>
+                            <input type="hidden" id="mrMDShift">
+                        </div>
+                    </div>
+                    <div class="form-group" style="margin-top: 8px;">
                         <label class="form-label">แพทย์</label>
                         <select class="form-select" id="mrDoctor"></select>
                     </div>
-                    <div class="form-group">
-                        <label class="form-label">เภสัชกร</label>
-                        <select class="form-select" id="mrPharmacist"></select>
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label">ประเภทยา</label>
-                        <select class="form-select" id="mrMedType">
-                            <option>รพ.เดียว</option>
-                            <option>ยานอก</option>
-                        </select>
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label">สถานะ MR</label>
-                        <select class="form-select" id="mrStatus">
-                            <option>มีรายการ MR</option>
-                            <option>ไม่พบรายการยาเดิม</option>
-                            <option>ไม่ได้ทำ MR</option>
-                            <option>ติดตามไม่ได้</option>
-                        </select>
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label">ผ่านเกณฑ์เวลา</label>
-                        <select class="form-select" id="mrTimePass">
-                            <option>ผ่าน</option>
-                            <option>ไม่ผ่าน</option>
-                            <option>ผ่าน (ไม่พบยา)</option>
-                        </select>
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label">คุณภาพ MR</label>
-                        <select class="form-select" id="mrQuality">
-                            <option>ครบถ้วน</option>
-                            <option>ไม่ครบ</option>
-                        </select>
-                    </div>
                 </div>
 
-                <button class="btn btn-primary" style="margin-top: 16px;" onclick="saveMRData()">บันทึก MR</button>
+                <!-- Row 5: Home Med paste area -->
+                <div style="padding: 14px 16px; background: white; border: 1px solid #e8e5e0; border-radius: 10px; margin-bottom: 12px;">
+                    <div class="form-row" style="margin-bottom: 8px;">
+                        <div class="form-group" style="flex:1;">
+                            <label class="form-label">ประเภทยา</label>
+                            <select class="form-select" id="mrMedType">
+                                <option>ยานอก</option>
+                                <option>รพ.เดียว</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Paste Home Med (tab-separated)</label>
+                        <textarea class="form-textarea" id="mrPaste" placeholder="med_name&#9;sig&#9;qty&#9;date"></textarea>
+                    </div>
+                    <button class="btn btn-accent" onclick="parseMRData()">Parse ยา home med</button>
+
+                    <table class="editable-table" style="margin-top: 12px;">
+                        <thead><tr><th>Med Name</th><th>Sig</th><th>Qty</th><th>Date</th></tr></thead>
+                        <tbody id="mrTable"></tbody>
+                    </table>
+                </div>
+
+                <button class="btn btn-primary" style="margin-top: 8px; width: 100%;" onclick="saveMRData()">บันทึก MR</button>
             </div>
 
             <!-- Sub-Tab 2: Med Error + DRP -->
@@ -1521,27 +1607,25 @@
 
             <!-- Sub-Tab 3: HAD Monitoring -->
             <div class="subtab-content" id="had">
-                <label style="display: flex; align-items: center; gap: 8px; margin-bottom: 16px;">
+                <label style="display: flex; align-items: center; gap: 8px; margin-bottom: 12px;">
                     <input type="checkbox" id="hasHAD" onchange="toggleHADView()">
-                    <span>มี HAD drugs</span>
+                    <span style="font-weight:600;">มี HAD drugs</span>
                 </label>
 
                 <div id="hadContent" style="display: none;">
-                    <div class="grid-2">
-                        <div>
-                            <h4 style="margin-bottom: 12px; color: #2e3f58;">HAD Round Checklist</h4>
-                            <div id="hadChecklist"></div>
-                        </div>
-                        <div>
-                            <h4 style="margin-bottom: 12px; color: #2e3f58;">HAD Drug Reference</h4>
-                            <div id="hadReference"></div>
-                        </div>
+                    <!-- Drug selector chips -->
+                    <div style="margin-bottom: 16px;">
+                        <div style="font-size: 12px; color: #999; margin-bottom: 8px;">เลือกยา HAD ที่ผู้ป่วยได้รับ:</div>
+                        <div id="hadDrugChips" style="display: flex; flex-wrap: wrap; gap: 6px;"></div>
                     </div>
+                    <!-- Calculator blocks rendered here -->
+                    <div id="hadCalcBlocks"></div>
                 </div>
 
                 <div id="hadEmpty" style="padding: 24px; text-align: center; color: #999;">
                     ไม่มียา HAD
                 </div>
+                <button class="btn btn-primary" style="margin-top: 16px; width: 100%; display: none;" id="hadSaveBtn" onclick="saveHADData()">บันทึก HAD</button>
             </div>
 
             <!-- Sub-Tab 4: Counseling -->
@@ -1626,7 +1710,10 @@
                 <h4 style="margin-top: 24px; margin-bottom: 12px; color: #2e3f58;">Changed Meds</h4>
                 <div id="dcChangedMeds"></div>
 
-                <button class="btn btn-primary" style="margin-top: 16px;" onclick="printDCSheet()">Print A4</button>
+                <div style="display: flex; gap: 8px; margin-top: 16px;">
+                    <button class="btn btn-primary" style="flex: 1;" onclick="saveDCData()">บันทึก D/C</button>
+                    <button class="btn btn-secondary" onclick="printDCSheet()">Print A4</button>
+                </div>
             </div>
 
             <!-- Sub-Tab 6: ADR Monitoring -->
@@ -1670,7 +1757,10 @@
                     <div style="font-size: 20px; font-weight: 700;" id="naranjoScore">0</div>
                     <div style="font-size: 12px;" id="naranjoLevel">ยังไม่มีข้อมูล</div>
                 </div>
-                <button class="btn btn-primary" style="margin-top: 16px;" onclick="printADRSheet()">Print A4</button>
+                <div style="display: flex; gap: 8px; margin-top: 16px;">
+                    <button class="btn btn-primary" style="flex: 1;" onclick="saveADRData()">บันทึก ADR</button>
+                    <button class="btn btn-secondary" onclick="printADRSheet()">Print A4</button>
+                </div>
             </div>
 
             <!-- Sub-Tab 7: Warfarin (hidden by default) -->
@@ -1722,7 +1812,10 @@
                     <tbody id="warfINRTable"></tbody>
                 </table>
 
-                <button class="btn btn-primary" style="margin-top: 16px;" onclick="printWarfSheet()">Print D/C</button>
+                <div style="display: flex; gap: 8px; margin-top: 16px;">
+                    <button class="btn btn-primary" style="flex: 1;" onclick="saveWarfarinData()">บันทึก Warfarin</button>
+                    <button class="btn btn-secondary" onclick="printWarfSheet()">Print D/C</button>
+                </div>
             </div>
         </div>
     </div>
@@ -2288,7 +2381,14 @@
         });
     }
 
-    // MR Tab
+    // MR Tab — Shift picker
+    function pickShift(btn, fieldId) {
+        let parent = btn.parentElement;
+        parent.querySelectorAll('.shift-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        document.getElementById(fieldId).value = btn.getAttribute('data-val');
+    }
+
     function parseMRData() {
         let text = document.getElementById('mrPaste').value;
         let lines = text.split('\n');
@@ -2298,13 +2398,19 @@
         for (let i = 0; i < lines.length; i++) {
             if (!lines[i].trim()) continue;
             let parts = lines[i].split('\t');
-            if (parts.length < 2) continue;
+            // ถ้าคอลัมน์แรกเป็นตัวเลขล้วน (ลำดับแถว) → ตัดออก
+            if (parts.length > 1 && /^\d+$/.test(parts[0].trim())) {
+                parts.shift();
+            }
+            if (parts.length < 1) continue;
 
+            // esc เครื่องหมาย " ใน value เพื่อกัน HTML แตก
+            let esc = function(s) { return (s || '').replace(/"/g, '&quot;'); };
             let row = document.createElement('tr');
-            row.innerHTML = '<td><input type="text" value="' + (parts[0] || '') + '" class="form-input" style="width: 100%;"></td>' +
-                '<td><input type="text" value="' + (parts[1] || '') + '" class="form-input" style="width: 100%;"></td>' +
-                '<td><input type="text" value="' + (parts[2] || '') + '" class="form-input" style="width: 100%;"></td>' +
-                '<td><input type="text" value="' + (parts[3] || '') + '" class="form-input" style="width: 100%;"></td>';
+            row.innerHTML = '<td><input type="text" value="' + esc(parts[0]) + '" class="form-input" style="width: 100%;"></td>' +
+                '<td><input type="text" value="' + esc(parts[1]) + '" class="form-input" style="width: 100%;"></td>' +
+                '<td><input type="text" value="' + esc(parts[2]) + '" class="form-input" style="width: 100%;"></td>' +
+                '<td><input type="text" value="' + esc(parts[3]) + '" class="form-input" style="width: 100%;"></td>';
             tbody.appendChild(row);
         }
     }
@@ -2326,19 +2432,23 @@
 
         let mrData = {
             hn: currentPatientHN,
-            date: document.getElementById('mrDate').value,
-            shift: document.getElementById('mrShift').value,
-            mdDate: document.getElementById('mrMDDate').value,
-            meds: meds,
-            doctor: document.getElementById('mrDoctor').value,
-            pharmacist: document.getElementById('mrPharmacist').value,
-            medType: document.getElementById('mrMedType').value,
+            admitDate: document.getElementById('mrAdmitDate').value,
+            admitShift: document.getElementById('mrAdmitShift').value,
+            hospital: document.getElementById('mrHospital').value,
             status: document.getElementById('mrStatus').value,
+            pharmacist: document.getElementById('mrPharmacist').value,
+            date: document.getElementById('mrDate').value,
+            doneShift: document.getElementById('mrDoneShift').value,
+            quality: document.getElementById('mrQuality').value,
             timePass: document.getElementById('mrTimePass').value,
-            quality: document.getElementById('mrQuality').value
+            mdDate: document.getElementById('mrMDDate').value,
+            mdShift: document.getElementById('mrMDShift').value,
+            doctor: document.getElementById('mrDoctor').value,
+            medType: document.getElementById('mrMedType').value,
+            meds: meds
         };
 
-        gasPost('saveMRData', mrData, function() {
+        gasPost('saveMRLog', mrData, function() {
             alert('บันทึก MR สำเร็จ');
             loadPatients();
         });
@@ -2407,91 +2517,281 @@
         });
     }
 
-    // HAD Monitoring
+    // ═══════════════════════════════════════════
+    //  HAD DRUG DATABASE (from HAD Round App)
+    // ═══════════════════════════════════════════
+    const HAD_DB = {
+      ne:        { name:'Norepinephrine', short:'NE', badge:'IV drip', mode:'rate', inputUnit:'mL/hr', convUnit:'mcg/kg/min', weightBased:true, convFn:function(r,w){return(r*16)/(w*60)}, convFmt:function(v){return v.toFixed(3)}, warnAt:0.4, maxAt:0.5, defaultRate:8, note:'ℹ ควรให้ทาง central line — peripheral line เสี่ยง extravasation', noteClass:'info', labs:[{key:'lactate',label:'Lactate',unit:'mmol/L',ph:'0.5-2.0'}], info:{dose:'Range: 0.05-0.5 mcg/kg/min',prep:'NE 4mg + D5W 250mL (16 mcg/mL)',monitoring:'BP/HR ทุก 2-5 นาที · ดู IV site ทุก 1 ชม.',alarm:'HR>120, BP>160/100, ผิวหนังซีด/เขียวที่ IV site',antidote:'Phentolamine 5-10mg + NSS 10-15mL ฉีดรอบ extravasation ภายใน 12 ชม.'} },
+      adr:       { name:'Adrenaline', short:'Adr', badge:'IV drip/push', mode:'rate', inputUnit:'mL/hr', convUnit:'mcg/kg/min', weightBased:true, convFn:function(r,w){return(r*4)/(w*60)}, convFmt:function(v){return v.toFixed(3)}, warnAt:0.3, maxAt:1.0, defaultRate:15, note:'ℹ Drip: 1mg/250mL NSS · Push: 1mg/mL undiluted สำหรับ CPR/anaphylaxis', noteClass:'info', labs:[{key:'lactate',label:'Lactate',unit:'mmol/L',ph:'0.5-2.0'}], info:{dose:'Drip: 1mg + NSS 250mL · CPR: 1mg IV q3-5min',prep:'1mg/mL (1:1000)',monitoring:'BP, HR, EKG',alarm:'Arrhythmia, Extravasation, Hypertension',antidote:'Phentolamine 5-10mg + NSS'} },
+      morphine:  { name:'Morphine', short:'Mor', badge:'Drip/PRN', mode:'rate', inputUnit:'mL/hr', convUnit:'mg/hr', weightBased:false, convFn:function(r){return r*1}, convFmt:function(v){return v.toFixed(1)}, warnAt:8, maxAt:10, defaultRate:3, note:'ℹ ยาแก้พิษ: Naloxone · เฝ้าระวัง respiratory depression RR < 10', noteClass:'info', labs:[{key:'pain',label:'Pain score',unit:'/10',ph:'0-10'}], info:{dose:'10mg/mL · IV push: เจือจาง SWI 4-5mL ฉีดช้าๆ',prep:'IV infusion: D5W (0.1-1 mg/mL)',monitoring:'BP, RR, Pain score, Sedation',alarm:'RR<10, Hypotension, Bradycardia',antidote:'Naloxone 0.4-2mg IV ซ้ำได้ทุก 2-3 นาที'} },
+      pethidine: { name:'Pethidine', short:'Peth', badge:'IV push/IM', mode:'prn', inputUnit:'mg/dose', convUnit:null, weightBased:false, convFn:null, warnAt:50, maxAt:100, defaultRate:50, note:'ℹ ยาแก้พิษ: Naloxone · max 600mg/24hr · ระวังในผู้สูงอายุ/ไตบกพร่อง', noteClass:'info', labs:[{key:'pain',label:'Pain score',unit:'/10',ph:'0-10'},{key:'crcl',label:'CrCl',unit:'mL/min',ph:'>50 ปกติ'}], info:{dose:'25-100mg q3-4h PRN · max 600mg/24hr',prep:'50mg/mL · IV: เจือจางน้ำกลั่น 5mL ฉีด 4-5 นาที',monitoring:'BP, RR, Pain, Mental status',alarm:'RR ต่ำ, Hypotension, ชัก',antidote:'Naloxone 2mg IV'} },
+      insulin:   { name:'Regular Insulin', short:'RI', badge:'Drip/SC Scale', mode:'insulin', inputUnit:'mL/hr', convUnit:'u/hr', weightBased:false, convFn:function(r){return r*1}, convFmt:function(v){return v.toFixed(1)}, warnAt:10, maxAt:15, defaultRate:5, note:'ℹ เฝ้าระวัง hypoglycemia · DTx ทุก 1-2 ชม. · ยาแก้พิษ: 50% Glucose IV', noteClass:'info', labs:[{key:'dtx',label:'DTx',unit:'mg/dL',ph:'70-180'},{key:'k',label:'K⁺',unit:'mEq/L',ph:'3.5-5.0'}], scale:[{min:200,max:250,dose:4},{min:251,max:300,dose:6},{min:301,max:350,dose:8},{min:351,max:400,dose:10},{min:401,max:450,dose:12},{min:451,max:9999,dose:null,alert:true}], info:{dose:'DKA: IV 0.15u/kg → Maint 0.1u/kg/hr · Hyperkalemia: RI 1u/Dextrose 4-5g',prep:'100u + NSS 100mL (1u/mL)',monitoring:'DTx, Sign of Hypoglycemia, K⁺',alarm:'Hypoglycemia: ใจสั่น เหงื่อออก หมดสติ',antidote:'50% Glucose 50mL IV push'} },
+      kcl:       { name:'KCl', short:'KCl', badge:'IV drip', mode:'rate', inputUnit:'mL/hr', convUnit:'mEq/hr', weightBased:false, convFn:function(r){return r*0.04}, convFmt:function(v){return v.toFixed(1)}, warnAt:8, maxAt:10, defaultRate:100, note:'ℹ ห้าม IV push — หัวใจหยุดเต้นได้ · ตรวจ K⁺ serum ก่อนและระหว่างให้', noteClass:'info', labs:[{key:'k',label:'K⁺',unit:'mEq/L',ph:'3.5-5.0'}], info:{dose:'40mEq/NSS 1000mL · Max rate peripheral 10mEq/hr',prep:'ห้าม IV push! Max Conc peripheral 40mEq/L',monitoring:'K⁺, EKG, IV site, Urine output',alarm:'Hyperkalemia: ECG changes (peaked T, wide QRS)',antidote:'Ca gluconate 1g IV push 5-10 นาที'} },
+      mgso4:     { name:'MgSO₄', short:'Mg', badge:'IV drip', mode:'rate', inputUnit:'mL/hr', convUnit:'g/hr', weightBased:false, convFn:function(r){return r*0.02}, convFmt:function(v){return v.toFixed(2)}, warnAt:1.5, maxAt:2, defaultRate:25, note:'ℹ ระวัง Mg toxicity · เช็ค patellar reflex, RR > 16, UO > 25 mL/hr · ยาแก้พิษ: Ca gluconate', noteClass:'info', labs:[{key:'mg',label:'Mg²⁺',unit:'mg/dL',ph:'1.7-2.4'}], info:{dose:'Eclampsia: Loading 4g IV 20 นาที → Maint 1-2g/hr',prep:'50% MgSO₄ 1g/2mL + D5W',monitoring:'BP, HR, RR, Urine output, Patellar reflex',alarm:'Patellar reflex หายไป, RR<16, UO<25mL/hr',antidote:'Ca gluconate 1g IV slow push 5-10 นาที'} },
+      digoxin:   { name:'Digoxin', short:'Dig', badge:'IV push', mode:'monitoring', note:'ℹ Therapeutic range: 0.8-2 ng/mL · ระวัง digoxin toxicity ใน K⁺ ต่ำ', noteClass:'info', labs:[{key:'digLevel',label:'Digoxin level',unit:'ng/mL',ph:'0.8-2.0'},{key:'k',label:'K⁺',unit:'mEq/L',ph:'3.5-5.0'}], info:{dose:'Loading: 0.25-0.5mg slow IV push → 0.25mg ทุก 6 ชม. x2',prep:'0.5mg/2mL · เจือจาง NSS ≥ 4 เท่า · IV slow push ≥ 10-20 นาที',monitoring:'HR, BP, EKG, K⁺, Digoxin level',alarm:'คลื่นไส้ หัวใจเต้นผิดจังหวะ มองเห็นสีเขียวเหลือง',antidote:'Digoxin immune Fab (DigiFab)'} },
+      warfarin:  { name:'Warfarin', short:'War', badge:'Oral', mode:'monitoring', note:'ℹ Target INR ตาม indication · ยาแก้พิษ: Vitamin K · เฝ้าระวัง bleeding', noteClass:'info', labs:[{key:'inr',label:'INR',unit:'',ph:'2.0-3.0'}], info:{dose:'Individualized dose · Pregnancy Risk Factor: X',prep:'Oral tablet · เก็บที่อุณภูมิห้อง ป้องกันแสง',monitoring:'PT/INR, Sign of bleeding',alarm:'INR > 4, เลือดออกผิดปกติ',antidote:'Vitamin K 2.5-5mg PO/IV · FFP ถ้าเลือดออกรุนแรง'} },
+      amiodarone:{ name:'Amiodarone', short:'Amio', badge:'IV drip', mode:'monitoring', note:'ℹ ผสมใน D5W เท่านั้น ห้าม NSS · ห้ามผสม NaHCO₃', noteClass:'warn', labs:[], info:{dose:'VT: 150mg + D5W 100mL ใน 10 นาที → 360mg/6ชม. → 540mg/18ชม.',prep:'D5W เท่านั้น! ห้ามผสม NSS',monitoring:'BP, HR, EKG, IV site',alarm:'Hypotension, Arrhythmia, Thrombophlebitis',antidote:'ไม่มี specific antidote'} },
+    };
+
+    let hadSelectedDrugs = {};
+
+    // ─── HAD: Toggle view ───
     function toggleHADView() {
         let checked = document.getElementById('hasHAD').checked;
         document.getElementById('hadContent').style.display = checked ? 'block' : 'none';
         document.getElementById('hadEmpty').style.display = checked ? 'none' : 'block';
-
-        if (checked) {
-            renderHADChecklists();
-            renderHADReferences();
-        }
+        document.getElementById('hadSaveBtn').style.display = checked ? 'block' : 'none';
+        if (checked) renderHADDrugChips();
     }
 
-    function renderHADChecklists() {
-        let drugs = [
-            { name: 'Insulin', checks: ['ตรวจสอบ dose', 'เทคนิคฉีด', 'Glucose monitoring', 'Hypoglycemia sign', 'Storage', 'สอนคนไข้'] },
-            { name: 'Warfarin', checks: ['ตรวจสอบ dose', 'INR อยู่ใน target', 'เลือดออกผิดปกติ', 'DDI (ยา/อาหาร)', 'สอนคนไข้'] },
-            { name: 'KCl IV', checks: ['ตรวจสอบ order', 'อัตรา ≤20 mEq/hr', 'Infusion pump', 'Central/peripheral', 'Monitoring K+'] },
-            { name: 'Norepinephrine', checks: ['ตรวจสอบ dose (mcg/kg/min)', 'สารน้ำที่ผสม + ความเข้มข้น', 'Central line only', 'Infusion pump', 'Y-site compatibility', 'BP/HR monitoring', 'Urine output'] },
-            { name: 'MgSO4', checks: ['ตรวจสอบ dose', 'อัตราหยด', 'Deep tendon reflex', 'Urine output', 'Respiratory rate'] },
-            { name: 'Morphine/Pethidine', checks: ['ตรวจสอบ dose', 'Respiratory rate', 'Sedation score', 'สอนคนไข้'] },
-            { name: 'Amiodarone', checks: ['ตรวจสอบ dose', 'สารน้ำที่ผสม', 'ECG monitoring', 'BP monitoring'] },
-            { name: 'Digoxin', checks: ['ตรวจสอบ dose', 'Digoxin level', 'K+ level', 'HR < 60 hold'] },
-            { name: 'Adenosine', checks: ['Rapid IV push', 'ECG monitoring', 'Crash cart พร้อม'] },
-            { name: 'Streptokinase', checks: ['ตรวจสอบ order', 'Bleeding monitoring', 'BP monitoring', 'Allergic reaction'] }
-        ];
-
-        let container = document.getElementById('hadChecklist');
+    // ─── HAD: Drug selector chips ───
+    function renderHADDrugChips() {
+        let container = document.getElementById('hadDrugChips');
         container.innerHTML = '';
+        for (let key in HAD_DB) {
+            let d = HAD_DB[key];
+            let chip = document.createElement('span');
+            chip.className = 'had-chip' + (hadSelectedDrugs[key] ? ' on' : '');
+            chip.textContent = d.short || d.name;
+            chip.setAttribute('data-drug', key);
+            chip.onclick = function() {
+                hadSelectedDrugs[key] = !hadSelectedDrugs[key];
+                this.classList.toggle('on');
+                renderHADCalcBlocks();
+            };
+            container.appendChild(chip);
+        }
+        renderHADCalcBlocks();
+    }
 
-        for (let i = 0; i < drugs.length; i++) {
-            let drug = drugs[i];
-            let html = '<div class="card"><h4 style="margin-bottom: 12px; color: #2e3f58;">' + drug.name + '</h4>';
-            for (let j = 0; j < drug.checks.length; j++) {
-                html += '<label style="display: block; margin-bottom: 8px;"><input type="checkbox"> ' + drug.checks[j] + '</label>';
+    // ─── HAD: Render calculator blocks for selected drugs ───
+    function renderHADCalcBlocks() {
+        let container = document.getElementById('hadCalcBlocks');
+        container.innerHTML = '';
+        for (let key in hadSelectedDrugs) {
+            if (!hadSelectedDrugs[key]) continue;
+            let d = HAD_DB[key];
+            if (!d) continue;
+
+            let html = '<div class="had-block">';
+            html += '<h4>' + d.name + ' <span class="had-badge">' + (d.badge || '') + '</span></h4>';
+            if (d.note) html += '<div class="had-note' + (d.noteClass === 'warn' ? ' warn-note' : '') + '">' + d.note + '</div>';
+
+            // Dose calculator (for rate/prn modes)
+            if (d.mode === 'rate' || d.mode === 'insulin') {
+                html += '<div class="had-calc-row">';
+                html += '<label>' + (d.inputUnit || '') + '</label>';
+                html += '<input type="number" id="had-inp-' + key + '" value="' + (d.defaultRate || 0) + '" oninput="hadUpdateCalc(\'' + key + '\', this.value)" step="any">';
+                if (d.convUnit) html += '<span class="had-conv" id="had-conv-' + key + '">—</span>';
+                html += '</div>';
+                html += '<div class="had-bar"><div class="had-bar-fill" id="had-fill-' + key + '"></div></div>';
+                html += '<div id="had-fb-' + key + '"></div>';
+            } else if (d.mode === 'prn') {
+                html += '<div class="had-calc-row">';
+                html += '<label>' + (d.inputUnit || '') + '</label>';
+                html += '<input type="number" id="had-inp-' + key + '" value="' + (d.defaultRate || 0) + '" oninput="hadUpdatePRN(\'' + key + '\', this.value)" step="any">';
+                html += '</div>';
+                html += '<div id="had-fb-' + key + '"></div>';
             }
+
+            // Insulin sliding scale
+            if (d.mode === 'insulin' && d.scale) {
+                html += '<div style="margin-top:12px;"><strong style="font-size:12px;">Sliding Scale (SC):</strong>';
+                html += '<div class="had-calc-row" style="margin-top:6px;"><label>DTx</label>';
+                html += '<input type="number" id="had-dtx-' + key + '" placeholder="mg/dL" oninput="hadUpdateScale(\'' + key + '\', this.value)">';
+                html += '<span id="had-scale-result-' + key + '" style="font-size:12px;"></span></div>';
+                html += '<table class="had-scale"><tr><td><strong>DTx Range</strong></td><td><strong>RI (units SC)</strong></td></tr>';
+                for (let s = 0; s < d.scale.length; s++) {
+                    let sc = d.scale[s];
+                    html += '<tr id="had-sr-' + key + '-' + sc.min + '"><td>' + sc.min + '-' + (sc.max > 9000 ? '↑' : sc.max) + ' mg/dL</td>';
+                    html += '<td>' + (sc.alert ? '🚨 แจ้งแพทย์' : sc.dose + ' units') + '</td></tr>';
+                }
+                html += '</table></div>';
+            }
+
+            // Lab input fields
+            if (d.labs && d.labs.length > 0) {
+                html += '<div style="margin-top:10px; border-top:1px solid #eee; padding-top:10px;">';
+                html += '<div style="font-size:11px; color:#999; margin-bottom:6px;">Lab Monitoring:</div>';
+                for (let l = 0; l < d.labs.length; l++) {
+                    let lab = d.labs[l];
+                    html += '<div class="had-lab-row">';
+                    html += '<label>' + lab.label + ' (' + lab.unit + ')</label>';
+                    html += '<input type="number" id="had-lab-' + key + '-' + lab.key + '" placeholder="' + (lab.ph || '') + '" oninput="hadSmartCalc(\'' + key + '\')" step="any">';
+                    html += '</div>';
+                }
+                html += '<div id="had-smart-' + key + '" style="margin-top:6px;"></div>';
+                html += '</div>';
+            }
+
+            // Drug info (expandable)
+            if (d.info) {
+                html += '<div class="expandable" style="margin-top:12px;">';
+                html += '<div class="expandable-header" onclick="this.nextElementSibling.classList.toggle(\'open\')"><span>📋 Drug Info</span><span class="toggle-icon">▼</span></div>';
+                html += '<div class="expandable-content"><div class="expandable-content-inner"><div class="had-info-grid">';
+                if (d.info.dose) html += '<div class="had-info-item"><strong>Dose</strong>' + d.info.dose + '</div>';
+                if (d.info.prep) html += '<div class="had-info-item"><strong>Prep</strong>' + d.info.prep + '</div>';
+                if (d.info.monitoring) html += '<div class="had-info-item"><strong>Monitoring</strong>' + d.info.monitoring + '</div>';
+                if (d.info.alarm) html += '<div class="had-info-item"><strong>Alarm</strong>' + d.info.alarm + '</div>';
+                if (d.info.antidote) html += '<div class="had-info-item"><strong>Antidote</strong>' + d.info.antidote + '</div>';
+                html += '</div></div></div></div>';
+            }
+
             html += '</div>';
             container.innerHTML += html;
         }
+
+        // Trigger initial calc for rate drugs
+        for (let key in hadSelectedDrugs) {
+            if (!hadSelectedDrugs[key]) continue;
+            let d = HAD_DB[key];
+            if (d && (d.mode === 'rate' || d.mode === 'insulin') && d.convFn) {
+                hadUpdateCalc(key, d.defaultRate);
+            }
+        }
     }
 
-    function renderHADReferences() {
-        let refs = [
-            { drug: 'Insulin', dose: 'per sliding scale or fixed dose', prep: '', monitor: 'BG before meals and bedtime', alarm: 'BG < 70 mg/dL', antidote: '50% Glucose IV' },
-            { drug: 'Warfarin', dose: 'individualized, target INR 2.0-3.0 or 2.5-3.5 (mechanical valve)', prep: '', monitor: 'INR, signs of bleeding', alarm: 'INR > 4, active bleeding', antidote: 'Vitamin K, FFP' },
-            { drug: 'KCl IV', dose: 'max 20 mEq/hr peripheral, 40 mEq/hr central', prep: 'dilute in NSS, never IV push', monitor: 'K+ level, ECG', alarm: 'K+ > 5.5, ECG changes', antidote: 'Calcium gluconate' },
-            { drug: 'Norepinephrine', dose: '0.01–3 mcg/kg/min, titrate to MAP', prep: '4mg/250mL NSS = 16 mcg/mL', monitor: 'BP q15min, HR, urine output', alarm: 'MAP < 65, HR > 120, ปัสสาวะน้อย', antidote: '' },
-            { drug: 'MgSO4', dose: 'loading 4g IV over 20min, then 1-2g/hr', prep: '', monitor: 'DTR, urine output, RR', alarm: 'RR < 12, DTR absent, UO < 30mL/hr', antidote: 'Calcium gluconate' },
-            { drug: 'Morphine/Pethidine', dose: 'Morphine 2-10mg IV q4h, Pethidine 25-100mg IM q3-4h', prep: '', monitor: 'RR, sedation, pain score', alarm: 'RR < 12, excessive sedation', antidote: 'Naloxone' },
-            { drug: 'Amiodarone', dose: 'loading 150mg over 10min, then 1mg/min x 6h, then 0.5mg/min', prep: 'D5W only (incompatible with NSS)', monitor: 'ECG, BP, thyroid, liver', alarm: 'QTc prolongation, hypotension, bradycardia', antidote: '' },
-            { drug: 'Digoxin', dose: 'loading 0.5mg then 0.25mg q6h x2, maintenance 0.125-0.25mg/day', prep: '', monitor: 'digoxin level (0.5-2.0 ng/mL), K+, renal function', alarm: 'HR < 60, nausea, visual changes', antidote: 'Digibind' },
-            { drug: 'Adenosine', dose: '6mg rapid IV push, may repeat 12mg x2', prep: 'Immediate flush required', monitor: 'continuous ECG', alarm: 'asystole (transient, expected)', antidote: '' },
-            { drug: 'Streptokinase', dose: '1.5M IU over 60min for STEMI', prep: '', monitor: 'bleeding, BP, allergic reaction', alarm: 'major bleeding, hypotension, anaphylaxis', antidote: '' }
-        ];
+    // ─── HAD: Dose calculator (rate-based) ───
+    function hadUpdateCalc(drugKey, val) {
+        let d = HAD_DB[drugKey];
+        if (!d || !d.convFn) return;
+        let rate = parseFloat(val) || 0;
+        let wt = 60; // default weight — Hub ยังไม่มี weight field
+        let converted = d.weightBased ? d.convFn(rate, wt) : d.convFn(rate);
+        let pct = Math.min(converted / d.maxAt * 100, 100);
+        let state = converted >= d.maxAt ? 'bad' : converted >= d.warnAt ? 'warn' : 'ok';
 
-        let container = document.getElementById('hadReference');
-        container.innerHTML = '';
+        let inp = document.getElementById('had-inp-' + drugKey);
+        let conv = document.getElementById('had-conv-' + drugKey);
+        let fill = document.getElementById('had-fill-' + drugKey);
+        let fb = document.getElementById('had-fb-' + drugKey);
 
-        for (let i = 0; i < refs.length; i++) {
-            let ref = refs[i];
-            let html = '<div class="expandable">' +
-                '<div class="expandable-header">' +
-                '<span>' + ref.drug + '</span>' +
-                '<span class="toggle-icon">▼</span>' +
-                '</div>' +
-                '<div class="expandable-content">' +
-                '<div class="expandable-content-inner">' +
-                '<div style="font-size: 12px; line-height: 1.8;">';
+        if (inp) { inp.className = ''; inp.classList.add(state); }
+        if (conv) { conv.className = 'had-conv ' + state; conv.textContent = d.convFmt(converted) + ' ' + d.convUnit; }
+        if (fill) { fill.className = 'had-bar-fill ' + state; fill.style.width = pct + '%'; }
+        if (fb) {
+            if (state === 'bad') fb.innerHTML = '<div class="had-fb bad">🚨 เกิน max dose (' + d.convFmt(converted) + ' ' + d.convUnit + ') — แจ้งแพทย์ทันที</div>';
+            else if (state === 'warn') fb.innerHTML = '<div class="had-fb warn">⚠ ใกล้ถึง max dose (' + Math.round(pct) + '%) — monitor อย่างใกล้ชิด</div>';
+            else fb.innerHTML = '<div class="had-fb ok">✓ Dose อยู่ใน range ปกติ</div>';
+        }
+    }
 
-            if (ref.dose) html += '<div><strong>Dose:</strong> ' + ref.dose + '</div>';
-            if (ref.prep) html += '<div><strong>Prep:</strong> ' + ref.prep + '</div>';
-            if (ref.monitor) html += '<div><strong>Monitoring:</strong> ' + ref.monitor + '</div>';
-            if (ref.alarm) html += '<div><strong>Alarm:</strong> ' + ref.alarm + '</div>';
-            if (ref.antidote) html += '<div><strong>Antidote:</strong> ' + ref.antidote + '</div>';
+    // ─── HAD: PRN dose check ───
+    function hadUpdatePRN(drugKey, val) {
+        let d = HAD_DB[drugKey];
+        if (!d) return;
+        let dose = parseFloat(val) || 0;
+        let fb = document.getElementById('had-fb-' + drugKey);
+        if (!fb) return;
+        if (dose > d.maxAt) fb.innerHTML = '<div class="had-fb bad">🚨 เกิน max dose (' + dose + ' > ' + d.maxAt + ' ' + d.inputUnit + ') — ยืนยันกับแพทย์</div>';
+        else if (dose > d.warnAt) fb.innerHTML = '<div class="had-fb warn">⚠ Dose สูง (' + dose + ' ' + d.inputUnit + ') — monitor อย่างใกล้ชิด</div>';
+        else if (dose > 0) fb.innerHTML = '<div class="had-fb ok">✓ Dose ' + dose + ' ' + d.inputUnit + ' อยู่ใน range ปกติ</div>';
+        else fb.innerHTML = '';
+    }
 
-            html += '</div></div></div></div>';
-            container.innerHTML += html;
+    // ─── HAD: Insulin sliding scale ───
+    function hadUpdateScale(drugKey, val) {
+        let d = HAD_DB[drugKey];
+        if (!d || !d.scale) return;
+        let dtx = parseInt(val) || 0;
+        let resultEl = document.getElementById('had-scale-result-' + drugKey);
+
+        // Highlight active row
+        for (let s = 0; s < d.scale.length; s++) {
+            let sc = d.scale[s];
+            let row = document.getElementById('had-sr-' + drugKey + '-' + sc.min);
+            if (row) { row.className = ''; if (dtx >= sc.min && dtx <= sc.max) row.className = sc.alert ? 'alert' : 'active'; }
         }
 
-        // Re-attach event listeners for newly created expandables
-        let expandHeaders = document.querySelectorAll('#hadReference .expandable-header');
-        for (let i = 0; i < expandHeaders.length; i++) {
-            expandHeaders[i].addEventListener('click', function() {
-                this.nextElementSibling.classList.toggle('open');
-            });
+        let match = null;
+        for (let s = 0; s < d.scale.length; s++) { if (dtx >= d.scale[s].min && dtx <= d.scale[s].max) { match = d.scale[s]; break; } }
+
+        if (resultEl) {
+            if (match && match.alert) resultEl.innerHTML = '<span style="color:#c62828;font-weight:600;">🚨 DTx > 450 — แจ้งแพทย์ทันที</span>';
+            else if (match) resultEl.innerHTML = '<span style="color:#2e7d32;font-weight:600;">→ RI ' + match.dose + ' units SC</span>';
+            else if (dtx > 0 && dtx < 200) resultEl.innerHTML = '<span style="color:#2e7d32;">DTx ปกติ — ไม่ต้องให้ RI</span>';
+            else resultEl.textContent = '';
         }
+    }
+
+    // ═══════════════════════════════════════════
+    //  HAD SMART LAB CALCULATORS
+    // ═══════════════════════════════════════════
+    function hadSmartCalc(drugKey) {
+        let el = document.getElementById('had-smart-' + drugKey);
+        if (!el) return;
+        if (drugKey === 'kcl') return hadSmartKCl(el);
+        if (drugKey === 'pethidine') return hadSmartPethidine(el);
+        if (drugKey === 'insulin') return hadSmartInsulinK(el);
+        if (drugKey === 'digoxin') return hadSmartDigoxin(el);
+        if (drugKey === 'warfarin') return hadSmartWarfarin(el);
+        if (drugKey === 'mgso4') return hadSmartMg(el);
+        el.innerHTML = '';
+    }
+
+    function hadSmartKCl(el) {
+        let kVal = parseFloat((document.getElementById('had-lab-kcl-k') || {}).value);
+        if (!kVal || kVal <= 0) { el.innerHTML = ''; return; }
+        let html = '';
+        if (kVal >= 5.3) html = '<div class="had-fb bad">🚨 <strong>Hyperkalemia (K⁺ ' + kVal + ')</strong> — หยุด KCl ทันที!<br><small>① Ca gluconate 1g IV · ② RI 10u + 50% glucose 50mL · ③ NaHCO₃ · ④ Kalimate PO</small></div>';
+        else if (kVal > 3.5) html = '<div class="had-fb ok">✓ K⁺ ' + kVal + ' mEq/L ปกติ (3.5-5.3)</div>';
+        else if (kVal >= 3.0) html = '<div class="had-fb warn">💊 <strong>Mild Hypokalemia (K⁺ ' + kVal + ')</strong><br><small>PO: Elixir 40-100 mEq/day · ทุก 10 mEq เพิ่ม K⁺ ≈ 0.1</small></div>';
+        else if (kVal >= 2.5) html = '<div class="had-fb warn">⚠ <strong>Moderate Hypokalemia (K⁺ ' + kVal + ')</strong><br><small>IV: Max Conc 40 mEq/L · Max rate 10 mEq/hr · PO: 120-130 mEq/day</small></div>';
+        else html = '<div class="had-fb bad">🚨 <strong>Severe Hypokalemia (K⁺ ' + kVal + ')</strong><br><small>IV: 5-10 mEq/hr · Max Conc 80 mEq/L · ⚡ ทำ EKG monitor ตลอด</small></div>';
+        el.innerHTML = html;
+    }
+
+    function hadSmartPethidine(el) {
+        let crcl = parseFloat((document.getElementById('had-lab-pethidine-crcl') || {}).value);
+        if (!crcl || crcl <= 0) { el.innerHTML = ''; return; }
+        let html = '';
+        if (crcl > 50) html = '<div class="had-fb ok">✓ CrCl ' + crcl + ' mL/min — ใช้ dose ปกติ</div>';
+        else if (crcl >= 10) html = '<div class="had-fb warn">⚠ CrCl ' + crcl + ' → <strong>ลดขนาดเหลือ 75%</strong><br><small>50mg→37.5mg · 100mg→75mg · ระวัง norpethidine สะสม</small></div>';
+        else html = '<div class="had-fb bad">🚨 CrCl ' + crcl + ' → <strong>ลดขนาดเหลือ 50%</strong><br><small>50mg→25mg · 100mg→50mg · พิจารณาเลี่ยง Pethidine</small></div>';
+        el.innerHTML = html;
+    }
+
+    function hadSmartInsulinK(el) {
+        let dtx = parseFloat((document.getElementById('had-lab-insulin-dtx') || {}).value);
+        let kVal = parseFloat((document.getElementById('had-lab-insulin-k') || {}).value);
+        let parts = [];
+        if (kVal && kVal > 5.3) parts.push('<div class="had-fb warn">⚡ <strong>K⁺ ' + kVal + ' — Hyperkalemia</strong><br><small>RI จะ shift K⁺ เข้าเซลล์ · Dextrose 0.5-1 mL/kg + RI 1u/Dextrose 4-5g</small></div>');
+        else if (kVal && kVal < 3.5) parts.push('<div class="had-fb bad">🚨 <strong>K⁺ ' + kVal + ' — Hypokalemia!</strong> RI จะทำให้ K⁺ ต่ำลงอีก<br><small>ต้องเสริม KCl ก่อน/ร่วมกับ RI · เป้าหมาย K⁺ ≥ 3.5</small></div>');
+        if (dtx && dtx > 0 && dtx < 70) parts.push('<div class="had-fb bad">🚨 <strong>DTx ' + dtx + ' — Hypoglycemia!</strong> หยุด RI ทันที<br><small>ให้ 50% Glucose 50mL IV push · เจาะ DTx ซ้ำใน 15 นาที</small></div>');
+        el.innerHTML = parts.join('');
+    }
+
+    function hadSmartDigoxin(el) {
+        let kVal = parseFloat((document.getElementById('had-lab-digoxin-k') || {}).value);
+        let digLvl = parseFloat((document.getElementById('had-lab-digoxin-digLevel') || {}).value);
+        let parts = [];
+        if (kVal && kVal > 0 && kVal < 3.5) parts.push('<div class="had-fb bad">🚨 <strong>K⁺ ' + kVal + ' + Digoxin = เสี่ยง toxicity สูงมาก!</strong><br><small>ต้องเสริม KCl ให้ K⁺ 3.5-5.0 · monitor EKG</small></div>');
+        if (digLvl && digLvl > 2.0) parts.push('<div class="had-fb bad">🚨 Digoxin level ' + digLvl + ' ng/mL — <strong>เกิน therapeutic range!</strong> (0.8-2.0)<br><small>หยุดยา แจ้งแพทย์ · สังเกตอาการ toxicity</small></div>');
+        else if (digLvl && digLvl < 0.8) parts.push('<div class="had-fb warn">📊 Digoxin level ' + digLvl + ' ng/mL — <strong>ต่ำกว่า therapeutic</strong> (0.8-2.0)</div>');
+        else if (digLvl) parts.push('<div class="had-fb ok">✓ Digoxin level ' + digLvl + ' ng/mL — อยู่ใน therapeutic range ✓</div>');
+        el.innerHTML = parts.join('');
+    }
+
+    function hadSmartWarfarin(el) {
+        let inr = parseFloat((document.getElementById('had-lab-warfarin-inr') || {}).value);
+        if (!inr || inr <= 0) { el.innerHTML = ''; return; }
+        let html = '';
+        if (inr < 2.0) html = '<div class="had-fb warn">📊 INR ' + inr + ' — <strong>ต่ำกว่า therapeutic</strong> (2.0-3.0)<br><small>อาจต้องเพิ่มขนาด Warfarin</small></div>';
+        else if (inr <= 3.0) html = '<div class="had-fb ok">✓ INR ' + inr + ' — therapeutic range (2.0-3.0) ✓</div>';
+        else if (inr <= 5.0) html = '<div class="had-fb warn">⚠ INR ' + inr + ' — <strong>เกิน therapeutic</strong><br><small>ลดขนาดหรืองดยา 1-2 วัน · เจาะ INR ซ้ำ · ระวังเลือดออก</small></div>';
+        else html = '<div class="had-fb bad">🚨 INR ' + inr + ' — <strong>เสี่ยงเลือดออกรุนแรง!</strong><br><small>หยุด Warfarin · Vitamin K 2.5-5mg PO/IV · FFP ถ้าเลือดออก</small></div>';
+        el.innerHTML = html;
+    }
+
+    function hadSmartMg(el) {
+        let mg = parseFloat((document.getElementById('had-lab-mgso4-mg') || {}).value);
+        if (!mg || mg <= 0) { el.innerHTML = ''; return; }
+        let html = '';
+        if (mg > 9) html = '<div class="had-fb bad">🚨 <strong>Mg ' + mg + ' — ภาวะวิกฤต!</strong><br><small>หยุด MgSO₄ ทันที · Ca gluconate 1g IV push · Intubation standby</small></div>';
+        else if (mg > 5) html = '<div class="had-fb bad">🚨 <strong>Mg ' + mg + ' — HyperMagnesemia</strong><br><small>หยุด MgSO₄ · ตรวจ Patellar reflex · Ca gluconate ถ้าจำเป็น</small></div>';
+        else if (mg >= 1.7) html = '<div class="had-fb ok">✓ Mg ' + mg + ' mg/dL ปกติ (1.7-2.4)</div>';
+        else html = '<div class="had-fb warn">⚠ <strong>Mg ' + mg + ' — Hypomagnesemia</strong><br><small>พิจารณาเสริม MgSO₄ · Eclampsia: Loading 4g IV → Maint 1-2g/hr</small></div>';
+        el.innerHTML = html;
     }
 
     // Counseling
@@ -2670,6 +2970,90 @@
         win.document.write('<h1>Warfarin Monitoring</h1>');
         win.document.close();
         win.print();
+    }
+
+    // ─── Sub-tab Save Handlers ───
+    function saveHADData() {
+        if (!currentPatientHN) return;
+        let drugs = [];
+        for (let key in hadSelectedDrugs) {
+            if (!hadSelectedDrugs[key]) continue;
+            let block = document.getElementById('had-block-' + key);
+            if (!block) continue;
+            let entry = { drug: key };
+            let inp = block.querySelector('input[type="number"]');
+            if (inp) entry.value = inp.value;
+            // collect lab values
+            let labInputs = block.querySelectorAll('.had-lab-row input');
+            let labs = {};
+            labInputs.forEach(function(li) { if (li.id) labs[li.id] = li.value; });
+            entry.labs = labs;
+            drugs.push(entry);
+        }
+        gasPost('saveHADRound', { hn: currentPatientHN, drugs: drugs }, function() {
+            alert('บันทึก HAD สำเร็จ');
+        });
+    }
+
+    function saveDCData() {
+        if (!currentPatientHN) return;
+        let meds = [];
+        let rows = document.getElementById('dcMedTable').querySelectorAll('tr');
+        rows.forEach(function(row) {
+            let cells = row.querySelectorAll('td');
+            if (cells.length >= 3) {
+                meds.push({
+                    name: cells[0].textContent,
+                    sig: cells[1].textContent,
+                    changed: cells[2].textContent
+                });
+            }
+        });
+        gasPost('saveDCChanges', { hn: currentPatientHN, meds: meds }, function() {
+            alert('บันทึก D/C Sheet สำเร็จ');
+        });
+    }
+
+    function saveADRData() {
+        if (!currentPatientHN) return;
+        let adrData = {
+            hn: currentPatientHN,
+            drug: document.getElementById('adrDrug').value,
+            startDate: document.getElementById('adrStartDate').value,
+            symptomDate: document.getElementById('adrSymptomDate').value,
+            stopDate: document.getElementById('adrStopDate').value,
+            symptoms: document.getElementById('adrSymptoms').value,
+            naranjoScore: document.getElementById('naranjoScore').textContent,
+            naranjoLevel: document.getElementById('naranjoLevel').textContent
+        };
+        gasPost('saveADR', adrData, function() {
+            alert('บันทึก ADR สำเร็จ');
+        });
+    }
+
+    function saveWarfarinData() {
+        if (!currentPatientHN) return;
+        let schedule = [];
+        for (let i = 0; i < 7; i++) {
+            schedule.push(document.getElementById('warf' + i).value || '');
+        }
+        let inrLog = [];
+        let rows = document.getElementById('warfINRTable').querySelectorAll('tr');
+        rows.forEach(function(row) {
+            let inputs = row.querySelectorAll('input');
+            if (inputs.length >= 3) {
+                inrLog.push({ date: inputs[0].value, inr: inputs[1].value, dose: inputs[2].value });
+            }
+        });
+        let warfData = {
+            hn: currentPatientHN,
+            targetINR: document.getElementById('warfTargetINR').value,
+            schedule: schedule,
+            inrLog: inrLog
+        };
+        gasPost('saveINR', warfData, function() {
+            alert('บันทึก Warfarin สำเร็จ');
+        });
     }
 
     // ADR Naranjo Algorithm
