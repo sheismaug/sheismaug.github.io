@@ -1161,9 +1161,9 @@
                     <div class="card">
                         <h3 class="card-title">MR Performance</h3>
                         <div style="font-size: 12px; line-height: 1.8;">
-                            <div>MR within 24h: <span style="float: right; font-weight: 600;" id="mr24h">0%</span></div>
-                            <div>MD review ≤1 shift: <span style="float: right; font-weight: 600;" id="mrShift1">0%</span></div>
-                            <div>MD review ≤2 shift: <span style="float: right; font-weight: 600;" id="mrShift2">0%</span></div>
+                            <div>MR ทันเวลา: <span style="float: right; font-weight: 600;" id="mr24h">0%</span></div>
+                            <div>MD ตอบเวรเดียวกัน: <span style="float: right; font-weight: 600;" id="mrShift1">0%</span></div>
+                            <div>MD ตอบ ≤1 เวร: <span style="float: right; font-weight: 600;" id="mrShift2">0%</span></div>
                         </div>
                     </div>
 
@@ -2543,6 +2543,10 @@
     }
 
     function renderDashboard(data) {
+        // ── Debug: log trend data to console ──
+        console.log('=== DASHBOARD DEBUG ===');
+        console.log('trend:', JSON.stringify(data.trend));
+        console.log('_trendDebug:', JSON.stringify(data._trendDebug));
         // KPI row — coveragePct from GAS: distinct patients with MR / total patients, capped 100%
         let mrPct = data.mr ? (data.mr.coveragePct || 0) : 0;
         document.getElementById('dashMRCov').textContent = mrPct + '%';
