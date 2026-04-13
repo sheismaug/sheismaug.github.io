@@ -2295,8 +2295,11 @@
     }
 
     // Patient Detail Panel
+    let detailPopulated = false;   // guard ป้องกัน callback ทับ user input
+
     function openPatientDetail(hn) {
         currentPatientHN = hn;
+        detailPopulated = false;
         let patient = null;
         for (let i = 0; i < allPatients.length; i++) {
             if (allPatients[i].hn === hn) {
@@ -2310,11 +2313,25 @@
         document.getElementById('detailPatientName').textContent = patient.name + ' (HN: ' + hn + ')';
         document.getElementById('patientDetailModal').classList.add('active');
 
-        // Load bundle data
+        // ──  populate ทันทีด้วย local cache (ถ้ามี) ──
+        let cached = null;
+        try { cached = JSON.parse(localStorage.getItem('ipd_bundle_' + hn)); } catch(e) {}
+        if (cached) {
+            currentBundle = cached;
+            populateDetailPanel(patient, currentBundle);
+            detailPopulated = true;
+        }
+
+        // ── ดึง bundle ใหม่จาก server ──
         gasGet('getBundle', { hn: hn }, function(data) {
             currentBundle = data || {};
             localStorage.setItem('ipd_bundle_' + hn, JSON.stringify(currentBundle));
-            populateDetailPanel(patient, currentBundle);
+            // populate เฉพาะถ้ายังไม่เคย populate (ไม่มี cache)
+            // ถ้า populate ไปแล้ว → ไม่ reset ทับ เพราะ user อาจแก้ไขข้อมูลอยู่
+            if (!detailPopulated) {
+                populateDetailPanel(patient, currentBundle);
+                detailPopulated = true;
+            }
         });
     }
 
