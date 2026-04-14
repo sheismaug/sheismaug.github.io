@@ -1020,6 +1020,10 @@
             grid-template-columns: 1fr;
         }
 
+        .form-row.cols-3 {
+            grid-template-columns: 1fr 1fr 1fr;
+        }
+
         /* Timeline */
         .timeline {
             position: relative;
@@ -1209,7 +1213,7 @@
         /* Responsive */
         @media (max-width: 768px) {
             .grid-2, .grid-4 { grid-template-columns: 1fr; }
-            .form-row { grid-template-columns: 1fr; }
+            .form-row, .form-row.cols-3 { grid-template-columns: 1fr; }
             .modal-panel { width: 100%; max-width: none; }
             .dashboard-grid { grid-template-columns: 1fr; }
         }
@@ -1510,8 +1514,8 @@
             <div class="subtab-content active" id="mr">
                 <!-- Row 1: Admit info -->
                 <div style="padding: 14px 16px; background: #f5f4f2; border-radius: 10px; margin-bottom: 12px;">
-                    <div class="form-row" style="margin-bottom: 10px;">
-                        <div class="form-group" style="flex:1;">
+                    <div class="form-row cols-3" style="margin-bottom: 10px;">
+                        <div class="form-group">
                             <label class="form-label">วันที่ Admit</label>
                             <input type="text" class="form-input date-input" id="mrAdmitDate" readonly>
                         </div>
