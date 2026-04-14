@@ -808,9 +808,11 @@
         /* Dashboard Elements */
         .dashboard-grid {
             display: grid;
-            grid-template-columns: 1fr 1fr;
+            grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
             gap: 16px;
         }
+        .dashboard-grid > .card { min-width: 0; overflow: hidden; }
+        .dashboard-grid .chart-container { width: 100%; max-width: 100%; }
 
         .metric-box {
             background: white;
