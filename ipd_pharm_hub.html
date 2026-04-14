@@ -1255,7 +1255,7 @@
                     <button class="filter-chip" data-filter="had">HAD (<span id="fc-had">0</span>)</button>
                     <button class="filter-chip" data-filter="adr-pending">ADR pending (<span id="fc-adr">0</span>)</button>
                     <button class="filter-chip" data-filter="dc-today">D/C วันนี้ (<span id="fc-dc">0</span>)</button>
-                    <input type="text" class="search-input" id="searchInput" placeholder="ค้นหา HN / ชื่อ...">
+                    <input type="text" class="search-input" id="searchInput" placeholder="ค้นหา HN / ชื่อ..." autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false">
                 </div>
 
                 <button class="btn btn-primary" id="addPatientBtn">+ เพิ่มคนไข้</button>
@@ -1266,21 +1266,21 @@
                     <div class="form-row">
                         <div class="form-group">
                             <label class="form-label">HN</label>
-                            <input type="text" class="form-input" id="formHN">
+                            <input type="text" class="form-input" id="formHN" autocomplete="off">
                         </div>
                         <div class="form-group">
                             <label class="form-label">ชื่อ</label>
-                            <input type="text" class="form-input" id="formName">
+                            <input type="text" class="form-input" id="formName" autocomplete="off">
                         </div>
                     </div>
                     <div class="form-row">
                         <div class="form-group">
                             <label class="form-label">Diagnosis</label>
-                            <input type="text" class="form-input" id="formDx">
+                            <input type="text" class="form-input" id="formDx" autocomplete="off">
                         </div>
                         <div class="form-group">
                             <label class="form-label">วันที่ admit</label>
-                            <input type="text" class="form-input date-input" id="formAdmitDate" placeholder="DD/MM/YYYY">
+                            <input type="text" class="form-input date-input" id="formAdmitDate" placeholder="DD/MM/YYYY" autocomplete="off">
                         </div>
                     </div>
                     <div class="form-row full">
@@ -1466,10 +1466,10 @@
     <div class="pin-box">
         <h2>PIN ล็อค</h2>
         <div class="pin-inputs">
-            <input type="password" class="pin-input" maxlength="1" id="pin0">
-            <input type="password" class="pin-input" maxlength="1" id="pin1">
-            <input type="password" class="pin-input" maxlength="1" id="pin2">
-            <input type="password" class="pin-input" maxlength="1" id="pin3">
+            <input type="password" class="pin-input" maxlength="1" id="pin0" autocomplete="new-password" inputmode="numeric">
+            <input type="password" class="pin-input" maxlength="1" id="pin1" autocomplete="new-password" inputmode="numeric">
+            <input type="password" class="pin-input" maxlength="1" id="pin2" autocomplete="new-password" inputmode="numeric">
+            <input type="password" class="pin-input" maxlength="1" id="pin3" autocomplete="new-password" inputmode="numeric">
         </div>
         <div class="pin-numpad">
             <button class="pin-btn" onclick="pinType('1')">1</button>
@@ -2048,6 +2048,11 @@
     let appSettings = {};
 
     window.addEventListener('load', function() {
+        // เคลียร์ค่า autofill ของ browser ที่อาจค้างอยู่ในช่อง search/PIN/form
+        ['searchInput','pin0','pin1','pin2','pin3','formHN','formName','formDx','formAdmitDate'].forEach(function(id){
+            var el = document.getElementById(id);
+            if (el) el.value = '';
+        });
         checkPIN();
         updateDate();
         loadSettings();
