@@ -782,6 +782,66 @@
         .had-info-item { padding: 6px 10px; background: #f9f8f6; border-radius: 6px; line-height: 1.5; }
         .had-info-item strong { display: block; font-size: 10px; text-transform: uppercase; color: #999; letter-spacing: 0.5px; margin-bottom: 2px; }
 
+        /* HAD Card (paperless chart) */
+        .had-card { background: #fff; border: 2px solid #c62828; border-radius: 12px; overflow: hidden; margin-bottom: 16px; max-width: 420px; }
+        .had-card-header { background: #c62828; color: #fff; padding: 8px 14px; font-weight: 700; font-size: 13px; letter-spacing: 0.5px; display: flex; justify-content: space-between; align-items: center; }
+        .had-card-body { padding: 14px; }
+        .had-card-title { font-size: 17px; font-weight: 700; color: #2e3f58; margin: 0 0 4px; }
+        .had-card-subtitle { font-size: 11px; color: #777; margin-bottom: 10px; }
+        .had-card-image { width: 100%; height: 140px; background: #f5f4f2; border-radius: 8px; display: flex; align-items: center; justify-content: center; margin-bottom: 12px; overflow: hidden; }
+        .had-card-image img { max-width: 100%; max-height: 100%; object-fit: contain; }
+        .had-card-image.no-img { background: #ffebee; color: #c62828; font-size: 11px; font-weight: 600; text-align: center; padding: 12px; }
+        .had-card-section { margin-top: 10px; }
+        .had-card-section-title { font-size: 10px; font-weight: 700; text-transform: uppercase; color: #c62828; letter-spacing: 0.5px; margin-bottom: 4px; border-bottom: 1.5px solid #c62828; padding-bottom: 2px; }
+        .had-card-section ul { margin: 4px 0 0; padding-left: 18px; font-size: 11.5px; line-height: 1.6; color: #333; }
+        .had-card-antidote { background: #fff3cd; border-left: 3px solid #ffb300; padding: 6px 10px; font-size: 11.5px; margin-top: 10px; line-height: 1.5; }
+        .had-card-btns { margin-top: 10px; display: flex; gap: 6px; }
+        .had-card-btns button { flex: 1; padding: 6px; border: 1px solid #2e3f58; background: #fff; color: #2e3f58; border-radius: 6px; font-size: 12px; font-weight: 600; cursor: pointer; }
+        .had-card-btns button:hover { background: #2e3f58; color: #fff; }
+
+        /* HAD Monitoring Panel */
+        .had-mon-card { background: #fff; border: 1px solid #e8e5e0; border-radius: 10px; padding: 12px 14px; margin-bottom: 12px; }
+        .had-mon-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; flex-wrap: wrap; gap: 6px; }
+        .had-mon-title { font-size: 13px; font-weight: 700; color: #2e3f58; }
+        .had-mon-freq { font-size: 11px; background: #e3f2fd; color: #0277bd; padding: 3px 10px; border-radius: 99px; font-weight: 600; }
+        .had-mon-freq.overdue { background: #ffebee; color: #c62828; }
+        .had-mon-row { display: grid; grid-template-columns: 100px 100px 1fr 90px; gap: 8px; align-items: center; padding: 6px 0; border-bottom: 1px dashed #f0eeeb; font-size: 12px; }
+        .had-mon-row:last-child { border-bottom: none; }
+        .had-mon-row label { color: #666; }
+        .had-mon-row input { padding: 4px 8px; border: 1px solid #d0d0d0; border-radius: 6px; font-size: 12px; text-align: center; font-family: inherit; width: 100%; box-sizing: border-box; }
+        .had-mon-range { font-size: 10px; color: #999; }
+        .had-mon-status { font-size: 11px; font-weight: 600; padding: 2px 8px; border-radius: 99px; text-align: center; }
+        .had-mon-status.normal { background: #e8f5e9; color: #2e7d32; }
+        .had-mon-status.abnormal { background: #ffebee; color: #c62828; }
+        .had-mon-status.pending { background: #f5f4f2; color: #999; }
+        .had-mon-section-title { font-size: 11px; font-weight: 700; color: #555; text-transform: uppercase; letter-spacing: 0.5px; margin: 10px 0 4px; }
+        .had-mon-checklist { display: flex; flex-direction: column; gap: 3px; font-size: 12px; color: #444; }
+        .had-mon-checklist label { display: flex; align-items: center; gap: 6px; cursor: pointer; padding: 3px 0; }
+
+        /* HAD Handbook Tab */
+        .hb-wrap { display: grid; grid-template-columns: 260px 1fr; gap: 16px; min-height: 500px; }
+        .hb-sidebar { background: #fff; border: 1px solid #e8e5e0; border-radius: 10px; padding: 10px; }
+        .hb-search { width: 100%; padding: 8px 12px; border: 1.5px solid #d0d0d0; border-radius: 8px; font-family: inherit; font-size: 13px; margin-bottom: 8px; box-sizing: border-box; }
+        .hb-list { list-style: none; padding: 0; margin: 0; }
+        .hb-list li { padding: 8px 10px; cursor: pointer; border-radius: 6px; font-size: 13px; color: #333; display: flex; justify-content: space-between; align-items: center; }
+        .hb-list li:hover { background: #f5f4f2; }
+        .hb-list li.active { background: #2e3f58; color: #fff; font-weight: 600; }
+        .hb-list li .hb-badge-mini { font-size: 9px; padding: 1px 6px; border-radius: 99px; background: #ffebee; color: #c62828; font-weight: 700; }
+        .hb-list li.active .hb-badge-mini { background: rgba(255,255,255,0.2); color: #fff; }
+        .hb-detail { background: #fff; border: 1px solid #e8e5e0; border-radius: 10px; padding: 20px; overflow-y: auto; }
+        .hb-detail-head { display: flex; gap: 16px; margin-bottom: 16px; align-items: flex-start; padding-bottom: 14px; border-bottom: 2px solid #c62828; }
+        .hb-detail-img { width: 140px; height: 140px; background: #f5f4f2; border-radius: 8px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; overflow: hidden; }
+        .hb-detail-img img { max-width: 100%; max-height: 100%; object-fit: contain; }
+        .hb-detail-img.no-img { background: #ffebee; color: #c62828; font-size: 11px; font-weight: 600; text-align: center; padding: 10px; }
+        .hb-detail-title-wrap h2 { margin: 0; color: #2e3f58; font-size: 22px; }
+        .hb-detail-title-wrap .hb-badge-tag { display: inline-block; margin-top: 4px; padding: 3px 10px; background: #c62828; color: #fff; border-radius: 99px; font-size: 10px; font-weight: 700; letter-spacing: 0.5px; }
+        .hb-detail-title-wrap .hb-badge-mode { display: inline-block; margin-top: 4px; margin-left: 4px; padding: 3px 10px; background: #e8e5e0; color: #555; border-radius: 99px; font-size: 11px; }
+        .hb-section { margin-top: 14px; }
+        .hb-section h3 { font-size: 12px; text-transform: uppercase; color: #c62828; letter-spacing: 0.5px; margin: 0 0 6px; border-bottom: 1px solid #c62828; padding-bottom: 3px; }
+        .hb-section p, .hb-section ul { font-size: 13px; line-height: 1.7; margin: 4px 0; color: #333; }
+        .hb-section ul { padding-left: 20px; }
+        .hb-empty { padding: 40px; text-align: center; color: #999; font-size: 14px; }
+
         /* ADR Timeline */
         .adr-tl { position: relative; min-width: 400px; }
         .adr-tl-dates { display: flex; justify-content: space-between; padding: 0 0 6px 100px; border-bottom: 1px solid #e8e5e0; margin-bottom: 4px; }
@@ -1125,6 +1185,7 @@
             <div class="tab-strip" id="mainTabs">
                 <div class="tab-item active" data-tab="patient-list">รายชื่อ</div>
                 <div class="tab-item" data-tab="dashboard">Dashboard</div>
+                <div class="tab-item" data-tab="had-handbook" style="background:#fff3cd;color:#c62828;font-weight:700;">⚠ HAD Handbook</div>
                 <div class="tab-item" data-tab="workload">Workload</div>
             </div>
           </div>
@@ -1263,6 +1324,23 @@
             </div>
 
             <!-- TAB 3: Workload -->
+            <!-- TAB: HAD Handbook -->
+            <div class="tab-content" id="had-handbook">
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
+                    <h3 class="card-title" style="margin:0;">⚠ HAD Handbook — คู่มือการใช้ยาที่มีความเสี่ยงสูง</h3>
+                    <div style="font-size:12px;color:#999;">เปิดดูข้างขณะตอบคำถามหมอได้เลย</div>
+                </div>
+                <div class="hb-wrap">
+                    <div class="hb-sidebar">
+                        <input type="text" class="hb-search" id="hbSearch" placeholder="🔍 ค้นหา..." oninput="hbFilter(this.value)">
+                        <ul class="hb-list" id="hbList"></ul>
+                    </div>
+                    <div class="hb-detail" id="hbDetail">
+                        <div class="hb-empty">เลือกยาจากเมนูด้านซ้าย</div>
+                    </div>
+                </div>
+            </div>
+
             <div class="tab-content" id="workload">
                 <h3 class="card-title" style="margin-bottom: 16px;">Counseling Counters</h3>
 
@@ -2371,6 +2449,9 @@
                 initDashboardCharts();
             }, 100);
         }
+        if (tabName === 'had-handbook') {
+            hbRenderList();
+        }
     }
 
     function switchDetailTab(subtabName) {
@@ -2630,16 +2711,17 @@
     //  HAD DRUG DATABASE (from HAD Round App)
     // ═══════════════════════════════════════════
     const HAD_DB = {
-      ne:        { name:'Norepinephrine', short:'NE', badge:'IV drip', mode:'rate', inputUnit:'mL/hr', convUnit:'mcg/kg/min', weightBased:true, convFn:function(r,w){return(r*16)/(w*60)}, convFmt:function(v){return v.toFixed(3)}, warnAt:0.4, maxAt:0.5, defaultRate:8, note:'ℹ ควรให้ทาง central line — peripheral line เสี่ยง extravasation', noteClass:'info', labs:[{key:'lactate',label:'Lactate',unit:'mmol/L',ph:'0.5-2.0'}], info:{dose:'Range: 0.05-0.5 mcg/kg/min',prep:'NE 4mg + D5W 250mL (16 mcg/mL)',monitoring:'BP/HR ทุก 2-5 นาที · ดู IV site ทุก 1 ชม.',alarm:'HR>120, BP>160/100, ผิวหนังซีด/เขียวที่ IV site',antidote:'Phentolamine 5-10mg + NSS 10-15mL ฉีดรอบ extravasation ภายใน 12 ชม.'} },
-      adr:       { name:'Adrenaline', short:'Adr', badge:'IV drip/push', mode:'rate', inputUnit:'mL/hr', convUnit:'mcg/kg/min', weightBased:true, convFn:function(r,w){return(r*4)/(w*60)}, convFmt:function(v){return v.toFixed(3)}, warnAt:0.3, maxAt:1.0, defaultRate:15, note:'ℹ Drip: 1mg/250mL NSS · Push: 1mg/mL undiluted สำหรับ CPR/anaphylaxis', noteClass:'info', labs:[{key:'lactate',label:'Lactate',unit:'mmol/L',ph:'0.5-2.0'}], info:{dose:'Drip: 1mg + NSS 250mL · CPR: 1mg IV q3-5min',prep:'1mg/mL (1:1000)',monitoring:'BP, HR, EKG',alarm:'Arrhythmia, Extravasation, Hypertension',antidote:'Phentolamine 5-10mg + NSS'} },
-      morphine:  { name:'Morphine', short:'Mor', badge:'Drip/PRN', mode:'rate', inputUnit:'mL/hr', convUnit:'mg/hr', weightBased:false, convFn:function(r){return r*1}, convFmt:function(v){return v.toFixed(1)}, warnAt:8, maxAt:10, defaultRate:3, note:'ℹ ยาแก้พิษ: Naloxone · เฝ้าระวัง respiratory depression RR < 10', noteClass:'info', labs:[{key:'pain',label:'Pain score',unit:'/10',ph:'0-10'}], info:{dose:'10mg/mL · IV push: เจือจาง SWI 4-5mL ฉีดช้าๆ',prep:'IV infusion: D5W (0.1-1 mg/mL)',monitoring:'BP, RR, Pain score, Sedation',alarm:'RR<10, Hypotension, Bradycardia',antidote:'Naloxone 0.4-2mg IV ซ้ำได้ทุก 2-3 นาที'} },
-      pethidine: { name:'Pethidine', short:'Peth', badge:'IV push/IM', mode:'prn', inputUnit:'mg/dose', convUnit:null, weightBased:false, convFn:null, warnAt:50, maxAt:100, defaultRate:50, note:'ℹ ยาแก้พิษ: Naloxone · max 600mg/24hr · ระวังในผู้สูงอายุ/ไตบกพร่อง', noteClass:'info', labs:[{key:'pain',label:'Pain score',unit:'/10',ph:'0-10'},{key:'crcl',label:'CrCl',unit:'mL/min',ph:'>50 ปกติ'}], info:{dose:'25-100mg q3-4h PRN · max 600mg/24hr',prep:'50mg/mL · IV: เจือจางน้ำกลั่น 5mL ฉีด 4-5 นาที',monitoring:'BP, RR, Pain, Mental status',alarm:'RR ต่ำ, Hypotension, ชัก',antidote:'Naloxone 2mg IV'} },
-      insulin:   { name:'Regular Insulin', short:'RI', badge:'Drip/SC Scale', mode:'insulin', inputUnit:'mL/hr', convUnit:'u/hr', weightBased:false, convFn:function(r){return r*1}, convFmt:function(v){return v.toFixed(1)}, warnAt:10, maxAt:15, defaultRate:5, note:'ℹ เฝ้าระวัง hypoglycemia · DTx ทุก 1-2 ชม. · ยาแก้พิษ: 50% Glucose IV', noteClass:'info', labs:[{key:'dtx',label:'DTx',unit:'mg/dL',ph:'70-180'},{key:'k',label:'K⁺',unit:'mEq/L',ph:'3.5-5.0'}], scale:[{min:200,max:250,dose:4},{min:251,max:300,dose:6},{min:301,max:350,dose:8},{min:351,max:400,dose:10},{min:401,max:450,dose:12},{min:451,max:9999,dose:null,alert:true}], info:{dose:'DKA: IV 0.15u/kg → Maint 0.1u/kg/hr · Hyperkalemia: RI 1u/Dextrose 4-5g',prep:'100u + NSS 100mL (1u/mL)',monitoring:'DTx, Sign of Hypoglycemia, K⁺',alarm:'Hypoglycemia: ใจสั่น เหงื่อออก หมดสติ',antidote:'50% Glucose 50mL IV push'} },
-      kcl:       { name:'KCl', short:'KCl', badge:'IV drip', mode:'rate', inputUnit:'mL/hr', convUnit:'mEq/hr', weightBased:false, convFn:function(r){return r*0.04}, convFmt:function(v){return v.toFixed(1)}, warnAt:8, maxAt:10, defaultRate:100, note:'ℹ ห้าม IV push — หัวใจหยุดเต้นได้ · ตรวจ K⁺ serum ก่อนและระหว่างให้', noteClass:'info', labs:[{key:'k',label:'K⁺',unit:'mEq/L',ph:'3.5-5.0'}], info:{dose:'40mEq/NSS 1000mL · Max rate peripheral 10mEq/hr',prep:'ห้าม IV push! Max Conc peripheral 40mEq/L',monitoring:'K⁺, EKG, IV site, Urine output',alarm:'Hyperkalemia: ECG changes (peaked T, wide QRS)',antidote:'Ca gluconate 1g IV push 5-10 นาที'} },
-      mgso4:     { name:'MgSO₄', short:'Mg', badge:'IV drip', mode:'rate', inputUnit:'mL/hr', convUnit:'g/hr', weightBased:false, convFn:function(r){return r*0.02}, convFmt:function(v){return v.toFixed(2)}, warnAt:1.5, maxAt:2, defaultRate:25, note:'ℹ ระวัง Mg toxicity · เช็ค patellar reflex, RR > 16, UO > 25 mL/hr · ยาแก้พิษ: Ca gluconate', noteClass:'info', labs:[{key:'mg',label:'Mg²⁺',unit:'mg/dL',ph:'1.7-2.4'}], info:{dose:'Eclampsia: Loading 4g IV 20 นาที → Maint 1-2g/hr',prep:'50% MgSO₄ 1g/2mL + D5W',monitoring:'BP, HR, RR, Urine output, Patellar reflex',alarm:'Patellar reflex หายไป, RR<16, UO<25mL/hr',antidote:'Ca gluconate 1g IV slow push 5-10 นาที'} },
-      digoxin:   { name:'Digoxin', short:'Dig', badge:'IV push', mode:'monitoring', note:'ℹ Therapeutic range: 0.8-2 ng/mL · ระวัง digoxin toxicity ใน K⁺ ต่ำ', noteClass:'info', labs:[{key:'digLevel',label:'Digoxin level',unit:'ng/mL',ph:'0.8-2.0'},{key:'k',label:'K⁺',unit:'mEq/L',ph:'3.5-5.0'}], info:{dose:'Loading: 0.25-0.5mg slow IV push → 0.25mg ทุก 6 ชม. x2',prep:'0.5mg/2mL · เจือจาง NSS ≥ 4 เท่า · IV slow push ≥ 10-20 นาที',monitoring:'HR, BP, EKG, K⁺, Digoxin level',alarm:'คลื่นไส้ หัวใจเต้นผิดจังหวะ มองเห็นสีเขียวเหลือง',antidote:'Digoxin immune Fab (DigiFab)'} },
-      warfarin:  { name:'Warfarin', short:'War', badge:'Oral', mode:'monitoring', note:'ℹ Target INR ตาม indication · ยาแก้พิษ: Vitamin K · เฝ้าระวัง bleeding', noteClass:'info', labs:[{key:'inr',label:'INR',unit:'',ph:'2.0-3.0'}], info:{dose:'Individualized dose · Pregnancy Risk Factor: X',prep:'Oral tablet · เก็บที่อุณภูมิห้อง ป้องกันแสง',monitoring:'PT/INR, Sign of bleeding',alarm:'INR > 4, เลือดออกผิดปกติ',antidote:'Vitamin K 2.5-5mg PO/IV · FFP ถ้าเลือดออกรุนแรง'} },
-      amiodarone:{ name:'Amiodarone', short:'Amio', badge:'IV drip', mode:'monitoring', note:'ℹ ผสมใน D5W เท่านั้น ห้าม NSS · ห้ามผสม NaHCO₃', noteClass:'warn', labs:[], info:{dose:'VT: 150mg + D5W 100mL ใน 10 นาที → 360mg/6ชม. → 540mg/18ชม.',prep:'D5W เท่านั้น! ห้ามผสม NSS',monitoring:'BP, HR, EKG, IV site',alarm:'Hypotension, Arrhythmia, Thrombophlebitis',antidote:'ไม่มี specific antidote'} },
+      ne:        { name:'Norepinephrine', short:'NE', badge:'IV drip', image:'HAD picture/norepinephrine.png', freq:'ทุก 2-5 นาที (BP/HR)', mode:'rate', inputUnit:'mL/hr', convUnit:'mcg/kg/min', weightBased:true, convFn:function(r,w){return(r*16)/(w*60)}, convFmt:function(v){return v.toFixed(3)}, warnAt:0.4, maxAt:0.5, defaultRate:8, note:'ℹ ควรให้ทาง central line — peripheral line เสี่ยง extravasation', noteClass:'info', labs:[{key:'lactate',label:'Lactate',unit:'mmol/L',ph:'0.5-2.0',min:0.5,max:2.0,freqHr:4}], vitals:['BP ทุก 2-5 นาที','HR ทุก 2-5 นาที','MAP > 65 mmHg','IV site ทุก 1 ชม.'], clinical:['ผิวหนังซีด/เขียวรอบ IV site','Extravasation','ปัสสาวะออก > 0.5 mL/kg/hr'], info:{dose:'Range: 0.05-0.5 mcg/kg/min',prep:'NE 4mg + D5W 250mL (16 mcg/mL)',monitoring:'BP/HR ทุก 2-5 นาที · ดู IV site ทุก 1 ชม.',alarm:'HR>120, BP>160/100, ผิวหนังซีด/เขียวที่ IV site',antidote:'Phentolamine 5-10mg + NSS 10-15mL ฉีดรอบ extravasation ภายใน 12 ชม.'} },
+      adr:       { name:'Adrenaline', short:'Adr', badge:'IV drip/push', image:'HAD picture/adrenaline.png', freq:'ทุก 2-5 นาที (BP/HR)', mode:'rate', inputUnit:'mL/hr', convUnit:'mcg/kg/min', weightBased:true, convFn:function(r,w){return(r*4)/(w*60)}, convFmt:function(v){return v.toFixed(3)}, warnAt:0.3, maxAt:1.0, defaultRate:15, note:'ℹ Drip: 1mg/250mL NSS · Push: 1mg/mL undiluted สำหรับ CPR/anaphylaxis', noteClass:'info', labs:[{key:'lactate',label:'Lactate',unit:'mmol/L',ph:'0.5-2.0',min:0.5,max:2.0,freqHr:4}], vitals:['BP','HR','EKG','IV site'], clinical:['Arrhythmia','Extravasation','Hypertension'], info:{dose:'Drip: 1mg + NSS 250mL · CPR: 1mg IV q3-5min',prep:'1mg/mL (1:1000)',monitoring:'BP, HR, EKG',alarm:'Arrhythmia, Extravasation, Hypertension',antidote:'Phentolamine 5-10mg + NSS'} },
+      morphine:  { name:'Morphine', short:'Mor', badge:'Drip/PRN', image:null, freq:'ทุก 1 ชม. (RR/Pain)', mode:'rate', inputUnit:'mL/hr', convUnit:'mg/hr', weightBased:false, convFn:function(r){return r*1}, convFmt:function(v){return v.toFixed(1)}, warnAt:8, maxAt:10, defaultRate:3, note:'ℹ ยาแก้พิษ: Naloxone · เฝ้าระวัง respiratory depression RR < 10', noteClass:'info', labs:[{key:'pain',label:'Pain score',unit:'/10',ph:'0-10',min:0,max:10,freqHr:2}], vitals:['BP','RR ≥ 10','Sedation score'], clinical:['ซึม หมดสติ','RR ต่ำ','Miosis (รูม่านตาหด)'], info:{dose:'10mg/mL · IV push: เจือจาง SWI 4-5mL ฉีดช้าๆ',prep:'IV infusion: D5W (0.1-1 mg/mL)',monitoring:'BP, RR, Pain score, Sedation',alarm:'RR<10, Hypotension, Bradycardia',antidote:'Naloxone 0.4-2mg IV ซ้ำได้ทุก 2-3 นาที'} },
+      pethidine: { name:'Pethidine', short:'Peth', badge:'IV push/IM', image:null, freq:'ทุก 1-2 ชม. (RR/Pain)', mode:'prn', inputUnit:'mg/dose', convUnit:null, weightBased:false, convFn:null, warnAt:50, maxAt:100, defaultRate:50, note:'ℹ ยาแก้พิษ: Naloxone · max 600mg/24hr · ระวังในผู้สูงอายุ/ไตบกพร่อง', noteClass:'info', labs:[{key:'pain',label:'Pain score',unit:'/10',ph:'0-10',min:0,max:10,freqHr:2},{key:'crcl',label:'CrCl',unit:'mL/min',ph:'>50',min:50,max:999,freqHr:24}], vitals:['BP','RR','Mental status'], clinical:['RR ต่ำ','Hypotension','ชัก (toxic metabolite)'], info:{dose:'25-100mg q3-4h PRN · max 600mg/24hr',prep:'50mg/mL · IV: เจือจางน้ำกลั่น 5mL ฉีด 4-5 นาที',monitoring:'BP, RR, Pain, Mental status',alarm:'RR ต่ำ, Hypotension, ชัก',antidote:'Naloxone 2mg IV'} },
+      insulin:   { name:'Regular Insulin', short:'RI', badge:'Drip/SC Scale', image:null, freq:'ทุก 1-2 ชม. (DTx)', mode:'insulin', inputUnit:'mL/hr', convUnit:'u/hr', weightBased:false, convFn:function(r){return r*1}, convFmt:function(v){return v.toFixed(1)}, warnAt:10, maxAt:15, defaultRate:5, note:'ℹ เฝ้าระวัง hypoglycemia · DTx ทุก 1-2 ชม. · ยาแก้พิษ: 50% Glucose IV', noteClass:'info', labs:[{key:'dtx',label:'DTx',unit:'mg/dL',ph:'70-180',min:70,max:180,freqHr:2},{key:'k',label:'K⁺',unit:'mEq/L',ph:'3.5-5.0',min:3.5,max:5.0,freqHr:6}], vitals:['Consciousness','HR'], clinical:['ใจสั่น','เหงื่อออก','มือสั่น หิว','หมดสติ'], scale:[{min:200,max:250,dose:4},{min:251,max:300,dose:6},{min:301,max:350,dose:8},{min:351,max:400,dose:10},{min:401,max:450,dose:12},{min:451,max:9999,dose:null,alert:true}], info:{dose:'DKA: IV 0.15u/kg → Maint 0.1u/kg/hr · Hyperkalemia: RI 1u/Dextrose 4-5g',prep:'100u + NSS 100mL (1u/mL)',monitoring:'DTx, Sign of Hypoglycemia, K⁺',alarm:'Hypoglycemia: ใจสั่น เหงื่อออก หมดสติ',antidote:'50% Glucose 50mL IV push'} },
+      kcl:       { name:'KCl', short:'KCl', badge:'IV drip', image:'HAD picture/KCl.png', freq:'ทุก 6 ชม. (K⁺)', mode:'rate', inputUnit:'mL/hr', convUnit:'mEq/hr', weightBased:false, convFn:function(r){return r*0.04}, convFmt:function(v){return v.toFixed(1)}, warnAt:8, maxAt:10, defaultRate:100, note:'ℹ ห้าม IV push — หัวใจหยุดเต้นได้ · ตรวจ K⁺ serum ก่อนและระหว่างให้', noteClass:'info', labs:[{key:'k',label:'K⁺',unit:'mEq/L',ph:'3.5-5.0',min:3.5,max:5.0,freqHr:6}], vitals:['HR','BP','EKG ทุก shift'], clinical:['ECG changes (peaked T, wide QRS)','กล้ามเนื้ออ่อนแรง','Urine output < 0.5 mL/kg/hr','IV site — ปวด บวม แดง'], info:{dose:'40mEq/NSS 1000mL · Max rate peripheral 10mEq/hr',prep:'ห้าม IV push! Max Conc peripheral 40mEq/L',monitoring:'K⁺, EKG, IV site, Urine output',alarm:'Hyperkalemia: ECG changes (peaked T, wide QRS)',antidote:'Ca gluconate 1g IV push 5-10 นาที'} },
+      mgso4:     { name:'MgSO₄', short:'Mg', badge:'IV drip', image:'HAD picture/magnesium sulfate.png', freq:'ทุก 4-6 ชม. (Mg²⁺)', mode:'rate', inputUnit:'mL/hr', convUnit:'g/hr', weightBased:false, convFn:function(r){return r*0.02}, convFmt:function(v){return v.toFixed(2)}, warnAt:1.5, maxAt:2, defaultRate:25, note:'ℹ ระวัง Mg toxicity · เช็ค patellar reflex, RR > 16, UO > 25 mL/hr · ยาแก้พิษ: Ca gluconate', noteClass:'info', labs:[{key:'mg',label:'Mg²⁺',unit:'mg/dL',ph:'1.7-2.4',min:1.7,max:2.4,freqHr:6}], vitals:['BP','HR','RR ≥ 16','Urine output ≥ 25 mL/hr'], clinical:['Patellar reflex หายไป','กล้ามเนื้ออ่อนแรง','ง่วงซึม','หน้าแดง'], info:{dose:'Eclampsia: Loading 4g IV 20 นาที → Maint 1-2g/hr',prep:'50% MgSO₄ 1g/2mL + D5W',monitoring:'BP, HR, RR, Urine output, Patellar reflex',alarm:'Patellar reflex หายไป, RR<16, UO<25mL/hr',antidote:'Ca gluconate 1g IV slow push 5-10 นาที'} },
+      digoxin:   { name:'Digoxin', short:'Dig', badge:'IV push', image:'HAD picture/digoxin.png', freq:'ทุก 24 ชม. (HR/EKG)', mode:'monitoring', note:'ℹ Therapeutic range: 0.8-2 ng/mL · ระวัง digoxin toxicity ใน K⁺ ต่ำ', noteClass:'info', labs:[{key:'digLevel',label:'Digoxin level',unit:'ng/mL',ph:'0.8-2.0',min:0.8,max:2.0,freqHr:168},{key:'k',label:'K⁺',unit:'mEq/L',ph:'3.5-5.0',min:3.5,max:5.0,freqHr:24}], vitals:['HR ≥ 60','BP','EKG'], clinical:['คลื่นไส้ อาเจียน','หัวใจเต้นผิดจังหวะ','มองเห็นสีเขียวเหลือง (xanthopsia)','สับสน'], info:{dose:'Loading: 0.25-0.5mg slow IV push → 0.25mg ทุก 6 ชม. x2',prep:'0.5mg/2mL · เจือจาง NSS ≥ 4 เท่า · IV slow push ≥ 10-20 นาที',monitoring:'HR, BP, EKG, K⁺, Digoxin level',alarm:'คลื่นไส้ หัวใจเต้นผิดจังหวะ มองเห็นสีเขียวเหลือง',antidote:'Digoxin immune Fab (DigiFab)'} },
+      warfarin:  { name:'Warfarin', short:'War', badge:'Oral', image:null, freq:'ทุก 24-72 ชม. (INR)', mode:'monitoring', note:'ℹ Target INR ตาม indication · ยาแก้พิษ: Vitamin K · เฝ้าระวัง bleeding', noteClass:'info', labs:[{key:'inr',label:'INR',unit:'',ph:'2.0-3.0',min:2.0,max:3.0,freqHr:48},{key:'hb',label:'Hb',unit:'g/dL',ph:'12-16',min:12,max:16,freqHr:72}], vitals:['BP','HR'], clinical:['เลือดออกผิดปกติ (จมูก เหงือก ทางเดินอาหาร)','ปัสสาวะ/อุจจาระปนเลือด','จ้ำเลือดตามตัว','ปวดหัวรุนแรง'], info:{dose:'Individualized dose · Pregnancy Risk Factor: X',prep:'Oral tablet · เก็บที่อุณภูมิห้อง ป้องกันแสง',monitoring:'PT/INR, Sign of bleeding',alarm:'INR > 4, เลือดออกผิดปกติ',antidote:'Vitamin K 2.5-5mg PO/IV · FFP ถ้าเลือดออกรุนแรง'} },
+      amiodarone:{ name:'Amiodarone', short:'Amio', badge:'IV drip', image:'HAD picture/amiodarone.png', freq:'ทุก 2-4 ชม. (BP/EKG)', mode:'monitoring', note:'ℹ ผสมใน D5W เท่านั้น ห้าม NSS · ห้ามผสม NaHCO₃', noteClass:'warn', labs:[{key:'tsh',label:'TSH',unit:'µIU/mL',ph:'0.4-4.0',min:0.4,max:4.0,freqHr:168},{key:'alt',label:'ALT',unit:'U/L',ph:'<40',min:0,max:40,freqHr:168}], vitals:['BP','HR','EKG — QT interval','IV site'], clinical:['Hypotension','Bradycardia','Thrombophlebitis','ไอเรื้อรัง (pulmonary toxicity)'], info:{dose:'VT: 150mg + D5W 100mL ใน 10 นาที → 360mg/6ชม. → 540mg/18ชม.',prep:'D5W เท่านั้น! ห้ามผสม NSS',monitoring:'BP, HR, EKG, IV site',alarm:'Hypotension, Arrhythmia, Thrombophlebitis',antidote:'ไม่มี specific antidote'} },
+      adenosine: { name:'Adenosine', short:'Aden', badge:'IV push', image:'HAD picture/adenosine.png', freq:'ต่อเนื่องช่วงให้ยา (EKG)', mode:'monitoring', note:'ℹ IV push เร็ว 1-2 วินาที + flush NSS 10-20 mL · ใช้ใน SVT', noteClass:'info', labs:[], vitals:['EKG ต่อเนื่อง','BP','HR'], clinical:['Flushing','แน่นหน้าอกชั่วคราว','หายใจลำบาก','Bronchospasm (ระวังในผู้ป่วย asthma)'], info:{dose:'SVT: 6mg IV push เร็ว → 12mg ซ้ำได้ถ้าไม่ตอบสนอง',prep:'3mg/mL · IV push เร็ว + flush NSS 10-20mL ทันที',monitoring:'EKG ต่อเนื่อง, BP, HR',alarm:'AV block ถาวร, Bronchospasm, เจ็บหน้าอก',antidote:'Methylxanthines (Aminophylline) ถ้ามีผลข้างเคียงรุนแรง'} },
     };
 
     let hadSelectedDrugs = {};
@@ -2682,8 +2764,89 @@
             let d = HAD_DB[key];
             if (!d) continue;
 
+            // ─── HAD CARD (paperless chart) ───
+            let cardId = 'hadCard-' + key;
+            let cardHtml = '<div class="had-card" id="' + cardId + '">';
+            cardHtml += '<div class="had-card-header"><span>⚠ HIGH ALERT DRUG</span><span style="font-size:10px;">' + (d.badge || '') + '</span></div>';
+            cardHtml += '<div class="had-card-body">';
+            cardHtml += '<h3 class="had-card-title">' + d.name + '</h3>';
+            cardHtml += '<div class="had-card-subtitle">' + (d.freq || 'ตรวจตาม order แพทย์') + '</div>';
+            if (d.image) {
+                cardHtml += '<div class="had-card-image"><img src="' + encodeURI(d.image) + '" alt="' + d.name + '" onerror="this.parentElement.classList.add(\'no-img\');this.style.display=\'none\';this.parentElement.innerHTML=\'⚠ ไม่มีรูปยา — ใช้ฉลากยาจริงแทน\'"></div>';
+            } else {
+                cardHtml += '<div class="had-card-image no-img">⚠ ไม่มีรูปยาในระบบ<br>ใช้ฉลากยาจริงแทน</div>';
+            }
+            // Lab
+            if (d.labs && d.labs.length) {
+                cardHtml += '<div class="had-card-section"><div class="had-card-section-title">🧪 Lab Monitoring</div><ul>';
+                for (let l = 0; l < d.labs.length; l++) {
+                    cardHtml += '<li>' + d.labs[l].label + ' (' + d.labs[l].ph + ' ' + (d.labs[l].unit || '') + ')</li>';
+                }
+                cardHtml += '</ul></div>';
+            }
+            // Vitals
+            if (d.vitals && d.vitals.length) {
+                cardHtml += '<div class="had-card-section"><div class="had-card-section-title">💓 Vital Signs</div><ul>';
+                for (let v = 0; v < d.vitals.length; v++) cardHtml += '<li>' + d.vitals[v] + '</li>';
+                cardHtml += '</ul></div>';
+            }
+            // Clinical
+            if (d.clinical && d.clinical.length) {
+                cardHtml += '<div class="had-card-section"><div class="had-card-section-title">⚠ Clinical Signs เฝ้าระวัง</div><ul>';
+                for (let c = 0; c < d.clinical.length; c++) cardHtml += '<li>' + d.clinical[c] + '</li>';
+                cardHtml += '</ul></div>';
+            }
+            // Antidote
+            if (d.info && d.info.antidote) {
+                cardHtml += '<div class="had-card-antidote"><strong>💊 Antidote:</strong> ' + d.info.antidote + '</div>';
+            }
+            cardHtml += '<div class="had-card-btns">';
+            cardHtml += '<button onclick="exportHADCard(\'' + cardId + '\', \'' + d.name + '\')">📥 Export PNG</button>';
+            cardHtml += '<button onclick="printHADCard(\'' + cardId + '\', \'' + d.name + '\')">🖨 Print</button>';
+            cardHtml += '</div>';
+            cardHtml += '</div></div>';
+            container.innerHTML += cardHtml;
+
+            // ─── MONITORING PANEL (frequency + lab eval) ───
+            let monId = 'hadMon-' + key;
+            let monHtml = '<div class="had-mon-card" id="' + monId + '">';
+            monHtml += '<div class="had-mon-head"><div class="had-mon-title">📊 Monitoring — ' + d.name + '</div>';
+            monHtml += '<div class="had-mon-freq" id="hadMonFreq-' + key + '">⏱ ' + (d.freq || 'ตาม order') + '</div></div>';
+
+            if (d.labs && d.labs.length) {
+                monHtml += '<div class="had-mon-section-title">Lab</div>';
+                for (let l = 0; l < d.labs.length; l++) {
+                    let lab = d.labs[l];
+                    monHtml += '<div class="had-mon-row">';
+                    monHtml += '<label>' + lab.label + '</label>';
+                    monHtml += '<input type="number" id="hadMonLab-' + key + '-' + lab.key + '" placeholder="' + (lab.ph || '') + '" step="any" oninput="hadEvalLab(\'' + key + '\',\'' + lab.key + '\')">';
+                    monHtml += '<span class="had-mon-range">ปกติ ' + (lab.ph || '') + ' ' + (lab.unit || '') + (lab.freqHr ? ' · ทุก ' + lab.freqHr + ' ชม.' : '') + '</span>';
+                    monHtml += '<span class="had-mon-status pending" id="hadMonStatus-' + key + '-' + lab.key + '">รอกรอก</span>';
+                    monHtml += '</div>';
+                }
+            }
+            // Vital checkboxes
+            if (d.vitals && d.vitals.length) {
+                monHtml += '<div class="had-mon-section-title">Vital</div><div class="had-mon-checklist">';
+                for (let v = 0; v < d.vitals.length; v++) {
+                    monHtml += '<label><input type="checkbox"> ' + d.vitals[v] + '</label>';
+                }
+                monHtml += '</div>';
+            }
+            // Clinical checkboxes
+            if (d.clinical && d.clinical.length) {
+                monHtml += '<div class="had-mon-section-title">Clinical</div><div class="had-mon-checklist">';
+                for (let c = 0; c < d.clinical.length; c++) {
+                    monHtml += '<label><input type="checkbox"> ' + d.clinical[c] + '</label>';
+                }
+                monHtml += '</div>';
+            }
+            monHtml += '</div>';
+            container.innerHTML += monHtml;
+
+            // ─── Existing had-block (calculator) ───
             let html = '<div class="had-block">';
-            html += '<h4>' + d.name + ' <span class="had-badge">' + (d.badge || '') + '</span></h4>';
+            html += '<h4>' + d.name + ' — Dose Calculator <span class="had-badge">' + (d.badge || '') + '</span></h4>';
             if (d.note) html += '<div class="had-note' + (d.noteClass === 'warn' ? ' warn-note' : '') + '">' + d.note + '</div>';
 
             // Dose calculator (for rate/prn modes)
@@ -3079,6 +3242,173 @@
         win.document.write('<h1>Warfarin Monitoring</h1>');
         win.document.close();
         win.print();
+    }
+
+    // ─── HAD: Evaluate lab value (normal/abnormal) ───
+    function hadEvalLab(drugKey, labKey) {
+        let d = HAD_DB[drugKey];
+        if (!d || !d.labs) return;
+        let lab = null;
+        for (let i = 0; i < d.labs.length; i++) { if (d.labs[i].key === labKey) { lab = d.labs[i]; break; } }
+        if (!lab) return;
+        let inp = document.getElementById('hadMonLab-' + drugKey + '-' + labKey);
+        let status = document.getElementById('hadMonStatus-' + drugKey + '-' + labKey);
+        if (!inp || !status) return;
+        let val = parseFloat(inp.value);
+        if (isNaN(val) || inp.value === '') {
+            status.className = 'had-mon-status pending';
+            status.textContent = 'รอกรอก';
+            return;
+        }
+        if (lab.min != null && val < lab.min) {
+            status.className = 'had-mon-status abnormal';
+            status.textContent = 'ต่ำ ⚠';
+        } else if (lab.max != null && val > lab.max) {
+            status.className = 'had-mon-status abnormal';
+            status.textContent = 'สูง ⚠';
+        } else {
+            status.className = 'had-mon-status normal';
+            status.textContent = 'ปกติ ✓';
+        }
+    }
+
+    // ─── HAD: Export Card as PNG ───
+    function exportHADCard(cardId, drugName) {
+        let el = document.getElementById(cardId);
+        if (!el) return;
+        if (typeof html2canvas === 'undefined') {
+            let s = document.createElement('script');
+            s.src = 'https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js';
+            s.onload = function() { doCaptureHAD(el, drugName); };
+            document.head.appendChild(s);
+        } else {
+            doCaptureHAD(el, drugName);
+        }
+    }
+    function doCaptureHAD(el, drugName) {
+        // hide buttons before capture
+        let btns = el.querySelector('.had-card-btns');
+        if (btns) btns.style.visibility = 'hidden';
+        html2canvas(el, { backgroundColor: '#ffffff', scale: 2, useCORS: true }).then(function(canvas) {
+            if (btns) btns.style.visibility = '';
+            let a = document.createElement('a');
+            a.download = 'HAD_Card_' + drugName.replace(/[^a-zA-Z0-9]/g, '_') + '.png';
+            a.href = canvas.toDataURL('image/png');
+            a.click();
+        });
+    }
+
+    // ─── HAD: Print single card ───
+    function printHADCard(cardId, drugName) {
+        let el = document.getElementById(cardId);
+        if (!el) return;
+        let clone = el.cloneNode(true);
+        let btns = clone.querySelector('.had-card-btns');
+        if (btns) btns.remove();
+        let win = window.open('', 'print');
+        win.document.write('<html><head><title>HAD Card — ' + drugName + '</title>');
+        win.document.write('<link href="https://fonts.googleapis.com/css2?family=Google+Sans:wght@400;500;700&family=Noto+Sans+Thai:wght@400;500;700&display=swap" rel="stylesheet">');
+        win.document.write('<style>body{font-family:"Google Sans","Noto Sans Thai",sans-serif;padding:20px;margin:0;}');
+        win.document.write('.had-card{background:#fff;border:2px solid #c62828;border-radius:12px;overflow:hidden;max-width:420px;margin:auto;}');
+        win.document.write('.had-card-header{background:#c62828;color:#fff;padding:8px 14px;font-weight:700;font-size:13px;display:flex;justify-content:space-between;}');
+        win.document.write('.had-card-body{padding:14px;}');
+        win.document.write('.had-card-title{font-size:17px;font-weight:700;color:#2e3f58;margin:0 0 4px;}');
+        win.document.write('.had-card-subtitle{font-size:11px;color:#777;margin-bottom:10px;}');
+        win.document.write('.had-card-image{width:100%;height:140px;background:#f5f4f2;border-radius:8px;display:flex;align-items:center;justify-content:center;margin-bottom:12px;overflow:hidden;}');
+        win.document.write('.had-card-image img{max-width:100%;max-height:100%;object-fit:contain;}');
+        win.document.write('.had-card-image.no-img{background:#ffebee;color:#c62828;font-size:11px;font-weight:600;text-align:center;padding:12px;}');
+        win.document.write('.had-card-section{margin-top:10px;}');
+        win.document.write('.had-card-section-title{font-size:10px;font-weight:700;text-transform:uppercase;color:#c62828;letter-spacing:0.5px;margin-bottom:4px;border-bottom:1.5px solid #c62828;padding-bottom:2px;}');
+        win.document.write('.had-card-section ul{margin:4px 0 0;padding-left:18px;font-size:11.5px;line-height:1.6;color:#333;}');
+        win.document.write('.had-card-antidote{background:#fff3cd;border-left:3px solid #ffb300;padding:6px 10px;font-size:11.5px;margin-top:10px;line-height:1.5;}');
+        win.document.write('</style></head><body>');
+        win.document.write(clone.outerHTML);
+        win.document.write('</body></html>');
+        win.document.close();
+        setTimeout(function() { win.print(); }, 500);
+    }
+
+    // ═══════════════════════════════════════════
+    //  HAD HANDBOOK TAB
+    // ═══════════════════════════════════════════
+    let hbCurrentDrug = null;
+    let hbFilterText = '';
+
+    function hbRenderList() {
+        let list = document.getElementById('hbList');
+        if (!list) return;
+        list.innerHTML = '';
+        let filter = (hbFilterText || '').toLowerCase();
+        for (let key in HAD_DB) {
+            let d = HAD_DB[key];
+            if (filter) {
+                let match = (d.name + ' ' + (d.short || '') + ' ' + (d.badge || '')).toLowerCase();
+                if (match.indexOf(filter) < 0) continue;
+            }
+            let li = document.createElement('li');
+            if (hbCurrentDrug === key) li.className = 'active';
+            li.innerHTML = '<span>' + d.name + '</span><span class="hb-badge-mini">HAD</span>';
+            li.onclick = (function(k) { return function() { hbSelect(k); }; })(key);
+            list.appendChild(li);
+        }
+    }
+
+    function hbFilter(val) {
+        hbFilterText = val;
+        hbRenderList();
+    }
+
+    function hbSelect(key) {
+        hbCurrentDrug = key;
+        hbRenderList();
+        hbRenderDetail(key);
+    }
+
+    function hbRenderDetail(key) {
+        let el = document.getElementById('hbDetail');
+        let d = HAD_DB[key];
+        if (!d || !el) return;
+        let html = '<div class="hb-detail-head">';
+        if (d.image) {
+            html += '<div class="hb-detail-img"><img src="' + encodeURI(d.image) + '" alt="' + d.name + '" onerror="this.parentElement.classList.add(\'no-img\');this.style.display=\'none\';this.parentElement.innerHTML=\'⚠ ไม่มีรูปยา\'"></div>';
+        } else {
+            html += '<div class="hb-detail-img no-img">⚠ ไม่มีรูปยา<br>ในระบบ</div>';
+        }
+        html += '<div class="hb-detail-title-wrap">';
+        html += '<h2>' + d.name + '</h2>';
+        html += '<span class="hb-badge-tag">⚠ HIGH ALERT</span>';
+        html += '<span class="hb-badge-mode">' + (d.badge || '') + '</span>';
+        html += '<div style="font-size:12px;color:#666;margin-top:8px;">' + (d.note || '') + '</div>';
+        html += '</div></div>';
+
+        if (d.info) {
+            if (d.info.dose) html += '<div class="hb-section"><h3>💉 Dose</h3><p>' + d.info.dose + '</p></div>';
+            if (d.info.prep) html += '<div class="hb-section"><h3>🧪 Preparation</h3><p>' + d.info.prep + '</p></div>';
+        }
+        html += '<div class="hb-section"><h3>⏱ Monitoring Frequency</h3><p>' + (d.freq || 'ตาม order แพทย์') + '</p></div>';
+
+        if (d.labs && d.labs.length) {
+            html += '<div class="hb-section"><h3>🧪 Lab Monitoring</h3><ul>';
+            for (let i = 0; i < d.labs.length; i++) {
+                let lab = d.labs[i];
+                html += '<li>' + lab.label + ' — ปกติ ' + (lab.ph || '') + ' ' + (lab.unit || '') + (lab.freqHr ? ' · ทุก ' + lab.freqHr + ' ชม.' : '') + '</li>';
+            }
+            html += '</ul></div>';
+        }
+        if (d.vitals && d.vitals.length) {
+            html += '<div class="hb-section"><h3>💓 Vital Signs</h3><ul>';
+            for (let i = 0; i < d.vitals.length; i++) html += '<li>' + d.vitals[i] + '</li>';
+            html += '</ul></div>';
+        }
+        if (d.clinical && d.clinical.length) {
+            html += '<div class="hb-section"><h3>⚠ Clinical Signs เฝ้าระวัง</h3><ul>';
+            for (let i = 0; i < d.clinical.length; i++) html += '<li>' + d.clinical[i] + '</li>';
+            html += '</ul></div>';
+        }
+        if (d.info && d.info.alarm) html += '<div class="hb-section"><h3>🚨 Alarm Signs</h3><p>' + d.info.alarm + '</p></div>';
+        if (d.info && d.info.antidote) html += '<div class="hb-section"><h3>💊 Antidote</h3><p>' + d.info.antidote + '</p></div>';
+
+        el.innerHTML = html;
     }
 
     // ─── Sub-tab Save Handlers ───
