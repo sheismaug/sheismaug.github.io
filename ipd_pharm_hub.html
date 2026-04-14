@@ -776,13 +776,6 @@
         .had-ins-section { animation: fadeIn 0.2s; }
         .had-ins-hint { font-size: 11.5px; color: #555; background: #f0f7ff; border-left: 3px solid #5b8def; padding: 8px 10px; border-radius: 6px; margin-bottom: 10px; line-height: 1.5; }
 
-        /* MR tab 3-column layout */
-        .mr-3col-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; margin-bottom: 14px; }
-        .mr-section { background: #f9f8f6; border: 1px solid #e8e5e0; border-radius: 10px; padding: 14px; }
-        .mr-section-header { font-size: 13px; font-weight: 700; color: #2e3f58; padding-bottom: 8px; margin-bottom: 12px; border-bottom: 2px solid #e8e5e0; display: flex; align-items: center; gap: 6px; }
-        .mr-section-full { background: #f9f8f6; border: 1px solid #e8e5e0; border-radius: 10px; padding: 14px; margin-bottom: 14px; }
-        @media (max-width: 1100px) { .mr-3col-grid { grid-template-columns: 1fr; } }
-
         .had-block { background: #fff; border: 1px solid #e8e5e0; border-radius: 12px; padding: 16px; margin-bottom: 14px; }
         .had-block h4 { margin: 0 0 4px; font-size: 14px; color: #2e3f58; }
         .had-block .had-badge { display: inline-block; font-size: 10px; font-weight: 700; padding: 2px 8px; border-radius: 99px; background: #e8e5e0; color: #555; margin-left: 6px; vertical-align: middle; }
@@ -1515,12 +1508,10 @@
 
             <!-- Sub-Tab 1: MR -->
             <div class="subtab-content active" id="mr">
-                <!-- 3-column grid: Admit | MR Review | MD Review -->
-                <div class="mr-3col-grid">
-                    <!-- Col 1: Admit Info -->
-                    <div class="mr-section">
-                        <div class="mr-section-header">📋 Admit Info</div>
-                        <div class="form-group">
+                <!-- Row 1: Admit info -->
+                <div style="padding: 14px 16px; background: #f5f4f2; border-radius: 10px; margin-bottom: 12px;">
+                    <div class="form-row" style="margin-bottom: 10px;">
+                        <div class="form-group" style="flex:1;">
                             <label class="form-label">วันที่ Admit</label>
                             <input type="text" class="form-input date-input" id="mrAdmitDate" readonly>
                         </div>
@@ -1534,13 +1525,17 @@
                             <input type="hidden" id="mrAdmitShift">
                         </div>
                         <div class="form-group">
-                            <label class="form-label">รพ. (KPI: ห้วยผึ้ง=ในเวร · อื่น=24ชม.)</label>
+                            <label class="form-label">รพ.</label>
                             <select class="form-select" id="mrHospital">
                                 <option>รพ.ห้วยผึ้ง</option>
                                 <option>รพ.อื่น</option>
                             </select>
                         </div>
-                        <div class="form-group">
+                    </div>
+
+                    <!-- Row 2: MR status & pharmacist -->
+                    <div class="form-row">
+                        <div class="form-group" style="flex:1;">
                             <label class="form-label">สถานะ MR</label>
                             <select class="form-select" id="mrStatus">
                                 <option>มีรายการ MR</option>
@@ -1549,16 +1544,17 @@
                                 <option>ติดตามไม่ได้</option>
                             </select>
                         </div>
-                        <div class="form-group" style="margin-bottom:0;">
+                        <div class="form-group">
                             <label class="form-label">ผู้ทำ MR</label>
                             <select class="form-select" id="mrPharmacist"></select>
                         </div>
                     </div>
+                </div>
 
-                    <!-- Col 2: MR Review -->
-                    <div class="mr-section">
-                        <div class="mr-section-header">📝 MR Review</div>
-                        <div class="form-group">
+                <!-- Row 3: MR completion -->
+                <div style="padding: 14px 16px; background: white; border: 1px solid #e8e5e0; border-radius: 10px; margin-bottom: 12px;">
+                    <div class="form-row">
+                        <div class="form-group" style="flex:1;">
                             <label class="form-label">วันที่ MR เสร็จ</label>
                             <input type="text" class="form-input date-input" id="mrDate">
                         </div>
@@ -1571,14 +1567,16 @@
                             </div>
                             <input type="hidden" id="mrDoneShift">
                         </div>
-                        <div class="form-group">
+                    </div>
+                    <div class="form-row" style="margin-top: 8px;">
+                        <div class="form-group" style="flex:1;">
                             <label class="form-label">คุณภาพ MR</label>
                             <select class="form-select" id="mrQuality">
                                 <option>ครบถ้วน</option>
                                 <option>ไม่ครบ</option>
                             </select>
                         </div>
-                        <div class="form-group" style="margin-bottom:0;">
+                        <div class="form-group" style="flex:1;">
                             <label class="form-label">ผ่านเกณฑ์เวลา</label>
                             <select class="form-select" id="mrTimePass">
                                 <option>ผ่าน</option>
@@ -1587,15 +1585,16 @@
                             </select>
                         </div>
                     </div>
+                </div>
 
-                    <!-- Col 3: MD Review -->
-                    <div class="mr-section">
-                        <div class="mr-section-header">👨‍⚕️ MD Review</div>
-                        <div class="form-group">
+                <!-- Row 4: MD Review -->
+                <div style="padding: 14px 16px; background: white; border: 1px solid #e8e5e0; border-radius: 10px; margin-bottom: 12px;">
+                    <div class="form-row">
+                        <div class="form-group" style="flex:1;">
                             <label class="form-label">วันที่ MD Review</label>
                             <input type="text" class="form-input date-input" id="mrMDDate">
                         </div>
-                        <div class="form-group" style="margin-bottom:0;">
+                        <div class="form-group">
                             <label class="form-label">เวร MD</label>
                             <div class="shift-btns">
                                 <button type="button" class="shift-btn" data-val="เช้า" onclick="pickShift(this,'mrMDShift')">เช้า</button>
@@ -1608,11 +1607,10 @@
                     </div>
                 </div>
 
-                <!-- Home Med section (full-width) -->
-                <div class="mr-section" style="margin-bottom:12px;">
-                    <div class="mr-section-header">💊 Home Medication</div>
+                <!-- Row 5: Home Med paste area -->
+                <div style="padding: 14px 16px; background: white; border: 1px solid #e8e5e0; border-radius: 10px; margin-bottom: 12px;">
                     <div class="form-row" style="margin-bottom: 8px;">
-                        <div class="form-group" style="flex:1; margin-bottom:0;">
+                        <div class="form-group" style="flex:1;">
                             <label class="form-label">ประเภทยา</label>
                             <select class="form-select" id="mrMedType">
                                 <option>ยานอก</option>
@@ -2035,7 +2033,6 @@
 
     // Global State
     let allPatients = [];
-    let pendingLocalPatients = []; // คนไข้ที่เพิ่งเพิ่มและยังไม่กลับมาจาก GAS (แก้ race condition)
     let currentFilter = 'all';
     let currentPatientHN = null;
     let currentBundle = null;
@@ -2066,33 +2063,14 @@
             if (!data || !data.settings) return;
             appSettings = data.settings;
 
-            // เติม dropdown ผู้ทำ MR (แบ่งกลุ่ม เภสัชกร ภญ. / จพ.)
+            // เติม dropdown ผู้ทำ MR (เภสัชกร + จพ.)
             let pharmSel = document.getElementById('mrPharmacist');
             pharmSel.innerHTML = '<option value="">-- เลือก --</option>';
-            let allNames = appSettings['รายชื่อเภสัชกร'] || [];
-            let phGroup = []; // ภญ./ภก.
-            let jpGroup = []; // จพ.
-            let otherGroup = [];
-            allNames.forEach(function(name) {
-                let trimmed = (name || '').trim();
-                if (/^(ภญ\.|ภก\.|เภสัช)/.test(trimmed)) phGroup.push(trimmed);
-                else if (/^จพ\./.test(trimmed)) jpGroup.push(trimmed);
-                else otherGroup.push(trimmed);
+            (appSettings['รายชื่อเภสัชกร'] || []).forEach(function(name) {
+                let o = document.createElement('option');
+                o.value = name; o.textContent = name;
+                pharmSel.appendChild(o);
             });
-            function appendGroup(label, arr) {
-                if (arr.length === 0) return;
-                let og = document.createElement('optgroup');
-                og.label = label;
-                arr.forEach(function(name) {
-                    let o = document.createElement('option');
-                    o.value = name; o.textContent = name;
-                    og.appendChild(o);
-                });
-                pharmSel.appendChild(og);
-            }
-            appendGroup('เภสัชกร', phGroup);
-            appendGroup('เจ้าพนักงานเภสัชกรรม', jpGroup);
-            appendGroup('อื่นๆ', otherGroup);
 
         });
     }
@@ -2339,17 +2317,7 @@
     // Patient List
     function loadPatients() {
         gasGet('getPatients', {}, function(data) {
-            let fromSheet = data && data.patients ? data.patients : [];
-            // Merge: ให้ข้อมูลจาก sheet เป็นหลัก + เพิ่มคนไข้ pending (ที่เพิ่งเพิ่มและยังไม่ commit ลง sheet)
-            let hnInSheet = {};
-            fromSheet.forEach(function(p) { if (p && p.hn) hnInSheet[p.hn] = true; });
-            // คนไข้ pending ที่ยังไม่เห็นใน sheet → คงไว้ใน list (ยังไม่ commit)
-            let stillPending = [];
-            pendingLocalPatients.forEach(function(p) {
-                if (p && p.hn && !hnInSheet[p.hn]) stillPending.push(p);
-            });
-            pendingLocalPatients = stillPending;
-            allPatients = fromSheet.concat(stillPending);
+            allPatients = data && data.patients ? data.patients : [];
             localStorage.setItem('ipd_patients', JSON.stringify(allPatients));
             updatePatientTable();
             updateKPIs();
@@ -2626,8 +2594,8 @@
     }
 
     function addNewPatient() {
-        let hn = document.getElementById('formHN').value;
-        let name = document.getElementById('formName').value;
+        let hn = (document.getElementById('formHN').value || '').trim();
+        let name = (document.getElementById('formName').value || '').trim();
         let dx = document.getElementById('formDx').value;
         let admitDate = document.getElementById('formAdmitDate').value;
 
@@ -2636,9 +2604,15 @@
             return;
         }
 
-        // ป้องกัน duplicate HN ใน local list
+        // ป้องกัน HN ที่เป็นเลข 0 ทั้งหมด (เช่น "0", "00", "000")
+        if (/^0+$/.test(hn)) {
+            alert('HN ไม่ถูกต้อง: ห้ามใช้เลข 0 เป็น HN');
+            return;
+        }
+
+        // ป้องกัน duplicate HN ใน local list (เทียบแบบ trim)
         for (let i = 0; i < allPatients.length; i++) {
-            if (allPatients[i].hn === hn) {
+            if (String(allPatients[i].hn).trim() === hn) {
                 alert('HN ' + hn + ' มีอยู่แล้วในรายชื่อ');
                 return;
             }
@@ -2660,7 +2634,6 @@
         // เพิ่มเข้า list ทันที (ไม่ต้องรอ GAS) เพราะ fetch mode:'no-cors' resolves ก่อน
         // GAS จะ commit ลง sheet เสร็จ ทำให้ loadPatients() เดิมเห็น sheet ยังไม่มีข้อมูลใหม่
         allPatients.push(newPatient);
-        pendingLocalPatients.push(newPatient); // mark ว่ายังไม่ commit ลง sheet
         localStorage.setItem('ipd_patients', JSON.stringify(allPatients));
         updatePatientTable();
         updateKPIs();
@@ -2672,11 +2645,9 @@
         document.getElementById('formAdmitDate').value = '';
         document.getElementById('addPatientForm').classList.remove('expanded');
 
-        // Save ไป GAS แล้ว reload หลายรอบเพื่อรอ sheet commit (merge strategy: คน pending จะไม่หายไปจนกว่าจะเห็นใน sheet)
+        // Save ไป GAS แล้วค่อย reload จาก sheet (หน่วงเวลาให้ GAS commit เสร็จก่อน)
         gasPost('savePatient', newPatient, function() {
             setTimeout(function() { loadPatients(); }, 1500);
-            setTimeout(function() { loadPatients(); }, 4000);
-            setTimeout(function() { loadPatients(); }, 8000);
         });
     }
 
