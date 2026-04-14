@@ -1471,6 +1471,14 @@ function renderLog() {
     return matchSearch && matchDrug && matchFrom && matchTo;
   });
 
+  // เรียงจากล่าสุด → เก่าสุด (ตาม date + time)
+  filtered.sort((a, b) => {
+    const da = (a.date || '') + ' ' + (a.time || '');
+    const db = (b.date || '') + ' ' + (b.time || '');
+    if (db !== da) return db.localeCompare(da);
+    return (Number(b.id) || 0) - (Number(a.id) || 0);
+  });
+
   const tbody = document.getElementById('log-tbody');
   const empty = document.getElementById('log-empty');
 
