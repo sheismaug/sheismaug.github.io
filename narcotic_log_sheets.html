@@ -1459,9 +1459,9 @@ function renderLog() {
   const filterTo   = document.getElementById('log-filter-to').value;
 
   let filtered = logs.filter(r => {
-    // search across every string field — รองรับ field name ทุกแบบจาก GAS
+    // search across every field — แปลงเป็น string เสมอ (HN/PID อาจเป็น number)
     const matchSearch = !search || Object.values(r).some(v =>
-      typeof v === 'string' && v.toLowerCase().includes(search)
+      v != null && String(v).toLowerCase().includes(search)
     );
     // drug filter — ลอง field ชื่อต่างๆ
     const drugVal = r.drug || r.Drug || r.drug_name || r.drugName || '';
