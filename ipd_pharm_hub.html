@@ -178,6 +178,182 @@
             border-bottom-color: #8ecf8e;
         }
 
+        /* To-Do badge on tab */
+        .todo-badge {
+            display: inline-block;
+            background: #e85a4f;
+            color: #fff;
+            border-radius: 10px;
+            padding: 1px 7px;
+            font-size: 11px;
+            font-weight: 700;
+            margin-left: 6px;
+            min-width: 18px;
+            text-align: center;
+        }
+
+        /* To-Do cards */
+        .todo-section-title {
+            font-size: 15px;
+            font-weight: 700;
+            color: #2e3f58;
+            margin: 20px 0 10px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .todo-card {
+            background: #fff;
+            border: 1px solid #e5e2dc;
+            border-left: 4px solid #8ecf8e;
+            border-radius: 8px;
+            padding: 14px 16px;
+            margin-bottom: 10px;
+        }
+        .todo-card.urgent { border-left-color: #e85a4f; }
+        .todo-card.soon { border-left-color: #f0a04b; }
+        .todo-card .todo-title {
+            font-weight: 600;
+            color: #2e3f58;
+            margin-bottom: 6px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .todo-card .todo-hn {
+            font-size: 12px;
+            color: #666;
+            background: #f5f4f2;
+            padding: 2px 8px;
+            border-radius: 4px;
+        }
+        .todo-card .todo-drugs {
+            margin: 8px 0;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+        }
+        .todo-drug-chip {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            padding: 3px 9px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+        .todo-drug-chip.due-overdue { background: #fde8e6; color: #a02b20; }
+        .todo-drug-chip.due-today { background: #fff2e0; color: #9a5e20; }
+        .todo-drug-chip.upcoming { background: #f0f0ed; color: #666; }
+        .todo-card .todo-actions {
+            display: flex;
+            gap: 8px;
+            margin-top: 10px;
+        }
+        .todo-card .todo-actions button {
+            padding: 6px 12px;
+            border-radius: 6px;
+            border: 1px solid #d8d5d0;
+            background: #fff;
+            cursor: pointer;
+            font-size: 13px;
+            font-weight: 500;
+        }
+        .todo-card .todo-actions button.primary {
+            background: #8ecf8e;
+            border-color: #8ecf8e;
+            color: #fff;
+        }
+        .todo-empty {
+            padding: 40px;
+            text-align: center;
+            color: #999;
+            background: #fff;
+            border-radius: 8px;
+            border: 1px dashed #d8d5d0;
+        }
+
+        /* Toast */
+        .toast-container {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            z-index: 10000;
+            display: flex;
+            flex-direction: column-reverse;
+            gap: 10px;
+        }
+        .toast {
+            background: #2e3f58;
+            color: #fff;
+            padding: 12px 16px;
+            border-radius: 8px;
+            box-shadow: 0 4px 14px rgba(0,0,0,0.2);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            min-width: 280px;
+            animation: toastIn 0.2s ease-out;
+            font-size: 13px;
+        }
+        .toast.success { background: #4a7c59; }
+        .toast.error { background: #c65d58; }
+        .toast.info { background: #2e3f58; }
+        .toast .toast-undo {
+            background: rgba(255,255,255,0.2);
+            border: none;
+            color: #fff;
+            padding: 4px 10px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: 600;
+            margin-left: auto;
+        }
+        @keyframes toastIn {
+            from { opacity: 0; transform: translateY(8px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* HAD drug checklist (patient edit) */
+        .had-drug-checklist {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 6px;
+            padding: 10px;
+            border: 1px solid #e5e2dc;
+            border-radius: 6px;
+            background: #fafaf7;
+        }
+        @media (max-width: 640px) {
+            .had-drug-checklist { grid-template-columns: repeat(2, 1fr); }
+        }
+        .had-drug-item {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            padding: 6px 8px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 13px;
+            transition: background 0.15s;
+            position: relative;
+        }
+        .had-drug-item:hover { background: #fff; }
+        .had-drug-item input[type=checkbox] { margin: 0; }
+        .had-drug-item .save-status {
+            display: inline-block;
+            width: 14px;
+            height: 14px;
+            margin-left: auto;
+            font-size: 12px;
+            text-align: center;
+        }
+        .had-drug-item .save-status.saving::after { content: '⋯'; color: #999; }
+        .had-drug-item .save-status.saved::after { content: '✓'; color: #4a7c59; font-weight: 700; }
+        .had-drug-item .save-status.error::after { content: '✕'; color: #c65d58; font-weight: 700; }
+        .had-drug-item.interval-drug { border-left: 3px solid #8ecf8e; padding-left: 6px; }
+        .had-drug-item.realtime-drug { border-left: 3px solid #ccc; padding-left: 6px; }
+
         .body-bg {
             background: #f5f4f2;
             flex: 1;
@@ -1246,6 +1422,7 @@
             </div>
             <div class="tab-strip" id="mainTabs">
                 <div class="tab-item active" data-tab="patient-list">รายชื่อ</div>
+                <div class="tab-item" data-tab="todo">📋 To-Do <span class="todo-badge" id="todoBadge" style="display:none;">0</span></div>
                 <div class="tab-item" data-tab="dashboard">Dashboard</div>
                 <div class="tab-item" data-tab="had-handbook">HAD Handbook</div>
                 <div class="tab-item" data-tab="workload">Workload</div>
@@ -1312,6 +1489,30 @@
                     </thead>
                     <tbody id="patientBody"></tbody>
                 </table>
+            </div>
+
+            <!-- TAB: To-Do List -->
+            <div class="tab-content" id="todo">
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px;">
+                    <h3 class="card-title" style="margin:0;">รายการที่ต้องทำ</h3>
+                    <button class="btn btn-primary" style="padding:6px 12px; font-size:13px;" onclick="loadTodos()">🔄 โหลดใหม่</button>
+                </div>
+
+                <!-- Section: MR รอแพทย์ review -->
+                <div class="todo-section-title">
+                    <span>⏳</span>
+                    <span>MR รอแพทย์ review</span>
+                    <span id="todoMrCount" style="background:#f0f0ed; color:#666; padding:2px 8px; border-radius:10px; font-size:12px; font-weight:600;">0</span>
+                </div>
+                <div id="todoMrList"></div>
+
+                <!-- Section: HAD Round -->
+                <div class="todo-section-title">
+                    <span>💊</span>
+                    <span>HAD Round — ต้องเจาะ lab / ตามผล</span>
+                    <span id="todoHadCount" style="background:#f0f0ed; color:#666; padding:2px 8px; border-radius:10px; font-size:12px; font-weight:600;">0</span>
+                </div>
+                <div id="todoHadList"></div>
             </div>
 
             <!-- TAB 2: Dashboard -->
@@ -1757,15 +1958,24 @@
 
             <!-- Sub-Tab 3: HAD Monitoring -->
             <div class="subtab-content" id="had">
+                <!-- NEW: 12-drug standardized checklist (auto-save) -->
+                <div style="margin-bottom:16px;">
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+                        <div style="font-size:13px; font-weight:600; color:#2e3f58;">HAD ที่คนไข้ใช้อยู่</div>
+                        <div style="font-size:11px; color:#999;">✓ บันทึกอัตโนมัติ · 🟢 เข้า round · ⚪ real-time</div>
+                    </div>
+                    <div id="hadChecklistContainer" class="had-drug-checklist"></div>
+                </div>
+
                 <label style="display: flex; align-items: center; gap: 8px; margin-bottom: 12px;">
                     <input type="checkbox" id="hasHAD" onchange="toggleHADView()">
-                    <span style="font-weight:600;">มี HAD drugs</span>
+                    <span style="font-weight:600;">แสดง Calculator / ข้อมูลเชิงลึก</span>
                 </label>
 
                 <div id="hadContent" style="display: none;">
-                    <!-- Drug selector chips -->
+                    <!-- Drug selector chips (legacy, ใช้ตัวช่วย calculator) -->
                     <div style="margin-bottom: 16px;">
-                        <div style="font-size: 12px; color: #999; margin-bottom: 8px;">เลือกยา HAD ที่ผู้ป่วยได้รับ:</div>
+                        <div style="font-size: 12px; color: #999; margin-bottom: 8px;">เลือกยาเพื่อดู calculator:</div>
                         <div id="hadDrugChips" style="display: flex; flex-wrap: wrap; gap: 6px;"></div>
                     </div>
                     <!-- Calculator blocks rendered here -->
@@ -2072,14 +2282,36 @@
             if (!data || !data.settings) return;
             appSettings = data.settings;
 
-            // เติม dropdown ผู้ทำ MR (เภสัชกร + จพ.)
+            // เติม dropdown ผู้ทำ MR — แยก optgroup เภสัชกร (ภญ./ภก.) กับ เจ้าพนักงาน (จพ.)
             let pharmSel = document.getElementById('mrPharmacist');
             pharmSel.innerHTML = '<option value="">-- เลือก --</option>';
-            (appSettings['รายชื่อเภสัชกร'] || []).forEach(function(name) {
-                let o = document.createElement('option');
-                o.value = name; o.textContent = name;
-                pharmSel.appendChild(o);
+            let allNames = appSettings['รายชื่อเภสัชกร'] || [];
+            let pharmacists = [];
+            let technicians = [];
+            allNames.forEach(function(name) {
+                if (/^จพ\./.test(name)) technicians.push(name);
+                else pharmacists.push(name);
             });
+            if (pharmacists.length > 0) {
+                let g1 = document.createElement('optgroup');
+                g1.label = 'เภสัชกร';
+                pharmacists.forEach(function(name) {
+                    let o = document.createElement('option');
+                    o.value = name; o.textContent = name;
+                    g1.appendChild(o);
+                });
+                pharmSel.appendChild(g1);
+            }
+            if (technicians.length > 0) {
+                let g2 = document.createElement('optgroup');
+                g2.label = 'เจ้าพนักงานเภสัชกรรม';
+                technicians.forEach(function(name) {
+                    let o = document.createElement('option');
+                    o.value = name; o.textContent = name;
+                    g2.appendChild(o);
+                });
+                pharmSel.appendChild(g2);
+            }
 
         });
     }
@@ -2330,6 +2562,347 @@
             localStorage.setItem('ipd_patients', JSON.stringify(allPatients));
             updatePatientTable();
             updateKPIs();
+            updateTodoBadge();
+        });
+    }
+
+    // ============================================================
+    //  HAD Drug Master + To-Do + Toast
+    // ============================================================
+    const HAD_DRUGS_ALL = [
+        'Adrenaline','Adenosine','Amiodarone','Digoxin','MgSO4','Morphine',
+        'Norepinephrine','Pethidine','KCl','Insulin','Streptokinase','Warfarin'
+    ];
+    // yes = เข้า round (มี interval); no = real-time alert เท่านั้น (ไม่ขึ้น to-do round)
+    const HAD_INTERVALS = {
+        'Amiodarone': 1, 'Digoxin': 7, 'MgSO4': 1,
+        'KCl': 1, 'Insulin': 1, 'Warfarin': 5
+    };
+    const HAD_LAB_LABEL = {
+        'Amiodarone': 'EKG/BP',
+        'Digoxin':    'Dig level, K, Cr',
+        'MgSO4':      'Mg level',
+        'KCl':        'K',
+        'Insulin':    'DTX',
+        'Warfarin':   'INR'
+    };
+
+    // ── Toast System ──
+    let _toastSeq = 0;
+    function showToast(msg, opts) {
+        opts = opts || {};
+        const type = opts.type || 'info';
+        const duration = opts.duration || 4000;
+        const container = document.getElementById('toastContainer');
+        if (!container) return;
+        const id = 'toast-' + (++_toastSeq);
+        const el = document.createElement('div');
+        el.className = 'toast ' + type;
+        el.id = id;
+        let html = '<span>' + msg + '</span>';
+        if (opts.undoLabel && opts.onUndo) {
+            html += '<button class="toast-undo" onclick="_handleUndo(\'' + id + '\')">' + opts.undoLabel + '</button>';
+        }
+        el.innerHTML = html;
+        if (opts.onUndo) window['_undo_' + id] = opts.onUndo;
+        container.appendChild(el);
+        setTimeout(function() {
+            if (el.parentNode) el.parentNode.removeChild(el);
+            delete window['_undo_' + id];
+        }, duration);
+    }
+    function _handleUndo(toastId) {
+        const fn = window['_undo_' + toastId];
+        if (typeof fn === 'function') fn();
+        const el = document.getElementById(toastId);
+        if (el && el.parentNode) el.parentNode.removeChild(el);
+        delete window['_undo_' + toastId];
+    }
+
+    // ── To-Do ──
+    let todoData = { mr: [], had: [] };
+
+    function loadTodos() {
+        // MR pending MD: from patients with mrStatus = 'done' but no mdReviewedAt
+        const now = Date.now();
+        const mrPending = (allPatients || []).filter(function(p) {
+            if (p.status === 'discharged') return false;
+            return p.mrStatus === 'done' && !p.mdReviewedAt;
+        });
+        todoData.mr = mrPending;
+        renderTodoMr();
+
+        // HAD round: fetch from backend
+        gasGet('getHADTodos', {}, function(data) {
+            todoData.had = (data && data.todos) ? data.todos : [];
+            renderTodoHad();
+            updateTodoBadge();
+        });
+    }
+
+    function renderTodoMr() {
+        const list = document.getElementById('todoMrList');
+        const count = document.getElementById('todoMrCount');
+        if (!list) return;
+        count.textContent = todoData.mr.length;
+        if (todoData.mr.length === 0) {
+            list.innerHTML = '<div class="todo-empty">ไม่มี MR รอแพทย์ review</div>';
+            return;
+        }
+        let html = '';
+        todoData.mr.forEach(function(p) {
+            html += '<div class="todo-card">';
+            html += '<div class="todo-title">';
+            html += '<span>' + (p.name || '(ไม่มีชื่อ)') + '</span>';
+            html += '<span class="todo-hn">HN ' + p.hn + '</span>';
+            html += '</div>';
+            html += '<div style="font-size:12px; color:#666;">Dx: ' + (p.dx || '-') + '</div>';
+            html += '<div class="todo-actions">';
+            html += '<button class="primary" onclick="markMDReviewed(\'' + p.hn + '\')">✓ หมอ review แล้ว</button>';
+            html += '<button onclick="openPatientByHN(\'' + p.hn + '\')">เปิดดูคนไข้</button>';
+            html += '</div>';
+            html += '</div>';
+        });
+        list.innerHTML = html;
+    }
+
+    function renderTodoHad() {
+        const list = document.getElementById('todoHadList');
+        const count = document.getElementById('todoHadCount');
+        if (!list) return;
+        count.textContent = todoData.had.length;
+        if (todoData.had.length === 0) {
+            list.innerHTML = '<div class="todo-empty">ไม่มี HAD round ที่ต้องทำวันนี้</div>';
+            return;
+        }
+        let html = '';
+        todoData.had.forEach(function(t) {
+            let maxOverdue = 0;
+            t.dueDrugs.forEach(function(d){ if (d.overdue > maxOverdue) maxOverdue = d.overdue; });
+            const cardClass = maxOverdue >= 2 ? 'todo-card urgent' : (maxOverdue >= 1 ? 'todo-card soon' : 'todo-card');
+
+            html += '<div class="' + cardClass + '">';
+            html += '<div class="todo-title">';
+            html += '<span>' + (t.name || '(ไม่มีชื่อ)') + '</span>';
+            html += '<span class="todo-hn">HN ' + t.hn + '</span>';
+            html += '</div>';
+            html += '<div style="font-size:12px; color:#666;">Dx: ' + (t.dx || '-') + '</div>';
+            html += '<div class="todo-drugs">';
+            t.dueDrugs.forEach(function(d) {
+                const cls = d.overdue >= 1 ? 'due-overdue' : 'due-today';
+                const lab = HAD_LAB_LABEL[d.drug] || '';
+                const overdueText = d.overdue >= 1 ? (' (+' + d.overdue + 'd)') : '';
+                html += '<span class="todo-drug-chip ' + cls + '">' + d.drug + ': ' + lab + overdueText + '</span>';
+            });
+            (t.upcomingDrugs || []).forEach(function(d) {
+                html += '<span class="todo-drug-chip upcoming">' + d.drug + ' (อีก ' + d.daysToGo + 'd)</span>';
+            });
+            html += '</div>';
+            html += '<div class="todo-actions">';
+            html += '<button class="primary" onclick="openHADLabForm(\'' + t.hn + '\')">กรอก lab</button>';
+            html += '<button onclick="snoozeHAD(\'' + t.hn + '\', 1)">เลื่อน 1 วัน</button>';
+            html += '<button onclick="openPatientByHN(\'' + t.hn + '\')">เปิดดูคนไข้</button>';
+            html += '</div>';
+            html += '</div>';
+        });
+        list.innerHTML = html;
+    }
+
+    function updateTodoBadge() {
+        const badge = document.getElementById('todoBadge');
+        if (!badge) return;
+        const total = (todoData.mr ? todoData.mr.length : 0) + (todoData.had ? todoData.had.length : 0);
+        if (total > 0) {
+            badge.textContent = total;
+            badge.style.display = 'inline-block';
+        } else {
+            badge.style.display = 'none';
+        }
+    }
+
+    // ── Mark MD reviewed ──
+    function markMDReviewed(hn) {
+        const now = new Date().toISOString();
+        // optimistic
+        const p = (allPatients || []).find(function(x){ return x.hn === hn; });
+        const prev = p ? p.mdReviewedAt : null;
+        if (p) p.mdReviewedAt = now;
+        todoData.mr = todoData.mr.filter(function(x){ return x.hn !== hn; });
+        renderTodoMr();
+        updateTodoBadge();
+
+        gasPost('updatePatient', { hn: hn, mdReviewedAt: now }, function(r) {
+            showToast('✓ บันทึก MD review แล้ว', {
+                type: 'success',
+                duration: 5000,
+                undoLabel: 'เลิกทำ',
+                onUndo: function() {
+                    if (p) p.mdReviewedAt = prev;
+                    gasPost('updatePatient', { hn: hn, mdReviewedAt: '' }, function(){});
+                    loadTodos();
+                }
+            });
+        });
+    }
+
+    // ── Snooze HAD ──
+    function snoozeHAD(hn, days) {
+        // Push all due drugs' nextCheck forward by `days`
+        const t = todoData.had.find(function(x){ return x.hn === hn; });
+        if (!t) return;
+        const today = new Date();
+        today.setHours(0,0,0,0);
+        const newNext = new Date(today.getTime() + days * 86400000);
+        const newNextStr = newNext.toISOString().slice(0,10);
+
+        // Optimistic remove
+        todoData.had = todoData.had.filter(function(x){ return x.hn !== hn; });
+        renderTodoHad();
+        updateTodoBadge();
+
+        // Build new hadNextCheck by cloning current + overwriting due drugs
+        const p = (allPatients || []).find(function(x){ return x.hn === hn; });
+        if (!p) return;
+        const prevNext = Object.assign({}, p.hadNextCheck || {});
+        const newNextObj = Object.assign({}, prevNext);
+        t.dueDrugs.forEach(function(d){ newNextObj[d.drug] = newNextStr; });
+        p.hadNextCheck = newNextObj;
+
+        gasPost('updatePatient', { hn: hn, hadNextCheck: newNextObj }, function() {
+            showToast('⏰ เลื่อน HAD round ' + days + ' วัน', {
+                type: 'info',
+                duration: 5000,
+                undoLabel: 'เลิกทำ',
+                onUndo: function() {
+                    p.hadNextCheck = prevNext;
+                    gasPost('updatePatient', { hn: hn, hadNextCheck: prevNext }, function(){});
+                    loadTodos();
+                }
+            });
+        });
+    }
+
+    function openPatientByHN(hn) {
+        // Switch to patient list tab then trigger row click
+        const tabItem = document.querySelector('#mainTabs .tab-item[data-tab="patient-list"]');
+        if (tabItem) tabItem.click();
+        setTimeout(function() {
+            const rows = document.querySelectorAll('#patientBody tr');
+            for (let i = 0; i < rows.length; i++) {
+                const text = rows[i].textContent || '';
+                if (text.indexOf('HN ' + hn) >= 0 || text.indexOf(hn) >= 0) {
+                    rows[i].click();
+                    break;
+                }
+            }
+        }, 150);
+    }
+
+    function openHADLabForm(hn) {
+        // Simple prompt-based lab entry (MVP). Can be upgraded to proper form later.
+        const t = todoData.had.find(function(x){ return x.hn === hn; });
+        if (!t) return;
+        const dueDrugs = t.dueDrugs.map(function(d){ return d.drug; });
+        const labsNeeded = dueDrugs.map(function(d){ return HAD_LAB_LABEL[d] || d; }).join(', ');
+
+        const occurredAt = prompt('วันที่ทำ round (YYYY-MM-DD):\nเว้นว่าง = วันนี้', new Date().toISOString().slice(0,10));
+        if (occurredAt === null) return;
+        const occDate = occurredAt.trim() || new Date().toISOString().slice(0,10);
+        // Validate not future
+        if (new Date(occDate) > new Date(new Date().toISOString().slice(0,10))) {
+            showToast('⚠ ใส่วันอนาคตไม่ได้', { type: 'error' });
+            return;
+        }
+
+        const labVal = prompt('กรอก lab (' + labsNeeded + ')\nหรือเว้นว่างหากจะกรอกที่หน้าคนไข้:', '');
+        if (labVal === null) return;
+
+        const labs = {};
+        dueDrugs.forEach(function(d){ labs[HAD_LAB_LABEL[d] || d] = labVal; });
+
+        // Optimistic
+        todoData.had = todoData.had.filter(function(x){ return x.hn !== hn; });
+        renderTodoHad();
+        updateTodoBadge();
+
+        gasPost('recordHADCheck', {
+            hn: hn,
+            occurredAt: occDate,
+            drugsUpdated: dueDrugs,
+            labs: labs,
+            notes: ''
+        }, function() {
+            showToast('✓ บันทึก HAD round แล้ว', { type: 'success' });
+            setTimeout(loadTodos, 600);
+            setTimeout(loadPatients, 800);
+        });
+    }
+
+    // ── HAD Drug Checklist (patient edit) ──
+    function renderHADChecklist(containerId, patient) {
+        const container = document.getElementById(containerId);
+        if (!container) return;
+        const activeDrugs = (patient && patient.hadDrugs) || [];
+        let html = '';
+        HAD_DRUGS_ALL.forEach(function(drug) {
+            const checked = activeDrugs.indexOf(drug) >= 0;
+            const hasInterval = !!HAD_INTERVALS[drug];
+            const intClass = hasInterval ? 'interval-drug' : 'realtime-drug';
+            const intLabel = hasInterval ? (' (q' + HAD_INTERVALS[drug] + 'd)') : '';
+            html += '<label class="had-drug-item ' + intClass + '" title="' + (hasInterval ? 'เข้า round q' + HAD_INTERVALS[drug] + ' วัน' : 'Real-time monitor (ไม่เข้า round)') + '">';
+            html += '<input type="checkbox" data-drug="' + drug + '" ' + (checked ? 'checked' : '') + ' onchange="handleHADCheck(\'' + patient.hn + '\', \'' + drug + '\', this)">';
+            html += '<span>' + drug + intLabel + '</span>';
+            html += '<span class="save-status"></span>';
+            html += '</label>';
+        });
+        container.innerHTML = html;
+    }
+
+    function handleHADCheck(hn, drug, checkbox) {
+        const active = checkbox.checked;
+        const statusEl = checkbox.parentElement.querySelector('.save-status');
+        if (statusEl) statusEl.className = 'save-status saving';
+
+        // Optimistic update
+        const p = (allPatients || []).find(function(x){ return x.hn === hn; });
+        if (!p) return;
+        const prevDrugs = (p.hadDrugs || []).slice();
+        const prevNext = Object.assign({}, p.hadNextCheck || {});
+        if (active) {
+            if (prevDrugs.indexOf(drug) < 0) p.hadDrugs = prevDrugs.concat([drug]);
+            p.hadNextCheck = Object.assign({}, prevNext);
+            p.hadNextCheck[drug] = new Date().toISOString().slice(0,10);
+        } else {
+            p.hadDrugs = prevDrugs.filter(function(d){ return d !== drug; });
+        }
+
+        gasPost('setHADDrugState', { hn: hn, drug: drug, active: active }, function(r) {
+            if (statusEl) {
+                statusEl.className = 'save-status saved';
+                setTimeout(function(){ if (statusEl) statusEl.className = 'save-status'; }, 1500);
+            }
+            showToast((active ? '✓ เพิ่ม ' : '✓ Off ') + drug, {
+                type: 'success',
+                duration: 8000,
+                undoLabel: 'เลิกทำ',
+                onUndo: function() {
+                    // Restore previous state
+                    p.hadDrugs = prevDrugs;
+                    p.hadNextCheck = prevNext;
+                    gasPost('updatePatient', {
+                        hn: hn,
+                        hadDrugs: prevDrugs,
+                        hadNextCheck: prevNext
+                    }, function(){
+                        showToast('↶ ยกเลิกการเปลี่ยนแปลง', { type: 'info' });
+                        // Re-render checklist
+                        if (document.getElementById('hadChecklistContainer')) {
+                            renderHADChecklist('hadChecklistContainer', p);
+                        }
+                    });
+                }
+            });
+            loadTodos();
         });
     }
 
@@ -2515,6 +3088,9 @@
         if (tabName === 'had-handbook') {
             hbRenderList();
         }
+        if (tabName === 'todo') {
+            loadTodos();
+        }
     }
 
     function switchDetailTab(subtabName) {
@@ -2590,7 +3166,9 @@
             document.querySelector('[data-subtab="warfarin"]').style.display = 'none';
         }
 
-        // HAD
+        // HAD — standardized 12-drug checklist (auto-save)
+        renderHADChecklist('hadChecklistContainer', patient);
+        // Legacy calculator toggle
         document.getElementById('hasHAD').checked = patient.hasHAD || false;
         toggleHADView();
 
@@ -4095,6 +4673,9 @@
         </div>
     </div>
 </div>
+
+<!-- Toast notifications -->
+<div class="toast-container" id="toastContainer"></div>
 
 </body>
 </html>
