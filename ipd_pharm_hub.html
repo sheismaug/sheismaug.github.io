@@ -21,6 +21,9 @@
             min-height: 100vh;
             padding: 0;
             margin: 0;
+            zoom: 1.12;                  /* 12% larger — ทั้งระบบ (รองรับ Chrome, Edge, Safari, Firefox 126+) */
+            -moz-transform: scale(1.12); /* fallback เก่าๆ ของ Firefox */
+            -moz-transform-origin: 0 0;
         }
         button, input, select, textarea { font-family: inherit; }
 
@@ -2601,6 +2604,14 @@
             return;
         }
 
+        // ป้องกัน duplicate HN ใน local list
+        for (let i = 0; i < allPatients.length; i++) {
+            if (allPatients[i].hn === hn) {
+                alert('HN ' + hn + ' มีอยู่แล้วในรายชื่อ');
+                return;
+            }
+        }
+
         let newPatient = {
             hn: hn,
             name: name,
@@ -2613,13 +2624,24 @@
             dcToday: false
         };
 
+        // ─── OPTIMISTIC UI UPDATE ───
+        // เพิ่มเข้า list ทันที (ไม่ต้องรอ GAS) เพราะ fetch mode:'no-cors' resolves ก่อน
+        // GAS จะ commit ลง sheet เสร็จ ทำให้ loadPatients() เดิมเห็น sheet ยังไม่มีข้อมูลใหม่
+        allPatients.push(newPatient);
+        localStorage.setItem('ipd_patients', JSON.stringify(allPatients));
+        updatePatientTable();
+        updateKPIs();
+
+        // Clear form ทันที
+        document.getElementById('formHN').value = '';
+        document.getElementById('formName').value = '';
+        document.getElementById('formDx').value = '';
+        document.getElementById('formAdmitDate').value = '';
+        document.getElementById('addPatientForm').classList.remove('expanded');
+
+        // Save ไป GAS แล้วค่อย reload จาก sheet (หน่วงเวลาให้ GAS commit เสร็จก่อน)
         gasPost('savePatient', newPatient, function() {
-            loadPatients();
-            document.getElementById('formHN').value = '';
-            document.getElementById('formName').value = '';
-            document.getElementById('formDx').value = '';
-            document.getElementById('formAdmitDate').value = '';
-            document.getElementById('addPatientForm').classList.remove('expanded');
+            setTimeout(function() { loadPatients(); }, 1500);
         });
     }
 
