@@ -273,6 +273,83 @@
             border: 1px dashed #d8d5d0;
         }
 
+        /* Shift Banner */
+        .shift-banner {
+            background: linear-gradient(135deg, #2e3f58 0%, #3a5a9a 100%);
+            color: #fff;
+            padding: 14px 20px;
+            border-radius: 12px;
+            margin-bottom: 16px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 8px rgba(46,63,88,0.15);
+        }
+        .shift-banner-main { display:flex; align-items:baseline; gap: 14px; flex-wrap: wrap; }
+        .shift-banner-label { font-size: 12px; opacity: 0.85; }
+        .shift-banner-value { font-size: 22px; font-weight: 700; }
+        .shift-banner-time { font-size: 14px; opacity: 0.9; font-variant-numeric: tabular-nums; }
+        .shift-banner .btn { background: rgba(255,255,255,0.18); color: #fff; border: none; }
+        .shift-banner .btn:hover { background: rgba(255,255,255,0.28); }
+
+        /* Today KPI Strip */
+        .today-kpi-strip {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+            gap: 10px;
+            margin-bottom: 16px;
+        }
+        .today-kpi {
+            background: #fff;
+            border: 0.5px solid #e8e5e0;
+            border-radius: 10px;
+            padding: 12px;
+            text-align: center;
+        }
+        .today-kpi-icon { font-size: 18px; }
+        .today-kpi-label { font-size: 11px; color: #666; margin-top: 2px; }
+        .today-kpi-value { font-size: 24px; font-weight: 700; color: #2e3f58; margin-top: 4px; line-height: 1; }
+        .today-kpi-sub { font-size: 11px; color: #999; margin-top: 4px; min-height: 14px; }
+
+        /* Activity Feed */
+        .activity-feed {
+            background: #fff;
+            border-radius: 10px;
+            overflow: hidden;
+            border: 0.5px solid #e8e5e0;
+        }
+        .activity-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 10px 14px;
+            border-bottom: 0.5px solid #f1efeb;
+            font-size: 13px;
+        }
+        .activity-item:last-child { border-bottom: none; }
+        .activity-item:hover { background: #f7f5f2; cursor: pointer; }
+        .activity-icon { font-size: 18px; width: 26px; text-align: center; }
+        .activity-main { flex: 1; min-width: 0; }
+        .activity-label { font-weight: 500; color: #2e3f58; }
+        .activity-meta { font-size: 11px; color: #888; margin-top: 2px; }
+        .activity-time {
+            font-size: 11px;
+            color: #666;
+            font-variant-numeric: tabular-nums;
+            white-space: nowrap;
+        }
+        .activity-empty {
+            padding: 30px;
+            text-align: center;
+            color: #999;
+            font-size: 13px;
+        }
+        .activity-type-mr    { color: #2e3f58; }
+        .activity-type-had   { color: #c62828; }
+        .activity-type-drp   { color: #3a5a9a; }
+        .activity-type-me    { color: #c04040; }
+        .activity-type-counsel { color: #4a7c59; }
+
         /* Toast */
         .toast-container {
             position: fixed;
@@ -1423,9 +1500,9 @@
             <div class="tab-strip" id="mainTabs">
                 <div class="tab-item active" data-tab="patient-list">รายชื่อ</div>
                 <div class="tab-item" data-tab="todo">📋 To-Do <span class="todo-badge" id="todoBadge" style="display:none;">0</span></div>
-                <div class="tab-item" data-tab="dashboard">Dashboard</div>
-                <div class="tab-item" data-tab="had-handbook">HAD Handbook</div>
-                <div class="tab-item" data-tab="workload">Workload</div>
+                <div class="tab-item" data-tab="workload">📊 วันนี้</div>
+                <div class="tab-item" data-tab="dashboard">📈 รายงาน</div>
+                <div class="tab-item" data-tab="had-handbook">💊 HAD Handbook</div>
             </div>
           </div>
         </div>
@@ -1525,6 +1602,7 @@
                     <input type="text" class="form-input date-input" id="dashToDate" placeholder="ถึง" style="max-width: 120px;">
                 </div>
 
+                <!-- ── Core KPI (row 1: existing 4) ── -->
                 <div class="grid-4">
                     <div class="kpi-chip" style="text-align: center; padding: 16px; border-radius: 12px; background: white; border: 0.5px solid #e8e5e0;">
                         <div style="font-size: 11px; color: #666;">MR Coverage %</div>
@@ -1544,7 +1622,29 @@
                     </div>
                 </div>
 
-                <div class="dashboard-grid">
+                <!-- ── Activity KPI (row 2: HAD / ADR / D/C / MR total) ── -->
+                <div class="grid-4" style="margin-top: 12px;">
+                    <div class="kpi-chip" style="text-align: center; padding: 16px; border-radius: 12px; background: white; border: 0.5px solid #e8e5e0;">
+                        <div style="font-size: 11px; color: #666;">HAD Rounds</div>
+                        <div style="font-size: 20px; font-weight: 700; color: #c62828;" id="dashHADRounds">0</div>
+                    </div>
+                    <div class="kpi-chip" style="text-align: center; padding: 16px; border-radius: 12px; background: white; border: 0.5px solid #e8e5e0;">
+                        <div style="font-size: 11px; color: #666;">ADR Cases</div>
+                        <div style="font-size: 20px; font-weight: 700; color: #a03040;" id="dashADR">0</div>
+                    </div>
+                    <div class="kpi-chip" style="text-align: center; padding: 16px; border-radius: 12px; background: white; border: 0.5px solid #e8e5e0;">
+                        <div style="font-size: 11px; color: #666;">D/C Changes</div>
+                        <div style="font-size: 20px; font-weight: 700; color: #6e4a9a;" id="dashDC">0</div>
+                    </div>
+                    <div class="kpi-chip" style="text-align: center; padding: 16px; border-radius: 12px; background: white; border: 0.5px solid #e8e5e0;">
+                        <div style="font-size: 11px; color: #666;">MR Total</div>
+                        <div style="font-size: 20px; font-weight: 700; color: #2e3f58;" id="dashMRTotal">0</div>
+                        <div style="font-size: 10px; color: #999; margin-top: 2px;" id="dashMRBreakdown">รับใหม่ 0 · เสร็จ 0 · รอ MD 0</div>
+                    </div>
+                </div>
+
+                <!-- ── MR Detailed Performance ── -->
+                <div class="dashboard-grid" style="margin-top: 16px;">
                     <div class="card">
                         <h3 class="card-title">MR Performance</h3>
                         <div style="font-size: 12px; line-height: 1.8;">
@@ -1564,6 +1664,39 @@
                     </div>
                 </div>
 
+                <!-- ── MR per Pharmacist (only multi-user metric) ── -->
+                <div class="card">
+                    <h3 class="card-title">MR per Pharmacist</h3>
+                    <div class="chart-container">
+                        <canvas id="pharmacistChart"></canvas>
+                    </div>
+                </div>
+
+                <!-- ── MD Response Histogram ── -->
+                <div class="card">
+                    <h3 class="card-title">MD Response — จำนวน shift ที่ใช้ตอบ</h3>
+                    <div class="chart-container">
+                        <canvas id="mdHistChart"></canvas>
+                    </div>
+                </div>
+
+                <!-- ── HAD by Drug ── -->
+                <div class="card">
+                    <h3 class="card-title">HAD Rounds by Drug</h3>
+                    <div class="chart-container">
+                        <canvas id="hadByDrugChart"></canvas>
+                    </div>
+                </div>
+
+                <!-- ── Med Error by Stage ── -->
+                <div class="card">
+                    <h3 class="card-title">Med Error by Stage</h3>
+                    <div class="chart-container">
+                        <canvas id="meStageChart"></canvas>
+                    </div>
+                </div>
+
+                <!-- ── DRP Top 5 ── -->
                 <div class="card">
                     <h3 class="card-title">DRP Types (Top 5)</h3>
                     <div class="chart-container">
@@ -1571,6 +1704,7 @@
                     </div>
                 </div>
 
+                <!-- ── Counseling ── -->
                 <div class="card">
                     <h3 class="card-title">Counseling Activities</h3>
                     <div class="chart-container">
@@ -1578,12 +1712,23 @@
                     </div>
                 </div>
 
+                <!-- ── 6-Month Trend ── -->
                 <div class="card" style="grid-column: 1/-1;">
                     <h3 class="card-title">6-Month Trend</h3>
                     <div class="chart-container" style="height: 350px;">
                         <canvas id="trendChart"></canvas>
                     </div>
                 </div>
+
+                <!-- ── Incident Report (collapsed at bottom) ── -->
+                <details class="card" style="grid-column: 1/-1; margin-top: 12px;">
+                    <summary style="cursor:pointer; font-weight:600; color:#666; font-size:13px; padding:4px 0;">
+                        📄 Incident Report — <span id="dashIncident">0</span>
+                    </summary>
+                    <div style="font-size: 12px; color:#666; line-height: 1.7; margin-top: 10px;">
+                        จำนวนรายงานเหตุการณ์ไม่พึงประสงค์ในช่วงเวลาที่เลือก (รวมเฉพาะที่บันทึกเป็น Incident Report แยกจาก Med Error)
+                    </div>
+                </details>
             </div>
 
             <!-- TAB 3: Workload -->
@@ -1605,48 +1750,88 @@
             </div>
 
             <div class="tab-content" id="workload">
-                <h3 class="card-title" style="margin-bottom: 16px;">Counseling Counters</h3>
+                <!-- ── Shift Banner ── -->
+                <div class="shift-banner" id="shiftBanner">
+                    <div class="shift-banner-main">
+                        <div class="shift-banner-label">เวรปัจจุบัน</div>
+                        <div class="shift-banner-value" id="shiftNow">—</div>
+                        <div class="shift-banner-time" id="shiftClock">—</div>
+                    </div>
+                    <button class="btn btn-secondary" style="padding:6px 12px; font-size:12px;" onclick="loadShiftToday()">🔄</button>
+                </div>
 
-                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 16px; margin-bottom: 20px;">
-                    <div class="card">
-                        <div style="font-size: 13px; color: #666;">Syringe Injection</div>
-                        <div style="font-size: 24px; font-weight: 700; color: #2e3f58; margin: 8px 0;" id="wlSyringe">0</div>
+                <!-- ── KPI Strip (today) ── -->
+                <div class="today-kpi-strip">
+                    <div class="today-kpi">
+                        <div class="today-kpi-icon">📋</div>
+                        <div class="today-kpi-label">MR</div>
+                        <div class="today-kpi-value" id="todayMr">0</div>
+                        <div class="today-kpi-sub" id="todayMrSub">&nbsp;</div>
+                    </div>
+                    <div class="today-kpi">
+                        <div class="today-kpi-icon">💊</div>
+                        <div class="today-kpi-label">HAD round</div>
+                        <div class="today-kpi-value" id="todayHad">0</div>
+                        <div class="today-kpi-sub">&nbsp;</div>
+                    </div>
+                    <div class="today-kpi">
+                        <div class="today-kpi-icon">🔍</div>
+                        <div class="today-kpi-label">DRP</div>
+                        <div class="today-kpi-value" id="todayDrp">0</div>
+                        <div class="today-kpi-sub">&nbsp;</div>
+                    </div>
+                    <div class="today-kpi">
+                        <div class="today-kpi-icon">💬</div>
+                        <div class="today-kpi-label">Counseling</div>
+                        <div class="today-kpi-value" id="todayCoun">0</div>
+                        <div class="today-kpi-sub">&nbsp;</div>
+                    </div>
+                    <div class="today-kpi">
+                        <div class="today-kpi-icon">⚠️</div>
+                        <div class="today-kpi-label">Med Err</div>
+                        <div class="today-kpi-value" id="todayMe">0</div>
+                        <div class="today-kpi-sub">&nbsp;</div>
+                    </div>
+                </div>
+
+                <!-- ── Counseling Counters (ongoing session) ── -->
+                <h3 class="card-title" style="margin-bottom: 12px; margin-top: 20px;">Counseling Counters (session)</h3>
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px; margin-bottom: 20px;">
+                    <div class="card" style="padding:12px;">
+                        <div style="font-size: 12px; color: #666;">Syringe Injection</div>
+                        <div style="font-size: 22px; font-weight: 700; color: #2e3f58; margin: 4px 0;" id="wlSyringe">0</div>
                         <div class="counter-group">
                             <button class="counter-btn" onclick="adjustWorkloadCounter('syringe', -1)">−</button>
                             <button class="counter-btn" onclick="adjustWorkloadCounter('syringe', 1)">+</button>
                         </div>
                     </div>
-
-                    <div class="card">
-                        <div style="font-size: 13px; color: #666;">Penfill Injection</div>
-                        <div style="font-size: 24px; font-weight: 700; color: #2e3f58; margin: 8px 0;" id="wlPenfill">0</div>
+                    <div class="card" style="padding:12px;">
+                        <div style="font-size: 12px; color: #666;">Penfill Injection</div>
+                        <div style="font-size: 22px; font-weight: 700; color: #2e3f58; margin: 4px 0;" id="wlPenfill">0</div>
                         <div class="counter-group">
                             <button class="counter-btn" onclick="adjustWorkloadCounter('penfill', -1)">−</button>
                             <button class="counter-btn" onclick="adjustWorkloadCounter('penfill', 1)">+</button>
                         </div>
                     </div>
-
-                    <div class="card">
-                        <div style="font-size: 13px; color: #666;">Evohaler</div>
-                        <div style="font-size: 24px; font-weight: 700; color: #2e3f58; margin: 8px 0;" id="wlEvohaler">0</div>
+                    <div class="card" style="padding:12px;">
+                        <div style="font-size: 12px; color: #666;">Evohaler</div>
+                        <div style="font-size: 22px; font-weight: 700; color: #2e3f58; margin: 4px 0;" id="wlEvohaler">0</div>
                         <div class="counter-group">
                             <button class="counter-btn" onclick="adjustWorkloadCounter('evohaler', -1)">−</button>
                             <button class="counter-btn" onclick="adjustWorkloadCounter('evohaler', 1)">+</button>
                         </div>
                     </div>
-
-                    <div class="card">
-                        <div style="font-size: 13px; color: #666;">Accuhaler</div>
-                        <div style="font-size: 24px; font-weight: 700; color: #2e3f58; margin: 8px 0;" id="wlAccuhaler">0</div>
+                    <div class="card" style="padding:12px;">
+                        <div style="font-size: 12px; color: #666;">Accuhaler</div>
+                        <div style="font-size: 22px; font-weight: 700; color: #2e3f58; margin: 4px 0;" id="wlAccuhaler">0</div>
                         <div class="counter-group">
                             <button class="counter-btn" onclick="adjustWorkloadCounter('accuhaler', -1)">−</button>
                             <button class="counter-btn" onclick="adjustWorkloadCounter('accuhaler', 1)">+</button>
                         </div>
                     </div>
-
-                    <div class="card">
-                        <div style="font-size: 13px; color: #666;">อื่นๆ</div>
-                        <div style="font-size: 24px; font-weight: 700; color: #2e3f58; margin: 8px 0;" id="wlOther">0</div>
+                    <div class="card" style="padding:12px;">
+                        <div style="font-size: 12px; color: #666;">อื่นๆ</div>
+                        <div style="font-size: 22px; font-weight: 700; color: #2e3f58; margin: 4px 0;" id="wlOther">0</div>
                         <div class="counter-group">
                             <button class="counter-btn" onclick="adjustWorkloadCounter('other', -1)">−</button>
                             <button class="counter-btn" onclick="adjustWorkloadCounter('other', 1)">+</button>
@@ -1654,17 +1839,14 @@
                     </div>
                 </div>
 
-                <h3 class="card-title" style="margin-bottom: 16px;">Activity Log</h3>
-                <table class="patient-table">
-                    <thead>
-                        <tr>
-                            <th>Date</th>
-                            <th>Activity</th>
-                            <th>Count</th>
-                        </tr>
-                    </thead>
-                    <tbody id="workloadLog"></tbody>
-                </table>
+                <!-- ── Activity Feed (real data, today) ── -->
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
+                    <h3 class="card-title" style="margin:0;">Activity Feed — วันนี้</h3>
+                    <button class="btn btn-secondary" style="padding:4px 10px; font-size:12px;" onclick="loadActivityFeed()">🔄 โหลดใหม่</button>
+                </div>
+                <div class="activity-feed" id="activityFeed">
+                    <div class="activity-empty">กำลังโหลด...</div>
+                </div>
             </div>
         </div>
     </div>
@@ -3091,6 +3273,13 @@
         if (tabName === 'todo') {
             loadTodos();
         }
+        if (tabName === 'workload') {
+            loadShiftToday();
+            loadActivityFeed();
+            startShiftClock();
+        } else {
+            stopShiftClock();
+        }
     }
 
     function switchDetailTab(subtabName) {
@@ -3828,6 +4017,110 @@
         });
     }
 
+    // ═══════════════════════════════════════════
+    //  "วันนี้" TAB — Shift banner + KPI + Feed
+    // ═══════════════════════════════════════════
+    let _shiftClockInt = null;
+    let _shiftRefreshInt = null;
+
+    function computeShiftClient() {
+        // mirror backend getShiftForDate()
+        const now = new Date();
+        const mins = now.getHours() * 60 + now.getMinutes();
+        let shift;
+        if (mins <= 30)         shift = 'บ่าย (เมื่อวาน)';
+        else if (mins <= 510)   shift = 'ดึก';
+        else if (mins <= 990)   shift = 'เช้า';
+        else                    shift = 'บ่าย';
+        return shift;
+    }
+
+    function fmtClock(d) {
+        const h = String(d.getHours()).padStart(2, '0');
+        const m = String(d.getMinutes()).padStart(2, '0');
+        const s = String(d.getSeconds()).padStart(2, '0');
+        return h + ':' + m + ':' + s;
+    }
+
+    function startShiftClock() {
+        stopShiftClock();
+        // Tick every second for clock
+        const tick = () => {
+            const elC = document.getElementById('shiftClock');
+            const elS = document.getElementById('shiftNow');
+            if (elC) elC.textContent = fmtClock(new Date());
+            if (elS && elS.textContent === '—') elS.textContent = computeShiftClient();
+        };
+        tick();
+        _shiftClockInt = setInterval(tick, 1000);
+        // Refresh KPI + feed every 30s
+        _shiftRefreshInt = setInterval(function() {
+            loadShiftToday();
+            loadActivityFeed();
+        }, 30000);
+    }
+    function stopShiftClock() {
+        if (_shiftClockInt) { clearInterval(_shiftClockInt); _shiftClockInt = null; }
+        if (_shiftRefreshInt) { clearInterval(_shiftRefreshInt); _shiftRefreshInt = null; }
+    }
+
+    function loadShiftToday() {
+        gasGet('getShiftToday', {}, function(data) {
+            if (!data || !data.ok) {
+                console.log('getShiftToday failed');
+                return;
+            }
+            document.getElementById('shiftNow').textContent = data.shift || '—';
+            const k = data.todayKpi || {};
+            document.getElementById('todayMr').textContent = k.mrCount || 0;
+            const pend = k.mrPendingMD || 0;
+            document.getElementById('todayMrSub').textContent = pend > 0 ? ('รอ MD ' + pend) : '';
+            document.getElementById('todayHad').textContent = k.hadRounds || 0;
+            document.getElementById('todayDrp').textContent = k.drpCount || 0;
+            document.getElementById('todayCoun').textContent = k.counselCount || 0;
+            document.getElementById('todayMe').textContent = k.medErrCount || 0;
+        });
+    }
+
+    function loadActivityFeed() {
+        gasGet('getActivityFeed', {}, function(data) {
+            const feed = document.getElementById('activityFeed');
+            if (!feed) return;
+            if (!data || !data.ok) {
+                feed.innerHTML = '<div class="activity-empty">โหลดไม่สำเร็จ</div>';
+                return;
+            }
+            const items = data.items || [];
+            if (items.length === 0) {
+                feed.innerHTML = '<div class="activity-empty">ยังไม่มี activity วันนี้</div>';
+                return;
+            }
+            let html = '';
+            for (let i = 0; i < items.length; i++) {
+                const it = items[i];
+                const t = new Date(it.timeISO);
+                const clockStr = String(t.getHours()).padStart(2, '0') + ':' + String(t.getMinutes()).padStart(2, '0');
+                const typeCls = 'activity-type-' + it.type;
+                let metaBits = [];
+                if (it.hn)    metaBits.push('HN ' + it.hn);
+                if (it.name)  metaBits.push(it.name);
+                if (it.drug)  metaBits.push(it.drug);
+                if (it.count) metaBits.push('x' + it.count);
+                if (it.pharmacist) metaBits.push('ภก.' + it.pharmacist);
+                if (it.shift) metaBits.push('เวร' + it.shift);
+                html += '<div class="activity-item"' + (it.hn ? ' onclick="openPatientDetail(\'' + it.hn + '\')"' : '') + '>';
+                html += '<div class="activity-icon">' + (it.icon || '•') + '</div>';
+                html += '<div class="activity-main">';
+                html += '<div class="activity-label ' + typeCls + '">' + (it.label || '') + '</div>';
+                if (metaBits.length) html += '<div class="activity-meta">' + metaBits.join(' · ') + '</div>';
+                html += '</div>';
+                html += '<div class="activity-time">' + clockStr + '</div>';
+                html += '</div>';
+            }
+            feed.innerHTML = html;
+        });
+    }
+
     // Workload Tab
     function adjustWorkloadCounter(type, delta) {
         workloadCounters[type] += delta;
@@ -3840,6 +4133,7 @@
     // Dashboard
     // Dashboard chart instances — destroy before recreate
     let chartDRP = null, chartCoun = null, chartTrend = null;
+    let chartPharmacist = null, chartMDHist = null, chartHADByDrug = null, chartMEStage = null;
 
     function initDashboardCharts() {
         // ดึงข้อมูลจริงจาก GAS
@@ -3878,6 +4172,98 @@
         document.getElementById('errAB').textContent = sev.ab || 0;
         document.getElementById('errCD').textContent = sev.cd || 0;
         document.getElementById('errEI').textContent = sev.ePlus || 0;
+
+        // ── New KPIs (row 2) ──
+        document.getElementById('dashHADRounds').textContent = data.had ? (data.had.roundsCount || 0) : 0;
+        document.getElementById('dashADR').textContent      = data.adrCount || 0;
+        document.getElementById('dashDC').textContent       = data.dcChangesCount || 0;
+        const mrT = data.mrTotal || {};
+        document.getElementById('dashMRTotal').textContent  = (mrT.received || 0);
+        document.getElementById('dashMRBreakdown').textContent =
+            'รับใหม่ ' + (mrT.received || 0) + ' · เสร็จ ' + (mrT.done || 0) + ' · รอ MD ' + (mrT.pendingMD || 0);
+        document.getElementById('dashIncident').textContent = data.incidentCount || 0;
+
+        // ── MR per Pharmacist chart ──
+        const pharmData = data.perPharmacistMR || {};
+        let pharmPairs = [];
+        for (const k in pharmData) pharmPairs.push({ name: k, val: pharmData[k] });
+        pharmPairs.sort(function(a, b) { return b.val - a.val; });
+        if (pharmPairs.length > 10) pharmPairs = pharmPairs.slice(0, 10);
+        let pharmL = [], pharmV = [];
+        for (let i = 0; i < pharmPairs.length; i++) { pharmL.push(pharmPairs[i].name); pharmV.push(pharmPairs[i].val); }
+        if (pharmL.length === 0) { pharmL = ['ไม่มีข้อมูล']; pharmV = [0]; }
+        if (chartPharmacist) chartPharmacist.destroy();
+        const pharmCtx = document.getElementById('pharmacistChart');
+        if (pharmCtx) {
+            chartPharmacist = new Chart(pharmCtx, {
+                type: 'bar',
+                data: { labels: pharmL, datasets: [{ label: 'MR count', data: pharmV, backgroundColor: '#2e3f58', borderRadius: 6 }] },
+                options: { indexAxis: 'y', responsive: true, maintainAspectRatio: false,
+                    plugins: { legend: { display: false } },
+                    scales: { x: { beginAtZero: true, ticks: { precision: 0 } } } }
+            });
+        }
+
+        // ── MD Response Histogram ──
+        const hist = data.mdResponseHistogram || {};
+        const histOrder = ['0', '1', '2', '3', '4+'];
+        const histLabels = ['เวรเดียว', '1 เวร', '2 เวร', '3 เวร', '4+ เวร'];
+        const histVals = [];
+        for (let i = 0; i < histOrder.length; i++) histVals.push(hist[histOrder[i]] || 0);
+        const histColors = ['#4a7c59', '#8ecf8e', '#f0a04b', '#e07a5f', '#c04040'];
+        if (chartMDHist) chartMDHist.destroy();
+        const mdCtx = document.getElementById('mdHistChart');
+        if (mdCtx) {
+            chartMDHist = new Chart(mdCtx, {
+                type: 'bar',
+                data: { labels: histLabels, datasets: [{ data: histVals, backgroundColor: histColors, borderRadius: 6 }] },
+                options: { responsive: true, maintainAspectRatio: false,
+                    plugins: { legend: { display: false } },
+                    scales: { y: { beginAtZero: true, ticks: { precision: 0 } } } }
+            });
+        }
+
+        // ── HAD by Drug chart ──
+        const hadBy = (data.had && data.had.byDrug) ? data.had.byDrug : {};
+        const hadDrugsList = ['Amiodarone', 'Digoxin', 'MgSO4', 'KCl', 'Insulin', 'Warfarin'];
+        const hadValues = [];
+        for (let i = 0; i < hadDrugsList.length; i++) hadValues.push(hadBy[hadDrugsList[i]] || 0);
+        if (chartHADByDrug) chartHADByDrug.destroy();
+        const hadCtx = document.getElementById('hadByDrugChart');
+        if (hadCtx) {
+            chartHADByDrug = new Chart(hadCtx, {
+                type: 'bar',
+                data: { labels: hadDrugsList, datasets: [{ label: 'Rounds', data: hadValues, backgroundColor: '#c62828', borderRadius: 6 }] },
+                options: { responsive: true, maintainAspectRatio: false,
+                    plugins: { legend: { display: false } },
+                    scales: { y: { beginAtZero: true, ticks: { precision: 0 } } } }
+            });
+        }
+
+        // ── Med Error by Stage chart ──
+        const meStage = data.medErrorByStage || {};
+        const stageOrder = ['prescribing', 'transcribing', 'dispensing', 'administering'];
+        const stageLabels = ['Prescribing', 'Transcribing', 'Dispensing', 'Administering'];
+        const stageVals = [];
+        for (let i = 0; i < stageOrder.length; i++) stageVals.push(meStage[stageOrder[i]] || 0);
+        // add any unknown stages
+        for (const k in meStage) {
+            if (stageOrder.indexOf(k) < 0) {
+                stageLabels.push(k);
+                stageVals.push(meStage[k]);
+            }
+        }
+        if (chartMEStage) chartMEStage.destroy();
+        const meCtx = document.getElementById('meStageChart');
+        if (meCtx) {
+            chartMEStage = new Chart(meCtx, {
+                type: 'bar',
+                data: { labels: stageLabels, datasets: [{ label: 'Count', data: stageVals, backgroundColor: '#c04040', borderRadius: 6 }] },
+                options: { responsive: true, maintainAspectRatio: false,
+                    plugins: { legend: { display: false } },
+                    scales: { y: { beginAtZero: true, ticks: { precision: 0 } } } }
+            });
+        }
 
         // DRP Chart — real data
         let drpTypes = data.drp && data.drp.byType ? data.drp.byType : {};
