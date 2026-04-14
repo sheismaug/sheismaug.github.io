@@ -776,6 +776,13 @@
         .had-ins-section { animation: fadeIn 0.2s; }
         .had-ins-hint { font-size: 11.5px; color: #555; background: #f0f7ff; border-left: 3px solid #5b8def; padding: 8px 10px; border-radius: 6px; margin-bottom: 10px; line-height: 1.5; }
 
+        /* MR tab 3-column layout */
+        .mr-3col-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; margin-bottom: 14px; }
+        .mr-section { background: #f9f8f6; border: 1px solid #e8e5e0; border-radius: 10px; padding: 14px; }
+        .mr-section-header { font-size: 13px; font-weight: 700; color: #2e3f58; padding-bottom: 8px; margin-bottom: 12px; border-bottom: 2px solid #e8e5e0; display: flex; align-items: center; gap: 6px; }
+        .mr-section-full { background: #f9f8f6; border: 1px solid #e8e5e0; border-radius: 10px; padding: 14px; margin-bottom: 14px; }
+        @media (max-width: 1100px) { .mr-3col-grid { grid-template-columns: 1fr; } }
+
         .had-block { background: #fff; border: 1px solid #e8e5e0; border-radius: 12px; padding: 16px; margin-bottom: 14px; }
         .had-block h4 { margin: 0 0 4px; font-size: 14px; color: #2e3f58; }
         .had-block .had-badge { display: inline-block; font-size: 10px; font-weight: 700; padding: 2px 8px; border-radius: 99px; background: #e8e5e0; color: #555; margin-left: 6px; vertical-align: middle; }
@@ -1508,10 +1515,12 @@
 
             <!-- Sub-Tab 1: MR -->
             <div class="subtab-content active" id="mr">
-                <!-- Row 1: Admit info -->
-                <div style="padding: 14px 16px; background: #f5f4f2; border-radius: 10px; margin-bottom: 12px;">
-                    <div class="form-row" style="margin-bottom: 10px;">
-                        <div class="form-group" style="flex:1;">
+                <!-- 3-column grid: Admit | MR Review | MD Review -->
+                <div class="mr-3col-grid">
+                    <!-- Col 1: Admit Info -->
+                    <div class="mr-section">
+                        <div class="mr-section-header">📋 Admit Info</div>
+                        <div class="form-group">
                             <label class="form-label">วันที่ Admit</label>
                             <input type="text" class="form-input date-input" id="mrAdmitDate" readonly>
                         </div>
@@ -1525,17 +1534,13 @@
                             <input type="hidden" id="mrAdmitShift">
                         </div>
                         <div class="form-group">
-                            <label class="form-label">รพ.</label>
+                            <label class="form-label">รพ. (KPI: ห้วยผึ้ง=ในเวร · อื่น=24ชม.)</label>
                             <select class="form-select" id="mrHospital">
                                 <option>รพ.ห้วยผึ้ง</option>
                                 <option>รพ.อื่น</option>
                             </select>
                         </div>
-                    </div>
-
-                    <!-- Row 2: MR status & pharmacist -->
-                    <div class="form-row">
-                        <div class="form-group" style="flex:1;">
+                        <div class="form-group">
                             <label class="form-label">สถานะ MR</label>
                             <select class="form-select" id="mrStatus">
                                 <option>มีรายการ MR</option>
@@ -1544,17 +1549,16 @@
                                 <option>ติดตามไม่ได้</option>
                             </select>
                         </div>
-                        <div class="form-group">
+                        <div class="form-group" style="margin-bottom:0;">
                             <label class="form-label">ผู้ทำ MR</label>
                             <select class="form-select" id="mrPharmacist"></select>
                         </div>
                     </div>
-                </div>
 
-                <!-- Row 3: MR completion -->
-                <div style="padding: 14px 16px; background: white; border: 1px solid #e8e5e0; border-radius: 10px; margin-bottom: 12px;">
-                    <div class="form-row">
-                        <div class="form-group" style="flex:1;">
+                    <!-- Col 2: MR Review -->
+                    <div class="mr-section">
+                        <div class="mr-section-header">📝 MR Review</div>
+                        <div class="form-group">
                             <label class="form-label">วันที่ MR เสร็จ</label>
                             <input type="text" class="form-input date-input" id="mrDate">
                         </div>
@@ -1567,16 +1571,14 @@
                             </div>
                             <input type="hidden" id="mrDoneShift">
                         </div>
-                    </div>
-                    <div class="form-row" style="margin-top: 8px;">
-                        <div class="form-group" style="flex:1;">
+                        <div class="form-group">
                             <label class="form-label">คุณภาพ MR</label>
                             <select class="form-select" id="mrQuality">
                                 <option>ครบถ้วน</option>
                                 <option>ไม่ครบ</option>
                             </select>
                         </div>
-                        <div class="form-group" style="flex:1;">
+                        <div class="form-group" style="margin-bottom:0;">
                             <label class="form-label">ผ่านเกณฑ์เวลา</label>
                             <select class="form-select" id="mrTimePass">
                                 <option>ผ่าน</option>
@@ -1585,16 +1587,15 @@
                             </select>
                         </div>
                     </div>
-                </div>
 
-                <!-- Row 4: MD Review -->
-                <div style="padding: 14px 16px; background: white; border: 1px solid #e8e5e0; border-radius: 10px; margin-bottom: 12px;">
-                    <div class="form-row">
-                        <div class="form-group" style="flex:1;">
+                    <!-- Col 3: MD Review -->
+                    <div class="mr-section">
+                        <div class="mr-section-header">👨‍⚕️ MD Review</div>
+                        <div class="form-group">
                             <label class="form-label">วันที่ MD Review</label>
                             <input type="text" class="form-input date-input" id="mrMDDate">
                         </div>
-                        <div class="form-group">
+                        <div class="form-group" style="margin-bottom:0;">
                             <label class="form-label">เวร MD</label>
                             <div class="shift-btns">
                                 <button type="button" class="shift-btn" data-val="เช้า" onclick="pickShift(this,'mrMDShift')">เช้า</button>
@@ -1607,10 +1608,11 @@
                     </div>
                 </div>
 
-                <!-- Row 5: Home Med paste area -->
-                <div style="padding: 14px 16px; background: white; border: 1px solid #e8e5e0; border-radius: 10px; margin-bottom: 12px;">
+                <!-- Home Med section (full-width) -->
+                <div class="mr-section" style="margin-bottom:12px;">
+                    <div class="mr-section-header">💊 Home Medication</div>
                     <div class="form-row" style="margin-bottom: 8px;">
-                        <div class="form-group" style="flex:1;">
+                        <div class="form-group" style="flex:1; margin-bottom:0;">
                             <label class="form-label">ประเภทยา</label>
                             <select class="form-select" id="mrMedType">
                                 <option>ยานอก</option>
