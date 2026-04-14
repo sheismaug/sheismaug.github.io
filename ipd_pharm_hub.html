@@ -2386,7 +2386,7 @@
             let isDischarged = (p.status === 'discharged' || p.status === 'Discharged');
             switch (filter) {
                 case 'mr-pending':
-                    if (!isDischarged && p.mrStatus === 'todo') result.push(p);
+                    if (!isDischarged && (p.mrStatus || 'todo') !== 'done') result.push(p);
                     break;
                 case 'had':
                     if (!isDischarged && p.hasHAD) result.push(p);
@@ -2428,7 +2428,7 @@
         let dcToday = 0;
         for (let i = 0; i < activePatients.length; i++) {
             if (activePatients[i].hasHAD) hadCount++;
-            if (activePatients[i].mrStatus === 'todo') mrTodo++;
+            if ((activePatients[i].mrStatus || 'todo') !== 'done') mrTodo++;
             if (activePatients[i].dcToday) dcToday++;
         }
         document.getElementById('kpiHAD').textContent = 'HAD: ' + hadCount;
