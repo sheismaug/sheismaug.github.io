@@ -2035,6 +2035,7 @@
 
     // Global State
     let allPatients = [];
+    let pendingLocalPatients = []; // คนไข้ที่เพิ่งเพิ่มและยังไม่กลับมาจาก GAS (แก้ race condition)
     let currentFilter = 'all';
     let currentPatientHN = null;
     let currentBundle = null;
@@ -2065,14 +2066,33 @@
             if (!data || !data.settings) return;
             appSettings = data.settings;
 
-            // เติม dropdown ผู้ทำ MR (เภสัชกร + จพ.)
+            // เติม dropdown ผู้ทำ MR (แบ่งกลุ่ม เภสัชกร ภญ. / จพ.)
             let pharmSel = document.getElementById('mrPharmacist');
             pharmSel.innerHTML = '<option value="">-- เลือก --</option>';
-            (appSettings['รายชื่อเภสัชกร'] || []).forEach(function(name) {
-                let o = document.createElement('option');
-                o.value = name; o.textContent = name;
-                pharmSel.appendChild(o);
+            let allNames = appSettings['รายชื่อเภสัชกร'] || [];
+            let phGroup = []; // ภญ./ภก.
+            let jpGroup = []; // จพ.
+            let otherGroup = [];
+            allNames.forEach(function(name) {
+                let trimmed = (name || '').trim();
+                if (/^(ภญ\.|ภก\.|เภสัช)/.test(trimmed)) phGroup.push(trimmed);
+                else if (/^จพ\./.test(trimmed)) jpGroup.push(trimmed);
+                else otherGroup.push(trimmed);
             });
+            function appendGroup(label, arr) {
+                if (arr.length === 0) return;
+                let og = document.createElement('optgroup');
+                og.label = label;
+                arr.forEach(function(name) {
+                    let o = document.createElement('option');
+                    o.value = name; o.textContent = name;
+                    og.appendChild(o);
+                });
+                pharmSel.appendChild(og);
+            }
+            appendGroup('เภสัชกร', phGroup);
+            appendGroup('เจ้าพนักงานเภสัชกรรม', jpGroup);
+            appendGroup('อื่นๆ', otherGroup);
 
         });
     }
@@ -2319,7 +2339,17 @@
     // Patient List
     function loadPatients() {
         gasGet('getPatients', {}, function(data) {
-            allPatients = data && data.patients ? data.patients : [];
+            let fromSheet = data && data.patients ? data.patients : [];
+            // Merge: ให้ข้อมูลจาก sheet เป็นหลัก + เพิ่มคนไข้ pending (ที่เพิ่งเพิ่มและยังไม่ commit ลง sheet)
+            let hnInSheet = {};
+            fromSheet.forEach(function(p) { if (p && p.hn) hnInSheet[p.hn] = true; });
+            // คนไข้ pending ที่ยังไม่เห็นใน sheet → คงไว้ใน list (ยังไม่ commit)
+            let stillPending = [];
+            pendingLocalPatients.forEach(function(p) {
+                if (p && p.hn && !hnInSheet[p.hn]) stillPending.push(p);
+            });
+            pendingLocalPatients = stillPending;
+            allPatients = fromSheet.concat(stillPending);
             localStorage.setItem('ipd_patients', JSON.stringify(allPatients));
             updatePatientTable();
             updateKPIs();
@@ -2630,6 +2660,7 @@
         // เพิ่มเข้า list ทันที (ไม่ต้องรอ GAS) เพราะ fetch mode:'no-cors' resolves ก่อน
         // GAS จะ commit ลง sheet เสร็จ ทำให้ loadPatients() เดิมเห็น sheet ยังไม่มีข้อมูลใหม่
         allPatients.push(newPatient);
+        pendingLocalPatients.push(newPatient); // mark ว่ายังไม่ commit ลง sheet
         localStorage.setItem('ipd_patients', JSON.stringify(allPatients));
         updatePatientTable();
         updateKPIs();
@@ -2641,9 +2672,11 @@
         document.getElementById('formAdmitDate').value = '';
         document.getElementById('addPatientForm').classList.remove('expanded');
 
-        // Save ไป GAS แล้วค่อย reload จาก sheet (หน่วงเวลาให้ GAS commit เสร็จก่อน)
+        // Save ไป GAS แล้ว reload หลายรอบเพื่อรอ sheet commit (merge strategy: คน pending จะไม่หายไปจนกว่าจะเห็นใน sheet)
         gasPost('savePatient', newPatient, function() {
             setTimeout(function() { loadPatients(); }, 1500);
+            setTimeout(function() { loadPatients(); }, 4000);
+            setTimeout(function() { loadPatients(); }, 8000);
         });
     }
 
