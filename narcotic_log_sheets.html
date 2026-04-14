@@ -552,10 +552,14 @@ tr:last-child td { border-bottom: none; }
       </svg>
     </div>
     <div class="login-title">บันทึกการจ่ายยาควบคุม</div>
-    <div class="login-sub">กรอก Password เพื่อเข้าใช้งาน</div>
+    <div class="login-sub">กรอกข้อมูลเพื่อเข้าใช้งาน</div>
+    <input type="text" class="login-input" id="login-user"
+      placeholder="ชื่อผู้ใช้งาน (เภสัชกร/พยาบาล)" maxlength="60"
+      autocomplete="off" style="margin-bottom:10px;">
     <div style="position:relative;">
       <input type="password" class="login-input" id="login-input"
-        placeholder="••••••" maxlength="20"
+        placeholder="••••••" maxlength="64"
+        autocomplete="current-password"
         onkeydown="if(event.key==='Enter')doLogin()"
         style="padding-right:48px;">
       <button onclick="togglePW()" id="pw-eye" type="button"
@@ -566,7 +570,7 @@ tr:last-child td { border-bottom: none; }
       </button>
     </div>
     <div class="login-error" id="login-error"></div>
-    <button class="login-btn" onclick="doLogin()">เข้าสู่ระบบ</button>
+    <button class="login-btn" id="login-btn" onclick="doLogin()">เข้าสู่ระบบ</button>
     <div class="login-footer">
       หรือ <span style="color:var(--teal);cursor:pointer;font-weight:500;" onclick="viewDashboardOnly()">ดู Dashboard โดยไม่ต้อง login →</span>
     </div>
@@ -1034,10 +1038,27 @@ tr:last-child td { border-bottom: none; }
 const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxTtFx4xqqYE-qUULiIoZL7QXOtn92zv6fx_um6ZMsPZKlva5ot-wgm7VRiC5DDR28J/exec';
 
 // ─── Auth State ───
-let isAuthenticated = false;
+//  ความปลอดภัย: ไม่มี password ฝังในไฟล์นี้แล้ว — ทุกการตรวจสอบทำที่ Google Apps Script
+//  Token เก็บใน sessionStorage (หาย auto เมื่อปิด tab) และมี idle-timeout 30 นาที
+let SESSION_TOKEN = '';
+let SESSION_USER  = '';
+let lastActivityAt = Date.now();
+const IDLE_LIMIT_MS = 30 * 60 * 1000;
+const TOKEN_KEY = 'nlog_token_v1';
+const USER_KEY  = 'nlog_user_v1';
 
-// ─── Password (ตรงกับ SYSTEM_PASSWORD ใน Code.gs) ───
-const APP_PASSWORD = 'hp869131';
+function isAuthed() { return !!SESSION_TOKEN; }
+
+// ── XSS protection ──
+function escHTML(v) {
+  if (v === null || v === undefined) return '';
+  return String(v)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
 
 function togglePW() {
   const input = document.getElementById('login-input');
@@ -1049,29 +1070,55 @@ function togglePW() {
     : '<path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>';
 }
 
-function doLogin() {
-  const input = document.getElementById('login-input');
-  const errorEl = document.getElementById('login-error');
-  const pw = input.value.trim();
-  if (!pw) { showLoginError('กรุณากรอก Password'); return; }
+async function doLogin() {
+  const input  = document.getElementById('login-input');
+  const userIn = document.getElementById('login-user');
+  const btn    = document.getElementById('login-btn');
+  const pw   = input.value;
+  const user = userIn.value.trim();
+  if (!user) { showLoginError('กรุณากรอกชื่อผู้ใช้งาน'); return; }
+  if (!pw)   { showLoginError('กรุณากรอก Password'); return; }
 
-  if (pw === APP_PASSWORD) {
-    isAuthenticated = true;
-    document.getElementById('login-overlay').style.display = 'none';
-    document.getElementById('auth-badge').style.display = 'flex';
-    document.getElementById('topbar-clock').style.display = 'none';
-    // แสดง tab ที่ต้อง login
-    document.querySelectorAll('.auth-tab').forEach(t => t.style.display = 'flex');
-    // สลับไป tab บันทึกการจ่ายยา
-    document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
-    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-    document.getElementById('panel-form').classList.add('active');
-    document.querySelector('.auth-tab').classList.add('active');
-    errorEl.textContent = '';
-    input.value = '';
-  } else {
-    showLoginError('Password ไม่ถูกต้อง');
+  btn.disabled = true;
+  btn.textContent = 'กำลังตรวจสอบ...';
+  try {
+    const res = await fetch(SCRIPT_URL, {
+      method: 'POST',
+      body: JSON.stringify({ action: 'login', password: pw, user }),
+      headers: { 'Content-Type': 'text/plain' }
+    });
+    const data = await res.json();
+    if (data.ok && data.token) {
+      SESSION_TOKEN = data.token;
+      SESSION_USER  = data.user || user;
+      try { sessionStorage.setItem(TOKEN_KEY, SESSION_TOKEN); } catch(e) {}
+      try { sessionStorage.setItem(USER_KEY,  SESSION_USER);  } catch(e) {}
+      input.value = ''; userIn.value = '';
+      enterAuthedUI_();
+      lastActivityAt = Date.now();
+    } else {
+      showLoginError(data.error || 'Password ไม่ถูกต้อง');
+    }
+  } catch (e) {
+    showLoginError('เชื่อมต่อ server ไม่ได้');
+  } finally {
+    btn.disabled = false;
+    btn.textContent = 'เข้าสู่ระบบ';
   }
+}
+
+function enterAuthedUI_() {
+  document.getElementById('login-overlay').style.display = 'none';
+  const badge = document.getElementById('auth-badge');
+  badge.style.display = 'flex';
+  document.getElementById('auth-name').textContent = SESSION_USER || 'ผู้ใช้งาน';
+  document.getElementById('topbar-clock').style.display = 'none';
+  document.querySelectorAll('.auth-tab').forEach(t => t.style.display = 'flex');
+  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('panel-form').classList.add('active');
+  document.querySelector('.auth-tab').classList.add('active');
+  document.getElementById('login-error').textContent = '';
 }
 
 function showLoginError(msg) {
@@ -1083,12 +1130,22 @@ function showLoginError(msg) {
   input.value = ''; input.focus();
 }
 
-function doLogout() {
-  if (!confirm('ออกจากระบบ?')) return;
-  isAuthenticated = false;
-  // ซ่อน auth tabs กลับ
+async function doLogout(silent) {
+  if (!silent && !confirm('ออกจากระบบ?')) return;
+  const tok = SESSION_TOKEN;
+  SESSION_TOKEN = ''; SESSION_USER = '';
+  try { sessionStorage.removeItem(TOKEN_KEY); sessionStorage.removeItem(USER_KEY); } catch(e) {}
+  // แจ้ง backend ให้ลบ session (best-effort)
+  if (tok) {
+    try {
+      fetch(SCRIPT_URL, {
+        method: 'POST',
+        body: JSON.stringify({ action: 'logout', token: tok }),
+        headers: { 'Content-Type': 'text/plain' }
+      });
+    } catch (e) {}
+  }
   document.querySelectorAll('.auth-tab').forEach(t => { t.style.display = 'none'; t.classList.remove('active'); });
-  // กลับไป dashboard
   document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
   document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
   document.getElementById('panel-dashboard').classList.add('active');
@@ -1100,7 +1157,6 @@ function doLogout() {
 
 function viewDashboardOnly() {
   document.getElementById('login-overlay').style.display = 'none';
-  // แสดงแค่ dashboard panels ไม่แสดง auth tabs
   document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
   document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
   document.getElementById('panel-dashboard').classList.add('active');
@@ -1109,13 +1165,34 @@ function viewDashboardOnly() {
 }
 
 function requireAuth(fn) {
-  if (!isAuthenticated) {
+  if (!isAuthed()) {
     showStatus('⚠ กรุณา login ก่อนใช้งาน', 'error');
     document.getElementById('login-overlay').style.display = 'flex';
     return false;
   }
+  // เช็ค idle
+  if (Date.now() - lastActivityAt > IDLE_LIMIT_MS) {
+    doLogout(true);
+    showStatus('⚠ Session หมดอายุจากการไม่ใช้งาน — กรุณา login ใหม่', 'error');
+    document.getElementById('login-overlay').style.display = 'flex';
+    return false;
+  }
+  lastActivityAt = Date.now();
   return true;
 }
+
+// ติดตาม activity เพื่อใช้คำนวณ idle timeout
+['click','keydown','mousemove','touchstart'].forEach(ev =>
+  document.addEventListener(ev, () => { if (isAuthed()) lastActivityAt = Date.now(); }, { passive: true })
+);
+// ตรวจ idle ทุกๆ 60 วินาที
+setInterval(() => {
+  if (isAuthed() && (Date.now() - lastActivityAt > IDLE_LIMIT_MS)) {
+    doLogout(true);
+    showStatus('⚠ Session หมดอายุ — กรุณา login ใหม่', 'error');
+    document.getElementById('login-overlay').style.display = 'flex';
+  }
+}, 60000);
 
 // ─── State ───
 let logs = [];
@@ -1158,12 +1235,22 @@ async function apiCall(payload) {
     showStatus('⚠ กรุณาใส่ SCRIPT_URL ในไฟล์ก่อนใช้งาน', 'error');
     throw new Error('SCRIPT_URL not configured');
   }
+  // แนบ token กับทุก request ที่ต้อง auth
+  const body = Object.assign({ token: SESSION_TOKEN }, payload);
   const res = await fetch(SCRIPT_URL, {
     method: 'POST',
-    body: JSON.stringify(payload),
+    body: JSON.stringify(body),
     headers: { 'Content-Type': 'text/plain' }
   });
-  return await res.json();
+  const data = await res.json();
+  if (data && data.code === 401) {
+    // token หมดอายุ/ถูกเพิกถอน
+    doLogout(true);
+    showStatus('⚠ Session หมดอายุ — กรุณา login ใหม่', 'error');
+    document.getElementById('login-overlay').style.display = 'flex';
+    throw new Error('unauthorized');
+  }
+  return data;
 }
 
 async function loadLogs() {
@@ -1210,6 +1297,17 @@ window.onload = () => {
   initInvForm();
   updateClock();
   setInterval(updateClock, 1000);
+  // คืน session ถ้ายังมี token ใน sessionStorage (ถ้า idle เกิน 30 นาที backend จะปฏิเสธเอง)
+  try {
+    const savedTok  = sessionStorage.getItem(TOKEN_KEY);
+    const savedUser = sessionStorage.getItem(USER_KEY);
+    if (savedTok) {
+      SESSION_TOKEN = savedTok;
+      SESSION_USER  = savedUser || '';
+      lastActivityAt = Date.now();
+      enterAuthedUI_();
+    }
+  } catch (e) {}
   loadLogs();
   loadInventory();
   setInterval(() => { loadLogs(); loadInventory(); }, 30000);
@@ -1275,8 +1373,24 @@ async function submitForm() {
     alert('กรุณากรอกข้อมูลที่จำเป็นให้ครบถ้วน (*)');
     return;
   }
-  if (pid.length !== 13) {
-    alert('เลขบัตรประชาชนต้องครบ 13 หลัก');
+  if (pid.length !== 13 || !/^\d{13}$/.test(pid)) {
+    alert('เลขบัตรประชาชนต้องเป็นตัวเลข 13 หลัก');
+    return;
+  }
+  const qtyNum = parseFloat(qty);
+  if (!isFinite(qtyNum) || qtyNum <= 0 || qtyNum > 9999) {
+    alert('จำนวนต้องมากกว่า 0 และไม่เกิน 9999');
+    return;
+  }
+  // ห้ามวันที่อนาคต (อนุญาตเลื่อมได้ 1 วันสำหรับ timezone)
+  const todayStr = toDateStr(new Date(Date.now() + 24*60*60*1000));
+  if (date > todayStr) {
+    alert('วันที่ห้ามเป็นอนาคต');
+    return;
+  }
+  // จำกัดความยาวข้อความ
+  if (patient.length > 200 || (note && note.length > 500) || hn.length > 20) {
+    alert('ข้อความยาวเกินกำหนด');
     return;
   }
 
@@ -1367,19 +1481,22 @@ function renderLog() {
   }
   empty.style.display = 'none';
 
-  tbody.innerHTML = filtered.map(r => `
+  tbody.innerHTML = filtered.map(r => {
+    const safeCat = /^[a-z_-]*$/i.test(String(r.cat||'')) ? r.cat : '';
+    const idNum = Number(r.id) || 0;
+    return `
     <tr>
-      <td><span style="font-family:'Google Sans', sans-serif;font-size:12px;">${r.date.split('-').reverse().join('/')}</span><br><span style="font-size:12px;color:var(--gray-400);">${r.time} น.</span></td>
-      <td><span class="hn-text">${r.hn}</span></td>
-      <td><span class="hn-text">${r.pid || '—'}</span></td>
-      <td style="font-weight:500;color:var(--gray-800);">${r.patient}</td>
-      <td><span class="drug-pill ${r.cat}">${r.drug}</span></td>
-      <td><span class="qty-text">${r.qty} ${r.unit}</span></td>
-      <td><span class="pharmacist-text">${r.pharmacist}</span></td>
-      <td style="color:var(--gray-400);font-size:12px;max-width:140px;word-break:break-word;">${r.note || '—'}</td>
-      <td><button class="btn-delete" onclick="deleteLog(${r.id})" title="ลบรายการ">✕</button></td>
-    </tr>
-  `).join('');
+      <td><span style="font-family:'Google Sans', sans-serif;font-size:12px;">${escHTML(String(r.date).split('-').reverse().join('/'))}</span><br><span style="font-size:12px;color:var(--gray-400);">${escHTML(r.time)} น.</span></td>
+      <td><span class="hn-text">${escHTML(r.hn)}</span></td>
+      <td><span class="hn-text">${escHTML(r.pid || '—')}</span></td>
+      <td style="font-weight:500;color:var(--gray-800);">${escHTML(r.patient)}</td>
+      <td><span class="drug-pill ${escHTML(safeCat)}">${escHTML(r.drug)}</span></td>
+      <td><span class="qty-text">${escHTML(r.qty)} ${escHTML(r.unit)}</span></td>
+      <td><span class="pharmacist-text">${escHTML(r.pharmacist)}</span></td>
+      <td style="color:var(--gray-400);font-size:12px;max-width:140px;word-break:break-word;">${escHTML(r.note || '—')}</td>
+      <td><button class="btn-delete" onclick="deleteLog(${idNum})" title="ลบรายการ">✕</button></td>
+    </tr>`;
+  }).join('');
 }
 
 async function deleteLog(id) {
@@ -1584,19 +1701,20 @@ function renderDashboard() {
   grid.innerHTML = Object.entries(drugMap).map(([drug, data]) => {
     const barPct = maxTotal > 0 ? (data.total / maxTotal * 100).toFixed(0) : 0;
     const cat = DRUG_CATS[drug] || '';
+    const safeCat = /^[a-z_-]*$/i.test(cat) ? cat : '';
     const patRows = data.patients.map(p =>
       `<div class="dscard-patient-row">
-        <span><span class="dscard-hn">${p.hn}</span> <span class="dscard-pt-name">${p.name}</span></span>
-        <span class="dscard-pt-qty">${p.qty} ${p.unit} <span style="color:var(--gray-400);font-weight:400;">/ ${p.by}</span></span>
+        <span><span class="dscard-hn">${escHTML(p.hn)}</span> <span class="dscard-pt-name">${escHTML(p.name)}</span></span>
+        <span class="dscard-pt-qty">${escHTML(p.qty)} ${escHTML(p.unit)} <span style="color:var(--gray-400);font-weight:400;">/ ${escHTML(p.by)}</span></span>
       </div>`
     ).join('');
 
     return `<div class="drug-summary-card">
       <div class="dscard-header">
-        <span class="drug-pill ${cat}" style="font-size:12px;">${drug}</span>
+        <span class="drug-pill ${escHTML(safeCat)}" style="font-size:12px;">${escHTML(drug)}</span>
       </div>
       <div class="dscard-count">${Number.isInteger(data.total) ? data.total : data.total.toFixed(1)}</div>
-      <div class="dscard-unit">${data.unit} · ${data.patients.length} รายการ</div>
+      <div class="dscard-unit">${escHTML(data.unit)} · ${data.patients.length} รายการ</div>
       <div class="dscard-bar-bg"><div class="dscard-bar" style="width:${barPct}%"></div></div>
       <div class="dscard-patients">${patRows}</div>
     </div>`;
@@ -1663,13 +1781,27 @@ async function submitInventory() {
     alert('กรุณากรอกข้อมูลที่จำเป็นให้ครบถ้วน');
     return;
   }
+  const qtyNum = parseFloat(qty);
+  if (!isFinite(qtyNum) || qtyNum <= 0 || qtyNum > 99999) {
+    alert('จำนวนต้องมากกว่า 0 และไม่เกิน 99999');
+    return;
+  }
+  const todayStr = toDateStr(new Date(Date.now() + 24*60*60*1000));
+  if (date > todayStr) {
+    alert('วันที่ห้ามเป็นอนาคต');
+    return;
+  }
+  if (note && note.length > 500) {
+    alert('หมายเหตุยาวเกิน 500 ตัวอักษร');
+    return;
+  }
 
   const entry = {
     id: Date.now(),
     date, time,
     type: selectedInvType,
     drug,
-    qty: parseFloat(qty),
+    qty: qtyNum,
     unit: DRUG_UNITS[drug] || '',
     direction: INV_DIRECTION[selectedInvType],
     pharmacist,
@@ -1753,11 +1885,12 @@ function renderStockDash() {
     const cardClass = isZero ? 'zero' : isLow ? 'low' : '';
     const badgeClass = isZero ? 'badge-zero' : isLow ? 'badge-low' : 'badge-ok';
     const badgeText = isZero ? 'หมด' : isLow ? 'ใกล้หมด' : 'ปกติ';
+    const qNum = Number(qty) || 0;
     return `<div class="stock-card ${cardClass}">
       <span class="stock-badge ${badgeClass}">${badgeText}</span>
-      <div class="stock-drug">${drug}</div>
-      <div class="stock-qty">${qty < 0 ? '<span style="color:var(--red)">'+qty+'</span>' : qty}</div>
-      <div class="stock-unit">${unit}</div>
+      <div class="stock-drug">${escHTML(drug)}</div>
+      <div class="stock-qty">${qNum < 0 ? '<span style="color:var(--red)">'+qNum+'</span>' : qNum}</div>
+      <div class="stock-unit">${escHTML(unit)}</div>
     </div>`;
   }).join('');
 }
@@ -1805,14 +1938,15 @@ function renderInvHistory() {
     const sign = isIn ? '+' : '−';
     const cls = isIn ? 'txn-in' : 'txn-out';
     const typeLabel = INV_TYPE_LABELS[r.type] || r.type;
-    const delBtn = r.fromLog ? '' : `<button class="btn-delete" onclick="deleteInvLog(${r.id})" title="ลบ">✕</button>`;
+    const idNum = Number(r.id) || 0;
+    const delBtn = r.fromLog ? '' : `<button class="btn-delete" onclick="deleteInvLog(${idNum})" title="ลบ">✕</button>`;
     return `<tr>
-      <td><span style="font-family:'Google Sans', sans-serif;font-size:12px;">${normalizeDate(r.date).split('-').reverse().join('/')}</span><br><span style="font-size:12px;color:var(--gray-400);">${r.time||''} น.</span></td>
-      <td><span style="font-size:12px;padding:3px 8px;border-radius:99px;background:${isIn?'var(--teal-light)':'var(--red-light)'};color:${isIn?'var(--teal)':'var(--red)'};">${typeLabel}</span></td>
-      <td style="font-size:13px;font-weight:500;">${r.drug}</td>
-      <td><span class="${cls}" style="font-family:'Google Sans', sans-serif;">${sign}${r.qty} ${r.unit||''}</span></td>
-      <td style="font-size:13px;">${r.pharmacist||'—'}</td>
-      <td style="font-size:12px;color:var(--gray-400);max-width:160px;word-break:break-word;">${r.note||'—'}</td>
+      <td><span style="font-family:'Google Sans', sans-serif;font-size:12px;">${escHTML(normalizeDate(r.date).split('-').reverse().join('/'))}</span><br><span style="font-size:12px;color:var(--gray-400);">${escHTML(r.time||'')} น.</span></td>
+      <td><span style="font-size:12px;padding:3px 8px;border-radius:99px;background:${isIn?'var(--teal-light)':'var(--red-light)'};color:${isIn?'var(--teal)':'var(--red)'};">${escHTML(typeLabel)}</span></td>
+      <td style="font-size:13px;font-weight:500;">${escHTML(r.drug)}</td>
+      <td><span class="${cls}" style="font-family:'Google Sans', sans-serif;">${sign}${escHTML(r.qty)} ${escHTML(r.unit||'')}</span></td>
+      <td style="font-size:13px;">${escHTML(r.pharmacist||'—')}</td>
+      <td style="font-size:12px;color:var(--gray-400);max-width:160px;word-break:break-word;">${escHTML(r.note||'—')}</td>
       <td>${delBtn}</td>
     </tr>`;
   }).join('');
