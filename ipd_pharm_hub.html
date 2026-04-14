@@ -8,6 +8,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Google+Sans:wght@400;500;700&family=Google+Sans+Display:wght@700&family=Noto+Sans+Thai:wght@400;500;700&display=swap" rel="stylesheet">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <style>
         * {
             margin: 0;
@@ -349,6 +350,44 @@
         .activity-type-drp   { color: #3a5a9a; }
         .activity-type-me    { color: #c04040; }
         .activity-type-counsel { color: #4a7c59; }
+
+        /* Chart header with PNG export button */
+        .chart-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+        .chart-header .card-title { margin: 0; }
+        .chart-png-btn {
+            background: transparent;
+            border: 1px solid #e8e5e0;
+            border-radius: 6px;
+            padding: 2px 8px;
+            cursor: pointer;
+            font-size: 14px;
+            color: #666;
+            transition: all 0.15s ease;
+        }
+        .chart-png-btn:hover {
+            background: #f3f1ed;
+            color: #2e3f58;
+            border-color: #2e3f58;
+        }
+        .btn-export-xlsx {
+            background: #4a7c59;
+            color: #fff;
+            border: none;
+            padding: 6px 14px;
+            border-radius: 8px;
+            font-size: 13px;
+            font-weight: 500;
+            cursor: pointer;
+            font-family: inherit;
+            transition: background 0.15s ease;
+        }
+        .btn-export-xlsx:hover { background: #3d6349; }
+        .btn-export-xlsx:disabled { opacity: 0.55; cursor: wait; }
 
         /* Toast */
         .toast-container {
@@ -1594,12 +1633,15 @@
 
             <!-- TAB 2: Dashboard -->
             <div class="tab-content" id="dashboard">
-                <div class="filter-row">
-                    <button class="filter-chip active" data-period="this-month">เดือนนี้</button>
-                    <button class="filter-chip" data-period="last-month">เดือนที่แล้ว</button>
-                    <button class="filter-chip" data-period="all">ทั้งหมด</button>
-                    <input type="text" class="form-input date-input" id="dashFromDate" placeholder="จาก" style="max-width: 120px;">
-                    <input type="text" class="form-input date-input" id="dashToDate" placeholder="ถึง" style="max-width: 120px;">
+                <div class="filter-row" style="justify-content: space-between;">
+                    <div style="display:flex; gap:8px; flex-wrap:wrap; align-items:center;">
+                        <button class="filter-chip active" data-period="this-month">เดือนนี้</button>
+                        <button class="filter-chip" data-period="last-month">เดือนที่แล้ว</button>
+                        <button class="filter-chip" data-period="all">ทั้งหมด</button>
+                        <input type="text" class="form-input date-input" id="dashFromDate" placeholder="จาก" style="max-width: 120px;">
+                        <input type="text" class="form-input date-input" id="dashToDate" placeholder="ถึง" style="max-width: 120px;">
+                    </div>
+                    <button class="btn-export-xlsx" id="btnExportXlsx" onclick="exportDashboardExcel()">📊 Export Excel</button>
                 </div>
 
                 <!-- ── Core KPI (row 1: existing 4) ── -->
@@ -1664,59 +1706,58 @@
                     </div>
                 </div>
 
-                <!-- ── MR per Pharmacist (only multi-user metric) ── -->
-                <div class="card">
-                    <h3 class="card-title">MR per Pharmacist</h3>
-                    <div class="chart-container">
-                        <canvas id="pharmacistChart"></canvas>
+                <!-- ── Charts — 2 per row ── -->
+                <div class="dashboard-grid">
+                    <div class="card">
+                        <div class="chart-header">
+                            <h3 class="card-title">MR per Pharmacist</h3>
+                            <button class="chart-png-btn" onclick="exportChartPNG('pharmacistChart','MR_per_Pharmacist')" title="Export PNG">📷</button>
+                        </div>
+                        <div class="chart-container"><canvas id="pharmacistChart"></canvas></div>
                     </div>
-                </div>
-
-                <!-- ── MD Response Histogram ── -->
-                <div class="card">
-                    <h3 class="card-title">MD Response — จำนวน shift ที่ใช้ตอบ</h3>
-                    <div class="chart-container">
-                        <canvas id="mdHistChart"></canvas>
+                    <div class="card">
+                        <div class="chart-header">
+                            <h3 class="card-title">MD Response — จำนวน shift ที่ใช้ตอบ</h3>
+                            <button class="chart-png-btn" onclick="exportChartPNG('mdHistChart','MD_Response')" title="Export PNG">📷</button>
+                        </div>
+                        <div class="chart-container"><canvas id="mdHistChart"></canvas></div>
                     </div>
-                </div>
-
-                <!-- ── HAD by Drug ── -->
-                <div class="card">
-                    <h3 class="card-title">HAD Rounds by Drug</h3>
-                    <div class="chart-container">
-                        <canvas id="hadByDrugChart"></canvas>
+                    <div class="card">
+                        <div class="chart-header">
+                            <h3 class="card-title">HAD Rounds by Drug</h3>
+                            <button class="chart-png-btn" onclick="exportChartPNG('hadByDrugChart','HAD_by_Drug')" title="Export PNG">📷</button>
+                        </div>
+                        <div class="chart-container"><canvas id="hadByDrugChart"></canvas></div>
                     </div>
-                </div>
-
-                <!-- ── Med Error by Stage ── -->
-                <div class="card">
-                    <h3 class="card-title">Med Error by Stage</h3>
-                    <div class="chart-container">
-                        <canvas id="meStageChart"></canvas>
+                    <div class="card">
+                        <div class="chart-header">
+                            <h3 class="card-title">Med Error by Stage</h3>
+                            <button class="chart-png-btn" onclick="exportChartPNG('meStageChart','MedError_by_Stage')" title="Export PNG">📷</button>
+                        </div>
+                        <div class="chart-container"><canvas id="meStageChart"></canvas></div>
                     </div>
-                </div>
-
-                <!-- ── DRP Top 5 ── -->
-                <div class="card">
-                    <h3 class="card-title">DRP Types (Top 5)</h3>
-                    <div class="chart-container">
-                        <canvas id="drpChart"></canvas>
+                    <div class="card">
+                        <div class="chart-header">
+                            <h3 class="card-title">DRP Types (Top 5)</h3>
+                            <button class="chart-png-btn" onclick="exportChartPNG('drpChart','DRP_Types')" title="Export PNG">📷</button>
+                        </div>
+                        <div class="chart-container"><canvas id="drpChart"></canvas></div>
                     </div>
-                </div>
-
-                <!-- ── Counseling ── -->
-                <div class="card">
-                    <h3 class="card-title">Counseling Activities</h3>
-                    <div class="chart-container">
-                        <canvas id="counChart"></canvas>
+                    <div class="card">
+                        <div class="chart-header">
+                            <h3 class="card-title">Counseling Activities</h3>
+                            <button class="chart-png-btn" onclick="exportChartPNG('counChart','Counseling')" title="Export PNG">📷</button>
+                        </div>
+                        <div class="chart-container"><canvas id="counChart"></canvas></div>
                     </div>
-                </div>
 
-                <!-- ── 6-Month Trend ── -->
-                <div class="card" style="grid-column: 1/-1;">
-                    <h3 class="card-title">6-Month Trend</h3>
-                    <div class="chart-container" style="height: 350px;">
-                        <canvas id="trendChart"></canvas>
+                    <!-- Trend spans full width inside same grid -->
+                    <div class="card" style="grid-column: 1/-1;">
+                        <div class="chart-header">
+                            <h3 class="card-title">6-Month Trend</h3>
+                            <button class="chart-png-btn" onclick="exportChartPNG('trendChart','6_Month_Trend')" title="Export PNG">📷</button>
+                        </div>
+                        <div class="chart-container" style="height: 320px;"><canvas id="trendChart"></canvas></div>
                     </div>
                 </div>
 
@@ -1791,51 +1832,6 @@
                         <div class="today-kpi-label">Med Err</div>
                         <div class="today-kpi-value" id="todayMe">0</div>
                         <div class="today-kpi-sub">&nbsp;</div>
-                    </div>
-                </div>
-
-                <!-- ── Counseling Counters (ongoing session) ── -->
-                <h3 class="card-title" style="margin-bottom: 12px; margin-top: 20px;">Counseling Counters (session)</h3>
-                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px; margin-bottom: 20px;">
-                    <div class="card" style="padding:12px;">
-                        <div style="font-size: 12px; color: #666;">Syringe Injection</div>
-                        <div style="font-size: 22px; font-weight: 700; color: #2e3f58; margin: 4px 0;" id="wlSyringe">0</div>
-                        <div class="counter-group">
-                            <button class="counter-btn" onclick="adjustWorkloadCounter('syringe', -1)">−</button>
-                            <button class="counter-btn" onclick="adjustWorkloadCounter('syringe', 1)">+</button>
-                        </div>
-                    </div>
-                    <div class="card" style="padding:12px;">
-                        <div style="font-size: 12px; color: #666;">Penfill Injection</div>
-                        <div style="font-size: 22px; font-weight: 700; color: #2e3f58; margin: 4px 0;" id="wlPenfill">0</div>
-                        <div class="counter-group">
-                            <button class="counter-btn" onclick="adjustWorkloadCounter('penfill', -1)">−</button>
-                            <button class="counter-btn" onclick="adjustWorkloadCounter('penfill', 1)">+</button>
-                        </div>
-                    </div>
-                    <div class="card" style="padding:12px;">
-                        <div style="font-size: 12px; color: #666;">Evohaler</div>
-                        <div style="font-size: 22px; font-weight: 700; color: #2e3f58; margin: 4px 0;" id="wlEvohaler">0</div>
-                        <div class="counter-group">
-                            <button class="counter-btn" onclick="adjustWorkloadCounter('evohaler', -1)">−</button>
-                            <button class="counter-btn" onclick="adjustWorkloadCounter('evohaler', 1)">+</button>
-                        </div>
-                    </div>
-                    <div class="card" style="padding:12px;">
-                        <div style="font-size: 12px; color: #666;">Accuhaler</div>
-                        <div style="font-size: 22px; font-weight: 700; color: #2e3f58; margin: 4px 0;" id="wlAccuhaler">0</div>
-                        <div class="counter-group">
-                            <button class="counter-btn" onclick="adjustWorkloadCounter('accuhaler', -1)">−</button>
-                            <button class="counter-btn" onclick="adjustWorkloadCounter('accuhaler', 1)">+</button>
-                        </div>
-                    </div>
-                    <div class="card" style="padding:12px;">
-                        <div style="font-size: 12px; color: #666;">อื่นๆ</div>
-                        <div style="font-size: 22px; font-weight: 700; color: #2e3f58; margin: 4px 0;" id="wlOther">0</div>
-                        <div class="counter-group">
-                            <button class="counter-btn" onclick="adjustWorkloadCounter('other', -1)">−</button>
-                            <button class="counter-btn" onclick="adjustWorkloadCounter('other', 1)">+</button>
-                        </div>
                     </div>
                 </div>
 
@@ -2432,13 +2428,6 @@
     let currentFilter = 'all';
     let currentPatientHN = null;
     let currentBundle = null;
-    let workloadCounters = {
-        syringe: 0,
-        penfill: 0,
-        evohaler: 0,
-        accuhaler: 0,
-        other: 0
-    };
 
     // Initialize
     let appSettings = {};
@@ -4121,19 +4110,20 @@
         });
     }
 
-    // Workload Tab
-    function adjustWorkloadCounter(type, delta) {
-        workloadCounters[type] += delta;
-        if (workloadCounters[type] < 0) workloadCounters[type] = 0;
-
-        let elem = document.getElementById('wl' + type.charAt(0).toUpperCase() + type.slice(1));
-        elem.textContent = workloadCounters[type];
-    }
-
     // Dashboard
     // Dashboard chart instances — destroy before recreate
     let chartDRP = null, chartCoun = null, chartTrend = null;
     let chartPharmacist = null, chartMDHist = null, chartHADByDrug = null, chartMEStage = null;
+
+    // Set global Chart.js defaults — consistent font across all charts
+    if (typeof Chart !== 'undefined') {
+        Chart.defaults.font.family = "'Google Sans', 'Noto Sans Thai', sans-serif";
+        Chart.defaults.font.size = 12;
+        Chart.defaults.color = '#444';
+    }
+
+    // Cache latest dashboard data for Excel export
+    let _lastDashboardData = null;
 
     function initDashboardCharts() {
         // ดึงข้อมูลจริงจาก GAS
@@ -4149,6 +4139,7 @@
     }
 
     function renderDashboard(data) {
+        _lastDashboardData = data;
         // ── Debug: log trend data to console ──
         console.log('=== DASHBOARD DEBUG ===');
         console.log('trend:', JSON.stringify(data.trend));
@@ -4342,6 +4333,162 @@
                 }
             });
         }
+    }
+
+    // ═══════════════════════════════════════════
+    //  Export helpers — PNG per chart + Excel for dashboard
+    // ═══════════════════════════════════════════
+    function exportChartPNG(canvasId, baseName) {
+        const canvas = document.getElementById(canvasId);
+        if (!canvas) {
+            showToast('ยังไม่มี chart', { type: 'error' });
+            return;
+        }
+        // Draw white background behind (Chart.js canvas is transparent by default)
+        const tmp = document.createElement('canvas');
+        tmp.width = canvas.width;
+        tmp.height = canvas.height;
+        const ctx = tmp.getContext('2d');
+        ctx.fillStyle = '#ffffff';
+        ctx.fillRect(0, 0, tmp.width, tmp.height);
+        ctx.drawImage(canvas, 0, 0);
+        const url = tmp.toDataURL('image/png');
+        const ts = new Date().toISOString().slice(0, 10);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = (baseName || 'chart') + '_' + ts + '.png';
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+    }
+
+    function exportDashboardExcel() {
+        if (typeof XLSX === 'undefined') {
+            showToast('SheetJS ยังโหลดไม่เสร็จ ลองใหม่อีกครั้ง', { type: 'error' });
+            return;
+        }
+        if (!_lastDashboardData) {
+            showToast('ยังไม่มีข้อมูล dashboard (กด Refresh ก่อน)', { type: 'error' });
+            return;
+        }
+        const btn = document.getElementById('btnExportXlsx');
+        if (btn) { btn.disabled = true; btn.textContent = '⏳ กำลังสร้าง...'; }
+
+        const data = _lastDashboardData;
+        const from = document.getElementById('dashFromDate').value || '';
+        const to   = document.getElementById('dashToDate').value || '';
+
+        // Fetch raw activity async, then build workbook
+        gasGet('getRawActivity', { from: from, to: to }, function(raw) {
+            try {
+                const wb = XLSX.utils.book_new();
+
+                // ── Sheet 1: Summary KPIs ──
+                const rng = (data.dateRange || {});
+                const mrT = data.mrTotal || {};
+                const sev = (data.medError && data.medError.severity) || {};
+                const summary = [
+                    ['IPD Pharm Hub — Dashboard Export'],
+                    ['ช่วงเวลา', (rng.from || '') + ' – ' + (rng.to || '')],
+                    ['Export at', new Date().toLocaleString('th-TH')],
+                    [],
+                    ['── KPI (Core) ──'],
+                    ['MR Coverage %',      (data.mr && data.mr.coveragePct) || 0],
+                    ['Med Error total',    (data.medError && data.medError.total) || 0],
+                    ['DRP total',          (data.drp && data.drp.total) || 0],
+                    ['DRP rate %',         (data.drp && data.drp.rate) || 0],
+                    ['Counseling total',   (data.counseling && data.counseling.total) || 0],
+                    [],
+                    ['── KPI (Activity) ──'],
+                    ['HAD Rounds',         (data.had && data.had.roundsCount) || 0],
+                    ['ADR cases',          data.adrCount || 0],
+                    ['D/C changes',        data.dcChangesCount || 0],
+                    ['Incident Reports',   data.incidentCount || 0],
+                    [],
+                    ['── MR Total ──'],
+                    ['รับใหม่',            mrT.received || 0],
+                    ['เสร็จ',              mrT.done || 0],
+                    ['รอ MD',              mrT.pendingMD || 0],
+                    [],
+                    ['── MR Performance ──'],
+                    ['MR ทันเวลา %',      (data.mr && data.mr.within24hPct) || 0],
+                    ['MD ตอบเวรเดียวกัน %', (data.mr && data.mr.mdReview1ShiftPct) || 0],
+                    ['MD ตอบ ≤1 เวร %',    (data.mr && data.mr.mdReview2ShiftPct) || 0],
+                    [],
+                    ['── Med Error Severity ──'],
+                    ['A–B (no harm)',      sev.ab || 0],
+                    ['C–D (harm non-serious)', sev.cd || 0],
+                    ['E–I (serious)',      sev.ePlus || 0],
+                    [],
+                    ['── MD Response Histogram ──'],
+                ];
+                const hist = data.mdResponseHistogram || {};
+                const histKeys = ['0', '1', '2', '3', '4+'];
+                const histLbl  = ['เวรเดียว', '1 เวร', '2 เวร', '3 เวร', '4+ เวร'];
+                for (let i = 0; i < histKeys.length; i++) {
+                    summary.push([histLbl[i], hist[histKeys[i]] || 0]);
+                }
+                summary.push([]);
+                summary.push(['── Med Error by Stage ──']);
+                const byStage = data.medErrorByStage || {};
+                for (const k in byStage) summary.push([k, byStage[k]]);
+
+                const ws1 = XLSX.utils.aoa_to_sheet(summary);
+                ws1['!cols'] = [{ wch: 32 }, { wch: 18 }];
+                XLSX.utils.book_append_sheet(wb, ws1, 'Summary');
+
+                // ── Sheet 2: Per-Pharmacist MR ──
+                const pharm = data.perPharmacistMR || {};
+                const pharmRows = [['เภสัชกร', 'MR count']];
+                const pairs = [];
+                for (const k in pharm) pairs.push([k, pharm[k]]);
+                pairs.sort(function(a, b) { return b[1] - a[1]; });
+                for (let i = 0; i < pairs.length; i++) pharmRows.push(pairs[i]);
+                if (pairs.length === 0) pharmRows.push(['(ไม่มีข้อมูล)', 0]);
+                const ws2 = XLSX.utils.aoa_to_sheet(pharmRows);
+                ws2['!cols'] = [{ wch: 24 }, { wch: 12 }];
+                XLSX.utils.book_append_sheet(wb, ws2, 'Per-Pharmacist MR');
+
+                // ── Sheet 3: HAD by Drug ──
+                const byDrug = (data.had && data.had.byDrug) || {};
+                const hadRows = [['Drug', 'Rounds']];
+                const drugOrder = ['Amiodarone', 'Digoxin', 'MgSO4', 'KCl', 'Insulin', 'Warfarin'];
+                for (let i = 0; i < drugOrder.length; i++) {
+                    hadRows.push([drugOrder[i], byDrug[drugOrder[i]] || 0]);
+                }
+                // any others (from real-time drugs if logged)
+                for (const k in byDrug) {
+                    if (drugOrder.indexOf(k) < 0) hadRows.push([k, byDrug[k]]);
+                }
+                const ws3 = XLSX.utils.aoa_to_sheet(hadRows);
+                ws3['!cols'] = [{ wch: 18 }, { wch: 12 }];
+                XLSX.utils.book_append_sheet(wb, ws3, 'HAD by Drug');
+
+                // ── Sheet 4: Raw Activity Log ──
+                const rawRows = [['Date', 'Source', 'HN', 'Name', 'Detail', 'Extra']];
+                const rawArr = (raw && raw.rows) || [];
+                for (let i = 0; i < rawArr.length; i++) {
+                    const r = rawArr[i];
+                    rawRows.push([r.date || '', r.source || '', r.hn || '', r.name || '', r.detail || '', r.extra || '']);
+                }
+                if (rawArr.length === 0) rawRows.push(['(ไม่มีข้อมูลในช่วงเวลาที่เลือก)', '', '', '', '', '']);
+                const ws4 = XLSX.utils.aoa_to_sheet(rawRows);
+                ws4['!cols'] = [{ wch: 14 }, { wch: 10 }, { wch: 10 }, { wch: 24 }, { wch: 40 }, { wch: 50 }];
+                XLSX.utils.book_append_sheet(wb, ws4, 'Raw Activity');
+
+                // Build filename
+                const ts = new Date().toISOString().slice(0, 10);
+                const fname = 'IPD_Dashboard_' + ts + '.xlsx';
+                XLSX.writeFile(wb, fname);
+
+                showToast('Export สำเร็จ: ' + fname, { type: 'success' });
+            } catch (err) {
+                console.error('Excel export error:', err);
+                showToast('Export ล้มเหลว: ' + err.message, { type: 'error' });
+            } finally {
+                if (btn) { btn.disabled = false; btn.textContent = '📊 Export Excel'; }
+            }
+        });
     }
 
     // Print Functions
