@@ -1907,26 +1907,26 @@
                         <div class="form-group">
                             <label class="form-label">เวร Admit</label>
                             <div class="shift-btns" id="mrAdmitShiftBtns">
-                                <button type="button" class="shift-btn" data-val="เช้า" onclick="pickShift(this,'mrAdmitShift')">เช้า</button>
-                                <button type="button" class="shift-btn" data-val="บ่าย" onclick="pickShift(this,'mrAdmitShift')">บ่าย</button>
-                                <button type="button" class="shift-btn" data-val="ดึก" onclick="pickShift(this,'mrAdmitShift')">ดึก</button>
+                                <button type="button" class="shift-btn" data-val="เช้า" onclick="pickShift(this,'mrAdmitShift'); recomputeMRTimePass();">เช้า</button>
+                                <button type="button" class="shift-btn" data-val="บ่าย" onclick="pickShift(this,'mrAdmitShift'); recomputeMRTimePass();">บ่าย</button>
+                                <button type="button" class="shift-btn" data-val="ดึก" onclick="pickShift(this,'mrAdmitShift'); recomputeMRTimePass();">ดึก</button>
                             </div>
                             <input type="hidden" id="mrAdmitShift">
                         </div>
                         <div class="form-group">
-                            <label class="form-label">รพ.</label>
-                            <select class="form-select" id="mrHospital">
+                            <label class="form-label">รพ. (แหล่งรับยาเดิม)</label>
+                            <select class="form-select" id="mrHospital" onchange="recomputeMRTimePass()">
                                 <option>รพ.ห้วยผึ้ง</option>
                                 <option>รพ.อื่น</option>
                             </select>
                         </div>
                     </div>
 
-                    <!-- Row 2: MR status, ผู้ทำ, ประเภทยา -->
-                    <div class="form-row cols-3">
+                    <!-- Row 2: MR status, ผู้ทำ -->
+                    <div class="form-row cols-2">
                         <div class="form-group">
                             <label class="form-label">สถานะ MR</label>
-                            <select class="form-select" id="mrStatus">
+                            <select class="form-select" id="mrStatus" onchange="recomputeMRTimePass()">
                                 <option>มีรายการ MR</option>
                                 <option>ไม่พบรายการยาเดิม</option>
                                 <option>ไม่ได้ทำ MR</option>
@@ -1937,13 +1937,6 @@
                             <label class="form-label">ผู้ทำ MR</label>
                             <select class="form-select" id="mrPharmacist"></select>
                         </div>
-                        <div class="form-group">
-                            <label class="form-label">ประเภทยา</label>
-                            <select class="form-select" id="mrMedType">
-                                <option>ยานอก</option>
-                                <option>รพ.เดียว</option>
-                            </select>
-                        </div>
                     </div>
                 </div>
 
@@ -1952,14 +1945,14 @@
                     <div class="form-row cols-4">
                         <div class="form-group">
                             <label class="form-label">วันที่ MR เสร็จ</label>
-                            <input type="text" class="form-input date-input" id="mrDate">
+                            <input type="text" class="form-input date-input" id="mrDate" onchange="recomputeMRTimePass()" onblur="recomputeMRTimePass()">
                         </div>
                         <div class="form-group">
                             <label class="form-label">เวร MR</label>
                             <div class="shift-btns">
-                                <button type="button" class="shift-btn" data-val="เช้า" onclick="pickShift(this,'mrDoneShift')">เช้า</button>
-                                <button type="button" class="shift-btn" data-val="บ่าย" onclick="pickShift(this,'mrDoneShift')">บ่าย</button>
-                                <button type="button" class="shift-btn" data-val="ดึก" onclick="pickShift(this,'mrDoneShift')">ดึก</button>
+                                <button type="button" class="shift-btn" data-val="เช้า" onclick="pickShift(this,'mrDoneShift'); recomputeMRTimePass();">เช้า</button>
+                                <button type="button" class="shift-btn" data-val="บ่าย" onclick="pickShift(this,'mrDoneShift'); recomputeMRTimePass();">บ่าย</button>
+                                <button type="button" class="shift-btn" data-val="ดึก" onclick="pickShift(this,'mrDoneShift'); recomputeMRTimePass();">ดึก</button>
                             </div>
                             <input type="hidden" id="mrDoneShift">
                         </div>
@@ -1971,12 +1964,8 @@
                             </select>
                         </div>
                         <div class="form-group">
-                            <label class="form-label">ผ่านเกณฑ์เวลา</label>
-                            <select class="form-select" id="mrTimePass">
-                                <option>ผ่าน</option>
-                                <option>ไม่ผ่าน</option>
-                                <option>ผ่าน (ไม่พบยา)</option>
-                            </select>
+                            <label class="form-label">ผ่านเกณฑ์เวลา <span style="font-size:10px;color:#888;font-weight:normal;">(auto)</span></label>
+                            <input type="text" class="form-input" id="mrTimePass" readonly style="background:#f5f4f2; font-weight:600;" placeholder="— auto —">
                         </div>
                     </div>
                 </div>
@@ -2219,7 +2208,12 @@
                             </td>
                         </tr>
                         <tr>
-                            <td>อื่นๆ (free text)</td>
+                            <td>
+                                <div>อื่นๆ (free text)</div>
+                                <textarea id="counOtherText" class="form-textarea" rows="2"
+                                    placeholder="ระบุรายละเอียดการให้คำปรึกษา..."
+                                    style="margin-top: 6px; width: 100%; font-size: 13px;"></textarea>
+                            </td>
                             <td>
                                 <div class="counter-group">
                                     <button class="counter-btn" onclick="adjustPatientCounseling('other', -1)">−</button>
@@ -3358,6 +3352,8 @@
         document.getElementById('counEvohaler').textContent = (bundle.counEvohaler || 0);
         document.getElementById('counAccuhaler').textContent = (bundle.counAccuhaler || 0);
         document.getElementById('counOther').textContent = (bundle.counOther || 0);
+        let _ot = document.getElementById('counOtherText');
+        if (_ot) _ot.value = bundle.counOtherText || '';
     }
 
     function addNewPatient() {
@@ -3467,6 +3463,9 @@
             });
         }
 
+        // Ensure time-pass is up to date before saving
+        recomputeMRTimePass();
+
         let mrData = {
             hn: currentPatientHN,
             admitDate: document.getElementById('mrAdmitDate').value,
@@ -3480,7 +3479,6 @@
             timePass: document.getElementById('mrTimePass').value,
             mdDate: document.getElementById('mrMDDate').value,
             mdShift: document.getElementById('mrMDShift').value,
-            medType: document.getElementById('mrMedType').value,
             meds: meds
         };
 
@@ -3488,6 +3486,77 @@
             alert('บันทึก MR สำเร็จ');
             loadPatients();
         });
+    }
+
+    // ═══════════════════════════════════════════
+    //  Auto-calc ผ่านเกณฑ์เวลา
+    //  Rules:
+    //   - รพ.ห้วยผึ้ง → MR เสร็จภายในเวร admit (same date + same shift)
+    //   - รพ.อื่น    → MR เสร็จภายใน 24 ชม. (≤ 3 shifts from admit)
+    //   - status "ไม่พบรายการยาเดิม" → "ผ่าน (ไม่พบยา)"
+    //   - status "ไม่ได้ทำ MR" / "ติดตามไม่ได้" → "—"
+    // ═══════════════════════════════════════════
+    function _shiftIndex(dateStr, shift) {
+        // Convert (date, shift) to a monotonic integer (each +1 = +8h)
+        if (!dateStr || !shift) return null;
+        // parse date dd/mm/yyyy  (allow Buddhist year >2500 by subtracting 543)
+        let parts = String(dateStr).split('/');
+        if (parts.length !== 3) return null;
+        let d = parseInt(parts[0], 10),
+            m = parseInt(parts[1], 10) - 1,
+            y = parseInt(parts[2], 10);
+        if (isNaN(d) || isNaN(m) || isNaN(y)) return null;
+        if (y > 2400) y -= 543;
+        let dateObj = new Date(y, m, d);
+        let days = Math.round(dateObj.getTime() / 86400000);
+        let sMap = { 'ดึก': 0, 'เช้า': 1, 'บ่าย': 2 };
+        let s = sMap[shift];
+        if (s === undefined) return null;
+        return days * 3 + s;
+    }
+
+    function recomputeMRTimePass() {
+        let passEl = document.getElementById('mrTimePass');
+        if (!passEl) return;
+
+        let status     = document.getElementById('mrStatus').value;
+        let hospital   = document.getElementById('mrHospital').value;
+        let admitDate  = document.getElementById('mrAdmitDate').value;
+        let admitShift = document.getElementById('mrAdmitShift').value;
+        let mrDate     = document.getElementById('mrDate').value;
+        let doneShift  = document.getElementById('mrDoneShift').value;
+
+        // Special statuses bypass time check
+        if (status === 'ไม่พบรายการยาเดิม') {
+            passEl.value = 'ผ่าน (ไม่พบยา)';
+            passEl.style.color = '#4a7c59';
+            return;
+        }
+        if (status === 'ไม่ได้ทำ MR' || status === 'ติดตามไม่ได้') {
+            passEl.value = '—';
+            passEl.style.color = '#999';
+            return;
+        }
+
+        let aIdx = _shiftIndex(admitDate, admitShift);
+        let mIdx = _shiftIndex(mrDate, doneShift);
+        if (aIdx === null || mIdx === null) {
+            passEl.value = '';
+            passEl.style.color = '#999';
+            return;
+        }
+
+        let diff = mIdx - aIdx;
+        let pass = false;
+        if (hospital === 'รพ.ห้วยผึ้ง') {
+            // Must complete within the admit shift (diff = 0)
+            pass = (diff === 0);
+        } else {
+            // Within 24h = 3 shifts (allow diff 0..3)
+            pass = (diff >= 0 && diff <= 3);
+        }
+        passEl.value = pass ? 'ผ่าน' : 'ไม่ผ่าน';
+        passEl.style.color = pass ? '#4a7c59' : '#c0392b';
     }
 
     // Med Error & DRP
@@ -3993,6 +4062,7 @@
     function saveCounselingData() {
         if (!currentPatientHN) return;
 
+        let freeText = (document.getElementById('counOtherText').value || '').trim();
         let data = {
             hn: currentPatientHN,
             date: formatDate(new Date()),
@@ -4000,7 +4070,8 @@
             penfill: parseInt(document.getElementById('counPenfill').textContent || 0),
             evohaler: parseInt(document.getElementById('counEvohaler').textContent || 0),
             accuhaler: parseInt(document.getElementById('counAccuhaler').textContent || 0),
-            other: parseInt(document.getElementById('counOther').textContent || 0)
+            other: parseInt(document.getElementById('counOther').textContent || 0),
+            freeText: freeText
         };
 
         gasPost('saveCounseling', data, function() {
