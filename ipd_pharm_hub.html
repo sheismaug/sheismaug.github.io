@@ -1322,6 +1322,60 @@
             grid-template-columns: 1fr 1fr 1fr 1fr;
         }
 
+        /* ── MR Compact Layout ─────────────────────── */
+        .mr-compact-box {
+            padding: 12px 14px;
+            background: #f7f6f3;
+            border: 1px solid #e8e5e0;
+            border-radius: 10px;
+            margin-bottom: 12px;
+        }
+        .mr-compact-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px 14px;
+            align-items: flex-end;
+            margin-bottom: 8px;
+        }
+        .mr-compact-row:last-child { margin-bottom: 0; }
+        .mr-compact-row .form-group { margin-bottom: 0; flex: 0 0 auto; }
+        .mr-compact-row .form-label {
+            font-size: 10.5px;
+            margin-bottom: 3px;
+            color: #6b7280;
+            font-weight: 500;
+            text-transform: none;
+            letter-spacing: 0;
+        }
+        .mr-compact-row .form-input,
+        .mr-compact-row .form-select {
+            padding: 6px 10px;
+            font-size: 13px;
+            height: 32px;
+            line-height: 1.2;
+        }
+        .mr-compact-row .shift-btns { gap: 4px; }
+        .mr-compact-row .shift-btn {
+            padding: 5px 11px;
+            font-size: 12px;
+            height: 32px;
+            border-radius: 16px;
+        }
+        .mr-compact-row .date-input { width: 120px; }
+        .mr-compact-row .fg-status  { min-width: 150px; }
+        .mr-compact-row .fg-pharm   { min-width: 170px; flex: 1 1 170px; }
+        .mr-compact-row .fg-hosp    { min-width: 130px; }
+        .mr-compact-row .fg-qual    { min-width: 110px; }
+        .mr-compact-row .fg-tpass {
+            min-width: 120px;
+        }
+        .mr-compact-row .fg-tpass .form-input {
+            text-align: center;
+            font-weight: 600;
+            background: #ede9e3;
+            border-color: #d9d3c8;
+        }
+
         /* Timeline */
         .timeline {
             position: relative;
@@ -1897,9 +1951,10 @@
 
             <!-- Sub-Tab 1: MR -->
             <div class="subtab-content active" id="mr">
-                <!-- Row 1: Admit info -->
-                <div style="padding: 14px 16px; background: #f5f4f2; border-radius: 10px; margin-bottom: 12px;">
-                    <div class="form-row cols-3" style="margin-bottom: 10px;">
+                <!-- Compact header: 3 inline rows in 1 box -->
+                <div class="mr-compact-box">
+                    <!-- Row A: Admit info + patient context -->
+                    <div class="mr-compact-row">
                         <div class="form-group">
                             <label class="form-label">วันที่ Admit</label>
                             <input type="text" class="form-input date-input" id="mrAdmitDate" readonly>
@@ -1913,18 +1968,14 @@
                             </div>
                             <input type="hidden" id="mrAdmitShift">
                         </div>
-                        <div class="form-group">
-                            <label class="form-label">รพ. (แหล่งรับยาเดิม)</label>
+                        <div class="form-group fg-hosp">
+                            <label class="form-label">รพ. (แหล่งรับยา)</label>
                             <select class="form-select" id="mrHospital" onchange="recomputeMRTimePass()">
                                 <option>รพ.ห้วยผึ้ง</option>
                                 <option>รพ.อื่น</option>
                             </select>
                         </div>
-                    </div>
-
-                    <!-- Row 2: MR status, ผู้ทำ -->
-                    <div class="form-row cols-2">
-                        <div class="form-group">
+                        <div class="form-group fg-status">
                             <label class="form-label">สถานะ MR</label>
                             <select class="form-select" id="mrStatus" onchange="recomputeMRTimePass()">
                                 <option>มีรายการ MR</option>
@@ -1933,16 +1984,14 @@
                                 <option>ติดตามไม่ได้</option>
                             </select>
                         </div>
-                        <div class="form-group">
+                        <div class="form-group fg-pharm">
                             <label class="form-label">ผู้ทำ MR</label>
                             <select class="form-select" id="mrPharmacist"></select>
                         </div>
                     </div>
-                </div>
 
-                <!-- Row 3: MR completion (4 cols in 1 row) -->
-                <div style="padding: 14px 16px; background: white; border: 1px solid #e8e5e0; border-radius: 10px; margin-bottom: 12px;">
-                    <div class="form-row cols-4">
+                    <!-- Row B: MR completion -->
+                    <div class="mr-compact-row">
                         <div class="form-group">
                             <label class="form-label">วันที่ MR เสร็จ</label>
                             <input type="text" class="form-input date-input" id="mrDate" onchange="recomputeMRTimePass()" onblur="recomputeMRTimePass()">
@@ -1956,24 +2005,22 @@
                             </div>
                             <input type="hidden" id="mrDoneShift">
                         </div>
-                        <div class="form-group">
+                        <div class="form-group fg-qual">
                             <label class="form-label">คุณภาพ MR</label>
                             <select class="form-select" id="mrQuality">
                                 <option>ครบถ้วน</option>
                                 <option>ไม่ครบ</option>
                             </select>
                         </div>
-                        <div class="form-group">
+                        <div class="form-group fg-tpass">
                             <label class="form-label">ผ่านเกณฑ์เวลา <span style="font-size:10px;color:#888;font-weight:normal;">(auto)</span></label>
-                            <input type="text" class="form-input" id="mrTimePass" readonly style="background:#f5f4f2; font-weight:600;" placeholder="— auto —">
+                            <input type="text" class="form-input" id="mrTimePass" readonly placeholder="— auto —">
                         </div>
                     </div>
-                </div>
 
-                <!-- Row 4: MD Review -->
-                <div style="padding: 14px 16px; background: white; border: 1px solid #e8e5e0; border-radius: 10px; margin-bottom: 12px;">
-                    <div class="form-row">
-                        <div class="form-group" style="flex:1;">
+                    <!-- Row C: MD Review -->
+                    <div class="mr-compact-row">
+                        <div class="form-group">
                             <label class="form-label">วันที่ MD Review</label>
                             <input type="text" class="form-input date-input" id="mrMDDate">
                         </div>
