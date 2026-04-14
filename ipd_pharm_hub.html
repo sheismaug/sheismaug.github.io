@@ -1024,6 +1024,10 @@
             grid-template-columns: 1fr 1fr 1fr;
         }
 
+        .form-row.cols-4 {
+            grid-template-columns: 1fr 1fr 1fr 1fr;
+        }
+
         /* Timeline */
         .timeline {
             position: relative;
@@ -1213,7 +1217,7 @@
         /* Responsive */
         @media (max-width: 768px) {
             .grid-2, .grid-4 { grid-template-columns: 1fr; }
-            .form-row, .form-row.cols-3 { grid-template-columns: 1fr; }
+            .form-row, .form-row.cols-3, .form-row.cols-4 { grid-template-columns: 1fr; }
             .modal-panel { width: 100%; max-width: none; }
             .dashboard-grid { grid-template-columns: 1fr; }
         }
@@ -1537,9 +1541,9 @@
                         </div>
                     </div>
 
-                    <!-- Row 2: MR status & pharmacist -->
-                    <div class="form-row">
-                        <div class="form-group" style="flex:1;">
+                    <!-- Row 2: MR status, ผู้ทำ, ประเภทยา -->
+                    <div class="form-row cols-3">
+                        <div class="form-group">
                             <label class="form-label">สถานะ MR</label>
                             <select class="form-select" id="mrStatus">
                                 <option>มีรายการ MR</option>
@@ -1552,13 +1556,20 @@
                             <label class="form-label">ผู้ทำ MR</label>
                             <select class="form-select" id="mrPharmacist"></select>
                         </div>
+                        <div class="form-group">
+                            <label class="form-label">ประเภทยา</label>
+                            <select class="form-select" id="mrMedType">
+                                <option>ยานอก</option>
+                                <option>รพ.เดียว</option>
+                            </select>
+                        </div>
                     </div>
                 </div>
 
-                <!-- Row 3: MR completion -->
+                <!-- Row 3: MR completion (4 cols in 1 row) -->
                 <div style="padding: 14px 16px; background: white; border: 1px solid #e8e5e0; border-radius: 10px; margin-bottom: 12px;">
-                    <div class="form-row">
-                        <div class="form-group" style="flex:1;">
+                    <div class="form-row cols-4">
+                        <div class="form-group">
                             <label class="form-label">วันที่ MR เสร็จ</label>
                             <input type="text" class="form-input date-input" id="mrDate">
                         </div>
@@ -1571,16 +1582,14 @@
                             </div>
                             <input type="hidden" id="mrDoneShift">
                         </div>
-                    </div>
-                    <div class="form-row" style="margin-top: 8px;">
-                        <div class="form-group" style="flex:1;">
+                        <div class="form-group">
                             <label class="form-label">คุณภาพ MR</label>
                             <select class="form-select" id="mrQuality">
                                 <option>ครบถ้วน</option>
                                 <option>ไม่ครบ</option>
                             </select>
                         </div>
-                        <div class="form-group" style="flex:1;">
+                        <div class="form-group">
                             <label class="form-label">ผ่านเกณฑ์เวลา</label>
                             <select class="form-select" id="mrTimePass">
                                 <option>ผ่าน</option>
@@ -1613,15 +1622,6 @@
 
                 <!-- Row 5: Home Med paste area -->
                 <div style="padding: 14px 16px; background: white; border: 1px solid #e8e5e0; border-radius: 10px; margin-bottom: 12px;">
-                    <div class="form-row" style="margin-bottom: 8px;">
-                        <div class="form-group" style="flex:1;">
-                            <label class="form-label">ประเภทยา</label>
-                            <select class="form-select" id="mrMedType">
-                                <option>ยานอก</option>
-                                <option>รพ.เดียว</option>
-                            </select>
-                        </div>
-                    </div>
                     <div class="form-group">
                         <label class="form-label">Paste Home Med (tab-separated)</label>
                         <textarea class="form-textarea" id="mrPaste" placeholder="med_name&#9;sig&#9;qty&#9;date"></textarea>
