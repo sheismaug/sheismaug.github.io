@@ -1909,10 +1909,10 @@
     <div class="pin-box">
         <h2>PIN ล็อค</h2>
         <div class="pin-inputs">
-            <input type="password" class="pin-input" maxlength="1" id="pin0" autocomplete="new-password" inputmode="numeric">
-            <input type="password" class="pin-input" maxlength="1" id="pin1" autocomplete="new-password" inputmode="numeric">
-            <input type="password" class="pin-input" maxlength="1" id="pin2" autocomplete="new-password" inputmode="numeric">
-            <input type="password" class="pin-input" maxlength="1" id="pin3" autocomplete="new-password" inputmode="numeric">
+            <input type="tel" class="pin-input" maxlength="1" id="pin0" autocomplete="off" inputmode="numeric" pattern="[0-9]*" oninput="pinOnInput(this,0)" onkeydown="pinOnKeydown(event,0)" onfocus="this.select()">
+            <input type="tel" class="pin-input" maxlength="1" id="pin1" autocomplete="off" inputmode="numeric" pattern="[0-9]*" oninput="pinOnInput(this,1)" onkeydown="pinOnKeydown(event,1)" onfocus="this.select()">
+            <input type="tel" class="pin-input" maxlength="1" id="pin2" autocomplete="off" inputmode="numeric" pattern="[0-9]*" oninput="pinOnInput(this,2)" onkeydown="pinOnKeydown(event,2)" onfocus="this.select()">
+            <input type="tel" class="pin-input" maxlength="1" id="pin3" autocomplete="off" inputmode="numeric" pattern="[0-9]*" oninput="pinOnInput(this,3)" onkeydown="pinOnKeydown(event,3)" onfocus="this.select()">
         </div>
         <div class="pin-numpad">
             <button type="button" class="pin-btn" onclick="pinType('1')">1</button>
@@ -2542,21 +2542,6 @@
             let first = document.getElementById('pin0');
             if (first) first.focus();
         }, 100);
-        // รับคีย์บอร์ด: เลข 0-9 + Backspace (ทำงานเฉพาะตอน PIN overlay เปิดอยู่)
-        if (!window._pinKeyBound) {
-            document.addEventListener('keydown', function(e) {
-                let overlay = document.getElementById('pinOverlay');
-                if (!overlay || overlay.style.display === 'none') return;
-                if (/^[0-9]$/.test(e.key)) {
-                    e.preventDefault();
-                    pinType(e.key);
-                } else if (e.key === 'Backspace') {
-                    e.preventDefault();
-                    pinBackspace();
-                }
-            });
-            window._pinKeyBound = true;
-        }
     }
 
     function pinType(digit) {
@@ -2568,6 +2553,39 @@
                 checkPINComplete();
                 return;
             }
+        }
+    }
+
+    // รับการพิมพ์โดยตรงในช่อง PIN (OTP-style)
+    function pinOnInput(el, idx) {
+        // กรองให้เหลือเฉพาะตัวเลข
+        let v = (el.value || '').replace(/\D/g, '');
+        el.value = v.slice(0, 1);
+        if (el.value) {
+            // พิมพ์แล้ว → เลื่อนไปช่องถัดไป
+            if (idx < 3) {
+                let next = document.getElementById('pin' + (idx + 1));
+                if (next) next.focus();
+            }
+            checkPINComplete();
+        }
+    }
+
+    function pinOnKeydown(e, idx) {
+        // Backspace ในช่องว่าง → ย้อนไปช่องก่อนหน้า
+        if (e.key === 'Backspace' && !e.target.value && idx > 0) {
+            e.preventDefault();
+            let prev = document.getElementById('pin' + (idx - 1));
+            if (prev) { prev.focus(); prev.value = ''; }
+        }
+        // Arrow left/right ไปช่องก่อนหน้า/ถัดไป
+        if (e.key === 'ArrowLeft' && idx > 0) {
+            e.preventDefault();
+            document.getElementById('pin' + (idx - 1)).focus();
+        }
+        if (e.key === 'ArrowRight' && idx < 3) {
+            e.preventDefault();
+            document.getElementById('pin' + (idx + 1)).focus();
         }
     }
 
