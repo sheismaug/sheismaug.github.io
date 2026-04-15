@@ -9,6 +9,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Google+Sans:wght@400;500;700&family=Google+Sans+Display:wght@700&family=Noto+Sans+Thai:wght@400;500;700&display=swap" rel="stylesheet">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <style>
         * {
             margin: 0;
@@ -2272,7 +2273,7 @@
                 <div id="hadEmpty" style="padding: 24px; text-align: center; color: #999;">
                     ไม่มียา HAD
                 </div>
-                <button class="btn btn-primary" style="margin-top: 16px; width: 100%; display: none;" id="hadSaveBtn" onclick="saveHADData()">บันทึก HAD</button>
+                <button class="btn btn-primary" style="margin-top: 16px; width: 100%;" id="hadSaveBtn" onclick="saveHADData()">บันทึก HAD</button>
             </div>
 
             <!-- Sub-Tab 4: Counseling -->
@@ -3241,6 +3242,124 @@
                 }
             }
         }, 150);
+    }
+
+    // ── HAD card export/print ──
+    function exportHADCard(cardId, drugName) {
+        var el = document.getElementById(cardId);
+        if (!el) { showToast('ไม่พบการ์ด', { type: 'error' }); return; }
+        if (typeof html2canvas !== 'function') { showToast('รอ html2canvas โหลด… ลองใหม่อีกครั้ง', { type: 'error' }); return; }
+        html2canvas(el, { backgroundColor: '#ffffff', scale: 2 }).then(function(canvas) {
+            var link = document.createElement('a');
+            link.download = 'HAD_' + (drugName || 'card').replace(/[^\w\u0E00-\u0E7F-]+/g, '_') + '_' + new Date().toISOString().slice(0,10) + '.png';
+            link.href = canvas.toDataURL('image/png');
+            link.click();
+        }).catch(function(err) {
+            showToast('Export ไม่สำเร็จ: ' + err.message, { type: 'error' });
+        });
+    }
+
+    function printHADCard(cardId, drugName) {
+        var el = document.getElementById(cardId);
+        if (!el) { showToast('ไม่พบการ์ด', { type: 'error' }); return; }
+        var w = window.open('', '_blank', 'width=900,height=700');
+        if (!w) { showToast('เปิดหน้าต่างพิมพ์ไม่ได้ (popup blocked)', { type: 'error' }); return; }
+        w.document.write('<html><head><title>' + (drugName || 'HAD') + '</title>');
+        w.document.write('<style>body{font-family:"Google Sans","Noto Sans Thai",sans-serif;margin:20px;}</style>');
+        w.document.write('</head><body>' + el.outerHTML + '</body></html>');
+        w.document.close();
+        w.focus();
+        setTimeout(function(){ w.print(); }, 300);
+    }
+
+    // ประเมินค่า lab ที่กรอก → ปรับ status badge (ปกติ/สูง/ต่ำ)
+    function hadEvalLab(key, labKey) {
+        var input = document.getElementById('hadMonLab-' + key + '-' + labKey);
+        var status = document.getElementById('hadMonStatus-' + key + '-' + labKey);
+        if (!input || !status) return;
+        var v = input.value;
+        if (v === '' || v == null) {
+            status.textContent = 'รอกรอก';
+            status.className = 'had-mon-status pending';
+            return;
+        }
+        // หา lab config จาก HAD_DRUGS เพื่อ eval range
+        var d = (typeof HAD_DRUGS === 'object' && HAD_DRUGS) ? HAD_DRUGS[key] : null;
+        if (!d || !d.labs) { status.textContent = v; status.className = 'had-mon-status ok'; return; }
+        var lab = null;
+        for (var i = 0; i < d.labs.length; i++) { if (d.labs[i].key === labKey) { lab = d.labs[i]; break; } }
+        if (!lab) { status.textContent = v; status.className = 'had-mon-status ok'; return; }
+        var num = parseFloat(v);
+        var lo = lab.low != null ? parseFloat(lab.low) : null;
+        var hi = lab.high != null ? parseFloat(lab.high) : null;
+        if (lo != null && num < lo)       { status.textContent = 'ต่ำ'; status.className = 'had-mon-status low'; }
+        else if (hi != null && num > hi)  { status.textContent = 'สูง'; status.className = 'had-mon-status high'; }
+        else                               { status.textContent = 'ปกติ'; status.className = 'had-mon-status ok'; }
+    }
+
+    // บันทึก HAD monitoring (labs + vital/clinical) ของ drug ที่เปิด tab อยู่
+    // รองรับการกรอกย้อนหลังผ่านฟิลด์ hadMonDate-<key>
+    function saveHADData() {
+        if (!currentPatientHN) { showToast('ไม่พบ HN', { type: 'error' }); return; }
+        // เก็บทุก drug ที่มีการกรอกข้อมูล (ไม่ใช่แค่ active tab)
+        var drugCards = document.querySelectorAll('.had-mon-card');
+        var payloads = [];
+        for (var i = 0; i < drugCards.length; i++) {
+            var card = drugCards[i];
+            var keyMatch = card.id.match(/^hadMon-(.+)$/);
+            if (!keyMatch) continue;
+            var key = keyMatch[1];
+            // labs
+            var labs = {};
+            var labInputs = card.querySelectorAll('input[id^="hadMonLab-' + key + '-"]');
+            var hasLab = false;
+            for (var j = 0; j < labInputs.length; j++) {
+                var v = labInputs[j].value;
+                if (v !== '' && v != null) {
+                    var labKey = labInputs[j].id.replace('hadMonLab-' + key + '-', '');
+                    labs[labKey] = v;
+                    hasLab = true;
+                }
+            }
+            // vitals
+            var vitals = [];
+            var vChks = card.querySelectorAll('[data-had-vitals] input[type="checkbox"]');
+            for (var v2 = 0; v2 < vChks.length; v2++) {
+                if (vChks[v2].checked) vitals.push(vChks[v2].getAttribute('data-vital'));
+            }
+            // clinical
+            var clinical = [];
+            var cChks = card.querySelectorAll('[data-had-clinical] input[type="checkbox"]');
+            for (var c2 = 0; c2 < cChks.length; c2++) {
+                if (cChks[c2].checked) clinical.push(cChks[c2].getAttribute('data-clinical'));
+            }
+            // date (อนุญาตย้อนหลัง)
+            var dateEl = document.getElementById('hadMonDate-' + key);
+            var dateVal = dateEl ? dateEl.value : new Date().toISOString().slice(0,10);
+            if (!hasLab && !vitals.length && !clinical.length) continue;
+            payloads.push({
+                hn: currentPatientHN,
+                date: dateVal,
+                drugKey: key,
+                checks: { labs: labs, vitals: vitals, clinical: clinical },
+                notes: '',
+            });
+        }
+        if (!payloads.length) {
+            showToast('ยังไม่มีข้อมูลให้บันทึก — กรอก lab หรือเช็ค vital/clinical ก่อน', { type: 'error' });
+            return;
+        }
+        var remaining = payloads.length;
+        var _hn = currentPatientHN;
+        for (var p = 0; p < payloads.length; p++) {
+            gasPost('saveHADRound', payloads[p], function() {
+                remaining--;
+                if (remaining === 0) {
+                    showToast('บันทึก HAD แล้ว (' + payloads.length + ' รายการ)', { type: 'success' });
+                    try { localStorage.removeItem('ipd_bundle_' + _hn); } catch(e) {}
+                }
+            });
+        }
     }
 
     function openHADLabForm(hn) {
@@ -4441,6 +4560,10 @@
             let monHtml = '<div class="had-mon-card" id="' + monId + '">';
             monHtml += '<div class="had-mon-head"><div class="had-mon-title">📊 Monitoring — ' + d.name + '</div>';
             monHtml += '<div class="had-mon-freq" id="hadMonFreq-' + key + '">⏱ ' + (d.freq || 'ตาม order') + '</div></div>';
+            // วันที่ round — กรอกย้อนหลังได้
+            monHtml += '<div class="had-mon-row" style="margin-bottom:8px;"><label>วันที่ round</label>';
+            monHtml += '<input type="date" id="hadMonDate-' + key + '" value="' + new Date().toISOString().slice(0,10) + '" max="' + new Date().toISOString().slice(0,10) + '" style="padding:4px 8px;border:1px solid #d8d5d0;border-radius:6px;">';
+            monHtml += '<span class="had-mon-range">กรอกย้อนหลังได้</span></div>';
 
             if (d.labs && d.labs.length) {
                 monHtml += '<div class="had-mon-section-title">Lab</div>';
@@ -4456,17 +4579,17 @@
             }
             // Vital checkboxes
             if (d.vitals && d.vitals.length) {
-                monHtml += '<div class="had-mon-section-title">Vital</div><div class="had-mon-checklist">';
+                monHtml += '<div class="had-mon-section-title">Vital</div><div class="had-mon-checklist" data-had-vitals="' + key + '">';
                 for (let v = 0; v < d.vitals.length; v++) {
-                    monHtml += '<label><input type="checkbox"> ' + d.vitals[v] + '</label>';
+                    monHtml += '<label><input type="checkbox" data-vital="' + d.vitals[v] + '"> ' + d.vitals[v] + '</label>';
                 }
                 monHtml += '</div>';
             }
             // Clinical checkboxes
             if (d.clinical && d.clinical.length) {
-                monHtml += '<div class="had-mon-section-title">Clinical</div><div class="had-mon-checklist">';
+                monHtml += '<div class="had-mon-section-title">Clinical</div><div class="had-mon-checklist" data-had-clinical="' + key + '">';
                 for (let c = 0; c < d.clinical.length; c++) {
-                    monHtml += '<label><input type="checkbox"> ' + d.clinical[c] + '</label>';
+                    monHtml += '<label><input type="checkbox" data-clinical="' + d.clinical[c] + '"> ' + d.clinical[c] + '</label>';
                 }
                 monHtml += '</div>';
             }
