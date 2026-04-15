@@ -1915,17 +1915,17 @@
             <input type="password" class="pin-input" maxlength="1" id="pin3" autocomplete="new-password" inputmode="numeric">
         </div>
         <div class="pin-numpad">
-            <button class="pin-btn" onclick="pinType('1')">1</button>
-            <button class="pin-btn" onclick="pinType('2')">2</button>
-            <button class="pin-btn" onclick="pinType('3')">3</button>
-            <button class="pin-btn" onclick="pinType('4')">4</button>
-            <button class="pin-btn" onclick="pinType('5')">5</button>
-            <button class="pin-btn" onclick="pinType('6')">6</button>
-            <button class="pin-btn" onclick="pinType('7')">7</button>
-            <button class="pin-btn" onclick="pinType('8')">8</button>
-            <button class="pin-btn" onclick="pinType('9')">9</button>
-            <button class="pin-btn" style="grid-column: 2;" onclick="pinType('0')">0</button>
-            <button class="pin-btn" onclick="pinBackspace()">←</button>
+            <button type="button" class="pin-btn" onclick="pinType('1')">1</button>
+            <button type="button" class="pin-btn" onclick="pinType('2')">2</button>
+            <button type="button" class="pin-btn" onclick="pinType('3')">3</button>
+            <button type="button" class="pin-btn" onclick="pinType('4')">4</button>
+            <button type="button" class="pin-btn" onclick="pinType('5')">5</button>
+            <button type="button" class="pin-btn" onclick="pinType('6')">6</button>
+            <button type="button" class="pin-btn" onclick="pinType('7')">7</button>
+            <button type="button" class="pin-btn" onclick="pinType('8')">8</button>
+            <button type="button" class="pin-btn" onclick="pinType('9')">9</button>
+            <button type="button" class="pin-btn" style="grid-column: 2;" onclick="pinType('0')">0</button>
+            <button type="button" class="pin-btn" onclick="pinBackspace()">←</button>
         </div>
     </div>
 </div>
@@ -2535,6 +2535,27 @@
         let pinSaved = sessionStorage.getItem('pinValid');
         if (pinSaved === 'true') {
             document.getElementById('pinOverlay').style.display = 'none';
+            return;
+        }
+        // focus ช่องแรกเพื่อให้ใช้คีย์บอร์ดพิมพ์ได้เลย
+        setTimeout(function() {
+            let first = document.getElementById('pin0');
+            if (first) first.focus();
+        }, 100);
+        // รับคีย์บอร์ด: เลข 0-9 + Backspace (ทำงานเฉพาะตอน PIN overlay เปิดอยู่)
+        if (!window._pinKeyBound) {
+            document.addEventListener('keydown', function(e) {
+                let overlay = document.getElementById('pinOverlay');
+                if (!overlay || overlay.style.display === 'none') return;
+                if (/^[0-9]$/.test(e.key)) {
+                    e.preventDefault();
+                    pinType(e.key);
+                } else if (e.key === 'Backspace') {
+                    e.preventDefault();
+                    pinBackspace();
+                }
+            });
+            window._pinKeyBound = true;
         }
     }
 
