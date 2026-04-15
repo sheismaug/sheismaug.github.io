@@ -2347,20 +2347,26 @@
 
             <!-- Sub-Tab 5: D/C Sheet -->
             <div class="subtab-content" id="dc-sheet">
-                <h4 style="margin-bottom: 12px; color: #2e3f58;">Home Med List</h4>
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
+                    <h4 style="color:#2e3f58;">รายการยา D/C</h4>
+                    <button type="button" class="btn btn-accent" style="font-size:12px;padding:6px 14px;" onclick="dcAddMed()">+ เพิ่มยา</button>
+                </div>
+                <p style="font-size:12px;color:#666;margin-bottom:8px;">
+                    เลือกสถานะแต่ละรายการ: <b>ใช้ต่อ</b> · <b>ปรับ</b> (แก้ไขช่อง Sig) · <b>หยุด</b> · <b>ใหม่</b> (เพิ่มเข้ามา)
+                </p>
                 <table class="editable-table">
                     <thead>
                         <tr>
-                            <th>Med Name</th>
-                            <th>Sig</th>
-                            <th>Changed</th>
+                            <th style="width:28%;">ชื่อยา</th>
+                            <th style="width:30%;">Sig ใหม่</th>
+                            <th style="width:14%;">จำนวน</th>
+                            <th style="width:14%;">สถานะ</th>
+                            <th style="width:10%;">เหตุผล</th>
+                            <th style="width:40px;"></th>
                         </tr>
                     </thead>
                     <tbody id="dcMedTable"></tbody>
                 </table>
-
-                <h4 style="margin-top: 24px; margin-bottom: 12px; color: #2e3f58;">Changed Meds</h4>
-                <div id="dcChangedMeds"></div>
 
                 <div style="display: flex; gap: 8px; margin-top: 16px;">
                     <button class="btn btn-primary" style="flex: 1;" onclick="saveDCData()">บันทึก D/C</button>
@@ -3546,6 +3552,7 @@
     function openPatientDetail(hn) {
         currentPatientHN = hn;
         detailPopulated = false;
+        dcMeds = [];  // reset D/C state for new patient
         let patient = null;
         for (let i = 0; i < allPatients.length; i++) {
             if (allPatients[i].hn === hn) {
@@ -3637,45 +3644,178 @@
     }
 
     // เติม dcMedTable เพื่อทวนรายการยาเดิมตอน D/C
+    // ── D/C Sheet state ──
+    let dcMeds = [];  // [{name, sig, origSig, qty, status, reason}]
+
     function renderDCMedTable() {
         let tbody = document.getElementById('dcMedTable');
         if (!tbody) return;
-        tbody.innerHTML = '';
-        let esc = function(s) { return String(s == null ? '' : s).replace(/"/g, '&quot;'); };
 
-        // ดึงรายการยาปัจจุบันจาก mrTable (เพราะเป็น source of truth ใน session)
-        let mrRows = document.querySelectorAll('#mrTable tr');
-        if (mrRows.length === 0) {
-            tbody.innerHTML = '<tr><td colspan="3" style="padding:16px; color:#888; text-align:center;">ยังไม่มีรายการยาเดิม — บันทึก MR ก่อนค่ะ</td></tr>';
+        // ครั้งแรก: seed dcMeds จาก mrTable (home meds เดิม)
+        if (!dcMeds.length) {
+            let mrRows = document.querySelectorAll('#mrTable tr');
+            for (let i = 0; i < mrRows.length; i++) {
+                let inputs = mrRows[i].querySelectorAll('input');
+                let name = inputs[0] ? inputs[0].value : '';
+                let sig  = inputs[1] ? inputs[1].value : '';
+                let qty  = inputs[2] ? inputs[2].value : '';
+                if (!name.trim()) continue;
+                dcMeds.push({ name: name, sig: sig, origSig: sig, qty: qty, status: 'continue', reason: '' });
+            }
+        }
+
+        tbody.innerHTML = '';
+        if (!dcMeds.length) {
+            tbody.innerHTML = '<tr><td colspan="6" style="padding:16px;color:#888;text-align:center;">ยังไม่มียา — กด "+ เพิ่มยา" เพื่อเริ่ม</td></tr>';
             return;
         }
-        for (let i = 0; i < mrRows.length; i++) {
-            let inputs = mrRows[i].querySelectorAll('input');
-            let name = inputs[0] ? inputs[0].value : '';
-            let sig  = inputs[1] ? inputs[1].value : '';
-            if (!name.trim()) continue;
+        let esc = function(s) { return String(s == null ? '' : s).replace(/"/g, '&quot;'); };
+        for (let i = 0; i < dcMeds.length; i++) {
+            let m = dcMeds[i];
+            let statusColor = m.status === 'stop' ? '#f8d7da'
+                           : m.status === 'new'  ? '#d4edda'
+                           : m.status === 'change' ? '#ffd79e'
+                           : '#f5f4f2';
+            let rowStyle = m.status === 'stop' ? 'text-decoration:line-through;color:#999;' : '';
             let row = document.createElement('tr');
+            row.style.cssText = rowStyle;
             row.innerHTML =
-                '<td style="padding:8px;">' + esc(name) + '</td>' +
-                '<td style="padding:8px;">' + esc(sig) + '</td>' +
-                '<td style="padding:8px;"><button type="button" class="btn btn-secondary" onclick="toggleDCChanged(this)" style="font-size:12px; padding:4px 10px;">ไม่เปลี่ยน</button></td>';
+                '<td style="padding:4px;"><input type="text" value="' + esc(m.name) + '" oninput="dcMeds[' + i + '].name=this.value" style="width:100%;border:1px solid #d8d5d0;border-radius:6px;padding:4px 6px;font-size:12px;"></td>' +
+                '<td style="padding:4px;"><input type="text" value="' + esc(m.sig) + '" oninput="dcMeds[' + i + '].sig=this.value" style="width:100%;border:1px solid #d8d5d0;border-radius:6px;padding:4px 6px;font-size:12px;"></td>' +
+                '<td style="padding:4px;"><input type="text" value="' + esc(m.qty) + '" oninput="dcMeds[' + i + '].qty=this.value" style="width:100%;border:1px solid #d8d5d0;border-radius:6px;padding:4px 6px;font-size:12px;"></td>' +
+                '<td style="padding:4px;">' +
+                    '<select onchange="dcSetStatus(' + i + ', this.value)" style="width:100%;padding:4px 6px;border:1px solid #d8d5d0;border-radius:6px;font-size:12px;background:' + statusColor + ';">' +
+                        '<option value="continue"' + (m.status === 'continue' ? ' selected' : '') + '>ใช้ต่อ</option>' +
+                        '<option value="change"' + (m.status === 'change' ? ' selected' : '') + '>ปรับ</option>' +
+                        '<option value="stop"' + (m.status === 'stop' ? ' selected' : '') + '>หยุด</option>' +
+                        '<option value="new"' + (m.status === 'new' ? ' selected' : '') + '>ใหม่</option>' +
+                    '</select>' +
+                '</td>' +
+                '<td style="padding:4px;"><input type="text" value="' + esc(m.reason) + '" placeholder="เหตุผล" oninput="dcMeds[' + i + '].reason=this.value" style="width:100%;border:1px solid #d8d5d0;border-radius:6px;padding:4px 6px;font-size:12px;"></td>' +
+                '<td style="padding:4px;text-align:center;"><button type="button" onclick="dcRemoveMed(' + i + ')" style="background:none;border:1px solid #e0a0a0;color:#c44;border-radius:6px;padding:2px 8px;cursor:pointer;font-size:14px;">×</button></td>';
             tbody.appendChild(row);
         }
     }
 
-    function toggleDCChanged(btn) {
-        let changed = btn.textContent.trim() === 'เปลี่ยนแปลง';
-        if (changed) {
-            btn.textContent = 'ไม่เปลี่ยน';
-            btn.className = 'btn btn-secondary';
-            btn.style.fontSize = '12px';
-            btn.style.padding = '4px 10px';
-        } else {
-            btn.textContent = 'เปลี่ยนแปลง';
-            btn.className = 'btn btn-accent';
-            btn.style.fontSize = '12px';
-            btn.style.padding = '4px 10px';
+    function dcAddMed() {
+        dcMeds.push({ name: '', sig: '', origSig: '', qty: '', status: 'new', reason: '' });
+        renderDCMedTable();
+    }
+
+    function dcRemoveMed(i) {
+        if (!confirm('ลบรายการนี้?')) return;
+        dcMeds.splice(i, 1);
+        renderDCMedTable();
+    }
+
+    function dcSetStatus(i, val) {
+        dcMeds[i].status = val;
+        renderDCMedTable();
+    }
+
+    function saveDCData() {
+        if (!currentPatientHN) { alert('ไม่พบ HN'); return; }
+        let payload = {
+            hn: currentPatientHN,
+            meds: dcMeds,
+            timestamp: new Date().toISOString(),
+        };
+        gasPost('saveDCChanges', payload, function(r) {
+            showToast('บันทึก D/C แล้ว', { type: 'success' });
+        });
+    }
+
+    function printDCSheet() {
+        let p = null;
+        for (let i = 0; i < allPatients.length; i++) {
+            if (String(allPatients[i].hn) === String(currentPatientHN)) { p = allPatients[i]; break; }
         }
+        if (!p) p = { hn: currentPatientHN || '', name: '', dx: '', admitDate: '' };
+
+        let cont = dcMeds.filter(function(m){ return m.status === 'continue'; });
+        let chg  = dcMeds.filter(function(m){ return m.status === 'change'; });
+        let nw   = dcMeds.filter(function(m){ return m.status === 'new'; });
+        let stp  = dcMeds.filter(function(m){ return m.status === 'stop'; });
+
+        let esc = function(s){ return String(s == null ? '' : s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); };
+        let todayStr = formatDate(new Date());
+
+        let makeRows = function(arr, cols) {
+            if (!arr.length) return '<tr><td colspan="' + cols + '" style="text-align:center;color:#999;padding:8px;">— ไม่มีรายการ —</td></tr>';
+            return arr.map(function(m, i){
+                if (cols === 5) {
+                    return '<tr><td class="no">' + (i+1) + '</td><td>' + esc(m.name) + '</td><td>' + esc(m.sig) + '</td><td class="qty">' + esc(m.qty) + '</td><td>' + esc(m.reason) + '</td></tr>';
+                }
+                if (cols === 'change') {
+                    return '<tr><td class="no">' + (i+1) + '</td><td>' + esc(m.name) + '</td><td>' + esc(m.origSig || '—') + '</td><td><b>' + esc(m.sig) + '</b></td><td>' + esc(m.reason) + '</td></tr>';
+                }
+                if (cols === 'stop') {
+                    return '<tr class="stopped"><td class="no">' + (i+1) + '</td><td>' + esc(m.name) + '</td><td>' + esc(m.sig) + '</td><td style="text-decoration:none;color:#1a1a1a;">' + esc(m.reason) + '</td></tr>';
+                }
+                return '';
+            }).join('');
+        };
+
+        let html = '<!DOCTYPE html><html lang="th"><head><meta charset="UTF-8"><title>D/C — ' + esc(p.name) + '</title>' +
+            '<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Thai:wght@400;500;600;700&display=swap" rel="stylesheet">' +
+            '<style>' +
+            'body{font-family:\'Google Sans\',\'Noto Sans Thai\',sans-serif;margin:0;padding:16mm 14mm;color:#1a1a1a;font-size:12px;}' +
+            '.hd{display:flex;align-items:center;gap:16px;border-bottom:2px solid #2e3f58;padding-bottom:10px;}' +
+            '.hd img{width:70px;height:70px;border-radius:50%;object-fit:cover;background:#f5f4f2;}' +
+            '.hd .title{font-size:20px;font-weight:700;color:#2e3f58;}' +
+            '.hd .sub{font-size:13px;color:#555;margin-top:2px;}' +
+            '.hd .dept{font-size:12px;color:#777;}' +
+            '.hd-doc{text-align:right;font-size:11px;color:#666;margin-left:auto;}' +
+            '.doc-title{text-align:center;font-size:16px;font-weight:600;color:#2e3f58;margin:16px 0 8px;}' +
+            '.pt{display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px 20px;margin-top:14px;}' +
+            '.pt .f{border-bottom:1px dotted #aaa;padding:4px 2px;} .pt .f b{color:#555;font-weight:500;margin-right:6px;}' +
+            '.sec{margin-top:14px;} .sec h3{font-size:13px;font-weight:600;color:#2e3f58;margin:0 0 6px;padding:4px 8px;background:#e4eef8;border-left:3px solid #2e3f58;}' +
+            'table{width:100%;border-collapse:collapse;font-size:11.5px;} th,td{border:.5px solid #888;padding:6px 7px;vertical-align:top;}' +
+            'th{background:#f5f4f2;font-weight:600;color:#2e3f58;text-align:left;} .no{text-align:center;width:28px;} .qty{text-align:center;width:60px;}' +
+            'tr.stopped td{text-decoration:line-through;color:#999;}' +
+            '.sign{display:grid;grid-template-columns:1fr 1fr;gap:24px;margin-top:30px;font-size:12px;}' +
+            '.sign .box{border-top:1px dotted #888;padding-top:4px;text-align:center;}' +
+            '.ft{margin-top:16px;font-size:10px;color:#888;text-align:center;border-top:.5px solid #ccc;padding-top:6px;}' +
+            '@media print{.noprint{display:none;}}' +
+            '</style></head><body>' +
+            '<div class="noprint" style="text-align:right;margin-bottom:8px;"><button onclick="window.print()" style="padding:8px 18px;background:#2e3f58;color:white;border:none;border-radius:9999px;font-weight:500;cursor:pointer;">🖨️ พิมพ์</button></div>' +
+            '<div class="hd">' +
+                '<img src="hospital_logo.png" onerror="this.style.background=\'#f5f4f2\';this.style.border=\'1px dashed #aaa\';">' +
+                '<div><div class="title">โรงพยาบาลห้วยผึ้ง</div>' +
+                    '<div class="dept">กลุ่มงานเภสัชกรรม · งานบริบาลผู้ป่วยใน</div></div>' +
+                '<div class="hd-doc">F-PHA-DC-001<br>พิมพ์ ' + esc(todayStr) + '</div>' +
+            '</div>' +
+            '<div class="doc-title">แบบฟอร์มรายการยากลับบ้าน · Discharge Medication Reconciliation</div>' +
+            '<div class="pt">' +
+                '<div class="f"><b>ชื่อ-สกุล</b> ' + esc(p.name) + '</div>' +
+                '<div class="f"><b>HN</b> ' + esc(p.hn) + '</div>' +
+                '<div class="f"><b>วันที่ D/C</b> ' + esc(todayStr) + '</div>' +
+                '<div class="f" style="grid-column:1/3;"><b>Dx</b> ' + esc(p.dx || '—') + '</div>' +
+                '<div class="f"><b>Admit</b> ' + esc(p.admitDate || '—') + '</div>' +
+            '</div>' +
+            '<div class="sec"><h3>1. ยาเดิมที่ใช้ต่อ (Continue)</h3>' +
+                '<table><thead><tr><th class="no">#</th><th>ชื่อยา</th><th>วิธีใช้</th><th class="qty">จำนวน</th><th>หมายเหตุ</th></tr></thead>' +
+                '<tbody>' + makeRows(cont, 5) + '</tbody></table></div>' +
+            '<div class="sec"><h3>2. ยาที่ปรับขนาด/วิธีใช้ (Changed)</h3>' +
+                '<table><thead><tr><th class="no">#</th><th>ชื่อยา</th><th>เดิม</th><th>ใหม่</th><th>เหตุผล</th></tr></thead>' +
+                '<tbody>' + makeRows(chg, 'change') + '</tbody></table></div>' +
+            '<div class="sec"><h3>3. ยาใหม่ที่เริ่มใช้ (New)</h3>' +
+                '<table><thead><tr><th class="no">#</th><th>ชื่อยา</th><th>วิธีใช้</th><th class="qty">จำนวน</th><th>เหตุผล</th></tr></thead>' +
+                '<tbody>' + makeRows(nw, 5) + '</tbody></table></div>' +
+            '<div class="sec"><h3>4. ยาที่หยุดใช้ (Discontinued)</h3>' +
+                '<table><thead><tr><th class="no">#</th><th>ชื่อยา</th><th>วิธีใช้เดิม</th><th>เหตุผลที่หยุด</th></tr></thead>' +
+                '<tbody>' + makeRows(stp, 'stop') + '</tbody></table></div>' +
+            '<div class="sign">' +
+                '<div class="box">(...........................................)<br>เภสัชกรผู้จ่ายยา<br><span style="font-size:11px;color:#666;">วันที่ ........../........../..........</span></div>' +
+                '<div class="box">(...........................................)<br>ผู้ป่วย / ญาติผู้รับยา<br><span style="font-size:11px;color:#666;">วันที่ ........../........../..........</span></div>' +
+            '</div>' +
+            '<div class="ft">IPD Pharm Hub · รพ.ห้วยผึ้ง · เอกสารนี้พิมพ์อัตโนมัติจากระบบ</div>' +
+            '</body></html>';
+
+        let w = window.open('', '_blank');
+        if (!w) { alert('เบราว์เซอร์บล็อก popup — อนุญาตแล้วลองใหม่'); return; }
+        w.document.write(html);
+        w.document.close();
     }
 
     function addNewPatient() {
