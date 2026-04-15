@@ -3571,6 +3571,13 @@
         currentPatientHN = hn;
         detailPopulated = false;
         dcMeds = [];  // reset D/C state for new patient
+        // Clear previous patient's data from all tabs immediately
+        var _mrTbl = document.getElementById('mrTable');
+        if (_mrTbl) _mrTbl.innerHTML = '';
+        var _dcTbl = document.getElementById('dcMedTable');
+        if (_dcTbl) _dcTbl.innerHTML = '';
+        var _paste = document.getElementById('homeMedPaste');
+        if (_paste) _paste.value = '';
         let patient = null;
         for (let i = 0; i < allPatients.length; i++) {
             if (allPatients[i].hn === hn) {
