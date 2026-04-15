@@ -3619,11 +3619,17 @@
         gasGet('getBundle', { hn: hn }, function(data) {
             currentBundle = data || {};
             localStorage.setItem('ipd_bundle_' + hn, JSON.stringify(currentBundle));
-            // populate เฉพาะถ้ายังไม่เคย populate (ไม่มี cache)
-            // ถ้า populate ไปแล้ว → ไม่ reset ทับ เพราะ user อาจแก้ไขข้อมูลอยู่
             if (!detailPopulated) {
                 populateDetailPanel(patient, currentBundle);
                 detailPopulated = true;
+            } else {
+                // refresh เฉพาะส่วนที่แสดงข้อมูลที่บันทึกแล้ว (read-only displays)
+                // ไม่แตะ form fields ที่ user อาจกำลังพิมพ์อยู่
+                renderMRTableFromHomeMeds(currentBundle.homeMeds || []);
+                renderRoundLog(currentBundle.medErrors || []);
+                dcMeds = [];  // ให้ re-seed จาก fresh bundle เมื่อเปิด tab D/C
+                let _dcTbl = document.getElementById('dcMedTable');
+                if (_dcTbl) _dcTbl.innerHTML = '';
             }
         });
     }
@@ -3663,6 +3669,9 @@
 
         // Home med list (MR table) — โหลดรายการยาเดิมที่เคยบันทึกไว้มาแสดง
         renderMRTableFromHomeMeds(bundle.homeMeds || []);
+
+        // DRP / Round Log — แสดงประวัติที่เคยบันทึก
+        renderRoundLog(bundle.medErrors || []);
     }
 
     // เติม mrTable จากข้อมูล HomeMeds ที่ดึงมาจาก GAS
@@ -3691,16 +3700,38 @@
         let tbody = document.getElementById('dcMedTable');
         if (!tbody) return;
 
-        // ครั้งแรก: seed dcMeds จาก mrTable (home meds เดิม)
+        // ครั้งแรก: seed dcMeds — ถ้าเคยบันทึก D/C ไว้ ใช้ของเดิมก่อน, ไม่งั้น seed จาก mrTable
         if (!dcMeds.length) {
-            let mrRows = document.querySelectorAll('#mrTable tr');
-            for (let i = 0; i < mrRows.length; i++) {
-                let inputs = mrRows[i].querySelectorAll('input');
-                let name = inputs[0] ? inputs[0].value : '';
-                let sig  = inputs[1] ? inputs[1].value : '';
-                let qty  = inputs[2] ? inputs[2].value : '';
-                if (!name.trim()) continue;
-                dcMeds.push({ name: name, sig: sig, origSig: sig, qty: qty, status: 'continue', reason: '' });
+            let saved = (currentBundle && currentBundle.dcChanges) ? currentBundle.dcChanges : [];
+            // เลือกเฉพาะ batch ล่าสุด (dcDate มากสุด) เพื่อไม่ให้ดึง history เก่ามาปน
+            if (saved.length) {
+                let latest = saved[0].dcDate || '';
+                for (let k = 1; k < saved.length; k++) {
+                    if ((saved[k].dcDate || '') > latest) latest = saved[k].dcDate;
+                }
+                for (let k = 0; k < saved.length; k++) {
+                    let c = saved[k];
+                    if ((c.dcDate || '') !== latest) continue;
+                    dcMeds.push({
+                        name: c.medName || '',
+                        sig: c.sigAfter || c.sigBefore || '',
+                        origSig: c.sigBefore || '',
+                        qty: c.qty || '',
+                        status: c.changeType || 'continue',
+                        reason: c.reason || '',
+                    });
+                }
+            }
+            if (!dcMeds.length) {
+                let mrRows = document.querySelectorAll('#mrTable tr');
+                for (let i = 0; i < mrRows.length; i++) {
+                    let inputs = mrRows[i].querySelectorAll('input');
+                    let name = inputs[0] ? inputs[0].value : '';
+                    let sig  = inputs[1] ? inputs[1].value : '';
+                    let qty  = inputs[2] ? inputs[2].value : '';
+                    if (!name.trim()) continue;
+                    dcMeds.push({ name: name, sig: sig, origSig: sig, qty: qty, status: 'continue', reason: '' });
+                }
             }
         }
 
@@ -3760,9 +3791,14 @@
             meds: dcMeds,
             timestamp: new Date().toISOString(),
         };
+        let _hn = currentPatientHN;
         gasPost('saveDCChanges', payload, function(r) {
             showToast('บันทึก D/C แล้ว', { type: 'success' });
-            try { localStorage.removeItem('ipd_patients'); } catch(e) {}
+            try {
+                localStorage.removeItem('ipd_patients');
+                localStorage.removeItem('ipd_bundle_' + _hn);  // invalidate stale bundle cache
+            } catch(e) {}
+            dcMeds = [];  // ensure next open re-seeds from fresh server bundle
             closePatientDetail();
             loadPatients();  // refresh รายชื่อ + KPI ทันที
         });
@@ -4169,9 +4205,41 @@
         };
 
         gasPost('saveDRP', drpData, function() {
-            alert('บันทึก DRP สำเร็จ');
+            showToast('บันทึก DRP สำเร็จ', { type: 'success' });
             document.getElementById('drpExpand').style.display = 'none';
+            // clear form
+            document.getElementById('drpDrug').value = '';
+            document.getElementById('drpDetail').value = '';
+            document.getElementById('drpOutcome').value = '';
+            // reload bundle + re-render log
+            gasGet('getBundle', { hn: currentPatientHN }, function(b) {
+                currentBundle = b || {};
+                renderRoundLog(currentBundle.medErrors || []);
+            });
         });
+    }
+
+    // Render Med Error / DRP round log table
+    function renderRoundLog(logs) {
+        var tbody = document.getElementById('roundLogTable');
+        if (!tbody) return;
+        tbody.innerHTML = '';
+        if (!logs || !logs.length) {
+            tbody.innerHTML = '<tr><td colspan="3" style="padding:12px;text-align:center;color:#888;">ยังไม่มีรายการ</td></tr>';
+            return;
+        }
+        var esc = function(s){ return String(s == null ? '' : s).replace(/</g,'&lt;'); };
+        for (var i = 0; i < logs.length; i++) {
+            var r = logs[i];
+            var tr = document.createElement('tr');
+            var typeLabel = r.kind === 'medError' || r.category === 'medError' ? 'Med Error' : 'DRP';
+            var typeText = r.type || r.errorType || r.drpType || '';
+            var detail = [r.drug, r.detail, r.outcome].filter(function(x){ return x; }).join(' · ');
+            tr.innerHTML = '<td>' + esc(r.date || '') + '</td>'
+                         + '<td>' + typeLabel + (typeText ? ' — ' + esc(typeText) : '') + '</td>'
+                         + '<td>' + esc(detail) + '</td>';
+            tbody.appendChild(tr);
+        }
     }
 
     // ═══════════════════════════════════════════
