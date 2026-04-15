@@ -538,6 +538,61 @@
             border-color: #8ecf8e;
         }
 
+        /* PIN Slots — iOS-style reveal-then-mask */
+        .pin-slots {
+            display: flex;
+            gap: 12px;
+            justify-content: center;
+            margin-bottom: 20px;
+            cursor: text;
+            padding: 14px 20px;
+            background: #f7f6f3;
+            border-radius: 14px;
+        }
+        .pin-slot {
+            width: 54px;
+            height: 54px;
+            border: 2px solid #e8e5e0;
+            background: #fff;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 26px;
+            font-weight: 600;
+            color: #2e3f58;
+            font-family: 'Google Sans', 'Noto Sans Thai', sans-serif;
+            transition: transform 0.15s ease, border-color 0.15s ease, background 0.15s ease;
+        }
+        .pin-slot.filled {
+            border-color: #8ecf8e;
+            background: #f0f8f0;
+            animation: pinPop 0.2s ease;
+        }
+        .pin-slot.focused {
+            border-color: #8ecf8e;
+            box-shadow: 0 0 0 4px rgba(142, 207, 142, 0.2);
+        }
+        @keyframes pinPop {
+            0%   { transform: scale(1); }
+            50%  { transform: scale(1.1); }
+            100% { transform: scale(1); }
+        }
+        @keyframes pinShake {
+            0%, 100% { transform: translateX(0); }
+            20%      { transform: translateX(-8px); }
+            40%      { transform: translateX(8px); }
+            60%      { transform: translateX(-6px); }
+            80%      { transform: translateX(6px); }
+        }
+        .pin-hidden-input {
+            position: absolute;
+            width: 1px;
+            height: 1px;
+            opacity: 0;
+            pointer-events: none;
+        }
+
         .pin-numpad {
             display: grid;
             grid-template-columns: repeat(3, 1fr);
@@ -1908,14 +1963,24 @@
 <div class="pin-overlay" id="pinOverlay">
     <div class="pin-box">
         <h2>PIN ล็อค</h2>
+
+        <!-- slot แสดงผล (คลิกเพื่อ focus input ซ่อน) -->
+        <div class="pin-slots" onclick="document.getElementById('pinSingle').focus()">
+            <div class="pin-slot" id="pinSlot0"></div>
+            <div class="pin-slot" id="pinSlot1"></div>
+            <div class="pin-slot" id="pinSlot2"></div>
+            <div class="pin-slot" id="pinSlot3"></div>
+        </div>
+
+        <!-- input จริง ซ่อนไว้เพื่อรับคีย์บอร์ดและ mobile keypad -->
         <input type="tel" id="pinSingle" maxlength="4" inputmode="numeric" pattern="[0-9]*"
                autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"
-               placeholder="● ● ● ●"
-               style="width: 200px; height: 56px; font-size: 28px; text-align: center; letter-spacing: 12px;
-                      border: 2px solid #e8e5e0; border-radius: 8px; margin-bottom: 16px;
-                      font-family: 'Google Sans', 'Noto Sans Thai', sans-serif;"
+               class="pin-hidden-input"
                oninput="pinSingleInput(this)"
+               onfocus="pinSetFocused(true)"
+               onblur="pinSetFocused(false)"
                onkeydown="if(event.key==='Enter'){event.preventDefault();pinSingleSubmit();}">
+
         <div>
             <button type="button" class="btn btn-primary" style="padding: 10px 32px; font-size: 14px;" onclick="pinSingleSubmit()">ตกลง</button>
         </div>
@@ -2551,11 +2616,56 @@
     }
 
     // รับการพิมพ์ในช่อง PIN เดี่ยว — กรองเฉพาะตัวเลขและ auto-submit เมื่อครบ 4 ตัว
+    let _pinPrevLen = 0;
+    let _pinRevealTimer = null;
     function pinSingleInput(el) {
+        let prev = _pinPrevLen;
         el.value = (el.value || '').replace(/\D/g, '').slice(0, 4);
         document.getElementById('pinError').textContent = '';
-        if (el.value.length === 4) {
-            pinSingleSubmit();
+        let curr = el.value.length;
+        // โชว์ตัวเลขล่าสุดที่พิมพ์แวบเดียว (600ms) แล้วกลับเป็นจุดดำ
+        pinRenderSlots(el.value, curr > prev ? curr - 1 : -1);
+        _pinPrevLen = curr;
+        if (curr === 4) {
+            // รอให้เห็นเลขสุดท้ายแวบก่อน แล้วค่อย submit
+            setTimeout(pinSingleSubmit, 250);
+        }
+    }
+
+    // render slot: ถ้า index = revealIdx → โชว์เลข, ที่เหลือถ้ามี value → โชว์จุด
+    function pinRenderSlots(value, revealIdx) {
+        if (_pinRevealTimer) { clearTimeout(_pinRevealTimer); _pinRevealTimer = null; }
+        for (let i = 0; i < 4; i++) {
+            let slot = document.getElementById('pinSlot' + i);
+            if (!slot) continue;
+            if (i < value.length) {
+                slot.classList.add('filled');
+                slot.textContent = (i === revealIdx) ? value[i] : '●';
+            } else {
+                slot.classList.remove('filled');
+                slot.textContent = '';
+            }
+        }
+        // หลัง 600ms เปลี่ยนเลขที่โชว์อยู่ให้เป็นจุดดำ
+        if (revealIdx >= 0) {
+            _pinRevealTimer = setTimeout(function() {
+                let slot = document.getElementById('pinSlot' + revealIdx);
+                if (slot && slot.classList.contains('filled')) {
+                    slot.textContent = '●';
+                }
+            }, 600);
+        }
+    }
+
+    function pinSetFocused(isFocused) {
+        // ไฮไลต์ slot ถัดไปที่ต้องกรอก
+        let el = document.getElementById('pinSingle');
+        let len = el ? (el.value || '').length : 0;
+        for (let i = 0; i < 4; i++) {
+            let slot = document.getElementById('pinSlot' + i);
+            if (!slot) continue;
+            slot.classList.remove('focused');
+            if (isFocused && i === len) slot.classList.add('focused');
         }
     }
 
@@ -2572,6 +2682,15 @@
         } else {
             document.getElementById('pinError').textContent = 'PIN ไม่ถูกต้อง';
             el.value = '';
+            _pinPrevLen = 0;
+            pinRenderSlots('', -1);
+            // สั่นช่อง PIN
+            let slots = document.querySelector('.pin-slots');
+            if (slots) {
+                slots.style.animation = 'none';
+                void slots.offsetWidth;
+                slots.style.animation = 'pinShake 0.35s ease';
+            }
             el.focus();
         }
     }
@@ -2590,7 +2709,9 @@
         let el = document.getElementById('pinSingle');
         if (!el) return;
         el.value = (el.value || '').slice(0, -1);
+        _pinPrevLen = el.value.length;
         document.getElementById('pinError').textContent = '';
+        pinRenderSlots(el.value, -1);
         el.focus();
     }
 
@@ -2759,10 +2880,32 @@
     function gasGet(action, params, callback) {
         let s = document.createElement('script');
         let cbName = 'cb_' + Date.now() + '_' + Math.random().toString(36).substr(2, 5);
+        let done = false;
+        let timer = setTimeout(function() {
+            if (done) return;
+            done = true;
+            console.warn('[gasGet] TIMEOUT action=' + action + ' (15s). SCRIPT_URL อาจไม่ได้ deploy หรือ network error');
+            try { delete window[cbName]; } catch(e) {}
+            try { s.remove(); } catch(e) {}
+            callback({ ok: false, error: 'timeout: ' + action });
+        }, 15000);
         window[cbName] = function(data) {
-            callback(data);
-            delete window[cbName];
-            s.remove();
+            if (done) return;
+            done = true;
+            clearTimeout(timer);
+            console.log('[gasGet] ' + action + ' →', data);
+            try { callback(data); } catch(e) { console.error(e); }
+            try { delete window[cbName]; } catch(e) {}
+            try { s.remove(); } catch(e) {}
+        };
+        s.onerror = function() {
+            if (done) return;
+            done = true;
+            clearTimeout(timer);
+            console.error('[gasGet] script load error for action=' + action + ' url=' + s.src);
+            try { delete window[cbName]; } catch(e) {}
+            try { s.remove(); } catch(e) {}
+            callback({ ok: false, error: 'script load error' });
         };
         let url = SCRIPT_URL + '?callback=' + cbName + '&action=' + action;
         for (let k in params) {
@@ -2787,12 +2930,41 @@
 
     // Patient List
     function loadPatients() {
+        // โหลด cache ก่อน เพื่อแสดงผลทันทีระหว่างรอ backend
+        try {
+            let cached = localStorage.getItem('ipd_patients');
+            if (cached) {
+                let arr = JSON.parse(cached);
+                if (arr && arr.length) {
+                    allPatients = arr;
+                    updatePatientTable();
+                    updateKPIs();
+                    if (typeof updateTodoBadge === 'function') updateTodoBadge();
+                }
+            }
+        } catch(e) { console.warn('load cache failed', e); }
+
         gasGet('getPatients', {}, function(data) {
-            allPatients = data && data.patients ? data.patients : [];
-            localStorage.setItem('ipd_patients', JSON.stringify(allPatients));
-            updatePatientTable();
-            updateKPIs();
-            updateTodoBadge();
+            console.log('[loadPatients] response:', data);
+            if (data && data.ok === false) {
+                showToast('โหลดรายชื่อไม่สำเร็จ: ' + (data.error || 'unknown'), { type: 'error' });
+                console.error('[loadPatients] backend error:', data.error);
+                return;
+            }
+            if (data && data.patients) {
+                allPatients = data.patients;
+                localStorage.setItem('ipd_patients', JSON.stringify(allPatients));
+                console.log('[loadPatients] loaded ' + allPatients.length + ' patients');
+                updatePatientTable();
+                updateKPIs();
+                if (typeof updateTodoBadge === 'function') updateTodoBadge();
+                if (allPatients.length === 0) {
+                    showToast('ยังไม่มีคนไข้ในระบบ', { type: 'info' });
+                }
+            } else {
+                showToast('ไม่ได้รับข้อมูลจาก Backend — ตรวจสอบการ deploy GAS', { type: 'error' });
+                console.error('[loadPatients] unexpected response:', data);
+            }
         });
     }
 
