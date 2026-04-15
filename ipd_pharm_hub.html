@@ -2532,6 +2532,25 @@
     </div>
 </div>
 
+<!-- Toast container -->
+<div id="toastContainer" style="position:fixed;top:20px;right:20px;z-index:11000;display:flex;flex-direction:column;gap:8px;pointer-events:none;"></div>
+
+<!-- Calendar Overlay -->
+<div id="calendarOverlay" onclick="if(event.target===this)closeCalendar()">
+    <div class="cal-popup" onclick="event.stopPropagation()">
+        <div class="cal-header">
+            <button type="button" onclick="calendarPrev()">‹</button>
+            <span id="calMonthYear">—</span>
+            <button type="button" onclick="calendarNext()">›</button>
+        </div>
+        <div id="calGrid"></div>
+        <div style="display:flex;gap:8px;margin-top:12px;">
+            <button type="button" class="btn btn-secondary" style="flex:1;" onclick="calendarToday()">วันนี้</button>
+            <button type="button" class="btn btn-secondary" style="flex:1;" onclick="closeCalendar()">ปิด</button>
+        </div>
+    </div>
+</div>
+
 <script>
     // CONSTANTS
     const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwPezNJsaS81vw9oE3H_-NNKLXDWjt9vyASkMFZ6qhavtYYajGov3XZHO3w1rBgGfkv/exec';
