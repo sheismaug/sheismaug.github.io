@@ -3297,6 +3297,294 @@
         else                               { status.textContent = 'ปกติ'; status.className = 'had-mon-status ok'; }
     }
 
+    // ══════ Warfarin Timeline ══════
+    var WARF_EVENT_META = {
+        hold:      { icon:'🔴', label:'Hold warfarin',    color:'#dc3545' },
+        antidote:  { icon:'💉', label:'Antidote/Intervention', color:'#6f42c1' },
+        dose:      { icon:'💊', label:'Dose change',      color:'#fd7e14' },
+        restart:   { icon:'🟢', label:'Restart warfarin', color:'#198754' },
+        note:      { icon:'📝', label:'Note',             color:'#6c757d' },
+    };
+    var _warfChart = null;
+
+    // รวม events จาก WarfarinEvents + INR จาก HAD rounds (drugKey='warfarin')
+    function _warfCollectTimeline() {
+        var events = (currentBundle && currentBundle.warfarinEvents) ? currentBundle.warfarinEvents.slice() : [];
+        var rounds = (currentBundle && currentBundle.hadRounds) ? currentBundle.hadRounds : [];
+        for (var i = 0; i < rounds.length; i++) {
+            var r = rounds[i];
+            if (String(r.drugKey || '').toLowerCase() !== 'warfarin') continue;
+            var checks = r.checks || {};
+            try { if (typeof checks === 'string') checks = JSON.parse(checks); } catch(e) { checks = {}; }
+            var inr = (checks.labs && checks.labs.inr) ? checks.labs.inr : '';
+            if (inr === '' || inr == null) continue;
+            events.push({
+                id: 'had-' + r.id,
+                date: r.date,
+                eventType: 'lab',
+                title: 'INR ' + inr,
+                detail: (checks.clinical && checks.clinical.length) ? ('Clinical: ' + checks.clinical.join(', ')) : '',
+                inr: inr,
+                _fromHAD: true,
+            });
+        }
+        events.sort(function(a,b){ return (a.date||'') < (b.date||'') ? -1 : 1; });
+        return events;
+    }
+
+    function renderWarfarinTimeline() {
+        var list = document.getElementById('warfTimelineList');
+        if (!list) return;
+        var events = _warfCollectTimeline();
+        if (!events.length) {
+            list.innerHTML = '<div style="color:#999;padding:12px;text-align:center;font-size:13px;">ยังไม่มี event — กด "+ เพิ่ม event" เพื่อเริ่ม</div>';
+            _renderWarfSparkline([]);
+            return;
+        }
+        var html = '<div style="border-left:2px solid #ddd;margin-left:16px;padding-left:16px;">';
+        for (var i = 0; i < events.length; i++) {
+            var ev = events[i];
+            var meta = ev.eventType === 'lab'
+                ? { icon:'🧪', label:'Lab (HAD round)', color:'#0dcaf0' }
+                : (WARF_EVENT_META[ev.eventType] || WARF_EVENT_META.note);
+            var delBtn = ev._fromHAD ? '' :
+                '<button onclick="deleteWarfarinEvent(\'' + ev.id + '\')" style="background:none;border:none;color:#c44;cursor:pointer;font-size:16px;">×</button>';
+            var doseInfo = '';
+            if (ev.eventType === 'dose' && ev.weeklyDose) {
+                doseInfo = '<div style="margin-top:4px;font-size:12px;color:#333;"><b>Weekly dose:</b> ' + ev.weeklyDose + ' mg/week';
+                if (ev.regimen && typeof ev.regimen === 'object') {
+                    var days = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
+                    var reg = [];
+                    for (var d = 0; d < days.length; d++) {
+                        var val = ev.regimen[days[d]];
+                        if (val) reg.push(days[d] + ': ' + val + 'mg');
+                    }
+                    if (reg.length) doseInfo += '<br><b>Regimen:</b> ' + reg.join(' · ');
+                }
+                doseInfo += '</div>';
+            }
+            var inrInfo = ev.inr ? '<span style="margin-left:8px;padding:2px 8px;background:#e7f5ff;border-radius:10px;font-size:11px;font-weight:600;">INR ' + ev.inr + '</span>' : '';
+            html +=
+                '<div style="margin-bottom:12px;position:relative;">' +
+                  '<div style="position:absolute;left:-25px;top:2px;width:18px;height:18px;background:' + meta.color + ';border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:10px;color:#fff;">' + meta.icon + '</div>' +
+                  '<div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px;">' +
+                    '<div style="flex:1;">' +
+                      '<div style="font-size:12px;color:#666;">' + (ev.date || '—') + ' · <b style="color:' + meta.color + ';">' + meta.label + '</b>' + inrInfo + '</div>' +
+                      '<div style="font-weight:600;margin-top:2px;">' + (ev.title || '') + '</div>' +
+                      (ev.detail ? '<div style="font-size:12px;color:#555;margin-top:2px;">' + ev.detail + '</div>' : '') +
+                      doseInfo +
+                    '</div>' + delBtn +
+                  '</div>' +
+                '</div>';
+        }
+        html += '</div>';
+        list.innerHTML = html;
+        _renderWarfSparkline(events);
+    }
+
+    function _renderWarfSparkline(events) {
+        var container = document.getElementById('warfSparkline');
+        if (!container) return;
+        // เตรียม canvas
+        container.innerHTML = '<canvas id="warfSparklineCanvas"></canvas>';
+        var ctx = document.getElementById('warfSparklineCanvas').getContext('2d');
+        var points = [];
+        for (var i = 0; i < events.length; i++) {
+            var inr = parseFloat(events[i].inr);
+            if (!isNaN(inr)) points.push({ x: events[i].date, y: inr, type: events[i].eventType });
+        }
+        if (_warfChart) { try { _warfChart.destroy(); } catch(e){} _warfChart = null; }
+        if (!points.length) { container.innerHTML = '<div style="text-align:center;color:#999;font-size:12px;padding:20px;">ยังไม่มีค่า INR</div>'; return; }
+        _warfChart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: points.map(function(p){ return p.x; }),
+                datasets: [{
+                    label: 'INR',
+                    data: points.map(function(p){ return p.y; }),
+                    borderColor: '#dc3545',
+                    backgroundColor: 'rgba(220,53,69,0.1)',
+                    borderWidth: 2,
+                    pointRadius: 4,
+                    pointBackgroundColor: '#dc3545',
+                    tension: 0.2,
+                    fill: true,
+                }],
+            },
+            options: {
+                responsive: true, maintainAspectRatio: false,
+                plugins: { legend: { display: false } },
+                scales: {
+                    y: {
+                        beginAtZero: false,
+                        grid: { color: function(ctx){ return (ctx.tick.value===2||ctx.tick.value===3)?'rgba(25,135,84,0.3)':'#eee'; } },
+                    },
+                    x: { ticks: { font: { size: 10 } } },
+                },
+            },
+        });
+    }
+
+    function openWarfarinEventForm(existingId) {
+        var existing = null;
+        if (existingId) {
+            var list = (currentBundle && currentBundle.warfarinEvents) || [];
+            for (var i = 0; i < list.length; i++) if (list[i].id === existingId) { existing = list[i]; break; }
+        }
+        var modal = document.getElementById('warfEventModal');
+        if (!modal) {
+            modal = document.createElement('div');
+            modal.id = 'warfEventModal';
+            modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:9999;display:flex;align-items:center;justify-content:center;';
+            modal.innerHTML =
+                '<div style="background:#fff;padding:20px;border-radius:10px;width:520px;max-width:90vw;max-height:90vh;overflow:auto;">' +
+                '<h3 style="margin-top:0;">+ Warfarin Event</h3>' +
+                '<input type="hidden" id="wfEvId">' +
+                '<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">' +
+                '<div><label style="font-size:12px;">วันที่</label><input type="date" id="wfEvDate" class="form-input"></div>' +
+                '<div><label style="font-size:12px;">ประเภท</label><select id="wfEvType" class="form-select" onchange="_wfToggleDoseFields()">' +
+                '<option value="hold">🔴 Hold warfarin</option><option value="antidote">💉 Antidote/Intervention</option>' +
+                '<option value="dose">💊 Dose change</option><option value="restart">🟢 Restart warfarin</option>' +
+                '<option value="note">📝 Note</option></select></div>' +
+                '</div>' +
+                '<div style="margin-top:10px;"><label style="font-size:12px;">หัวข้อ</label><input type="text" id="wfEvTitle" class="form-input" placeholder="เช่น Hold warfarin เพราะ INR 4.7"></div>' +
+                '<div style="margin-top:10px;"><label style="font-size:12px;">รายละเอียด</label><textarea id="wfEvDetail" class="form-input" rows="2" placeholder="เช่น ให้ Vit K 10 mg IV slow push"></textarea></div>' +
+                '<div style="margin-top:10px;"><label style="font-size:12px;">INR ณ วันที่นี้ (ถ้ามี)</label><input type="number" step="any" id="wfEvInr" class="form-input"></div>' +
+                '<div id="wfDoseFields" style="display:none;margin-top:12px;padding:10px;background:#fff8e7;border-radius:6px;">' +
+                '<div style="font-weight:600;margin-bottom:6px;">💊 Regimen (mg ต่อวัน)</div>' +
+                '<div style="display:grid;grid-template-columns:repeat(7,1fr);gap:6px;">' +
+                ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'].map(function(d){
+                    return '<div style="text-align:center;"><div style="font-size:11px;">'+d+'</div><input type="number" step="any" id="wfDose'+d+'" oninput="_wfSumWeekly()" style="width:100%;padding:4px;border:1px solid #d8d5d0;border-radius:6px;text-align:center;"></div>';
+                }).join('') +
+                '</div>' +
+                '<div style="margin-top:8px;font-weight:600;">Total weekly dose: <span id="wfWeeklyTotal">0</span> mg/week</div>' +
+                '</div>' +
+                '<div style="margin-top:16px;display:flex;gap:8px;justify-content:flex-end;">' +
+                '<button type="button" class="btn" onclick="document.getElementById(\'warfEventModal\').style.display=\'none\';">ยกเลิก</button>' +
+                '<button type="button" class="btn btn-primary" onclick="saveWarfarinEventForm()">บันทึก</button>' +
+                '</div></div>';
+            document.body.appendChild(modal);
+        }
+        modal.style.display = 'flex';
+        document.getElementById('wfEvId').value    = existing ? existing.id : '';
+        document.getElementById('wfEvDate').value  = existing ? existing.date : new Date().toISOString().slice(0,10);
+        document.getElementById('wfEvType').value  = existing ? existing.eventType : 'hold';
+        document.getElementById('wfEvTitle').value = existing ? existing.title : '';
+        document.getElementById('wfEvDetail').value= existing ? existing.detail : '';
+        document.getElementById('wfEvInr').value   = existing ? existing.inr : '';
+        var days = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
+        for (var d = 0; d < days.length; d++) {
+            document.getElementById('wfDose'+days[d]).value = (existing && existing.regimen && existing.regimen[days[d]]) ? existing.regimen[days[d]] : '';
+        }
+        _wfToggleDoseFields();
+        _wfSumWeekly();
+    }
+
+    function _wfToggleDoseFields() {
+        var t = document.getElementById('wfEvType').value;
+        document.getElementById('wfDoseFields').style.display = (t === 'dose') ? 'block' : 'none';
+    }
+
+    function _wfSumWeekly() {
+        var days = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
+        var sum = 0;
+        for (var d = 0; d < days.length; d++) {
+            var v = parseFloat(document.getElementById('wfDose'+days[d]).value);
+            if (!isNaN(v)) sum += v;
+        }
+        document.getElementById('wfWeeklyTotal').textContent = sum;
+    }
+
+    function saveWarfarinEventForm() {
+        if (!currentPatientHN) { showToast('ไม่พบ HN', { type: 'error' }); return; }
+        var type = document.getElementById('wfEvType').value;
+        var regimen = {};
+        var weekly = 0;
+        if (type === 'dose') {
+            var days = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
+            for (var d = 0; d < days.length; d++) {
+                var v = parseFloat(document.getElementById('wfDose'+days[d]).value);
+                if (!isNaN(v) && v > 0) { regimen[days[d]] = v; weekly += v; }
+            }
+        }
+        var payload = {
+            id:        document.getElementById('wfEvId').value || '',
+            hn:        currentPatientHN,
+            date:      document.getElementById('wfEvDate').value,
+            eventType: type,
+            title:     document.getElementById('wfEvTitle').value,
+            detail:    document.getElementById('wfEvDetail').value,
+            inr:       document.getElementById('wfEvInr').value,
+            weeklyDose: weekly || '',
+            regimen:   regimen,
+        };
+        var _hn = currentPatientHN;
+        gasPost('saveWarfarinEvent', payload, function() {
+            showToast('บันทึก event แล้ว', { type: 'success' });
+            document.getElementById('warfEventModal').style.display = 'none';
+            try { localStorage.removeItem('ipd_bundle_' + _hn); } catch(e){}
+            gasGet('getBundle', { hn: _hn }, function(data) {
+                currentBundle = data || currentBundle;
+                try { localStorage.setItem('ipd_bundle_' + _hn, JSON.stringify(currentBundle)); } catch(e){}
+                renderWarfarinTimeline();
+            });
+        });
+    }
+
+    function deleteWarfarinEvent(id) {
+        if (!confirm('ลบ event นี้?')) return;
+        var _hn = currentPatientHN;
+        gasPost('deleteWarfarinEvent', { id: id }, function() {
+            showToast('ลบแล้ว', { type: 'success' });
+            try { localStorage.removeItem('ipd_bundle_' + _hn); } catch(e){}
+            gasGet('getBundle', { hn: _hn }, function(data) {
+                currentBundle = data || currentBundle;
+                renderWarfarinTimeline();
+            });
+        });
+    }
+
+    function exportWarfarinTimelinePDF() {
+        var patient = null;
+        for (var i = 0; i < allPatients.length; i++) if (allPatients[i].hn === currentPatientHN) { patient = allPatients[i]; break; }
+        var events = _warfCollectTimeline();
+        var w = window.open('', '_blank', 'width=900,height=700');
+        if (!w) { showToast('popup blocked', { type: 'error' }); return; }
+        var rows = events.map(function(ev) {
+            var meta = ev.eventType === 'lab' ? { icon:'🧪', label:'Lab' } : (WARF_EVENT_META[ev.eventType] || WARF_EVENT_META.note);
+            var extra = '';
+            if (ev.weeklyDose) {
+                extra += '<br><b>Weekly dose:</b> ' + ev.weeklyDose + ' mg/week';
+                if (ev.regimen) {
+                    var days = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
+                    var reg = [];
+                    for (var d = 0; d < days.length; d++) if (ev.regimen[days[d]]) reg.push(days[d]+': '+ev.regimen[days[d]]+'mg');
+                    if (reg.length) extra += '<br><b>Regimen:</b> ' + reg.join(' · ');
+                }
+            }
+            if (ev.inr) extra += '<br><b>INR:</b> ' + ev.inr;
+            return '<tr><td style="padding:6px;border-bottom:1px solid #ddd;white-space:nowrap;">' + (ev.date||'') + '</td>' +
+                   '<td style="padding:6px;border-bottom:1px solid #ddd;">' + meta.icon + ' ' + meta.label + '</td>' +
+                   '<td style="padding:6px;border-bottom:1px solid #ddd;"><b>' + (ev.title||'') + '</b>' +
+                     (ev.detail ? '<br>' + ev.detail : '') + extra + '</td></tr>';
+        }).join('');
+        w.document.write(
+            '<html><head><title>Warfarin Timeline - ' + (patient ? patient.name : '') + '</title>' +
+            '<style>body{font-family:"Google Sans","Noto Sans Thai",sans-serif;margin:24px;color:#222;}' +
+            'h2{margin:0 0 4px;} .meta{color:#666;margin-bottom:16px;font-size:13px;}' +
+            'table{width:100%;border-collapse:collapse;font-size:13px;} th{text-align:left;background:#f5f4f2;padding:6px;border-bottom:2px solid #999;}' +
+            '</style></head><body>' +
+            '<h2>Warfarin Timeline</h2>' +
+            '<div class="meta">' + (patient ? patient.name + ' · HN ' + patient.hn : '') +
+              ' · พิมพ์ ' + new Date().toLocaleDateString('th-TH') + '</div>' +
+            '<table><thead><tr><th>วันที่</th><th>Event</th><th>รายละเอียด</th></tr></thead><tbody>' + rows + '</tbody></table>' +
+            '</body></html>'
+        );
+        w.document.close();
+        w.focus();
+        setTimeout(function(){ w.print(); }, 400);
+    }
+
     // บันทึก HAD monitoring (labs + vital/clinical) ของ drug ที่เปิด tab อยู่
     // รองรับการกรอกย้อนหลังผ่านฟิลด์ hadMonDate-<key>
     function saveHADData() {
@@ -3357,6 +3645,12 @@
                 if (remaining === 0) {
                     showToast('บันทึก HAD แล้ว (' + payloads.length + ' รายการ)', { type: 'success' });
                     try { localStorage.removeItem('ipd_bundle_' + _hn); } catch(e) {}
+                    // ดึง bundle ใหม่เพื่อ refresh trend table
+                    gasGet('getBundle', { hn: _hn }, function(data) {
+                        currentBundle = data || currentBundle;
+                        try { localStorage.setItem('ipd_bundle_' + _hn, JSON.stringify(currentBundle)); } catch(e){}
+                        renderAllHADTrends();
+                    });
                 }
             });
         }
@@ -4593,8 +4887,28 @@
                 }
                 monHtml += '</div>';
             }
+            // ─── Trend ย้อนหลัง (รวมทุก round ที่ drugKey ตรงกัน) ───
+            monHtml += '<div class="had-mon-section-title" style="margin-top:12px;">📈 Trend ค่า lab ย้อนหลัง</div>';
+            monHtml += '<div id="hadTrend-' + key + '" class="had-trend-box" style="max-height:200px;overflow:auto;border:1px solid #eee;border-radius:6px;padding:6px;font-size:12px;">—</div>';
+
             monHtml += '</div>';
             _panelBuf += monHtml;
+
+            // ─── Warfarin Timeline (เฉพาะ warfarin) ───
+            if (key === 'warfarin') {
+                _panelBuf +=
+                    '<div class="had-mon-card" id="warfTimelineCard" style="margin-top:12px;">' +
+                    '  <div class="had-mon-head">' +
+                    '    <div class="had-mon-title">📅 Warfarin Timeline</div>' +
+                    '    <div style="display:flex;gap:6px;">' +
+                    '      <button type="button" class="btn" style="padding:4px 10px;font-size:12px;" onclick="openWarfarinEventForm()">+ เพิ่ม event</button>' +
+                    '      <button type="button" class="btn" style="padding:4px 10px;font-size:12px;" onclick="exportWarfarinTimelinePDF()">📄 Export PDF</button>' +
+                    '    </div>' +
+                    '  </div>' +
+                    '  <div id="warfSparkline" style="height:120px;margin:8px 0;"></div>' +
+                    '  <div id="warfTimelineList" style="max-height:300px;overflow:auto;"></div>' +
+                    '</div>';
+            }
 
             // ─── Existing had-block (calculator) ───
             let html = '<div class="had-block">';
@@ -4691,6 +5005,63 @@
                 hadUpdateCalc(key, d.defaultRate);
             }
         }
+        // เติม Trend ย้อนหลังจาก bundle.hadRounds
+        renderAllHADTrends();
+    }
+
+    // เติม Trend สำหรับทุก drug ที่ active
+    function renderAllHADTrends() {
+        var rounds = (currentBundle && currentBundle.hadRounds) ? currentBundle.hadRounds : [];
+        for (var key in hadSelectedDrugs) {
+            if (!hadSelectedDrugs[key]) continue;
+            renderHADTrend(key, rounds);
+        }
+        // Warfarin: render timeline ถ้ามีการ์ด
+        if (document.getElementById('warfTimelineList')) renderWarfarinTimeline();
+    }
+
+    function renderHADTrend(drugKey, rounds) {
+        var box = document.getElementById('hadTrend-' + drugKey);
+        if (!box) return;
+        // filter + sort asc by date
+        var items = [];
+        for (var i = 0; i < rounds.length; i++) {
+            var r = rounds[i];
+            if (String(r.drugKey || '').toLowerCase() !== String(drugKey).toLowerCase()) continue;
+            var checks = {};
+            try { checks = typeof r.checks === 'object' ? r.checks : JSON.parse(r.checksJson || r.checks || '{}'); } catch(e) { checks = {}; }
+            items.push({ date: r.date || '', labs: checks.labs || {}, vitals: checks.vitals || [], clinical: checks.clinical || [] });
+        }
+        items.sort(function(a,b){ return (a.date||'') < (b.date||'') ? -1 : 1; });
+        if (!items.length) { box.innerHTML = '<span style="color:#999;">ยังไม่มีประวัติ</span>'; return; }
+
+        // collect all lab keys across rounds
+        var labKeys = {};
+        for (var j = 0; j < items.length; j++) {
+            for (var k in items[j].labs) labKeys[k] = true;
+        }
+        var labKeyArr = Object.keys(labKeys);
+
+        var html = '<table style="width:100%;border-collapse:collapse;">';
+        html += '<thead><tr style="background:#f5f4f2;"><th style="padding:4px 6px;text-align:left;border-bottom:1px solid #ddd;">วันที่</th>';
+        for (var lk = 0; lk < labKeyArr.length; lk++) {
+            html += '<th style="padding:4px 6px;text-align:left;border-bottom:1px solid #ddd;text-transform:uppercase;">' + labKeyArr[lk] + '</th>';
+        }
+        html += '<th style="padding:4px 6px;text-align:left;border-bottom:1px solid #ddd;">Clinical</th></tr></thead><tbody>';
+        for (var m = 0; m < items.length; m++) {
+            var it = items[m];
+            html += '<tr>';
+            html += '<td style="padding:4px 6px;border-bottom:1px solid #f0f0f0;white-space:nowrap;">' + (it.date || '—') + '</td>';
+            for (var lk2 = 0; lk2 < labKeyArr.length; lk2++) {
+                var val = it.labs[labKeyArr[lk2]];
+                html += '<td style="padding:4px 6px;border-bottom:1px solid #f0f0f0;font-weight:600;">' + (val != null && val !== '' ? val : '—') + '</td>';
+            }
+            var flags = (it.clinical && it.clinical.length) ? it.clinical.join(', ') : '';
+            html += '<td style="padding:4px 6px;border-bottom:1px solid #f0f0f0;color:#c44;">' + (flags || '—') + '</td>';
+            html += '</tr>';
+        }
+        html += '</tbody></table>';
+        box.innerHTML = html;
     }
 
     // ─── HAD: Dose calculator (rate-based) ───
