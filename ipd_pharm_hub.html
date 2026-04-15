@@ -4014,7 +4014,10 @@
         for (let i = 0; i < activePatients.length; i++) {
             if (activePatients[i].hasHAD) hadCount++;
             if ((activePatients[i].mrStatus || 'todo') !== 'done') mrTodo++;
-            if (activePatients[i].dcToday) dcToday++;
+        }
+        // D/C วันนี้: นับจาก allPatients (ให้ตรงกับ chip filter ที่ไม่กรอง discharged)
+        for (let i = 0; i < allPatients.length; i++) {
+            if (allPatients[i].dcToday) dcToday++;
         }
         document.getElementById('kpiHAD').textContent = 'HAD: ' + hadCount;
         document.getElementById('kpiMRTodo').textContent = 'ต้องทำ MR: ' + mrTodo;
@@ -4177,9 +4180,13 @@
     function _dashPeriodRange(period) {
         var today = new Date();
         var y = today.getFullYear(), m = today.getMonth();
-        function fmt(d){ return d.toISOString().slice(0,10); }
-        if (period === 'this-month') return { from: fmt(new Date(y, m, 1)), to: fmt(new Date(y, m+1, 0)) };
-        if (period === 'last-month') return { from: fmt(new Date(y, m-1, 1)), to: fmt(new Date(y, m, 0)) };
+        // ใช้ local date format ไม่ต้องแปลงผ่าน UTC (ISO string เลื่อน timezone)
+        function fmt(d) {
+            var yy = d.getFullYear(), mm = ('0' + (d.getMonth()+1)).slice(-2), dd = ('0' + d.getDate()).slice(-2);
+            return yy + '-' + mm + '-' + dd;
+        }
+        if (period === 'this-month') return { from: fmt(new Date(y, m, 1)),     to: fmt(new Date(y, m+1, 0)) };
+        if (period === 'last-month') return { from: fmt(new Date(y, m-1, 1)),   to: fmt(new Date(y, m, 0)) };
         if (period === 'all')        return { from: '', to: '' };
         return { from: '', to: '' };
     }
