@@ -4964,7 +4964,9 @@ function _doUpdateAlertBadge() {
       const dates = JSON.parse(p.visit_dates_json||'[]');
       dates.forEach(d => { if (d && d >= weekStart && d <= weekEnd) cnt++; });
       const customs = JSON.parse(p.custom_visits_json||'[]');
-      customs.forEach(cv => { if (cv.date && cv.date >= weekStart && cv.date <= weekEnd) cnt++; });
+      customs.forEach(cv => {
+        if (cv.date && cv.date >= weekStart && cv.date <= weekEnd && !dates.includes(cv.date)) cnt++;
+      });
     } catch(e) {}
   });
   ['alert-nb','dr-alert-nb'].forEach(id => {
