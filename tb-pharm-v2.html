@@ -3595,7 +3595,7 @@ dili: `
     <div class="card">
       <div class="ct"><span class="cd rd"></span>🚦 DILI Decision Tool <span style="font-size:11px;color:var(--tx3);font-weight:400;margin-left:4px">NTP 2564</span></div>
       <div class="fg"><label>ผู้ป่วย</label>
-        <div class="pt-picker">
+        <div class="pt-picker" data-on-select="renderHoldTimeline">
           <input type="hidden" id="dili-pt">
           <div class="pt-picker-box">
             <input type="text" class="pt-picker-q" placeholder="🔍 พิมพ์ชื่อ / HN — เฉพาะที่ยังรักษา" autocomplete="off">
@@ -3631,11 +3631,9 @@ dili: `
       <div class="hold-sub">กรอก AST/ALT แล้วกด วิเคราะห์</div>
     </div>
     <div class="al al-rd mb12"><span>⚠️</span><div>≥14 วันใน IP → <strong>ต้องเริ่มนับ IP Day 1 ใหม่</strong> (NTP 2564)</div></div>
-    <div class="tl">
-      <div class="tli"><div class="tld g">D1</div><div class="tlc"><div class="tlt">เริ่มยา 2HRZE</div><div class="tld8">01/04/2568</div></div></div>
-
-      <div class="tli"><div class="tld bl">Br</div><div class="tlc"><div class="tlt">Bridge E+Lfx+Am</div><div class="tld8" style="color:var(--blue)">รอ LFT &lt;2× ULN</div></div></div>
-      <div class="tli"><div class="tld">RC</div><div class="tlc"><div class="tlt" style="color:var(--tx3)">Re-challenge H→R→Z</div><div class="tld8 mu">ยังไม่ถึง</div></div></div>
+    <div style="font-size:12px;font-weight:700;color:var(--tx2);margin:6px 0 6px">📜 Timeline Hold / Restart / Bridge</div>
+    <div class="tl" id="dili-tl-real">
+      <div style="padding:10px 0;font-size:12px;color:var(--tx3);text-align:center">เลือกผู้ป่วยเพื่อแสดง timeline</div>
     </div>
     <button class="btn btn-rd btn-full btn-sm mt12" onclick="diliHoldAll()">🛑 Hold ยาทั้งหมด (ไม่ bridge)</button>
     <div class="g2 mt8" style="gap:10px">
@@ -5693,6 +5691,67 @@ function calcDILI() {
     ${hold.length?`<button class="btn btn-g btn-full mt12" onclick="diliSaveHoldEvent(${JSON.stringify(hold).replace(/"/g,'&quot;')}, ${JSON.stringify(bridge).replace(/"/g,'&quot;')})">🛑 บันทึก Hold</button>`:''}`;
 }
 
+/* ─── HOLD / RESTART TIMELINE ─── */
+// ดึง ADR events (HOLD / RESTART_IP / BRIDGE) ของผู้ป่วย มาแสดงเป็น timeline
+async function renderHoldTimeline(ptId, targetId) {
+  const tlEl = document.getElementById(targetId || 'dili-tl-real');
+  if (!tlEl) return;
+  if (!ptId) ptId = document.getElementById('dili-pt')?.value;
+  if (!ptId) {
+    tlEl.innerHTML = '<div style="padding:10px 0;font-size:12px;color:var(--tx3);text-align:center">เลือกผู้ป่วยเพื่อแสดง timeline</div>';
+    return;
+  }
+
+  const p = (S.patients || []).find(x => x.patient_id === ptId);
+  const startDate = p?.start_date;
+
+  // ดึงจาก backend ถ้ามี
+  let events = [];
+  try {
+    const data = await api('getAdrLog', { patient_id: ptId });
+    events = (data || []).filter(e =>
+      e.patient_id === ptId &&
+      ['HOLD','RESTART_IP','BRIDGE','ADR'].includes(e.event_type)
+    );
+  } catch (e) { /* offline */ }
+
+  // ใส่ start visit เป็น anchor
+  const items = [];
+  if (startDate) items.push({ kind:'start', date:startDate, title:`เริ่มยา ${p.regimen_label||''}`, sub:fmtD(startDate) });
+
+  events.forEach(e => {
+    const d = e.event_date || e.created_at?.slice(0,10);
+    if (e.event_type === 'HOLD') {
+      items.push({ kind:'hold', date:d, title:`🛑 Hold ${e.drug_suspect||''}`, sub:e.action_taken || e.notes || '' });
+    } else if (e.event_type === 'RESTART_IP') {
+      items.push({ kind:'restart', date:d, title:`✅ Restart IP`, sub:e.notes || '' });
+    } else if (e.event_type === 'BRIDGE') {
+      items.push({ kind:'bridge', date:d, title:`💊 ${e.action_taken||'Bridge'}`, sub:e.notes || '' });
+    } else if (e.event_type === 'ADR') {
+      items.push({ kind:'adr', date:d, title:`⚠️ ADR: ${e.symptoms||''}`, sub:e.action_taken || '' });
+    }
+  });
+
+  items.sort((a,b) => (a.date||'').localeCompare(b.date||''));
+
+  if (items.length <= 1) {
+    tlEl.innerHTML = '<div style="padding:10px 0;font-size:12px;color:var(--tx3);text-align:center">ยังไม่มีเหตุการณ์ Hold / Restart / Bridge</div>';
+    return;
+  }
+
+  const cls = { start:'g', hold:'rd', restart:'g', bridge:'bl', adr:'am' };
+  const lbl = { start:'D1', hold:'🛑', restart:'▶️', bridge:'Br', adr:'AE' };
+
+  tlEl.innerHTML = items.map(it => `
+    <div class="tli">
+      <div class="tld ${cls[it.kind]||''}">${lbl[it.kind]||'•'}</div>
+      <div class="tlc">
+        <div class="tlt">${it.title}</div>
+        <div class="tld8">${fmtD(it.date)}${it.sub?' · <span style="color:var(--tx3)">'+it.sub+'</span>':''}</div>
+      </div>
+    </div>`).join('');
+}
+
 /* ─── DILI HOLD / RESTART / BRIDGE ACTIONS ─── */
 // ทุก action บันทึกลง sheet ADR_Log + อัปเดต Patients sheet
 //   - ADR_Log: event_type, drug_suspect, hold_start, action_taken, notes
@@ -5783,6 +5842,7 @@ async function diliHoldAll() {
     await api('saveAdrEvent', payload);
     // backend จะ auto-set patient.status='hold' + hold_date (เมื่อ event_type='HOLD')
     toast('🛑 บันทึก Hold ทั้งหมดลง Sheet แล้ว — ผู้ป่วยอยู่สถานะ hold');
+    renderHoldTimeline(ptId);
   } catch (e) {
     toast('💾 บันทึกไม่สำเร็จ: ' + (e.message || 'offline'));
   }
@@ -5821,6 +5881,7 @@ async function diliSaveHoldEvent(holdDrugs, bridgeDrugs) {
   try {
     await api('saveAdrEvent', payload);
     toast('🛑 บันทึก Hold event แล้ว');
+    renderHoldTimeline(ptId);
   } catch (e) {
     toast('💾 บันทึกไม่สำเร็จ: ' + (e.message || 'offline'));
   }
@@ -5864,6 +5925,7 @@ async function diliRestartIP() {
       restart_date: today,
     });
     toast('✅ บันทึก Restart IP — ผู้ป่วยกลับสถานะ active');
+    renderHoldTimeline(ptId);
   } catch (e) {
     toast('💾 บันทึกไม่สำเร็จ: ' + (e.message || 'offline'));
   }
@@ -5900,6 +5962,7 @@ async function diliBridge() {
   try {
     await api('saveAdrEvent', payload);
     toast('💊 บันทึก Bridge E+Lfx+Am แล้ว');
+    renderHoldTimeline(ptId);
   } catch (e) {
     toast('💾 บันทึกไม่สำเร็จ: ' + (e.message || 'offline'));
   }
@@ -7406,6 +7469,17 @@ async function buildPatientCard(patientId) {
         </div>
       </div>
 
+      <!-- Hold / Restart / Bridge timeline -->
+      <div class="card" style="padding:0;overflow:hidden">
+        <div style="padding:12px 16px;border-bottom:1px solid var(--bd);display:flex;align-items:center;justify-content:space-between">
+          <div class="ct" style="margin:0"><span class="cd rd"></span>Hold / Restart History</div>
+          <button class="btn btn-sm btn-out" style="font-size:11px;padding:3px 9px;min-height:26px" onclick="goPage('dili');setTimeout(()=>{const el=document.getElementById('dili-pt');if(el){el.value='${p.patient_id}';renderHoldTimeline('${p.patient_id}')}},200)">+ บันทึกใหม่</button>
+        </div>
+        <div id="ptcard-hold-tl" style="padding:10px 16px;max-height:400px;overflow-y:auto">
+          <div style="color:var(--tx3);font-size:13px">กำลังโหลด...</div>
+        </div>
+      </div>
+
       <!-- Patient info -->
       <div class="card">
         <div class="ct"><span class="cd"></span>ข้อมูลทั่วไป</div>
@@ -7424,6 +7498,9 @@ async function buildPatientCard(patientId) {
     </div>
   </div>
 </div>`;
+
+  // Render hold/restart timeline into patient card
+  renderHoldTimeline(patientId, 'ptcard-hold-tl');
 }
 
 </script>
