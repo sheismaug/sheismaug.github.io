@@ -497,7 +497,7 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            z-index: 9999;
+            z-index: 2147483647; /* สูงสุดที่ CSS รองรับ — กัน overlay อื่นมาทับ */
         }
 
         .pin-box {
@@ -1908,24 +1908,30 @@
 <div class="pin-overlay" id="pinOverlay">
     <div class="pin-box">
         <h2>PIN ล็อค</h2>
-        <div class="pin-inputs">
-            <input type="tel" class="pin-input" maxlength="1" id="pin0" autocomplete="off" inputmode="numeric" pattern="[0-9]*" oninput="pinOnInput(this,0)" onkeydown="pinOnKeydown(event,0)" onfocus="this.select()">
-            <input type="tel" class="pin-input" maxlength="1" id="pin1" autocomplete="off" inputmode="numeric" pattern="[0-9]*" oninput="pinOnInput(this,1)" onkeydown="pinOnKeydown(event,1)" onfocus="this.select()">
-            <input type="tel" class="pin-input" maxlength="1" id="pin2" autocomplete="off" inputmode="numeric" pattern="[0-9]*" oninput="pinOnInput(this,2)" onkeydown="pinOnKeydown(event,2)" onfocus="this.select()">
-            <input type="tel" class="pin-input" maxlength="1" id="pin3" autocomplete="off" inputmode="numeric" pattern="[0-9]*" oninput="pinOnInput(this,3)" onkeydown="pinOnKeydown(event,3)" onfocus="this.select()">
+        <input type="tel" id="pinSingle" maxlength="4" inputmode="numeric" pattern="[0-9]*"
+               autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"
+               placeholder="● ● ● ●"
+               style="width: 200px; height: 56px; font-size: 28px; text-align: center; letter-spacing: 12px;
+                      border: 2px solid #e8e5e0; border-radius: 8px; margin-bottom: 16px;
+                      font-family: 'Google Sans', 'Noto Sans Thai', sans-serif;"
+               oninput="pinSingleInput(this)"
+               onkeydown="if(event.key==='Enter'){event.preventDefault();pinSingleSubmit();}">
+        <div>
+            <button type="button" class="btn btn-primary" style="padding: 10px 32px; font-size: 14px;" onclick="pinSingleSubmit()">ตกลง</button>
         </div>
-        <div class="pin-numpad">
-            <button type="button" class="pin-btn" onclick="pinType('1')">1</button>
-            <button type="button" class="pin-btn" onclick="pinType('2')">2</button>
-            <button type="button" class="pin-btn" onclick="pinType('3')">3</button>
-            <button type="button" class="pin-btn" onclick="pinType('4')">4</button>
-            <button type="button" class="pin-btn" onclick="pinType('5')">5</button>
-            <button type="button" class="pin-btn" onclick="pinType('6')">6</button>
-            <button type="button" class="pin-btn" onclick="pinType('7')">7</button>
-            <button type="button" class="pin-btn" onclick="pinType('8')">8</button>
-            <button type="button" class="pin-btn" onclick="pinType('9')">9</button>
-            <button type="button" class="pin-btn" style="grid-column: 2;" onclick="pinType('0')">0</button>
-            <button type="button" class="pin-btn" onclick="pinBackspace()">←</button>
+        <div id="pinError" style="margin-top: 12px; color: #d33; font-size: 13px; min-height: 16px;"></div>
+        <div class="pin-numpad" style="margin-top: 16px;">
+            <button type="button" class="pin-btn" onclick="pinPadType('1')">1</button>
+            <button type="button" class="pin-btn" onclick="pinPadType('2')">2</button>
+            <button type="button" class="pin-btn" onclick="pinPadType('3')">3</button>
+            <button type="button" class="pin-btn" onclick="pinPadType('4')">4</button>
+            <button type="button" class="pin-btn" onclick="pinPadType('5')">5</button>
+            <button type="button" class="pin-btn" onclick="pinPadType('6')">6</button>
+            <button type="button" class="pin-btn" onclick="pinPadType('7')">7</button>
+            <button type="button" class="pin-btn" onclick="pinPadType('8')">8</button>
+            <button type="button" class="pin-btn" onclick="pinPadType('9')">9</button>
+            <button type="button" class="pin-btn" style="grid-column: 2;" onclick="pinPadType('0')">0</button>
+            <button type="button" class="pin-btn" onclick="pinPadBackspace()">←</button>
         </div>
     </div>
 </div>
@@ -2477,7 +2483,7 @@
 
     window.addEventListener('load', function() {
         // เคลียร์ค่า autofill ของ browser ที่อาจค้างอยู่ในช่อง search/PIN/form
-        ['searchInput','pin0','pin1','pin2','pin3','formHN','formName','formDx','formAdmitDate'].forEach(function(id){
+        ['searchInput','pinSingle','formHN','formName','formDx','formAdmitDate'].forEach(function(id){
             var el = document.getElementById(id);
             if (el) el.value = '';
         });
@@ -2537,86 +2543,57 @@
             document.getElementById('pinOverlay').style.display = 'none';
             return;
         }
-        // focus ช่องแรกเพื่อให้ใช้คีย์บอร์ดพิมพ์ได้เลย
+        // focus ช่อง PIN เพื่อให้ใช้คีย์บอร์ดพิมพ์ได้เลย
         setTimeout(function() {
-            let first = document.getElementById('pin0');
-            if (first) first.focus();
+            let el = document.getElementById('pinSingle');
+            if (el) el.focus();
         }, 100);
     }
 
-    function pinType(digit) {
-        for (let i = 0; i < 4; i++) {
-            let input = document.getElementById('pin' + i);
-            if (!input.value) {
-                input.value = digit;
-                if (i < 3) document.getElementById('pin' + (i + 1)).focus();
-                checkPINComplete();
-                return;
-            }
+    // รับการพิมพ์ในช่อง PIN เดี่ยว — กรองเฉพาะตัวเลขและ auto-submit เมื่อครบ 4 ตัว
+    function pinSingleInput(el) {
+        el.value = (el.value || '').replace(/\D/g, '').slice(0, 4);
+        document.getElementById('pinError').textContent = '';
+        if (el.value.length === 4) {
+            pinSingleSubmit();
         }
     }
 
-    // รับการพิมพ์โดยตรงในช่อง PIN (OTP-style)
-    function pinOnInput(el, idx) {
-        // กรองให้เหลือเฉพาะตัวเลข
-        let v = (el.value || '').replace(/\D/g, '');
-        el.value = v.slice(0, 1);
-        if (el.value) {
-            // พิมพ์แล้ว → เลื่อนไปช่องถัดไป
-            if (idx < 3) {
-                let next = document.getElementById('pin' + (idx + 1));
-                if (next) next.focus();
-            }
-            checkPINComplete();
+    function pinSingleSubmit() {
+        let el = document.getElementById('pinSingle');
+        let pin = (el.value || '').trim();
+        if (pin.length !== 4) {
+            document.getElementById('pinError').textContent = 'กรุณากรอก PIN 4 หลัก';
+            return;
+        }
+        if (pin === PIN_CORRECT) {
+            sessionStorage.setItem('pinValid', 'true');
+            document.getElementById('pinOverlay').style.display = 'none';
+        } else {
+            document.getElementById('pinError').textContent = 'PIN ไม่ถูกต้อง';
+            el.value = '';
+            el.focus();
         }
     }
 
-    function pinOnKeydown(e, idx) {
-        // Backspace ในช่องว่าง → ย้อนไปช่องก่อนหน้า
-        if (e.key === 'Backspace' && !e.target.value && idx > 0) {
-            e.preventDefault();
-            let prev = document.getElementById('pin' + (idx - 1));
-            if (prev) { prev.focus(); prev.value = ''; }
-        }
-        // Arrow left/right ไปช่องก่อนหน้า/ถัดไป
-        if (e.key === 'ArrowLeft' && idx > 0) {
-            e.preventDefault();
-            document.getElementById('pin' + (idx - 1)).focus();
-        }
-        if (e.key === 'ArrowRight' && idx < 3) {
-            e.preventDefault();
-            document.getElementById('pin' + (idx + 1)).focus();
+    // แป้นตัวเลขบนจอ — เติมเข้าไปในช่อง PIN เดี่ยว
+    function pinPadType(digit) {
+        let el = document.getElementById('pinSingle');
+        if (!el) return;
+        if (el.value.length < 4) {
+            el.value = el.value + digit;
+            pinSingleInput(el);
         }
     }
 
-    function pinBackspace() {
-        for (let i = 3; i >= 0; i--) {
-            let input = document.getElementById('pin' + i);
-            if (input.value) {
-                input.value = '';
-                if (i > 0) document.getElementById('pin' + (i - 1)).focus();
-                return;
-            }
-        }
+    function pinPadBackspace() {
+        let el = document.getElementById('pinSingle');
+        if (!el) return;
+        el.value = (el.value || '').slice(0, -1);
+        document.getElementById('pinError').textContent = '';
+        el.focus();
     }
 
-    function checkPINComplete() {
-        let pin = '';
-        for (let i = 0; i < 4; i++) {
-            pin += document.getElementById('pin' + i).value;
-        }
-        if (pin.length === 4) {
-            if (pin === PIN_CORRECT) {
-                sessionStorage.setItem('pinValid', 'true');
-                document.getElementById('pinOverlay').style.display = 'none';
-            } else {
-                alert('PIN ไม่ถูก');
-                for (let i = 0; i < 4; i++) {
-                    document.getElementById('pin' + i).value = '';
-                }
-            }
-        }
-    }
 
     // Date Functions
     function updateDate() {
