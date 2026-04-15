@@ -3379,8 +3379,150 @@
         }
         html += '</div>';
         list.innerHTML = html;
-        _renderWarfSparkline(events);
+        _renderWarfUnifiedSvg(events);
     }
+
+    // ── Unified horizontal timeline (SVG): event pins on top + INR sparkline below, shared x-axis ──
+    function _renderWarfUnifiedSvg(events) {
+        var host = document.getElementById('warfUnifiedTimeline');
+        if (!host) return;
+        if (!events.length) { host.innerHTML = '<div style="color:#999;padding:20px;text-align:center;font-size:13px;">ยังไม่มี event — กด "+ เพิ่ม event" เพื่อเริ่ม</div>'; return; }
+
+        // 1) สร้าง date range (min..max) ทุกวันต่อเนื่อง
+        var allDates = events.map(function(e){ return e.date || ''; }).filter(function(d){ return d; });
+        if (!allDates.length) { host.innerHTML = '<div style="color:#999;padding:20px;text-align:center;font-size:13px;">event ยังไม่มีวันที่</div>'; return; }
+        allDates.sort();
+        var minD = allDates[0], maxD = allDates[allDates.length - 1];
+        var _d1 = new Date(minD), _d2 = new Date(maxD);
+        var dayMs = 86400000;
+        var numDays = Math.round((_d2 - _d1) / dayMs) + 1;
+        if (numDays < 5) { // ขยาย range ให้ดูไม่บีบ
+            var pad = Math.ceil((5 - numDays) / 2);
+            _d1 = new Date(_d1.getTime() - pad * dayMs);
+            _d2 = new Date(_d2.getTime() + pad * dayMs);
+            numDays = Math.round((_d2 - _d1) / dayMs) + 1;
+        }
+        var dates = [];
+        for (var k = 0; k < numDays; k++) {
+            var dd = new Date(_d1.getTime() + k * dayMs);
+            dates.push(dd.toISOString().slice(0, 10));
+        }
+
+        // 2) Layout
+        var leftM = 50, rightM = 30, topM = 30, botM = 40;
+        var stepX = Math.max(70, Math.min(110, (820) / Math.max(1, numDays - 1)));
+        var plotW = stepX * (numDays - 1);
+        var svgW = leftM + plotW + rightM + 40; // + ที่เผื่อ label
+        var svgH = 360;
+        var xOf = function(dstr) {
+            var i = dates.indexOf(dstr);
+            return i < 0 ? null : (leftM + i * stepX);
+        };
+        // y scale linear: 1.0→275, 5.0→175 (step 25/INR)
+        var yOf = function(inr) { return 275 - (parseFloat(inr) - 1) * 25; };
+
+        // 3) Dedupe INR → one value per day (ล่าสุดชนะ — events เรียงแล้ว asc)
+        var byDate = {};
+        for (var i = 0; i < events.length; i++) {
+            var v = parseFloat(events[i].inr);
+            if (isNaN(v)) continue;
+            var dt = events[i].date || '';
+            if (dt) byDate[dt] = v;
+        }
+        var inrPoints = Object.keys(byDate).sort().map(function(d){ return { x: xOf(d), y: yOf(byDate[d]), inr: byDate[d], date: d }; });
+
+        // 4) Group non-lab events per day → stack pins
+        var pinsByDate = {};
+        for (var i = 0; i < events.length; i++) {
+            var ev = events[i];
+            if (ev.eventType === 'lab') continue; // INR ขึ้นบนสปาร์คแล้ว
+            var dt = ev.date || '';
+            if (!pinsByDate[dt]) pinsByDate[dt] = [];
+            pinsByDate[dt].push(ev);
+        }
+
+        // 5) Build SVG
+        var s = '<svg viewBox="0 0 ' + svgW + ' ' + svgH + '" xmlns="http://www.w3.org/2000/svg" style="display:block;min-width:' + svgW + 'px;height:auto;">';
+
+        // Target band + grid
+        s += '<rect x="' + leftM + '" y="225" width="' + plotW + '" height="25" fill="#d4edda" opacity="0.5"/>';
+        s += '<text x="' + (leftM + 5) + '" y="240" fill="#198754" font-size="10" font-weight="600">INR target 2.0–3.0</text>';
+        // Y labels
+        var yTicks = [{v:5,y:178},{v:4,y:203},{v:3,y:228},{v:2,y:253},{v:1,y:278}];
+        for (var t = 0; t < yTicks.length; t++) {
+            s += '<text x="' + (leftM - 8) + '" y="' + yTicks[t].y + '" text-anchor="end" font-size="10" fill="#666">' + yTicks[t].v.toFixed(1) + '</text>';
+        }
+        // Grid lines
+        [175, 200, 275].forEach(function(y){ s += '<line x1="' + leftM + '" y1="' + y + '" x2="' + (leftM + plotW) + '" y2="' + y + '" stroke="#eee"/>'; });
+        [225, 250].forEach(function(y){ s += '<line x1="' + leftM + '" y1="' + y + '" x2="' + (leftM + plotW) + '" y2="' + y + '" stroke="#198754" stroke-dasharray="4,3" opacity="0.5"/>'; });
+
+        // X axis
+        s += '<line x1="' + leftM + '" y1="280" x2="' + (leftM + plotW) + '" y2="280" stroke="#333" stroke-width="1.5"/>';
+
+        // X ticks + date labels
+        var monthLabel = '';
+        for (var k = 0; k < dates.length; k++) {
+            var x = leftM + k * stepX;
+            var dd = new Date(dates[k]);
+            var dayNum = dd.getDate();
+            s += '<line x1="' + x + '" y1="280" x2="' + x + '" y2="285" stroke="#999"/>';
+            s += '<text x="' + x + '" y="300" text-anchor="middle" font-size="11" fill="#333" font-weight="500">' + dayNum + '</text>';
+            if (dayNum === 1 || k === 0) {
+                monthLabel = dd.toLocaleDateString('en-US', { month:'short', year:'numeric' });
+            }
+            // คลิกแกนว่าง = shortcut เพิ่ม event
+            s += '<rect x="' + (x - stepX/2) + '" y="281" width="' + stepX + '" height="20" fill="transparent" style="cursor:pointer;" onclick="openWarfarinEventForm(null,\'' + dates[k] + '\')"><title>+ เพิ่ม event วันที่ ' + dates[k] + '</title></rect>';
+        }
+        s += '<text x="' + (leftM + plotW / 2) + '" y="325" text-anchor="middle" font-size="11" fill="#666">' + monthLabel + '</text>';
+
+        // INR sparkline (path + points + value labels)
+        if (inrPoints.length >= 2) {
+            var path = 'M ' + inrPoints[0].x + ' ' + inrPoints[0].y;
+            for (var p = 1; p < inrPoints.length; p++) path += ' L ' + inrPoints[p].x + ' ' + inrPoints[p].y;
+            s += '<path d="' + path + '" fill="none" stroke="#dc3545" stroke-width="2.5"/>';
+        }
+        for (var p = 0; p < inrPoints.length; p++) {
+            s += '<circle cx="' + inrPoints[p].x + '" cy="' + inrPoints[p].y + '" r="4" fill="#dc3545"><title>' + inrPoints[p].date + ' · INR ' + inrPoints[p].inr.toFixed(2) + '</title></circle>';
+            // label (ยกขึ้นถ้าเส้นลงล่าง, ลงล่างถ้าเส้นขึ้นบน)
+            var labelY = inrPoints[p].y - 9;
+            if (inrPoints[p].y < 200) labelY = inrPoints[p].y - 9; // บนสุด → label บน
+            else if (inrPoints[p].y > 250) labelY = inrPoints[p].y + 16; // ในแถบล่าง → label ล่าง
+            s += '<text x="' + inrPoints[p].x + '" y="' + labelY + '" text-anchor="middle" font-size="10" font-weight="700" fill="#dc3545">' + inrPoints[p].inr.toFixed(2) + '</text>';
+        }
+
+        // Event pins (stacked per day)
+        Object.keys(pinsByDate).forEach(function(dt) {
+            var x = xOf(dt);
+            if (x == null) return;
+            var arr = pinsByDate[dt];
+            for (var j = 0; j < arr.length; j++) {
+                var ev = arr[j];
+                var meta = WARF_EVENT_META[ev.eventType] || WARF_EVENT_META.note;
+                var py = 40 + j * 32;
+                // dashed line ลงถึงแกน x
+                s += '<line x1="' + x + '" y1="' + py + '" x2="' + x + '" y2="280" stroke="' + meta.color + '" stroke-width="1.5" stroke-dasharray="3,2" opacity="0.7"/>';
+                // circle
+                var safeId = (ev.id || '').replace(/'/g, '');
+                s += '<g style="cursor:pointer;" onclick="openWarfarinEventForm(\'' + safeId + '\')">';
+                s += '<circle cx="' + x + '" cy="' + py + '" r="10" fill="' + meta.color + '"><title>' + meta.label + ' · ' + (ev.title || '') + (ev.detail ? ' — ' + ev.detail : '') + '</title></circle>';
+                s += '<text x="' + x + '" y="' + (py + 4) + '" text-anchor="middle" font-size="11" fill="#fff">' + meta.icon + '</text>';
+                // label ข้างขวาวงกลม
+                var lblText = ev.title || meta.label;
+                if (lblText.length > 22) lblText = lblText.slice(0, 20) + '…';
+                s += '<text x="' + (x + 14) + '" y="' + (py + 4) + '" font-size="11" font-weight="600" fill="' + meta.color + '">' + lblText + '</text>';
+                if (ev.eventType === 'dose' && ev.weeklyDose) {
+                    s += '<text x="' + (x + 14) + '" y="' + (py + 16) + '" font-size="10" fill="' + meta.color + '">' + ev.weeklyDose + ' mg/wk</text>';
+                }
+                s += '</g>';
+            }
+        });
+
+        s += '</svg>';
+        host.innerHTML = s;
+    }
+
+    // (legacy) keep Chart.js-based sparkline stub so old callers ไม่ crash
+    function _renderWarfSparkline(events) { _renderWarfUnifiedSvg(events); }
 
     function _renderWarfSparkline(events) {
         var container = document.getElementById('warfSparkline');
@@ -3433,7 +3575,7 @@
         });
     }
 
-    function openWarfarinEventForm(existingId) {
+    function openWarfarinEventForm(existingId, prefillDate) {
         var existing = null;
         if (existingId) {
             var list = (currentBundle && currentBundle.warfarinEvents) || [];
@@ -3475,7 +3617,7 @@
         }
         modal.style.display = 'flex';
         document.getElementById('wfEvId').value    = existing ? existing.id : '';
-        document.getElementById('wfEvDate').value  = existing ? existing.date : new Date().toISOString().slice(0,10);
+        document.getElementById('wfEvDate').value  = existing ? existing.date : (prefillDate || new Date().toISOString().slice(0,10));
         document.getElementById('wfEvType').value  = existing ? existing.eventType : 'hold';
         document.getElementById('wfEvTitle').value = existing ? existing.title : '';
         document.getElementById('wfEvDetail').value= existing ? existing.detail : '';
@@ -4913,8 +5055,9 @@
                     '      <button type="button" style="padding:6px 12px;font-size:12px;background:#6c757d;color:#fff;border:none;border-radius:6px;cursor:pointer;font-weight:600;" onclick="exportWarfarinTimelinePDF()">📄 Export PDF</button>' +
                     '    </div>' +
                     '  </div>' +
-                    '  <div id="warfSparkline" style="position:relative;height:140px;width:100%;margin:8px 0;overflow:hidden;"></div>' +
-                    '  <div id="warfTimelineList" style="max-height:300px;overflow:auto;"></div>' +
+                    '  <div id="warfUnifiedTimeline" style="position:relative;width:100%;overflow-x:auto;margin:8px 0;"></div>' +
+                    '  <details style="margin-top:8px;"><summary style="cursor:pointer;font-size:12px;color:#666;font-weight:600;">📋 รายละเอียด events (คลิกเพื่อดู/ลบ)</summary>' +
+                    '  <div id="warfTimelineList" style="max-height:300px;overflow:auto;margin-top:8px;"></div></details>' +
                     '</div>';
             }
 
