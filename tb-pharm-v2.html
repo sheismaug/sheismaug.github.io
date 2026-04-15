@@ -3637,9 +3637,13 @@ dili: `
       <div class="tli"><div class="tld bl">Br</div><div class="tlc"><div class="tlt">Bridge E+Lfx+Am</div><div class="tld8" style="color:var(--blue)">รอ LFT &lt;2× ULN</div></div></div>
       <div class="tli"><div class="tld">RC</div><div class="tlc"><div class="tlt" style="color:var(--tx3)">Re-challenge H→R→Z</div><div class="tld8 mu">ยังไม่ถึง</div></div></div>
     </div>
-    <div class="g2 mt12" style="gap:10px">
-      <button class="btn btn-g btn-full btn-sm" onclick="toast('บันทึก Restart IP แล้ว')">✅ Restart IP</button>
-      <button class="btn btn-out btn-full btn-sm" onclick="toast('อัปเดต Bridge แล้ว')">💊 Bridge</button>
+    <button class="btn btn-rd btn-full btn-sm mt12" onclick="diliHoldAll()">🛑 Hold ยาทั้งหมด (ไม่ bridge)</button>
+    <div class="g2 mt8" style="gap:10px">
+      <button class="btn btn-g btn-full btn-sm" onclick="diliRestartIP()">✅ Restart IP</button>
+      <button class="btn btn-out btn-full btn-sm" onclick="diliBridge()">💊 Bridge E+Lfx+Am</button>
+    </div>
+    <div style="font-size:11px;color:var(--tx3);margin-top:8px;text-align:center">
+      📊 บันทึกลง sheet <strong>ADR_Log</strong> + อัปเดต <strong>Patients</strong> (hold_date / restart_date / status)
     </div>
   </div>
 </div>`,
@@ -5686,7 +5690,183 @@ function calcDILI() {
     ${bridge.length?`<div class="row mb8" style="flex-wrap:wrap;gap:5px"><span style="font-size:12px;font-weight:700;color:var(--tx2)">Bridge:</span>${bridge.map(d=>`<span class="chip am" style="cursor:default">${d}</span>`).join('')}</div>`:''}
     <div style="font-size:12px;color:var(--tx3)">📅 ติดตาม: <strong>${recheck}</strong></div>
     ${rcH}
-    ${hold.length?`<button class="btn btn-g btn-full mt12" onclick="toast('บันทึก Hold event แล้ว')">🛑 บันทึก Hold</button>`:''}`;
+    ${hold.length?`<button class="btn btn-g btn-full mt12" onclick="diliSaveHoldEvent(${JSON.stringify(hold).replace(/"/g,'&quot;')}, ${JSON.stringify(bridge).replace(/"/g,'&quot;')})">🛑 บันทึก Hold</button>`:''}`;
+}
+
+/* ─── DILI HOLD / RESTART / BRIDGE ACTIONS ─── */
+// ทุก action บันทึกลง sheet ADR_Log + อัปเดต Patients sheet
+//   - ADR_Log: event_type, drug_suspect, hold_start, action_taken, notes
+//   - Patients: status (hold/active), hold_date, restart_date
+
+function diliGetSelectedPt() {
+  const ptId = document.getElementById('dili-pt')?.value;
+  if (!ptId) {
+    toast('⚠️ กรุณาเลือกผู้ป่วยก่อน');
+    return null;
+  }
+  return ptId;
+}
+
+function diliToday() {
+  return new Date().toISOString().slice(0,10);
+}
+
+// Hold ยาทั้งหมด (H+R+Z+E+S) โดยไม่ bridge — ใช้เมื่อแพทย์สั่ง hold ทั้งหมด
+async function diliHoldAll() {
+  const ptId = diliGetSelectedPt();
+  if (!ptId) return;
+
+  const ast  = document.getElementById('d-ast')?.value  || '';
+  const alt  = document.getElementById('d-alt')?.value  || '';
+  const bili = document.getElementById('d-bili')?.value || '';
+
+  const reason = prompt('เหตุผลที่ hold ทั้งหมด (เช่น "แพทย์สั่ง hold รอประเมิน", "ALT สูง ไม่พร้อม bridge"):', 'แพทย์สั่ง hold ยาทั้งหมด');
+  if (reason === null) return; // cancel
+
+  if (!confirm('ยืนยัน Hold ยาทั้งหมด (H+R+Z+E+S) โดยไม่ bridge?')) return;
+
+  const payload = {
+    patient_id:   ptId,
+    visit_id:     '',
+    event_date:   diliToday(),
+    event_type:   'HOLD',
+    drug_suspect: 'H,R,Z,E,S',
+    symptoms:     '',
+    severity:     'hold_all',
+    action_taken: 'Hold ยาทั้งหมด (ไม่ bridge)',
+    hold_start:   diliToday(),
+    hold_end:     '',
+    hold_days:    0,
+    restart_type: '',
+    follow_date:  '',
+    resolved:     false,
+    notes:        reason + (ast?` | AST ${ast}`:'') + (alt?` ALT ${alt}`:'') + (bili?` Bili ${bili}`:''),
+  };
+
+  try {
+    await api('saveAdrEvent', payload);
+    // backend จะ auto-set patient.status='hold' + hold_date (เมื่อ event_type='HOLD')
+    toast('🛑 บันทึก Hold ทั้งหมดลง Sheet แล้ว — ผู้ป่วยอยู่สถานะ hold');
+  } catch (e) {
+    toast('💾 บันทึกไม่สำเร็จ: ' + (e.message || 'offline'));
+  }
+}
+
+// บันทึก Hold จากผล DILI analysis (hold เฉพาะยาที่ระบุ)
+async function diliSaveHoldEvent(holdDrugs, bridgeDrugs) {
+  const ptId = diliGetSelectedPt();
+  if (!ptId) return;
+
+  const ast  = document.getElementById('d-ast')?.value  || '';
+  const alt  = document.getElementById('d-alt')?.value  || '';
+  const bili = document.getElementById('d-bili')?.value || '';
+  const uln  = document.getElementById('d-uln')?.value  || 45;
+
+  if (!confirm(`ยืนยันบันทึก Hold: ${holdDrugs.join('+')}${bridgeDrugs.length?' + Bridge '+bridgeDrugs.join('+'):''}?`)) return;
+
+  const payload = {
+    patient_id:   ptId,
+    visit_id:     '',
+    event_date:   diliToday(),
+    event_type:   'HOLD',
+    drug_suspect: holdDrugs.join(','),
+    symptoms:     gcv('chips-sym') || '',
+    severity:     (parseFloat(alt)/parseFloat(uln) > 5) ? 'severe' : 'moderate',
+    action_taken: bridgeDrugs.length ? ('Hold '+holdDrugs.join('+')+' + Bridge '+bridgeDrugs.join('+')) : ('Hold '+holdDrugs.join('+')),
+    hold_start:   diliToday(),
+    hold_end:     '',
+    hold_days:    0,
+    restart_type: '',
+    follow_date:  '',
+    resolved:     false,
+    notes:        `DILI analysis | AST ${ast} ALT ${alt} Bili ${bili} ULN ${uln}`,
+  };
+
+  try {
+    await api('saveAdrEvent', payload);
+    toast('🛑 บันทึก Hold event แล้ว');
+  } catch (e) {
+    toast('💾 บันทึกไม่สำเร็จ: ' + (e.message || 'offline'));
+  }
+}
+
+// Restart IP — เริ่มยา IP ใหม่หลัง hold ≥14 วัน หรือหลัง DILI หาย
+async function diliRestartIP() {
+  const ptId = diliGetSelectedPt();
+  if (!ptId) return;
+
+  const reason = prompt('หมายเหตุ Restart IP (เช่น "LFT ลดลง <2× ULN", "ครบ 14 วัน เริ่มใหม่"):', 'Restart IP หลัง hold');
+  if (reason === null) return;
+
+  if (!confirm('ยืนยัน Restart IP? (จะ set patient status = active และตั้ง restart_date = วันนี้)')) return;
+
+  const today = diliToday();
+  const payload = {
+    patient_id:   ptId,
+    visit_id:     '',
+    event_date:   today,
+    event_type:   'RESTART_IP',
+    drug_suspect: '',
+    symptoms:     '',
+    severity:     '',
+    action_taken: 'Restart IP',
+    hold_start:   '',
+    hold_end:     today,
+    hold_days:    0,
+    restart_type: 'IP',
+    follow_date:  '',
+    resolved:     true,
+    notes:        reason,
+  };
+
+  try {
+    await api('saveAdrEvent', payload);
+    // ต้อง update patient แยก เพราะ backend saveAdrEvent ตั้ง status='hold' เท่านั้น ไม่กลับ active
+    await api('savePatient', {
+      patient_id:   ptId,
+      status:       'active',
+      restart_date: today,
+    });
+    toast('✅ บันทึก Restart IP — ผู้ป่วยกลับสถานะ active');
+  } catch (e) {
+    toast('💾 บันทึกไม่สำเร็จ: ' + (e.message || 'offline'));
+  }
+}
+
+// Bridge — ใช้ E+Lfx+Am ระหว่างรอ LFT กลับ
+async function diliBridge() {
+  const ptId = diliGetSelectedPt();
+  if (!ptId) return;
+
+  const reason = prompt('หมายเหตุ Bridge (เช่น "ALT >5× ULN bridge E+Lfx+Am รอ LFT"):', 'Bridge E+Lfx+Am รอ LFT <2× ULN');
+  if (reason === null) return;
+
+  if (!confirm('ยืนยันบันทึก Bridge E+Lfx+Am?')) return;
+
+  const payload = {
+    patient_id:   ptId,
+    visit_id:     '',
+    event_date:   diliToday(),
+    event_type:   'BRIDGE',
+    drug_suspect: 'H,R,Z',
+    symptoms:     '',
+    severity:     '',
+    action_taken: 'Bridge E+Lfx+Am',
+    hold_start:   diliToday(),
+    hold_end:     '',
+    hold_days:    0,
+    restart_type: '',
+    follow_date:  '',
+    resolved:     false,
+    notes:        reason,
+  };
+
+  try {
+    await api('saveAdrEvent', payload);
+    toast('💊 บันทึก Bridge E+Lfx+Am แล้ว');
+  } catch (e) {
+    toast('💾 บันทึกไม่สำเร็จ: ' + (e.message || 'offline'));
+  }
 }
 
 /* ─── STOCK / CATALOG ─────────────────────── */
