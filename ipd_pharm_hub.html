@@ -4075,68 +4075,103 @@
         }
     }
 
-    // ══════ HAD Handbook ══════
+    // ══════ HAD Handbook (ข้อมูลฉบับเต็มจาก HAD Round App — อ้างอิง HAD รพ.ห้วยผึ้ง 2567) ══════
     var HB_DATA = [
-        { key:'adrenaline', name:'Adrenaline (Epinephrine)', badge:'Emergency',
-          indication:'Anaphylaxis, Cardiac arrest, Severe bronchospasm',
-          dose:'Anaphylaxis: 0.3–0.5 mg IM (1:1000) ทุก 5–15 นาที\nArrest: 1 mg IV push ทุก 3–5 นาที (1:10000)\nDrip: 0.01–0.5 mcg/kg/min',
-          monitor:'BP, HR, EKG, perfusion, IV site (extravasation → tissue necrosis)',
-          caution:'Extravasation → ใช้ phentolamine (รพ.ห้วยผึ้ง ไม่มี — warm compress + หยุด drip)\nหลีกเลี่ยงใน severe HT, ห้ามใน halothane anesthesia' },
-        { key:'adenosine', name:'Adenosine', badge:'Antiarrhythmic',
-          indication:'SVT (PSVT termination)',
-          dose:'6 mg IV rapid push → flush NSS 20 mL\nถ้าไม่กลับ: 12 mg ซ้ำ (สูงสุด 2 ครั้ง)',
-          monitor:'EKG ต่อเนื่อง, BP, flushing, chest tightness',
-          caution:'Asystole ชั่วคราว (ปกติ < 10 วิ), ผ่าน central line ใช้ครึ่งโดส\nContraindicate: 2nd/3rd AV block, sick sinus (ไม่มี pacemaker)' },
-        { key:'amiodarone', name:'Amiodarone', badge:'Antiarrhythmic',
-          indication:'VT/VF, AF rate/rhythm control',
-          dose:'Arrest VF/pulseless VT: 300 mg IV push, ซ้ำ 150 mg\nLoading: 150 mg IV ใน 10 นาที → 1 mg/min × 6 ชม. → 0.5 mg/min × 18 ชม.',
-          monitor:'BP, HR, EKG (QT), LFT, TFT, CXR (pulmonary fibrosis)',
-          caution:'ผสมใน D5W เท่านั้น (ไม่ใช้ NSS), ให้ผ่าน central line ถ้า > 2 mg/mL' },
-        { key:'digoxin', name:'Digoxin', badge:'HF / AF',
-          indication:'HF, AF rate control',
-          dose:'Loading: 0.25 mg IV q6h × 2–3 doses (max 1 mg)\nMaintenance: 0.125–0.25 mg/day PO',
-          monitor:'Dig level (target 0.5–2 ng/mL), K, Mg, Cr, HR, EKG',
-          caution:'Toxicity: N/V, ตาเหลือง, bradycardia, VT/AV block\nAntidote: Digibind (ไม่มีในโรงพยาบาล)' },
-        { key:'mgso4', name:'Magnesium Sulfate (MgSO4)', badge:'OB / Torsades',
-          indication:'Pre-eclampsia/eclampsia, Torsades de pointes, Severe asthma',
-          dose:'Eclampsia: 4–6 g IV load ใน 15–20 นาที → 1–2 g/hr\nTorsades: 1–2 g IV ใน 15 นาที',
-          monitor:'DTR (knee jerk), RR > 12, urine > 30 mL/hr, Mg level',
-          caution:'Toxicity: hyporeflexia → resp depression → cardiac arrest\nAntidote: Calcium gluconate 1 g IV' },
-        { key:'morphine', name:'Morphine', badge:'Opioid',
-          indication:'Severe pain, acute pulmonary edema',
-          dose:'IV: 2–4 mg q5–15 นาที titrate\nIM/SC: 5–10 mg q4h\nรพ.ห้วยผึ้ง มีเฉพาะ injection (ไม่มี oral form)',
-          monitor:'Pain score, RR, sedation, BP, pupil',
-          caution:'Antidote: Naloxone 0.4 mg IV ซ้ำ q2–3 นาที\nContraindicate: RR<12, severe asthma, paralytic ileus' },
-        { key:'norepinephrine', name:'Norepinephrine (Levophed)', badge:'Vasopressor',
-          indication:'Septic shock, refractory hypotension',
-          dose:'Start 0.05 mcg/kg/min titrate MAP ≥ 65\nปกติ 0.05–2 mcg/kg/min',
-          monitor:'BP (target MAP ≥ 65), HR, UO, perfusion, IV site',
-          caution:'ให้ผ่าน central line ถ้ามี\nExtravasation → phentolamine (ไม่มี) / saline dilution + warm' },
-        { key:'pethidine', name:'Pethidine (Meperidine)', badge:'Opioid',
-          indication:'Post-op pain, shivering',
-          dose:'IM/SC: 50–100 mg q3–4h\nIV slow: 25–50 mg',
-          monitor:'RR, BP, sedation, seizure (metabolite normeperidine)',
-          caution:'หลีกเลี่ยงใน renal impairment, ห้ามรวมกับ MAOI (serotonin syndrome)' },
-        { key:'kcl', name:'Potassium Chloride (KCl)', badge:'Electrolyte',
-          indication:'Hypokalemia',
-          dose:'IV: max 10 mEq/hr peripheral, 20 mEq/hr central (monitor)\nMax conc peripheral 40 mEq/L, central 80 mEq/L\nPO: 20–40 mEq tid',
-          monitor:'K level q4–6h, EKG, IV site (phlebitis)',
-          caution:'ห้าม IV push เด็ดขาด — cardiac arrest\nห้าม undiluted, ต้องเจือจาง' },
-        { key:'insulin', name:'Insulin (Regular, NPH)', badge:'Endocrine',
-          indication:'DM, DKA, HHS, hyperK',
-          dose:'SC sliding scale ตาม DTX\nIV drip: 0.1 U/kg/hr (DKA), titrate by DTX q1h',
-          monitor:'DTX q1h (drip) หรือ q4–6h, K, anion gap (DKA)',
-          caution:'Hypoglycemia → 50% glucose 50 mL IV\nห้ามสลับ U-100 กับ U-40' },
-        { key:'streptokinase', name:'Streptokinase', badge:'Thrombolytic',
-          indication:'STEMI (ถ้า PCI ไม่ได้ <12 ชม.)',
-          dose:'1.5 MU IV ใน 30–60 นาที (NSS 100 mL)',
-          monitor:'BP q15min, bleeding, reperfusion arrhythmia, allergic reaction',
-          caution:'Contraindicate: active bleeding, recent surgery/stroke, severe HT\nAllergic: hydrocortisone + CPM ก่อน' },
-        { key:'warfarin', name:'Warfarin', badge:'Anticoagulant',
-          indication:'AF (stroke prevention), DVT/PE, mechanical valve',
-          dose:'Start 3–5 mg/day PO, titrate ตาม INR\nTarget INR 2–3 (ทั่วไป) หรือ 2.5–3.5 (mechanical mitral valve)',
-          monitor:'INR baseline → q2–3 วัน → weekly → monthly\nBleeding signs, Hb',
-          caution:'Drug interaction เยอะ (warfarin + amiodarone/metronidazole/antibiotics)\nAntidote: Vit K 10 mg IV slow (major bleed); FFP/PCC ถ้าเร่งด่วน' },
+        { key:'norepinephrine', name:'Norepinephrine', badge:'IV drip · Vasopressor', img:'HAD_picture/norepinephrine.png',
+          dose:'Range: 0.05-0.5 mcg/kg/min · การเตรียมยา: NE 4 mg + D5W 250 mL (ใช้ D5W 250 mL ดูดออก 4 mL ดู NE 4 mL เติมลงในน้ำผสมให้เข้ากัน) · ใช้ infusion pump เท่านั้น ห้าม IV push · ควรให้ผ่านเส้นเลือดดำใหญ่เท่านั้น หากให้ทาง peripheral ต้องระวัง extravasation',
+          prep:'NE 4 mg/4 mL + D5W 250 mL (16 mcg/mL) · สารน้ำ: D5W หรือ D5S เท่านั้น ห้าม NSS เดี่ยว (oxidation) · ห้ามผสม NaHCO₃ · ห้ามให้ในสาย IV เดียวกับเลือด/plasma',
+          monitoring:'BP และ HR ทุก 2 นาทีเมื่อเริ่มให้ยา → ทุก 5 นาทีเมื่อ BP คงที่ (SBP ≈ 80-100 mmHg) → ทุก 15 นาที · ดู IV site ทุก 1 ชม. · Respiratory rate',
+          alarm:'HR > 120 ครั้ง/นาที · BP > 160/100 mmHg (ผู้ใหญ่) · BP > 120/80 mmHg (เด็ก) · ผิวหนังซีด/เขียว ที่ IV site · หลอดเลือดอักเสบ · Extravasation',
+          sae:'หัวใจเต้นช้า/ผิดจังหวะ (Arrhythmia) · ปวดศีรษะ ความดันโลหิตสูง · กระวนกระวาย หายใจลำบาก · Tissue necrosis จาก extravasation · Vasoconstriction',
+          antidote:'Phentolamine 5-10 mg ผสม NSS 10-15 mL ฉีดรอบบริเวณ extravasation ภายใน 12 ชม. · การหยุดยาต้องค่อยๆ ปรับลด ระวัง rebound hypotension' },
+
+        { key:'adrenaline', name:'Adrenaline', badge:'IV drip/push · Emergency', img:'HAD_picture/adrenaline.png',
+          dose:'Drip: 1 mg + NSS 250 mL · CPR: 1 mg IV q3-5 min · Anaphylaxis: 0.3-0.5 mg IM · (ยาชื่อคล้ายกับ Adenosine — Double check ก่อนบริหารยา) · ตรวจสอบ route of administration ทุกครั้ง: IV IM SC NB',
+          prep:'ขนาดบรรจุ 1 mg/mL (1:1000) · Drip: 1 mg + NSS 250 mL · Push: 1 mg/mL undiluted (CPR) · เก็บที่อุณภูมิ ≤25°C ป้องกันแสง · ห้ามใช้ถ้าสารละลายเปลี่ยนเป็นสีชมพู สีน้ำตาล หรือมีตะกอน',
+          monitoring:'BP, HR, EKG (ตามคำสั่งแพทย์) · Pulmonary function · Urine output (ยาอาจทำให้เกิด renal blood vessel constriction) · Infusion rate and site · ตรวจ IV Set เพราะอาจเกิด tissue necrosis',
+          alarm:'Arrhythmia · Extravasations · Hypertension · Vasoconstriction · Tachycardia, palpitation, BP สูง',
+          sae:'ใจสั่น กระวนกระวาย หัวใจเต้นเร็ว หยุดหายใจ · อาจเกิด Ventricular fibrillation · Pulmonary edema · Extravasation → tissue necrosis',
+          antidote:'Phentolamine 5-10 mg ผสม NSS 10-15 mL ฉีดรอบบริเวณ extravasation ภายใน 12 ชม.' },
+
+        { key:'morphine', name:'Morphine', badge:'Drip/PRN · Opioid', img:'HAD_picture/morphine.png',
+          dose:'ขนาด 10 mg/mL · IV push: เจือจางด้วย SWI 4-5 mL ฉีดช้าๆ นานมากกว่า 4-5 นาที · IV infusion: เจือจางด้วย D5W ให้ความเข้มข้น 0.1-1 mg/mL · ผู้ป่วยควรปัสสาวะได้ > 600 mL/วัน · ห้ามให้ในผู้ป่วยหอบหืด ความดันสูง ซ็อค ไตวาย',
+          prep:'10 mg/mL · IV push: เจือจาง SWI 4-5 mL ฉีดช้าๆ > 4-5 นาที · IV infusion: เจือจาง D5W (0.1-1 mg/mL) · เก็บยาให้พ้นแสง 15-30°C · สารละลายหลังเจือจางเก็บอุณภูมิห้อง 24 ชม.',
+          monitoring:'BP และ RR · Pain score · Sign of dyspnea · Sedation score · Cardiovascular depression · ระวังในผู้ป่วยสูงอายุ เด็ก โรคหัวใจ ไต ตับ',
+          alarm:'Hypotension · Bradycardia · Respiratory depression · RR < 10 · ม่านตาหดเล็ก (overdose) · ง่วงซึมมาก',
+          sae:'เบื่ออาหาร ท้องผูก วิงเวียน ตาพร่า หัวใจเต้นช้า เหงื่อออก คันตามร่างกาย · Respiratory depression → หยุดหายใจ',
+          antidote:'Naloxone 0.4-2 mg IV (เด็ก 0.01 mg/kg) ซ้ำได้ทุก 2-3 นาที (total < 10 mg) · เตรียมไว้ทุกครั้งที่ใช้ยา · ให้ dextrose IV หรือ NSS ควบคุมระบบไหลเวียนโลหิต' },
+
+        { key:'pethidine', name:'Pethidine', badge:'IV push/IM · Opioid', img:'HAD_picture/pethidine.png',
+          dose:'ขนาด 50 mg/mL · IM/IV: 25-100 mg q3-4h PRN · ไม่ควรใช้ติดต่อกันเกิน 48 hr · ไม่ควรใช้ขนาดเกิน 600 mg/24 hr · Direct IV: เจือจางน้ำกลั่น 5 mL ฉีดนาน 4-5 นาที · ปรับขนาดในไตบกพร่อง: CrCl 10-50 = 75%, CrCl <10 = 50%',
+          prep:'50 mg/mL · IV: เจือจางน้ำกลั่น 5 mL ฉีด 4-5 นาที · IM · เก็บยาให้พ้นแสง 15-30°C · สารละลายหลังเจือจางเก็บอุณภูมิห้อง 24 ชม.',
+          monitoring:'BP และ RR · Pain score · Respiratory and Mental status · HR (< 60 BPM) · Prolonged sedation · สั่น กล้ามเนื้อกระตุก/ชัก · Sedative score · ตรวจการทำงานของไต',
+          alarm:'Hypotension · Respiratory depression · ง่วงซึม สับสน · ชัก (norpethidine สะสม) · RR ต่ำ · BP drop · หัวใจเต้นช้า',
+          sae:'ความดันโลหิตต่ำ · ง่วงนอน มึนงง · คลื่นไส้ อาเจียน ท้องผูก · ใจสั่น อ่อนเพลีย หายใจขัด หัวใจเต้นผิดจังหวะ · กล้ามเนื้อกระตุก ชัก · ภาวะไตบกพร่อง (ผู้สูงอายุ)',
+          antidote:'Naloxone 2 mg IV (เด็ก 0.01 mg/kg) ซ้ำได้ทุก 2-3 นาที (total < 10 mg) · ให้ dextrose IV หรือ NSS ควบคุมระบบไหลเวียนโลหิต' },
+
+        { key:'insulin', name:'Regular Insulin', badge:'Drip/SC Scale · Endocrine', img:'HAD_picture/regular_insulin.png',
+          dose:'ขนาด 100 unit/mL (10 mL) · DKA: IV loading 0.15 u/kg → Maint 0.1 u/kg/hr · Hyperglycemia: sliding scale insulin · Hyperkalemia: Dextrose 0.5-1 mL/kg ร่วมกับ RI 1 unit ต่อ dextrose 4-5 g · ถ้า glucose ไม่ลดใน 1 ชม.แรก เพิ่มอัตรา 2 เท่าทุกชม.',
+          prep:'Standard diluent: 100 units + NSS 100 mL (1 u/mL) · สารละลาย: D5W, D5N/2, NSS · ใช้ insulin syringe ตรวจสอบ unit marking · ใช้ infusion pump · ระบุหน่วยเป็น units/hour · เก็บยา 2-8°C (เปิดแล้วคงตัว 28 วัน ≤30°C) · ยาผสมแล้วคงตัว 24 ชม.',
+          monitoring:'Observe Sign of Hypoglycemia: ใจสั่น เหงื่อออก หมดสติ · DTx หลังให้ยา · Hypoglycemia: men < 50 mg/dL, women < 40 mg/dL · ห้ามใช้หาก RI เปลี่ยนสีขุ่นมีตะกอนหรืออนุภาคเกิดขึ้น หรือหนืดผิดปกติ',
+          alarm:'ภาวะน้ำตาลในเลือดต่ำ: กระวนกระวาย หน้าซีด ใจสั่น เหงื่อออก หมดสติ · ถ้าพบ → หยุดยาและรายงานแพทย์',
+          sae:'Severe hypoglycemia → หมดสติ/ชัก · กระวนกระวาย หน้าซีด ใจสั่น เหงื่อออก',
+          antidote:'50% Glucose 50 mL IV push · (หากต้องบริหารยาแบบ IV ควรใช้ infusion pump)' },
+
+        { key:'kcl', name:'KCl (Potassium Chloride)', badge:'IV drip · Electrolyte', img:'HAD_picture/KCl.png',
+          dose:'ขนาด 40 mEq/NSS 1,000 mL · ค่าปกติ K⁺ 3.5-5.3 mEq/L · ทุก 10 mEq จะเพิ่ม K⁺ ≈ 0.1 mEq/L · Mild (3-3.5): Elixir 1-2 mEq/kg/day PO · Moderate (2.5-3): IV 0.5-1 mEq/kg/dose, Max Conc. 40 mEq/L, Max rate 10 mEq/hr · Severe (<2.5): IV 0.5-1 mEq/kg/dose (Max ≤ 40 mEq), Max Conc. 80 mEq/L, Max rate 40 mEq/hr · **ทำ EKG เมื่อ rate > 10 mEq/hr',
+          prep:'KCl 40 mEq + NSS 1,000 mL · ห้าม IV push เด็ดขาด — หัวใจหยุดเต้นได้ · Max rate peripheral 10 mEq/hr · IV infusion หยดยานาน 2-4 ชม. สูงสุด 1-2 g/hr · ห้ามใช้ในผู้ป่วยโรคไต · เก็บที่อุณภูมิห้อง ปราศจากแสงและความชื้น',
+          monitoring:'BP และ HR · Serum K⁺ · EKG (ตามคำสั่งแพทย์) · IV site Extravasations · Urine output (< 600 mL/day อาจมีการสะสม K⁺) · pH · เภสัชกรตรวจสอบ Drug interaction: K⁺↑ ACE inhibitors, K⁺-sparing diuretic / K⁺↓ Sodamint, Ca gluconate, insulin, glucose',
+          alarm:'Hyperkalemia: คลื่นไส้ อาเจียน กล้ามเนื้ออ่อนแรง สับสน หายใจลำบาก · ECG changes (peaked T, wide QRS) · ปวด/บวม IV site',
+          sae:'K⁺↑ → ปัสสาวะบ่อย คลื่นไส้ หัวใจสั่น เต้นช้า อ่อนเพลีย ชาตามปลายมือเท้า ท้องเสีย ปวดท้อง · Cardiac arrest',
+          antidote:'Calcium gluconate 1 g (1 amp) slowly IV push 5-10 นาที · RI 10 u + 50% glucose 50 mL IV drip 15-30 นาที · NaHCO₃ 50-100 mEq IV push 2-5 นาที · Kalimate 15-60 g PO' },
+
+        { key:'mgso4', name:'MgSO4 (Magnesium Sulfate)', badge:'IV drip · OB/Torsades', img:'HAD_picture/magnesium_sulfate.png',
+          dose:'ขนาด 1 g/2 mL (50%) · Eclampsia/Pre-eclampsia: Loading 4 g IV 20 นาที → Maint 1-2 g/hr · Hypomagnesemia · IV infusion ความเข้มข้นสูงสุด 100 mg/mL · IM/IV push ความเข้มข้นไม่เกิน 20% (200 mg/mL) · อัตราเร็วฉีด ≤ 150 mg/min · IV infusion หยด > 2-4 ชม. สูงสุด 1-2 g/hr',
+          prep:'50% MgSO₄ 1 g/2 mL · สารเจือจาง: D5W · ไม่ควรเก็บยาในตู้เย็น (ตกตะกอน/ตกผลึก) · Incompatibility: ห้ามผสมใน syringe ร่วมกับ Hydrocortisone',
+          monitoring:'BP, HR, RR, Urine output (ต้อง > 100 mL/4 hr) · Serum Mg · ระวัง HyperMagnesemia · Patellar reflex (ต้องยังมี!) · CNS depression · Blood coagulation · Hyporeflexia · ระมัดระวังยาสับสนกับ Morphine sulfate',
+          alarm:'Mg สูงเกินไป → ซึม กดการทำงานระบบกล้ามเนื้อ (Hyporeflexia) กดการหายใจ EKG ผิดปกติ · Patellar reflex หายไป · RR < 16 · UO < 25 mL/hr → หยุดยาทันที',
+          sae:'กดระบบประสาท อ่อนแรง · Respiratory arrest · Cardiac arrest',
+          antidote:'Calcium gluconate 1 g IV slow push 5-10 นาที' },
+
+        { key:'digoxin', name:'Digoxin', badge:'IV push · HF/AF', img:'HAD_picture/digoxin.png',
+          dose:'ขนาดบรรจุ 0.5 mg/2 mL · IV Loading: 0.25-0.5 mg slow IV push ครั้งแรก แล้วตามด้วย 0.25 mg ทุก 6 ชม. อีก 2 ครั้ง (Total loading ≈ 0.75-1 mg) · Maintenance: 0.125-0.25 mg/day IV หรือ PO · Therapeutic Index แคบ: 0.8-2 ng/mL · ข้อบ่งใช้: CHF, AF, SVT · IV slow push ≥ 10-20 นาที · ผู้ป่วยไทรอยด์ต่ำ: ลดขนาดยา / ไทรอยด์สูง: อาจต้องเพิ่มขนาด · ผู้สูงอายุ/ไตบกพร่อง: ลดขนาดลง',
+          prep:'0.5 mg/2 mL · เจือจาง NSS ≥ 4 เท่า · IV slow push ≥ 10-20 นาที · Compatible: D5W, D10W, NSS, Sterile water · ให้ยาเข้าหลอดเลือดดำอย่างรวดเร็วเป็นสาเหตุให้เกิดการหดตัวของหลอดเลือด ดังนั้นการฉีดยาอย่างช้าๆ จึงเป็นสิ่งสำคัญ · เก็บยาไว้ที่อุณภูมิ ≤25°C ป้องกันแสง',
+          monitoring:'HR, BP, EKG · Electrolytes (K⁺, Mg²⁺, Ca²⁺) · BUN, Cr · Digoxin level (0.8-2 ng/mL) · ทั้งนี้ขึ้นกับคำสั่งและดุลพินิจแพทย์ · เภสัชกรตรวจ Drug interaction: Digoxin↑ β-blockers, verapamil, diltiazem, ACE-I, erythromycin, tetracycline / ยาที่ทำให้สูญเสีย K⁺ เช่น Amphotericin B, Diuretics ร่วมกับ digoxin เพิ่มความเสี่ยง toxicity / Digoxin↓ amiloride, spironolactone, oral antacid, cholestyramine',
+          alarm:'คลื่นไส้ อาเจียน · หัวใจเต้นช้าหรือเต้นผิดจังหวะ · บวมตามอวัยวะต่างๆ · มองเห็นสีเขียวเหลือง → แจ้งแพทย์',
+          sae:'Digoxin toxicity → fatal arrhythmia (โดยเฉพาะถ้า K⁺ ต่ำ) · คลื่นไส้อาเจียน หัวใจเต้นช้า/ผิดจังหวะ มองเห็นสีเขียวเหลือง',
+          antidote:'Digoxin immune Fab (DigiFab) — คำนวณ dose จาก body load: vials = (serum level × BW) / 100 · Acute ingestion: vials = (จำนวน mg ที่กิน × 0.8) / 0.5 · กรณีไม่ทราบ level/ปริมาณ: ให้ 10-20 vials IV ใน 30 นาที' },
+
+        { key:'warfarin', name:'Warfarin', badge:'Oral · Anticoagulant',
+          dose:'ขนาดยา: 2 mg, 3 mg, 5 mg · Pregnancy Risk Factor: X · Double check ก่อนบริหารยาทุกครั้ง (มี 3 ความแรง) · ข้อบ่งใช้: DVT, PE, AF, Mechanical heart valves, Prophylaxis VTE · งดการให้ยาทาง IM ขณะใช้ warfarin',
+          prep:'Oral tablet · เก็บยาที่อุณภูมิห้อง (25°C) ป้องกันแสง · เตรียม Vitamin K แก้อาการเลือดออก',
+          monitoring:'PT/INR (ตามคำสั่งและดุลพินิจแพทย์) · HR, BP · Sign of bleeding: จ้ำเลือดตามผิวหนัง เลือดกำเดา ปัสสาวะเป็นเลือด อุจจาระสีดำ · Sign of clotting: ขาบวม ขาไม่มีแรง · แนะนำผู้ป่วยระวังการมีบาดแผล',
+          alarm:'Minor bleeding: เลือดออกตามไรฟัน รอยช้ำตามตัว เลือดกำเดาไหล เลือดซึมจากแผล เลือดหยุดยาก · Major bleeding: อาเจียนเป็นเลือด ไอเป็นเลือด ปัสสาวะเป็นเลือด อุจจาระสีดำ',
+          sae:'Major bleeding → cardiopulmonary arrest, organ failure, MI, intracerebral hemorrhage · Warfarin-induced skin necrosis (สัปดาห์แรกหลังเริ่มยา) · Purple toe syndrome (3-8 สัปดาห์)',
+          antidote:'Vitamin K1 (Phytonadione): INR 5-9 ไม่มีเลือดออก = 1-2.5 mg PO · INR > 9 ไม่มีเลือดออก = 2.5-5 mg PO · เลือดออกรุนแรง = 10 mg slow IV (ให้นาน > 30 นาที) + FFP หรือ PCC · สอนผู้ป่วยห้ามเลือด: กดที่แผล 5-10 นาที' },
+
+        { key:'amiodarone', name:'Amiodarone', badge:'IV drip · Antiarrhythmic', img:'HAD_picture/amiodarone.png',
+          dose:'ขนาดบรรจุ 150 mg/3 mL (50 mg/mL) · VT arrhythmias (1,050 mg/24 ชม.): Step 1: 150 mg + D5W 100 mL ใน 10 นาที · Step 2: 360 mg + D5W 500 mL ใน 6 ชม. (1 mg/min = 33 mL/hr) · Step 3: 540 mg ใน 18 ชม. (0.5 mg/min = 17 mL/hr) · หลัง 24 ชม.: 0.5 mg/min ความเข้มข้น 1-6 mg/mL · Breakthrough VF/VT: 150 mg + D5W 100 mL ใน 10 นาที · Pulseless VF/VT: 300 mg + D5W 20-30 mL (ไม่ตอบสนองให้อีก 150 mg)',
+          prep:'D5W เท่านั้น! ห้ามผสมใน NSS (ตกตะกอน) · ห้ามผสมในสารละลายที่เป็นด่าง เช่น NaHCO₃ · ความเข้มข้น > 2 mg/mL ให้ทาง Central line · บรรจุใน PVC คงตัว 2 ชม. / ขวดแก้วคงตัว 24 ชม. · IV push กรณีฉุกเฉินเท่านั้น ให้ยาประมาณ 1-2 นาที · Monitor EKG ขณะฉีดและหลังฉีดยา',
+          monitoring:'BP, HR, EKG (ตามคำสั่งแพทย์) · RR · ตรวจ IV site (Thrombophlebitis)',
+          alarm:'Hypotension · Arrhythmia · Cardiac arrest · ใช้อย่างระมัดระวังในผู้ที่ใส่ pacemaker, ภาวะไทรอยด์ผิดปกติ',
+          sae:'ความดันต่ำ หัวใจเต้นช้า · คลื่นไส้/อาเจียน · หายใจขัด เดินเซ แขนขาอ่อนแรง ชาปลายนิ้วเท้า · เหนื่อยเพลีย ตามัว · Thrombophlebitis (บริเวณให้ยา)',
+          antidote:'ไม่มี specific antidote · Bradycardia: Atropine 0.5-1 mg IV หรือ temporary pacemaker · Hypotension: IV fluid, vasopressor ตามความจำเป็น · Torsades de Pointes: Magnesium 1-2 g IV' },
+
+        { key:'adenosine', name:'Adenosine', badge:'IV bolus · Antiarrhythmic', img:'HAD_picture/adenosine.png',
+          dose:'1st dose: 6 mg rapid IV push → ถ้าไม่ตอบสนองใน 1-2 นาที → 12 mg → 12 mg · Max single dose 12 mg · Half-life 0.5-5 วินาที · ฉีดให้เร็วที่สุด + NSS flush ตามทันที · ห้ามใช้: Asthma/COPD, AV block Gr 2-3, Sick sinus syndrome',
+          prep:'6 mg/2 mL · IV rapid bolus เร็วที่สุด + NSS flush ตามทันที · (ยาชื่อคล้ายกับ Adrenaline — Double check ก่อนบริหารยา) · ห้ามเก็บในตู้เย็น · เด็ก BW<50 kg: Loading 0.05-0.1 mg/kg',
+          monitoring:'BP และ HR · EKG (ตามคำสั่งแพทย์) · เตรียม defibrillator',
+          alarm:'อาการข้างเคียง: facial flushing, ใจสั่น แน่นหน้าอก ปวดศีรษะ · (half-life สั้นมาก < 10 วินาที → อาการเกิดเร็วและหายได้เอง)',
+          sae:'Prolonged asystole · Bronchospasm · ความเป็นพิษสั้น (half-life < 10 วินาที)',
+          antidote:'Aminophylline 50-125 mg slow IV push (กรณี bronchospasm รุนแรง) · half-life สั้นมาก (< 10 วินาที) อาการข้างเคียงส่วนใหญ่หายได้เองภายใน 1 นาที · Prolonged AV block: อาจต้องใช้ temporary pacemaker' },
+
+        { key:'streptokinase', name:'Streptokinase', badge:'IV drip · Thrombolytic',
+          dose:'ขนาด 1,500,000 unit/vial · Streptokinase 1,500,000 units + D5W หรือ NSS 100 mL IV drip ใน 60 นาที · ใช้ infusion pump เท่านั้น อัตราเร็วหยดยา 100 microdrop/min · ห้าม IM · ข้อบ่งใช้: DVT, PE, MI, Stroke',
+          prep:'เติมสารน้ำ 10 mL ลงใน vial อย่างช้าๆ แล้วหมุน vial เบาๆ กลิ้งฝ่ามือให้ละลาย (ห้ามเขย่า) → เจือจางลงในสารน้ำ 100 mL · D5W หรือ NSS · เก็บยาในตู้เย็น · Reconstituted: ตู้เย็น (4°C) 24 ชม. / อุณภูมิห้อง (25°C) 8 ชม.',
+          monitoring:'BP, PT, Platelet count, Hct · Sign of bleeding, allergy · Drip in NSS or D5W 100 mL in 30-60 min · ติดตามภาวะเลือดออกทุก 15 นาทีชั่วโมงแรก · HR, EKG · Neuro signs · ติดตามสัญญาณแพ้ยาใน 2-3 ชม.แรก',
+          alarm:'เลือดออกผิดปกติ (IV site, เหงือก, ปัสสาวะ) · Allergic reaction · BP ลดลง 25 mmHg → ลดอัตราเร็วหรือหยุดยาทันที · อาการหอบ → หยุดยาทันที',
+          sae:'Injection site bleeding · Hypotension · Major organs bleeding · Epistaxis · Genitourinary bleeding · Anaphylaxis',
+          antidote:'หยุดยาทันที · Aminocaproic acid 5 g IV loading (ใน 1 ชม.) แล้วตามด้วย 1 g/hr infusion · หรือ Tranexamic acid 1 g IV ช้าๆ (> 10 นาที) · Cryoprecipitate/FFP ถ้า fibrinogen ต่ำ · กดตำแหน่งเลือดออก' },
     ];
 
     function hbRenderList(filter) {
@@ -4146,11 +4181,10 @@
         var html = '';
         for (var i = 0; i < HB_DATA.length; i++) {
             var h = HB_DATA[i];
-            if (q && h.name.toLowerCase().indexOf(q) < 0 && h.badge.toLowerCase().indexOf(q) < 0 && h.indication.toLowerCase().indexOf(q) < 0) continue;
+            if (q && h.name.toLowerCase().indexOf(q) < 0 && (h.badge || '').toLowerCase().indexOf(q) < 0) continue;
             html +=
-                '<li class="hb-item" onclick="hbShow(\'' + h.key + '\')" style="padding:10px 12px;cursor:pointer;border-bottom:1px solid #eee;list-style:none;">' +
-                  '<div style="font-weight:600;color:#2e3f58;">' + h.name + '</div>' +
-                  '<div style="font-size:11px;color:#888;margin-top:2px;">' + h.badge + ' · ' + h.indication.slice(0, 40) + (h.indication.length > 40 ? '…' : '') + '</div>' +
+                '<li class="hb-item" onclick="hbShow(\'' + h.key + '\')" style="padding:10px 12px;cursor:pointer;border-bottom:1px solid #eee;list-style:none;font-weight:600;color:#2e3f58;">' +
+                  h.name +
                 '</li>';
         }
         ul.innerHTML = html || '<li style="padding:14px;color:#999;text-align:center;list-style:none;">— ไม่พบ —</li>';
@@ -4164,13 +4198,29 @@
         var box = document.getElementById('hbDetail');
         if (!h || !box) return;
         function nl(s){ return (s || '').replace(/\n/g, '<br>'); }
+        // รูปยา (ถ้ามี h.img) — ใส่ path แบบ 'images/had/warfarin.jpg' ใน HB_DATA
+        var imgHtml = '';
+        if (h.img) {
+            imgHtml = '<img src="' + h.img + '" alt="' + h.name + '" ' +
+                      'onerror="this.style.display=\'none\'" ' +
+                      'style="max-width:220px;max-height:180px;border-radius:8px;border:1px solid #e4e4e4;float:right;margin:0 0 10px 14px;object-fit:contain;background:#fafafa;">';
+        }
+        function sec(label, color, bg, val) {
+            if (!val) return '';
+            var bgStyle = bg ? ('background:' + bg + ';padding:10px;border-radius:6px;') : '';
+            return '<div style="margin-bottom:12px;"><div style="font-weight:700;color:' + color + ';font-size:12px;margin-bottom:4px;">' + label + '</div><div style="font-size:14px;line-height:1.7;' + bgStyle + '">' + nl(val) + '</div></div>';
+        }
         box.innerHTML =
+            imgHtml +
             '<h3 style="margin:0 0 4px;color:#2e3f58;">' + h.name + '</h3>' +
-            '<div style="display:inline-block;padding:2px 10px;background:#ffe8e8;color:#c04040;border-radius:12px;font-size:11px;font-weight:600;margin-bottom:14px;">' + h.badge + '</div>' +
-            '<div style="margin-bottom:12px;"><div style="font-weight:600;color:#666;font-size:12px;margin-bottom:4px;">📌 Indication</div><div style="font-size:14px;line-height:1.6;">' + nl(h.indication) + '</div></div>' +
-            '<div style="margin-bottom:12px;"><div style="font-weight:600;color:#666;font-size:12px;margin-bottom:4px;">💊 Dose</div><div style="font-size:14px;line-height:1.6;background:#fff8e7;padding:10px;border-radius:6px;">' + nl(h.dose) + '</div></div>' +
-            '<div style="margin-bottom:12px;"><div style="font-weight:600;color:#666;font-size:12px;margin-bottom:4px;">📊 Monitor</div><div style="font-size:14px;line-height:1.6;">' + nl(h.monitor) + '</div></div>' +
-            '<div style="margin-bottom:12px;"><div style="font-weight:600;color:#c04040;font-size:12px;margin-bottom:4px;">⚠ Caution / Antidote</div><div style="font-size:14px;line-height:1.6;background:#fff0f0;padding:10px;border-radius:6px;border-left:3px solid #c04040;">' + nl(h.caution) + '</div></div>';
+            '<div style="display:inline-block;padding:2px 10px;background:#ffe8e8;color:#c04040;border-radius:12px;font-size:11px;font-weight:600;margin-bottom:14px;">' + (h.badge || '') + '</div>' +
+            sec('💊 ขนาดยา / Dose', '#666', '#fff8e7', h.dose) +
+            sec('🧪 การเตรียมยา / Prep', '#666', '#eef6ff', h.prep) +
+            sec('📊 Monitoring', '#666', '', h.monitoring) +
+            sec('🚨 Alarm / สัญญาณอันตราย', '#c04040', '#fff0f0', h.alarm) +
+            sec('⚠ SAE / ผลข้างเคียงรุนแรง', '#c04040', '#fff5f0', h.sae) +
+            sec('💉 Antidote / แก้พิษ', '#0a7f3f', '#eefbf0', h.antidote) +
+            '<div style="clear:both;"></div>';
     }
 
     // ══════ Dashboard ══════
