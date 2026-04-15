@@ -3747,6 +3747,7 @@
         };
         gasPost('saveDCChanges', payload, function(r) {
             showToast('บันทึก D/C แล้ว', { type: 'success' });
+            try { localStorage.removeItem('ipd_patients'); } catch(e) {}
             closePatientDetail();
             loadPatients();  // refresh รายชื่อ + KPI ทันที
         });
@@ -4016,8 +4017,10 @@
             meds: meds
         };
 
-        gasPost('saveMRLog', mrData, function() {
-            alert('บันทึก MR สำเร็จ');
+        gasPost('saveMRLog', mrData, function(r) {
+            showToast('บันทึก MR สำเร็จ', { type: 'success' });
+            try { localStorage.removeItem('ipd_patients'); } catch(e) {}
+            closePatientDetail();
             loadPatients();
         });
     }
