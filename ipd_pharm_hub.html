@@ -3386,7 +3386,7 @@
         var container = document.getElementById('warfSparkline');
         if (!container) return;
         // เตรียม canvas
-        container.innerHTML = '<canvas id="warfSparklineCanvas"></canvas>';
+        container.innerHTML = '<canvas id="warfSparklineCanvas" style="max-width:100%;max-height:100%;"></canvas>';
         var ctx = document.getElementById('warfSparklineCanvas').getContext('2d');
         var points = [];
         for (var i = 0; i < events.length; i++) {
@@ -3413,13 +3413,15 @@
             },
             options: {
                 responsive: true, maintainAspectRatio: false,
-                plugins: { legend: { display: false } },
+                layout: { padding: { top: 8, right: 16, bottom: 4, left: 4 } },
+                plugins: { legend: { display: false }, tooltip: { enabled: true } },
                 scales: {
                     y: {
                         beginAtZero: false,
                         grid: { color: function(ctx){ return (ctx.tick.value===2||ctx.tick.value===3)?'rgba(25,135,84,0.3)':'#eee'; } },
+                        ticks: { font: { size: 10 } },
                     },
-                    x: { ticks: { font: { size: 10 } } },
+                    x: { ticks: { font: { size: 10 }, maxRotation: 0, autoSkip: true } },
                 },
             },
         });
@@ -4901,11 +4903,11 @@
                     '  <div class="had-mon-head">' +
                     '    <div class="had-mon-title">📅 Warfarin Timeline</div>' +
                     '    <div style="display:flex;gap:6px;">' +
-                    '      <button type="button" class="btn" style="padding:4px 10px;font-size:12px;" onclick="openWarfarinEventForm()">+ เพิ่ม event</button>' +
-                    '      <button type="button" class="btn" style="padding:4px 10px;font-size:12px;" onclick="exportWarfarinTimelinePDF()">📄 Export PDF</button>' +
+                    '      <button type="button" style="padding:6px 12px;font-size:12px;background:#198754;color:#fff;border:none;border-radius:6px;cursor:pointer;font-weight:600;" onclick="openWarfarinEventForm()">+ เพิ่ม event</button>' +
+                    '      <button type="button" style="padding:6px 12px;font-size:12px;background:#6c757d;color:#fff;border:none;border-radius:6px;cursor:pointer;font-weight:600;" onclick="exportWarfarinTimelinePDF()">📄 Export PDF</button>' +
                     '    </div>' +
                     '  </div>' +
-                    '  <div id="warfSparkline" style="height:120px;margin:8px 0;"></div>' +
+                    '  <div id="warfSparkline" style="position:relative;height:140px;width:100%;margin:8px 0;overflow:hidden;"></div>' +
                     '  <div id="warfTimelineList" style="max-height:300px;overflow:auto;"></div>' +
                     '</div>';
             }
