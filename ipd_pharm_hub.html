@@ -2941,16 +2941,34 @@
     }
 
     function gasPost(action, data, callback) {
-        fetch(SCRIPT_URL, {
-            method: 'POST',
-            mode: 'no-cors',
-            headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-            body: JSON.stringify({ action: action, data: data })
-        }).then(function() {
-            if (callback) callback({ ok: true });
-        }).catch(function(e) {
-            if (callback) callback({ ok: false, error: e.message });
-        });
+        // Route writes via JSONP so we can see the real response.
+        var cbName = 'gasCb_' + Date.now() + '_' + Math.floor(Math.random() * 100000);
+        var script = document.createElement('script');
+        var timeoutId = setTimeout(function() {
+            console.error('[gasPost] timeout', action);
+            if (callback) callback({ ok: false, error: 'timeout' });
+            cleanup();
+        }, 30000);
+        function cleanup() {
+            clearTimeout(timeoutId);
+            try { delete window[cbName]; } catch(e) { window[cbName] = undefined; }
+            if (script.parentNode) script.parentNode.removeChild(script);
+        }
+        window[cbName] = function(resp) {
+            console.log('[gasPost] ' + action + ' →', resp);
+            if (callback) callback(resp);
+            cleanup();
+        };
+        var url = SCRIPT_URL + '?action=' + encodeURIComponent(action)
+                + '&callback=' + cbName
+                + '&data=' + encodeURIComponent(JSON.stringify(data || {}));
+        script.src = url;
+        script.onerror = function() {
+            console.error('[gasPost] network error', action);
+            if (callback) callback({ ok: false, error: 'network' });
+            cleanup();
+        };
+        document.body.appendChild(script);
     }
 
     // Patient List
@@ -3966,8 +3984,15 @@
         // Ensure time-pass is up to date before saving
         recomputeMRTimePass();
 
+        // Lookup patient name from allPatients to attach to MR_Data
+        let _ptName = '';
+        for (let i = 0; i < allPatients.length; i++) {
+            if (allPatients[i].hn === currentPatientHN) { _ptName = allPatients[i].name; break; }
+        }
+
         let mrData = {
             hn: currentPatientHN,
+            name: _ptName,
             admitDate: document.getElementById('mrAdmitDate').value,
             admitShift: document.getElementById('mrAdmitShift').value,
             hospital: document.getElementById('mrHospital').value,
