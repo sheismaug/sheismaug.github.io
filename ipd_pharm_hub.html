@@ -3619,18 +3619,12 @@
         gasGet('getBundle', { hn: hn }, function(data) {
             currentBundle = data || {};
             localStorage.setItem('ipd_bundle_' + hn, JSON.stringify(currentBundle));
-            if (!detailPopulated) {
-                populateDetailPanel(patient, currentBundle);
-                detailPopulated = true;
-            } else {
-                // refresh เฉพาะส่วนที่แสดงข้อมูลที่บันทึกแล้ว (read-only displays)
-                // ไม่แตะ form fields ที่ user อาจกำลังพิมพ์อยู่
-                renderMRTableFromHomeMeds(currentBundle.homeMeds || []);
-                renderRoundLog(currentBundle.medErrors || []);
-                dcMeds = [];  // ให้ re-seed จาก fresh bundle เมื่อเปิด tab D/C
-                let _dcTbl = document.getElementById('dcMedTable');
-                if (_dcTbl) _dcTbl.innerHTML = '';
-            }
+            // เติมจาก server เสมอ (overwrite cache populate) เพื่อให้ฟอร์มแสดงข้อมูลล่าสุด
+            populateDetailPanel(patient, currentBundle);
+            detailPopulated = true;
+            dcMeds = [];  // re-seed D/C tab จาก fresh bundle
+            let _dcTbl = document.getElementById('dcMedTable');
+            if (_dcTbl) _dcTbl.innerHTML = '';
         });
     }
 
@@ -3641,9 +3635,36 @@
     }
 
     function populateDetailPanel(patient, bundle) {
-        // Initialize MR tab
-        document.getElementById('mrDate').value = formatDate(new Date());
-        document.getElementById('mrMDDate').value = formatDate(new Date());
+        // Initialize MR tab — เติมจาก patient + mrData ล่าสุด
+        var _mrAdmit = document.getElementById('mrAdmitDate');
+        if (_mrAdmit) _mrAdmit.value = formatDate(patient.admitDate || new Date());
+
+        // หา MR record ล่าสุดของ HN นี้
+        var latestMR = null;
+        var mrRecs = (bundle && bundle.mrData) ? bundle.mrData : [];
+        for (var _k = 0; _k < mrRecs.length; _k++) {
+            if (!latestMR) { latestMR = mrRecs[_k]; continue; }
+            // เปรียบเทียบ timestamp หรือ mrId เป็น string เรียงท้ายสุด
+            if (String(mrRecs[_k].mrId || '') > String(latestMR.mrId || '')) latestMR = mrRecs[_k];
+        }
+
+        if (latestMR) {
+            document.getElementById('mrDate').value = formatDate(latestMR.admitDate || new Date());
+            document.getElementById('mrMDDate').value = formatDate(latestMR.admitDate || new Date());
+            // shift buttons
+            _setShift('mrAdmitShift', 'mrAdmitShiftBtns', latestMR.shiftAdmit);
+            _setShift('mrShift',      null,               latestMR.shiftMR);
+            _setShift('mrMDShift',    null,               latestMR.shiftMDReview);
+            // selects/inputs
+            var _st = document.getElementById('mrStatus');     if (_st) _st.value = latestMR.mrStatus || '';
+            var _qy = document.getElementById('mrQuality');    if (_qy) _qy.value = latestMR.mrQuality || '';
+            var _us = document.getElementById('mrUser');       if (_us) _us.value = latestMR.pharmacist || '';
+            var _src = document.getElementById('mrSource');    if (_src) _src.value = latestMR.dataSource || '';
+            if (typeof recomputeMRTimePass === 'function') { try { recomputeMRTimePass(); } catch(e){} }
+        } else {
+            document.getElementById('mrDate').value = formatDate(new Date());
+            document.getElementById('mrMDDate').value = formatDate(new Date());
+        }
 
         // Show/hide Warfarin tab
         if (patient.hasWarfarin) {
@@ -3972,6 +3993,25 @@
     }
 
     // MR Tab — Shift picker
+    // เซ็ต shift จากค่าที่บันทึกไว้ (เติม hidden field + active class ปุ่ม)
+    function _setShift(hiddenId, btnsContainerId, val) {
+        var hf = document.getElementById(hiddenId);
+        if (hf) hf.value = val || '';
+        // หา container ของปุ่มจาก btnsContainerId หรือจาก data-val ที่อยู่ใกล้ hidden field
+        var container = btnsContainerId ? document.getElementById(btnsContainerId) : null;
+        if (!container && hf) {
+            // ถ้า hidden อยู่ใน .input-group ใกล้ shift-btns
+            var grp = hf.closest('.input-group') || hf.parentElement;
+            if (grp) container = grp.querySelector('.shift-btns') || grp.parentElement.querySelector('.shift-btns');
+        }
+        if (!container) return;
+        var btns = container.querySelectorAll('.shift-btn');
+        for (var i = 0; i < btns.length; i++) {
+            if (btns[i].getAttribute('data-val') === val) btns[i].classList.add('active');
+            else btns[i].classList.remove('active');
+        }
+    }
+
     function pickShift(btn, fieldId) {
         let parent = btn.parentElement;
         parent.querySelectorAll('.shift-btn').forEach(b => b.classList.remove('active'));
