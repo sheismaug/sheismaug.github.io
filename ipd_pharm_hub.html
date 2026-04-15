@@ -3639,27 +3639,22 @@
         var _mrAdmit = document.getElementById('mrAdmitDate');
         if (_mrAdmit) _mrAdmit.value = formatDate(patient.admitDate || new Date());
 
-        // หา MR record ล่าสุดของ HN นี้
-        var latestMR = null;
+        // หา MR record ล่าสุดของ HN นี้ — record ที่อยู่ท้ายสุดใน array (rows append-only)
         var mrRecs = (bundle && bundle.mrData) ? bundle.mrData : [];
-        for (var _k = 0; _k < mrRecs.length; _k++) {
-            if (!latestMR) { latestMR = mrRecs[_k]; continue; }
-            // เปรียบเทียบ timestamp หรือ mrId เป็น string เรียงท้ายสุด
-            if (String(mrRecs[_k].mrId || '') > String(latestMR.mrId || '')) latestMR = mrRecs[_k];
-        }
+        var latestMR = mrRecs.length ? mrRecs[mrRecs.length - 1] : null;
 
         if (latestMR) {
             document.getElementById('mrDate').value = formatDate(latestMR.admitDate || new Date());
             document.getElementById('mrMDDate').value = formatDate(latestMR.admitDate || new Date());
-            // shift buttons
-            _setShift('mrAdmitShift', 'mrAdmitShiftBtns', latestMR.shiftAdmit);
-            _setShift('mrShift',      null,               latestMR.shiftMR);
-            _setShift('mrMDShift',    null,               latestMR.shiftMDReview);
+            // shift buttons (ใช้ id ที่ถูกต้อง: mrAdmitShift, mrDoneShift, mrMDShift)
+            _setShift('mrAdmitShift', latestMR.shiftAdmit);
+            _setShift('mrDoneShift',  latestMR.shiftMR);
+            _setShift('mrMDShift',    latestMR.shiftMDReview);
             // selects/inputs
-            var _st = document.getElementById('mrStatus');     if (_st) _st.value = latestMR.mrStatus || '';
-            var _qy = document.getElementById('mrQuality');    if (_qy) _qy.value = latestMR.mrQuality || '';
-            var _us = document.getElementById('mrUser');       if (_us) _us.value = latestMR.pharmacist || '';
-            var _src = document.getElementById('mrSource');    if (_src) _src.value = latestMR.dataSource || '';
+            var _st  = document.getElementById('mrStatus');     if (_st)  _st.value  = latestMR.mrStatus || '';
+            var _qy  = document.getElementById('mrQuality');    if (_qy)  _qy.value  = latestMR.mrQuality || '';
+            var _ph  = document.getElementById('mrPharmacist'); if (_ph)  _ph.value  = latestMR.pharmacist || '';
+            var _hp  = document.getElementById('mrHospital');   if (_hp)  _hp.value  = latestMR.dataSource || _hp.value;
             if (typeof recomputeMRTimePass === 'function') { try { recomputeMRTimePass(); } catch(e){} }
         } else {
             document.getElementById('mrDate').value = formatDate(new Date());
@@ -3994,16 +3989,13 @@
 
     // MR Tab — Shift picker
     // เซ็ต shift จากค่าที่บันทึกไว้ (เติม hidden field + active class ปุ่ม)
-    function _setShift(hiddenId, btnsContainerId, val) {
+    function _setShift(hiddenId, val) {
         var hf = document.getElementById(hiddenId);
         if (hf) hf.value = val || '';
-        // หา container ของปุ่มจาก btnsContainerId หรือจาก data-val ที่อยู่ใกล้ hidden field
-        var container = btnsContainerId ? document.getElementById(btnsContainerId) : null;
-        if (!container && hf) {
-            // ถ้า hidden อยู่ใน .input-group ใกล้ shift-btns
-            var grp = hf.closest('.input-group') || hf.parentElement;
-            if (grp) container = grp.querySelector('.shift-btns') || grp.parentElement.querySelector('.shift-btns');
-        }
+        if (!hf) return;
+        // hidden field อยู่ใน .form-group เดียวกับ .shift-btns
+        var grp = hf.closest('.form-group') || hf.parentElement;
+        var container = grp ? grp.querySelector('.shift-btns') : null;
         if (!container) return;
         var btns = container.querySelectorAll('.shift-btn');
         for (var i = 0; i < btns.length; i++) {
