@@ -3578,6 +3578,21 @@
         if (_dcTbl) _dcTbl.innerHTML = '';
         var _paste = document.getElementById('homeMedPaste');
         if (_paste) _paste.value = '';
+        // Reset all inputs/selects/textareas inside the detail modal (prevents leak between patients)
+        var _modal = document.getElementById('patientDetailModal');
+        if (_modal) {
+            var _inputs = _modal.querySelectorAll('input, select, textarea');
+            for (var _i = 0; _i < _inputs.length; _i++) {
+                var _el = _inputs[_i];
+                if (_el.type === 'checkbox' || _el.type === 'radio') {
+                    _el.checked = false;
+                } else if (_el.tagName === 'SELECT') {
+                    _el.selectedIndex = 0;
+                } else {
+                    _el.value = '';
+                }
+            }
+        }
         let patient = null;
         for (let i = 0; i < allPatients.length; i++) {
             if (allPatients[i].hn === hn) {
