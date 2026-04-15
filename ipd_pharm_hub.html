@@ -3639,9 +3639,19 @@
         var _mrAdmit = document.getElementById('mrAdmitDate');
         if (_mrAdmit) _mrAdmit.value = formatDate(patient.admitDate || new Date());
 
-        // หา MR record ล่าสุดของ HN นี้ — record ที่อยู่ท้ายสุดใน array (rows append-only)
+        // หา MR record ล่าสุดของ admission ปัจจุบัน
+        // กติกา: ต้องเป็น record ที่ไม่ใช่ legacy (mrId ไม่ขึ้นต้นด้วย MR-LE)
+        //       และ admitDate ตรงกับ patient.admitDate (ถ้ามี) — กัน migrated rows ของ admission เก่า
         var mrRecs = (bundle && bundle.mrData) ? bundle.mrData : [];
-        var latestMR = mrRecs.length ? mrRecs[mrRecs.length - 1] : null;
+        var ptAdmit = patient.admitDate ? formatDate(patient.admitDate) : '';
+        var latestMR = null;
+        for (var _k = mrRecs.length - 1; _k >= 0; _k--) {
+            var _rec = mrRecs[_k];
+            if (_rec.mrId && String(_rec.mrId).indexOf('MR-LE') === 0) continue;  // skip legacy
+            if (ptAdmit && formatDate(_rec.admitDate) !== ptAdmit) continue;       // ต้องเป็น admission เดียวกัน
+            latestMR = _rec;
+            break;
+        }
 
         if (latestMR) {
             document.getElementById('mrDate').value = formatDate(latestMR.admitDate || new Date());
