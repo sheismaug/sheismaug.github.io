@@ -3326,6 +3326,11 @@
             items[i].classList.remove('active');
         }
         event.target.classList.add('active');
+
+        // D/C Sheet → populate ตารางทวนรายการยาเดิมอัตโนมัติ
+        if (subtabName === 'dc-sheet') {
+            renderDCMedTable();
+        }
     }
 
     // Patient Detail Panel
@@ -3401,6 +3406,69 @@
         document.getElementById('counOther').textContent = (bundle.counOther || 0);
         let _ot = document.getElementById('counOtherText');
         if (_ot) _ot.value = bundle.counOtherText || '';
+
+        // Home med list (MR table) — โหลดรายการยาเดิมที่เคยบันทึกไว้มาแสดง
+        renderMRTableFromHomeMeds(bundle.homeMeds || []);
+    }
+
+    // เติม mrTable จากข้อมูล HomeMeds ที่ดึงมาจาก GAS
+    function renderMRTableFromHomeMeds(homeMeds) {
+        let tbody = document.getElementById('mrTable');
+        if (!tbody) return;
+        tbody.innerHTML = '';
+        let esc = function(s) { return String(s == null ? '' : s).replace(/"/g, '&quot;'); };
+        for (let i = 0; i < homeMeds.length; i++) {
+            let m = homeMeds[i];
+            let row = document.createElement('tr');
+            row.innerHTML =
+                '<td><input type="text" value="' + esc(m.medName || m.name) + '" class="form-input" style="width: 100%;"></td>' +
+                '<td><input type="text" value="' + esc(m.sig) + '" class="form-input" style="width: 100%;"></td>' +
+                '<td><input type="text" value="' + esc(m.qty) + '" class="form-input" style="width: 100%;"></td>' +
+                '<td><input type="text" value="' + esc(m.admitDate || m.date) + '" class="form-input" style="width: 100%;"></td>';
+            tbody.appendChild(row);
+        }
+    }
+
+    // เติม dcMedTable เพื่อทวนรายการยาเดิมตอน D/C
+    function renderDCMedTable() {
+        let tbody = document.getElementById('dcMedTable');
+        if (!tbody) return;
+        tbody.innerHTML = '';
+        let esc = function(s) { return String(s == null ? '' : s).replace(/"/g, '&quot;'); };
+
+        // ดึงรายการยาปัจจุบันจาก mrTable (เพราะเป็น source of truth ใน session)
+        let mrRows = document.querySelectorAll('#mrTable tr');
+        if (mrRows.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="3" style="padding:16px; color:#888; text-align:center;">ยังไม่มีรายการยาเดิม — บันทึก MR ก่อนค่ะ</td></tr>';
+            return;
+        }
+        for (let i = 0; i < mrRows.length; i++) {
+            let inputs = mrRows[i].querySelectorAll('input');
+            let name = inputs[0] ? inputs[0].value : '';
+            let sig  = inputs[1] ? inputs[1].value : '';
+            if (!name.trim()) continue;
+            let row = document.createElement('tr');
+            row.innerHTML =
+                '<td style="padding:8px;">' + esc(name) + '</td>' +
+                '<td style="padding:8px;">' + esc(sig) + '</td>' +
+                '<td style="padding:8px;"><button type="button" class="btn btn-secondary" onclick="toggleDCChanged(this)" style="font-size:12px; padding:4px 10px;">ไม่เปลี่ยน</button></td>';
+            tbody.appendChild(row);
+        }
+    }
+
+    function toggleDCChanged(btn) {
+        let changed = btn.textContent.trim() === 'เปลี่ยนแปลง';
+        if (changed) {
+            btn.textContent = 'ไม่เปลี่ยน';
+            btn.className = 'btn btn-secondary';
+            btn.style.fontSize = '12px';
+            btn.style.padding = '4px 10px';
+        } else {
+            btn.textContent = 'เปลี่ยนแปลง';
+            btn.className = 'btn btn-accent';
+            btn.style.fontSize = '12px';
+            btn.style.padding = '4px 10px';
+        }
     }
 
     function addNewPatient() {
