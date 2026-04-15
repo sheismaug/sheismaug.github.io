@@ -4300,4 +4300,25 @@
     function loadActivityFeed() {
         gasGet('getActivityFeed', {}, function(data) {
             const feed = document.getElementById('activityFeed');
+            if (!feed) return;
+            if (!data || !data.ok || !data.items || data.items.length === 0) {
+                feed.innerHTML = '<div class="activity-empty">ยังไม่มีกิจกรรมวันนี้</div>';
+                return;
+            }
+            let html = '';
+            for (let i = 0; i < data.items.length; i++) {
+                const it = data.items[i];
+                html += '<div class="activity-item" style="padding:8px 10px; border-bottom:1px solid #eee; font-size:13px;">'
+                     +   '<span style="color:#888; margin-right:8px;">' + (it.time || '') + '</span>'
+                     +   '<span>' + (it.text || '') + '</span>'
+                     + '</div>';
+            }
+            feed.innerHTML = html;
+        });
+    }
+</script>
+
+</body>
+</html>
+
            
