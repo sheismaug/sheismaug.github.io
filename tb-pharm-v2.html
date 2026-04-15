@@ -5711,36 +5711,72 @@ function diliToday() {
   return new Date().toISOString().slice(0,10);
 }
 
-// Hold ยาทั้งหมด (H+R+Z+E+S) โดยไม่ bridge — ใช้เมื่อแพทย์สั่ง hold ทั้งหมด
+// หายาปัจจุบันของผู้ป่วย (ตาม regimen + phase IP/CP) — exclude B6 เพราะไม่ใช่ยา TB หลัก
+function diliGetCurrentDrugs(ptId) {
+  const p = (S.patients || []).find(x => x.patient_id === ptId);
+  if (!p) return { drugs:[], phase:'?', regLabel:'?' };
+
+  // หา REG key ที่ตรงกับ regimen_label
+  const regKey =
+    Object.keys(REGS).find(k => REGS[k].label === p.regimen_label) ||
+    Object.keys(REGS).find(k => p.regimen_label && p.regimen_label.includes(k)) ||
+    p.regimen_code;
+  const reg = REGS[regKey] || REGS.std;
+
+  // หา phase ปัจจุบัน: นับเดือนจาก start_date (หรือ restart_date ถ้ามี)
+  const baseDate = p.restart_date || p.start_date;
+  let phase = 'IP';
+  if (baseDate) {
+    const start = new Date(baseDate + 'T00:00:00');
+    const today = new Date();
+    const monthsPassed = (today - start) / (1000*60*60*24*30.44);
+    phase = monthsPassed < (reg.ip || 0) ? 'IP' : 'CP';
+  }
+  if ((reg.ip||0) === 0) phase = 'CP'; // regimen ที่ไม่มี IP
+
+  const drugList = (phase === 'IP' ? reg.ipDrugs : reg.cpDrugs) || [];
+  // exclude B6 (pyridoxine) — ไม่ใช่ยา TB ที่ต้อง hold ตอนเกิด DILI
+  const drugs = drugList.filter(d => d !== 'B6');
+
+  return { drugs, phase, regLabel: reg.label || p.regimen_label || '?' };
+}
+
+// Hold ยาทั้งหมด (ตามสูตรปัจจุบัน) โดยไม่ bridge — ใช้เมื่อแพทย์สั่ง hold ทั้งหมด
 async function diliHoldAll() {
   const ptId = diliGetSelectedPt();
   if (!ptId) return;
+
+  const { drugs, phase, regLabel } = diliGetCurrentDrugs(ptId);
+  if (!drugs.length) {
+    toast('⚠️ ไม่พบยาของผู้ป่วย — ตรวจสอบสูตรยา');
+    return;
+  }
 
   const ast  = document.getElementById('d-ast')?.value  || '';
   const alt  = document.getElementById('d-alt')?.value  || '';
   const bili = document.getElementById('d-bili')?.value || '';
 
-  const reason = prompt('เหตุผลที่ hold ทั้งหมด (เช่น "แพทย์สั่ง hold รอประเมิน", "ALT สูง ไม่พร้อม bridge"):', 'แพทย์สั่ง hold ยาทั้งหมด');
+  const reason = prompt(`เหตุผลที่ hold ทั้งหมด (สูตร ${regLabel} · ช่วง ${phase}):`, 'แพทย์สั่ง hold ยาทั้งหมด');
   if (reason === null) return; // cancel
 
-  if (!confirm('ยืนยัน Hold ยาทั้งหมด (H+R+Z+E+S) โดยไม่ bridge?')) return;
+  if (!confirm(`ยืนยัน Hold ยาทั้งหมด (${drugs.join('+')}) ตามสูตรปัจจุบัน ${regLabel} [${phase}] โดยไม่ bridge?`)) return;
 
   const payload = {
     patient_id:   ptId,
     visit_id:     '',
     event_date:   diliToday(),
     event_type:   'HOLD',
-    drug_suspect: 'H,R,Z,E,S',
+    drug_suspect: drugs.join(','),
     symptoms:     '',
     severity:     'hold_all',
-    action_taken: 'Hold ยาทั้งหมด (ไม่ bridge)',
+    action_taken: `Hold ยาทั้งหมด (${drugs.join('+')}) ไม่ bridge`,
     hold_start:   diliToday(),
     hold_end:     '',
     hold_days:    0,
     restart_type: '',
     follow_date:  '',
     resolved:     false,
-    notes:        reason + (ast?` | AST ${ast}`:'') + (alt?` ALT ${alt}`:'') + (bili?` Bili ${bili}`:''),
+    notes:        `${reason} | สูตร ${regLabel} [${phase}]` + (ast?` | AST ${ast}`:'') + (alt?` ALT ${alt}`:'') + (bili?` Bili ${bili}`:''),
   };
 
   try {
