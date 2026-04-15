@@ -3740,6 +3740,8 @@
         };
         gasPost('saveDCChanges', payload, function(r) {
             showToast('บันทึก D/C แล้ว', { type: 'success' });
+            closePatientDetail();
+            loadPatients();  // refresh รายชื่อ + KPI ทันที
         });
     }
 
