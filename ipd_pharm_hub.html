@@ -4076,108 +4076,150 @@
     }
 
     // ══════ HAD Handbook ══════
-    var HB_DATA = [
-        { key:'adrenaline', name:'Adrenaline (Epinephrine)', badge:'Emergency',
-          indication:'Anaphylaxis, Cardiac arrest, Severe bronchospasm',
-          dose:'Anaphylaxis: 0.3–0.5 mg IM (1:1000) ทุก 5–15 นาที\nArrest: 1 mg IV push ทุก 3–5 นาที (1:10000)\nDrip: 0.01–0.5 mcg/kg/min',
-          monitor:'BP, HR, EKG, perfusion, IV site (extravasation → tissue necrosis)',
-          caution:'Extravasation → ใช้ phentolamine (รพ.ห้วยผึ้ง ไม่มี — warm compress + หยุด drip)\nหลีกเลี่ยงใน severe HT, ห้ามใน halothane anesthesia' },
-        { key:'adenosine', name:'Adenosine', badge:'Antiarrhythmic',
-          indication:'SVT (PSVT termination)',
-          dose:'6 mg IV rapid push → flush NSS 20 mL\nถ้าไม่กลับ: 12 mg ซ้ำ (สูงสุด 2 ครั้ง)',
-          monitor:'EKG ต่อเนื่อง, BP, flushing, chest tightness',
-          caution:'Asystole ชั่วคราว (ปกติ < 10 วิ), ผ่าน central line ใช้ครึ่งโดส\nContraindicate: 2nd/3rd AV block, sick sinus (ไม่มี pacemaker)' },
-        { key:'amiodarone', name:'Amiodarone', badge:'Antiarrhythmic',
-          indication:'VT/VF, AF rate/rhythm control',
-          dose:'Arrest VF/pulseless VT: 300 mg IV push, ซ้ำ 150 mg\nLoading: 150 mg IV ใน 10 นาที → 1 mg/min × 6 ชม. → 0.5 mg/min × 18 ชม.',
-          monitor:'BP, HR, EKG (QT), LFT, TFT, CXR (pulmonary fibrosis)',
-          caution:'ผสมใน D5W เท่านั้น (ไม่ใช้ NSS), ให้ผ่าน central line ถ้า > 2 mg/mL' },
-        { key:'digoxin', name:'Digoxin', badge:'HF / AF',
-          indication:'HF, AF rate control',
-          dose:'Loading: 0.25 mg IV q6h × 2–3 doses (max 1 mg)\nMaintenance: 0.125–0.25 mg/day PO',
-          monitor:'Dig level (target 0.5–2 ng/mL), K, Mg, Cr, HR, EKG',
-          caution:'Toxicity: N/V, ตาเหลือง, bradycardia, VT/AV block\nAntidote: Digibind (ไม่มีในโรงพยาบาล)' },
-        { key:'mgso4', name:'Magnesium Sulfate (MgSO4)', badge:'OB / Torsades',
-          indication:'Pre-eclampsia/eclampsia, Torsades de pointes, Severe asthma',
-          dose:'Eclampsia: 4–6 g IV load ใน 15–20 นาที → 1–2 g/hr\nTorsades: 1–2 g IV ใน 15 นาที',
-          monitor:'DTR (knee jerk), RR > 12, urine > 30 mL/hr, Mg level',
-          caution:'Toxicity: hyporeflexia → resp depression → cardiac arrest\nAntidote: Calcium gluconate 1 g IV' },
-        { key:'morphine', name:'Morphine', badge:'Opioid',
-          indication:'Severe pain, acute pulmonary edema',
-          dose:'IV: 2–4 mg q5–15 นาที titrate\nIM/SC: 5–10 mg q4h\nรพ.ห้วยผึ้ง มีเฉพาะ injection (ไม่มี oral form)',
-          monitor:'Pain score, RR, sedation, BP, pupil',
-          caution:'Antidote: Naloxone 0.4 mg IV ซ้ำ q2–3 นาที\nContraindicate: RR<12, severe asthma, paralytic ileus' },
-        { key:'norepinephrine', name:'Norepinephrine (Levophed)', badge:'Vasopressor',
-          indication:'Septic shock, refractory hypotension',
-          dose:'Start 0.05 mcg/kg/min titrate MAP ≥ 65\nปกติ 0.05–2 mcg/kg/min',
-          monitor:'BP (target MAP ≥ 65), HR, UO, perfusion, IV site',
-          caution:'ให้ผ่าน central line ถ้ามี\nExtravasation → phentolamine (ไม่มี) / saline dilution + warm' },
-        { key:'pethidine', name:'Pethidine (Meperidine)', badge:'Opioid',
-          indication:'Post-op pain, shivering',
-          dose:'IM/SC: 50–100 mg q3–4h\nIV slow: 25–50 mg',
-          monitor:'RR, BP, sedation, seizure (metabolite normeperidine)',
-          caution:'หลีกเลี่ยงใน renal impairment, ห้ามรวมกับ MAOI (serotonin syndrome)' },
-        { key:'kcl', name:'Potassium Chloride (KCl)', badge:'Electrolyte',
-          indication:'Hypokalemia',
-          dose:'IV: max 10 mEq/hr peripheral, 20 mEq/hr central (monitor)\nMax conc peripheral 40 mEq/L, central 80 mEq/L\nPO: 20–40 mEq tid',
-          monitor:'K level q4–6h, EKG, IV site (phlebitis)',
-          caution:'ห้าม IV push เด็ดขาด — cardiac arrest\nห้าม undiluted, ต้องเจือจาง' },
-        { key:'insulin', name:'Insulin (Regular, NPH)', badge:'Endocrine',
-          indication:'DM, DKA, HHS, hyperK',
-          dose:'SC sliding scale ตาม DTX\nIV drip: 0.1 U/kg/hr (DKA), titrate by DTX q1h',
-          monitor:'DTX q1h (drip) หรือ q4–6h, K, anion gap (DKA)',
-          caution:'Hypoglycemia → 50% glucose 50 mL IV\nห้ามสลับ U-100 กับ U-40' },
-        { key:'streptokinase', name:'Streptokinase', badge:'Thrombolytic',
-          indication:'STEMI (ถ้า PCI ไม่ได้ <12 ชม.)',
-          dose:'1.5 MU IV ใน 30–60 นาที (NSS 100 mL)',
-          monitor:'BP q15min, bleeding, reperfusion arrhythmia, allergic reaction',
-          caution:'Contraindicate: active bleeding, recent surgery/stroke, severe HT\nAllergic: hydrocortisone + CPM ก่อน' },
-        { key:'warfarin', name:'Warfarin', badge:'Anticoagulant',
-          indication:'AF (stroke prevention), DVT/PE, mechanical valve',
-          dose:'Start 3–5 mg/day PO, titrate ตาม INR\nTarget INR 2–3 (ทั่วไป) หรือ 2.5–3.5 (mechanical mitral valve)',
-          monitor:'INR baseline → q2–3 วัน → weekly → monthly\nBleeding signs, Hb',
-          caution:'Drug interaction เยอะ (warfarin + amiodarone/metronidazole/antibiotics)\nAntidote: Vit K 10 mg IV slow (major bleed); FFP/PCC ถ้าเร่งด่วน' },
-    ];
 
-    function hbRenderList(filter) {
-        var ul = document.getElementById('hbList');
-        if (!ul) return;
-        var q = (filter || '').toLowerCase().trim();
-        var html = '';
-        for (var i = 0; i < HB_DATA.length; i++) {
-            var h = HB_DATA[i];
-            if (q && h.name.toLowerCase().indexOf(q) < 0 && h.badge.toLowerCase().indexOf(q) < 0 && h.indication.toLowerCase().indexOf(q) < 0) continue;
-            html +=
-                '<li class="hb-item" onclick="hbShow(\'' + h.key + '\')" style="padding:10px 12px;cursor:pointer;border-bottom:1px solid #eee;list-style:none;font-weight:600;color:#2e3f58;">' +
-                  h.name +
-                '</li>';
+    // ═══════════════════════════════════════════
+    //  HAD HANDBOOK TAB
+    // ═══════════════════════════════════════════
+    let hbCurrentDrug = null;
+    let hbFilterText = '';
+
+    function hbRenderList() {
+        let list = document.getElementById('hbList');
+        if (!list) return;
+        list.innerHTML = '';
+        let filter = (hbFilterText || '').toLowerCase();
+        for (let key in HAD_DB) {
+            let d = HAD_DB[key];
+            if (filter) {
+                let match = (d.name + ' ' + (d.short || '') + ' ' + (d.badge || '')).toLowerCase();
+                if (match.indexOf(filter) < 0) continue;
+            }
+            let li = document.createElement('li');
+            if (hbCurrentDrug === key) li.className = 'active';
+            li.innerHTML = '<span>' + d.name + '</span><span class="hb-badge-mini">HAD</span>';
+            li.onclick = (function(k) { return function() { hbSelect(k); }; })(key);
+            list.appendChild(li);
         }
-        ul.innerHTML = html || '<li style="padding:14px;color:#999;text-align:center;list-style:none;">— ไม่พบ —</li>';
     }
 
-    function hbFilter(v) { hbRenderList(v); }
+    function hbFilter(val) {
+        hbFilterText = val;
+        hbRenderList();
+    }
 
-    function hbShow(key) {
-        var h = null;
-        for (var i = 0; i < HB_DATA.length; i++) if (HB_DATA[i].key === key) { h = HB_DATA[i]; break; }
-        var box = document.getElementById('hbDetail');
-        if (!h || !box) return;
-        function nl(s){ return (s || '').replace(/\n/g, '<br>'); }
-        // รูปยา (ถ้ามี h.img) — ใส่ path แบบ 'images/had/warfarin.jpg' ใน HB_DATA
-        var imgHtml = '';
-        if (h.img) {
-            imgHtml = '<img src="' + h.img + '" alt="' + h.name + '" ' +
-                      'onerror="this.style.display=\'none\'" ' +
-                      'style="max-width:220px;max-height:180px;border-radius:8px;border:1px solid #e4e4e4;float:right;margin:0 0 10px 14px;object-fit:contain;background:#fafafa;">';
+    function hbSelect(key) {
+        hbCurrentDrug = key;
+        hbRenderList();
+        hbRenderDetail(key);
+    }
+
+    function hbRenderDetail(key) {
+        let el = document.getElementById('hbDetail');
+        let d = HAD_DB[key];
+        if (!d || !el) return;
+        let html = '<div class="hb-detail-head">';
+        if (d.image) {
+            // Try new path (HAD_picture/), fallback to old path with space (HAD picture/) for GitHub Pages delay, then show error
+            let altPath = d.image.replace('HAD_picture/', 'HAD picture/');
+            let onerr = "if(!this.dataset.tried){this.dataset.tried='1';this.src='" + encodeURI(altPath) + "';}else{this.parentElement.classList.add('no-img');this.style.display='none';this.parentElement.innerHTML='⚠ ไม่มีรูปยา';}";
+            html += '<div class="hb-detail-img"><img src="' + encodeURI(d.image) + '" alt="' + d.name + '" onerror="' + onerr + '"></div>';
+        } else {
+            html += '<div class="hb-detail-img no-img">⚠ ไม่มีรูปยา<br>ในระบบ</div>';
         }
-        box.innerHTML =
-            imgHtml +
-            '<h3 style="margin:0 0 4px;color:#2e3f58;">' + h.name + '</h3>' +
-            '<div style="display:inline-block;padding:2px 10px;background:#ffe8e8;color:#c04040;border-radius:12px;font-size:11px;font-weight:600;margin-bottom:14px;">' + h.badge + '</div>' +
-            '<div style="margin-bottom:12px;"><div style="font-weight:600;color:#666;font-size:12px;margin-bottom:4px;">📌 Indication</div><div style="font-size:14px;line-height:1.6;">' + nl(h.indication) + '</div></div>' +
-            '<div style="margin-bottom:12px;"><div style="font-weight:600;color:#666;font-size:12px;margin-bottom:4px;">💊 Dose</div><div style="font-size:14px;line-height:1.6;background:#fff8e7;padding:10px;border-radius:6px;">' + nl(h.dose) + '</div></div>' +
-            '<div style="margin-bottom:12px;"><div style="font-weight:600;color:#666;font-size:12px;margin-bottom:4px;">📊 Monitor</div><div style="font-size:14px;line-height:1.6;">' + nl(h.monitor) + '</div></div>' +
-            '<div style="margin-bottom:12px;"><div style="font-weight:600;color:#c04040;font-size:12px;margin-bottom:4px;">⚠ Caution / Antidote</div><div style="font-size:14px;line-height:1.6;background:#fff0f0;padding:10px;border-radius:6px;border-left:3px solid #c04040;">' + nl(h.caution) + '</div></div>';
+        html += '<div class="hb-detail-title-wrap">';
+        html += '<h2>' + d.name + '</h2>';
+        html += '<span class="hb-badge-tag">⚠ HIGH ALERT</span>';
+        html += '<span class="hb-badge-mode">' + (d.badge || '') + '</span>';
+        html += '<div style="font-size:12px;color:#666;margin-top:8px;">' + (d.note || '') + '</div>';
+        html += '</div></div>';
+
+        if (d.info) {
+            if (d.info.doses && d.info.doses.length) {
+                html += '<div class="hb-section"><h3>💉 Dose ตาม Indication</h3><div class="hb-dose-list">';
+                for (let i = 0; i < d.info.doses.length; i++) {
+                    let ds = d.info.doses[i];
+                    html += '<div class="hb-dose-item"><div class="hb-dose-ind">' + ds.ind + '</div><div class="hb-dose-val">' + ds.dose + '</div></div>';
+                }
+                html += '</div></div>';
+            } else if (d.info.dose) {
+                html += '<div class="hb-section"><h3>💉 Dose</h3><p>' + d.info.dose + '</p></div>';
+            }
+            if (d.info.prep) html += '<div class="hb-section"><h3>🧪 Preparation</h3><p>' + d.info.prep + '</p></div>';
+        }
+        html += '<div class="hb-section"><h3>⏱ Monitoring Frequency</h3><p>' + (d.freq || 'ตาม order แพทย์') + '</p></div>';
+
+        // ─── Siriraj-style 4-block card (Indication / Monitoring / Alarm / Serious) ───
+        let mon = [];
+        if (d.vitals && d.vitals.length) mon = mon.concat(d.vitals);
+        if (d.labs && d.labs.length) {
+            for (let i = 0; i < d.labs.length; i++) {
+                let lab = d.labs[i];
+                mon.push(lab.label + ' — ปกติ ' + (lab.ph || '') + ' ' + (lab.unit || '') + (lab.freqHr ? ' · ทุก ' + lab.freqHr + ' ชม.' : ''));
+            }
+        }
+        let ind = d.indications || [];
+        let alarm = d.clinical || [];
+        let serious = d.serious || [];
+        if (ind.length || mon.length || alarm.length || serious.length) {
+            html += '<div class="hb-sb-grid">';
+            if (ind.length) {
+                html += '<div class="hb-sb hb-sb-ind"><h4>💡 Indication</h4><ul>';
+                for (let i = 0; i < ind.length; i++) html += '<li>' + ind[i] + '</li>';
+                html += '</ul></div>';
+            }
+            if (mon.length) {
+                html += '<div class="hb-sb hb-sb-mon"><h4>🔍 Monitoring</h4><ul>';
+                for (let i = 0; i < mon.length; i++) html += '<li>' + mon[i] + '</li>';
+                html += '</ul></div>';
+            }
+            if (alarm.length) {
+                html += '<div class="hb-sb hb-sb-alarm"><h4>⚠ Alarm Sign</h4><ul>';
+                for (let i = 0; i < alarm.length; i++) html += '<li>' + alarm[i] + '</li>';
+                html += '</ul></div>';
+            }
+            if (serious.length) {
+                html += '<div class="hb-sb hb-sb-serious"><h4>🚨 Serious Adverse Event</h4><ul>';
+                for (let i = 0; i < serious.length; i++) html += '<li>' + serious[i] + '</li>';
+                html += '</ul></div>';
+            }
+            html += '</div>';
+        }
+        if (d.info && d.info.antidote) html += '<div class="hb-section"><h3>💊 Antidote / การแก้ไข</h3><p>' + d.info.antidote + '</p></div>';
+
+        // Source footer
+        if (d.info && d.info.source) {
+            html += '<div style="margin-top:18px;padding-top:10px;border-top:1px dashed #e0dcd5;font-size:11px;color:#888;">📚 อ้างอิง: ' + d.info.source + '</div>';
+        }
+
+        // ─── NE drip rate calculation table ───
+        if (key === 'ne') html += renderNERateTable();
+
+        el.innerHTML = html;
+    }
+
+    // ─── NE drip rate calculation table ───
+    // Formula: rate(mL/hr) = dose(mcg/kg/min) × wt(kg) × 60 / conc(mcg/mL)
+    // Concentration: Levophed 4 mg + D5W 250 mL = 16 mcg/mL
+    function renderNERateTable() {
+        let doses = [0.05, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.8, 1.0];
+        let weights = [40, 45, 50, 55, 60, 65, 70, 75, 80, 85];
+        let conc = 16; // mcg/mL
+        let html = '<div class="ne-rate-wrap">';
+        html += '<h3>📊 NE Drip Rate Table (mL/hr)</h3>';
+        html += '<div class="ne-sub">Concentration: Levophed 4 mg + D5W 250 mL = 16 mcg/mL · Formula: rate = dose × น้ำหนัก × 60 / 16</div>';
+        html += '<table class="ne-rate-tbl"><thead><tr><th>Dose<br>(mcg/kg/min)</th>';
+        for (let j = 0; j < weights.length; j++) html += '<th>' + weights[j] + ' kg</th>';
+        html += '</tr></thead><tbody>';
+        for (let i = 0; i < doses.length; i++) {
+            html += '<tr><th>' + doses[i].toFixed(2) + '</th>';
+            for (let j = 0; j < weights.length; j++) {
+                let rate = doses[i] * weights[j] * 60 / conc;
+                html += '<td>' + rate.toFixed(1) + '</td>';
+            }
+            html += '</tr>';
+        }
+        html += '</tbody></table></div>';
+        return html;
     }
 
     // ══════ Dashboard ══════
