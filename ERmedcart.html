@@ -6175,7 +6175,7 @@ function ccRenderBody(drugId) {
       '<label class="cc-toggle-label">' +
         '<input type="checkbox" id="cc-sameexist-'+drugId+'" data-did="'+drugId+'" '+(!st.newLotOn?'checked':'')+
           ' onchange="ccToggleNewLot(this.dataset.did, !this.checked)">' +
-        '<span>ล็อตเดียวกับที่มีอยู่ (default = ล็อตใหม่)</span>' +
+        '<span>ล็อตเดียวกับล็อตใหม่ในรถ (default = ล็อตใหม่)</span>' +
       '</label>' +
       '<div id="cc-newlot-input-'+drugId+'" style="'+(st.newLotOn?'':'display:none;')+'margin-top:10px;">' +
         '<label class="fl">วันหมดอายุล็อตใหม่ (ค.ศ.)</label>' +
@@ -6433,8 +6433,8 @@ async function ccConfirm(drugId) {
     if (!st.newLotExp) { alert('กรุณากรอก exp ล็อตใหม่ก่อน'); return; }
     restockExp = st.newLotExp;
   } else {
-    // use FEFO — exp ใกล้สุด
-    const sortedLots = lots.slice().sort((a,b) => (a.exp_date||'').localeCompare(b.exp_date||''));
+    // restock: ใช้ exp ของล็อตใหม่สุดในรถ (ยาที่เบิกมาเติมมักล็อตเดียวกับล็อตใหม่ที่มีอยู่)
+    const sortedLots = lots.slice().sort((a,b) => (b.exp_date||'').localeCompare(a.exp_date||''));
     restockExp = sortedLots[0] ? sortedLots[0].exp_date : '';
   }
 
