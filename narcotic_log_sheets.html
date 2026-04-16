@@ -425,6 +425,70 @@ tr:last-child td { border-bottom: none; }
 .inv-filter-bar { display: flex; gap: 10px; margin-bottom: 14px; flex-wrap: wrap; align-items: center; }
 
 .no-data { text-align: center; padding: 32px; color: var(--gray-400); font-size: 14px; }
+
+/* ── Monthly Report ── */
+.mrpt-wrap {
+  background: var(--white); border: 1px solid var(--gray-200);
+  border-radius: var(--r-xl); overflow: hidden;
+  box-shadow: var(--shadow); margin-bottom: 20px;
+}
+.mrpt-header {
+  padding: 16px 18px; border-bottom: 1px solid var(--gray-200);
+  display: flex; justify-content: space-between; align-items: center;
+  flex-wrap: wrap; gap: 10px;
+}
+.mrpt-title { font-size: 15px; font-weight: 700; color: var(--gray-900); }
+.mrpt-period { font-size: 12px; color: var(--gray-500); margin-top: 3px; }
+.mrpt-toolbar { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+.mrpt-select {
+  height: 36px; padding: 0 12px; border: 1.5px solid var(--gray-200);
+  border-radius: var(--r); font-size: 13px; background: white; outline: none;
+  font-family: 'Google Sans', sans-serif; color: var(--gray-700); cursor: pointer;
+  appearance: none; -webkit-appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%2394A3B8' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+  background-repeat: no-repeat; background-position: right 8px center; padding-right: 28px;
+  min-width: 160px;
+}
+.mrpt-table { width: 100%; border-collapse: collapse; }
+.mrpt-table th {
+  padding: 11px 14px; text-align: left; font-size: 11px; font-weight: 700;
+  text-transform: uppercase; letter-spacing: 0.06em; color: var(--gray-400);
+  border-bottom: 1px solid var(--gray-200); background: var(--gray-50); white-space: nowrap;
+}
+.mrpt-table th.num, .mrpt-table td.num { text-align: right; }
+.mrpt-table td {
+  padding: 12px 14px; font-size: 13px; color: var(--gray-700);
+  border-bottom: 1px solid var(--gray-100); vertical-align: middle;
+}
+.mrpt-table tr:last-child td { border-bottom: none; }
+.mrpt-table tr:hover td { background: var(--gray-50); }
+.mrpt-num { font-family: 'Google Sans', sans-serif; font-weight: 600; color: var(--gray-900); }
+.mrpt-in { color: var(--teal); font-weight: 700; }
+.mrpt-out { color: var(--red); font-weight: 700; }
+.mrpt-carry { color: var(--blue); font-weight: 600; }
+.mrpt-bal { color: var(--navy); font-weight: 700; font-size: 15px; }
+.mrpt-bal.low { color: var(--amber); }
+.mrpt-bal.zero { color: var(--red); }
+.mrpt-bd { font-size: 11px; color: var(--gray-400); font-weight: 400; display: block; margin-top: 2px; }
+.mrpt-unit { font-size: 12px; color: var(--gray-400); }
+.mrpt-table tr.mrpt-total td {
+  background: var(--gray-50); font-weight: 700; color: var(--gray-900);
+  border-top: 2px solid var(--gray-300);
+}
+.mrpt-table tr.mrpt-total .mrpt-num { font-size: 14px; }
+.mrpt-bal-badge {
+  display: inline-block; padding: 2px 8px; border-radius: 99px;
+  font-size: 10px; font-weight: 700; margin-left: 6px;
+}
+.mrpt-bal-badge.low { background: #FEF3C7; color: #92400E; }
+.mrpt-bal-badge.zero { background: var(--red-light); color: var(--red); }
+
+@media (max-width: 768px) {
+  .mrpt-table th, .mrpt-table td { padding: 9px 10px; font-size: 12px; }
+  .mrpt-header { flex-direction: column; align-items: flex-start; }
+  .mrpt-bd { display: none; }
+}
+
 /* ── Login Overlay ── */
 .login-overlay {
   position: fixed; inset: 0; z-index: 9999;
@@ -975,6 +1039,40 @@ tr:last-child td { border-bottom: none; }
         <div class="no-data" style="grid-column:1/-1;">กำลังโหลดข้อมูลคลัง...</div>
       </div>
 
+      <!-- ═══ Monthly Report: รับจ่ายรายเดือน ═══ -->
+      <div class="mrpt-wrap">
+        <div class="mrpt-header">
+          <div>
+            <div class="mrpt-title">รายงานรับจ่ายยาเสพติด — รายเดือน</div>
+            <div class="mrpt-period" id="mrpt-period">—</div>
+          </div>
+          <div class="mrpt-toolbar">
+            <select class="mrpt-select" id="mrpt-month" onchange="renderMonthlyReport()"></select>
+            <button onclick="exportMonthlyXLSX()" style="height:36px;padding:0 14px;background:var(--navy);color:white;border:none;border-radius:var(--r);font-size:13px;font-weight:600;cursor:pointer;display:flex;align-items:center;gap:6px;font-family:'Google Sans',sans-serif;">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+              Export รายงาน
+            </button>
+          </div>
+        </div>
+        <div style="overflow-x:auto;">
+          <table class="mrpt-table">
+            <thead>
+              <tr>
+                <th style="width:26%;">ยา</th>
+                <th class="num">ยกยอดจากเดือนก่อน</th>
+                <th class="num">รวมรับเดือนนี้</th>
+                <th class="num">รวมจ่ายเดือนนี้</th>
+                <th class="num">คงเหลือสิ้นเดือน</th>
+                <th style="width:70px;">หน่วย</th>
+              </tr>
+            </thead>
+            <tbody id="mrpt-tbody">
+              <tr><td colspan="6" class="no-data">กำลังโหลดข้อมูล...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
       <!-- Movement history -->
       <div class="form-card" style="margin-top:8px;">
         <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;">
@@ -1267,6 +1365,11 @@ async function loadLogs() {
       renderLog();
       renderDashboard();
       updateBadge();
+      // refresh monthly report ถ้า DOM พร้อมแล้ว
+      if (document.getElementById('mrpt-month')) {
+        populateMonthlyMonthSelect();
+        renderMonthlyReport();
+      }
       document.getElementById('status-bar').style.opacity = '0';
       document.getElementById('load-error-bar').style.display = 'none';
     } else {
@@ -1332,7 +1435,7 @@ function switchTab(tab, btn) {
   if (btn) btn.classList.add('active');
   if (tab === 'dashboard') renderDashboard();
   if (tab === 'log') renderLog();
-  if (tab === 'stockdash') { renderStockDash(); renderInvHistory(); }
+  if (tab === 'stockdash') { renderStockDash(); renderInvHistory(); populateMonthlyMonthSelect(); renderMonthlyReport(); }
 }
 
 // ─── PID validation ───
@@ -1439,6 +1542,7 @@ async function submitForm() {
       renderLog();
       renderDashboard();
       updateBadge();
+      if (document.getElementById('mrpt-month')) renderMonthlyReport();
     } else {
       showStatus('❌ บันทึกไม่สำเร็จ: ' + (res.error || ''), 'error');
     }
@@ -1766,6 +1870,10 @@ async function loadInventory() {
       invLogs = data.entries || [];
       renderStockDash();
       renderInvHistory();
+      if (document.getElementById('mrpt-month')) {
+        populateMonthlyMonthSelect();
+        renderMonthlyReport();
+      }
       document.getElementById('status-bar').style.opacity = '0';
     } else {
       showStatus('❌ โหลดข้อมูลคลังไม่ได้', 'error');
@@ -1843,6 +1951,13 @@ async function submitInventory() {
       document.getElementById('inv-toast-msg').textContent = 'บันทึก' + INV_TYPE_LABELS[entry.type] + ' ' + entry.qty + ' ' + entry.unit + ' เรียบร้อยแล้ว';
       toast.classList.add('show');
       setTimeout(() => toast.classList.remove('show'), 3000);
+      // refresh stock dashboard + monthly report
+      renderStockDash();
+      renderInvHistory();
+      if (document.getElementById('mrpt-month')) {
+        populateMonthlyMonthSelect();
+        renderMonthlyReport();
+      }
     } else {
       showStatus('❌ บันทึกไม่สำเร็จ: ' + (res.error||''), 'error');
     }
@@ -2029,6 +2144,233 @@ function exportInvXLSX() {
 
   const suffix = filterFrom && filterTo ? `${filterFrom}_to_${filterTo}` : toDateStr(new Date());
   XLSX.writeFile(wb, `inventory_${suffix}.xlsx`);
+}
+
+// ═══════════════════════════════════════════════════════════
+//  รายงานรับจ่ายรายเดือน
+// ═══════════════════════════════════════════════════════════
+const TH_MONTHS = ['มกราคม','กุมภาพันธ์','มีนาคม','เมษายน','พฤษภาคม','มิถุนายน',
+                   'กรกฎาคม','สิงหาคม','กันยายน','ตุลาคม','พฤศจิกายน','ธันวาคม'];
+const TH_MONTHS_SHORT = ['ม.ค.','ก.พ.','มี.ค.','เม.ย.','พ.ค.','มิ.ย.',
+                         'ก.ค.','ส.ค.','ก.ย.','ต.ค.','พ.ย.','ธ.ค.'];
+
+// คืน "YYYY-MM" (ค.ศ.) ของวันที่
+function ymKey(dateStr) {
+  const d = normalizeDate(dateStr);
+  return d ? d.slice(0, 7) : '';
+}
+
+// คืน label ภาษาไทย เช่น "มีนาคม 2569"
+function ymLabel(ym) {
+  if (!ym) return '';
+  const [y, m] = ym.split('-').map(Number);
+  return TH_MONTHS[m-1] + ' ' + (y + 543);
+}
+
+// คืน "YYYY-MM" ของเดือนก่อนหน้า
+function prevMonth(ym) {
+  const [y, m] = ym.split('-').map(Number);
+  const pm = m === 1 ? 12 : m - 1;
+  const py = m === 1 ? y - 1 : y;
+  return py + '-' + String(pm).padStart(2,'0');
+}
+
+// คืนวันแรก/วันสุดท้ายของเดือนในรูป YYYY-MM-DD
+function monthBounds(ym) {
+  const [y, m] = ym.split('-').map(Number);
+  const last = new Date(y, m, 0).getDate();
+  return {
+    first: ym + '-01',
+    last:  ym + '-' + String(last).padStart(2,'0'),
+  };
+}
+
+// สร้างรายการเดือนที่มีข้อมูล + เดือนปัจจุบัน (เรียงใหม่→เก่า)
+function buildMonthOptions() {
+  const set = new Set();
+  logs.forEach(r => { const k = ymKey(r.date); if (k) set.add(k); });
+  invLogs.forEach(r => { const k = ymKey(r.date); if (k) set.add(k); });
+  // ใส่เดือนปัจจุบันด้วย เผื่อยังไม่มีธุรกรรม
+  const now = new Date();
+  set.add(toDateStr(now).slice(0,7));
+  return Array.from(set).sort().reverse();
+}
+
+// คืนอ็อบเจกต์ { drug: { carry, buy, return, dispense, destroy, in, out, balance } }
+function calcMonthlyReport(ym) {
+  const { first, last } = monthBounds(ym);
+  const DRUGS = Object.keys(DRUG_UNITS);
+  const rep = {};
+  DRUGS.forEach(d => {
+    rep[d] = { carry: 0, buy: 0, return: 0, dispense: 0, destroy: 0, in: 0, out: 0, balance: 0 };
+  });
+
+  // ── ยกยอด: ทุกธุรกรรมก่อน first ──
+  // narcotic logs = จ่ายผู้ป่วย (−qty)
+  logs.forEach(r => {
+    if (!rep[r.drug]) return;
+    const d = normalizeDate(r.date);
+    if (d && d < first) rep[r.drug].carry -= Number(r.qty) || 0;
+  });
+  // inventory logs = direction * qty
+  invLogs.forEach(r => {
+    if (!rep[r.drug]) return;
+    const d = normalizeDate(r.date);
+    if (d && d < first) rep[r.drug].carry += (Number(r.direction) || 0) * (Number(r.qty) || 0);
+  });
+
+  // ── ในเดือน: first ≤ d ≤ last ──
+  logs.forEach(r => {
+    if (!rep[r.drug]) return;
+    const d = normalizeDate(r.date);
+    if (d && d >= first && d <= last) {
+      rep[r.drug].dispense += Number(r.qty) || 0;
+    }
+  });
+  invLogs.forEach(r => {
+    if (!rep[r.drug]) return;
+    const d = normalizeDate(r.date);
+    if (!d || d < first || d > last) return;
+    const q = Number(r.qty) || 0;
+    if (r.type === 'buy')       rep[r.drug].buy      += q;
+    else if (r.type === 'return')   rep[r.drug].return   += q;
+    else if (r.type === 'dispense') rep[r.drug].dispense += q;
+    else if (r.type === 'destroy')  rep[r.drug].destroy  += q;
+  });
+
+  // ── สรุป ──
+  DRUGS.forEach(d => {
+    const o = rep[d];
+    o.in  = o.buy + o.return;
+    o.out = o.dispense + o.destroy;
+    o.balance = o.carry + o.in - o.out;
+  });
+
+  return rep;
+}
+
+// ── populate dropdown + ตั้งค่าเดือนปัจจุบันเป็น default ──
+function populateMonthlyMonthSelect() {
+  const sel = document.getElementById('mrpt-month');
+  if (!sel) return;
+  const prev = sel.value;
+  const months = buildMonthOptions();
+  sel.innerHTML = months.map(m => `<option value="${m}">${ymLabel(m)}</option>`).join('');
+  // ถ้ามีค่าเดิมและยังอยู่ในลิสต์ → คงไว้; ไม่งั้นเลือกเดือนล่าสุด
+  if (prev && months.includes(prev)) sel.value = prev;
+  else sel.value = months[0] || '';
+}
+
+// ── Render ตารางรายงานรายเดือน ──
+function renderMonthlyReport() {
+  const sel = document.getElementById('mrpt-month');
+  const tbody = document.getElementById('mrpt-tbody');
+  const periodEl = document.getElementById('mrpt-period');
+  if (!sel || !tbody) return;
+
+  let ym = sel.value;
+  if (!ym) {
+    const opts = buildMonthOptions();
+    if (opts.length) {
+      populateMonthlyMonthSelect();
+      ym = document.getElementById('mrpt-month').value;
+    }
+  }
+  if (!ym) {
+    tbody.innerHTML = '<tr><td colspan="6" class="no-data">ไม่มีข้อมูล</td></tr>';
+    periodEl.textContent = '—';
+    return;
+  }
+
+  const { first, last } = monthBounds(ym);
+  const [fy, fm, fd] = first.split('-');
+  const [ly, lm, ld] = last.split('-');
+  periodEl.textContent = `ประจำเดือน ${ymLabel(ym)} (${Number(fd)} – ${Number(ld)} ${TH_MONTHS_SHORT[Number(fm)-1]} ${Number(fy)+543})`;
+
+  const rep = calcMonthlyReport(ym);
+  const DRUGS = Object.keys(DRUG_UNITS);
+
+  const totals = { carry: 0, in: 0, out: 0, balance: 0 };
+
+  const rows = DRUGS.map(drug => {
+    const o = rep[drug];
+    const cat = DRUG_CATS[drug] || '';
+    const unit = DRUG_UNITS[drug] || '';
+    totals.carry   += o.carry;
+    totals.in      += o.in;
+    totals.out     += o.out;
+    totals.balance += o.balance;
+
+    let balClass = '', balBadge = '';
+    if (o.balance <= 0) { balClass = 'zero'; balBadge = '<span class="mrpt-bal-badge zero">หมด</span>'; }
+    else if (o.balance <= 5) { balClass = 'low'; balBadge = '<span class="mrpt-bal-badge low">ใกล้หมด</span>'; }
+
+    return `<tr>
+      <td><span class="drug-pill ${cat}">${escHTML(drug)}</span></td>
+      <td class="num"><span class="mrpt-carry">${o.carry}</span></td>
+      <td class="num">
+        <span class="mrpt-in">${o.in ? '+'+o.in : '0'}</span>
+        <span class="mrpt-bd">ซื้อ ${o.buy} · รับคืน ${o.return}</span>
+      </td>
+      <td class="num">
+        <span class="mrpt-out">${o.out ? '−'+o.out : '0'}</span>
+        <span class="mrpt-bd">จ่าย ${o.dispense} · หมดอายุ ${o.destroy}</span>
+      </td>
+      <td class="num"><span class="mrpt-bal ${balClass}">${o.balance}</span> ${balBadge}</td>
+      <td class="mrpt-unit">${escHTML(unit)}</td>
+    </tr>`;
+  }).join('');
+
+  const totalRow = `<tr class="mrpt-total">
+    <td><strong>รวม (${DRUGS.length} รายการ)</strong></td>
+    <td class="num"><span class="mrpt-num">${totals.carry}</span></td>
+    <td class="num"><span class="mrpt-num mrpt-in">${totals.in ? '+'+totals.in : '0'}</span></td>
+    <td class="num"><span class="mrpt-num mrpt-out">${totals.out ? '−'+totals.out : '0'}</span></td>
+    <td class="num"><span class="mrpt-num mrpt-bal">${totals.balance}</span></td>
+    <td class="mrpt-unit">—</td>
+  </tr>`;
+
+  tbody.innerHTML = rows + totalRow;
+}
+
+// ── Export รายงานรายเดือนเป็น XLSX ──
+function exportMonthlyXLSX() {
+  const sel = document.getElementById('mrpt-month');
+  const ym = sel && sel.value;
+  if (!ym) { alert('ไม่มีเดือนที่เลือก'); return; }
+
+  const rep = calcMonthlyReport(ym);
+  const DRUGS = Object.keys(DRUG_UNITS);
+  const rows = [[
+    'ชื่อยา','ยกยอดจากเดือนก่อน',
+    'รับ-ซื้อ อย.','รับ-รับคืนจากผู้ป่วย','รวมรับเดือนนี้',
+    'จ่าย-จ่ายผู้ป่วย','จ่าย-หมดอายุ/แตก/เสื่อม','รวมจ่ายเดือนนี้',
+    'คงเหลือสิ้นเดือน','หน่วย'
+  ]];
+  const totals = { carry:0, buy:0, ret:0, in:0, dispense:0, destroy:0, out:0, balance:0 };
+  DRUGS.forEach(drug => {
+    const o = rep[drug];
+    totals.carry += o.carry; totals.buy += o.buy; totals.ret += o.return;
+    totals.in += o.in; totals.dispense += o.dispense; totals.destroy += o.destroy;
+    totals.out += o.out; totals.balance += o.balance;
+    rows.push([
+      drug, o.carry,
+      o.buy, o.return, o.in,
+      o.dispense, o.destroy, o.out,
+      o.balance, DRUG_UNITS[drug] || ''
+    ]);
+  });
+  rows.push([
+    'รวมทั้งหมด', totals.carry,
+    totals.buy, totals.ret, totals.in,
+    totals.dispense, totals.destroy, totals.out,
+    totals.balance, ''
+  ]);
+
+  const wb = XLSX.utils.book_new();
+  const ws = XLSX.utils.aoa_to_sheet(rows);
+  XLSX.utils.book_append_sheet(wb, ws, 'รายงานรับจ่าย ' + ym);
+  XLSX.writeFile(wb, `narcotic_monthly_${ym}.xlsx`);
 }
 
 function exportDashXLSX() {
