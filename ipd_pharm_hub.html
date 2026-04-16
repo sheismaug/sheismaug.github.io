@@ -4422,6 +4422,21 @@
         el.textContent = arrow + ' ' + Math.abs(pct) + '% vs ก่อน';
     }
 
+    // ช่วง 6 เดือนย้อนหลัง (รวมเดือนปัจจุบัน) สำหรับ trend chart — ไม่ขึ้นกับ period filter
+    function _trend6MonthRange() {
+        var today = new Date();
+        var y = today.getFullYear(), m = today.getMonth();
+        var startY = y, startM = m - 5;
+        while (startM < 0) { startM += 12; startY -= 1; }
+        var fromD = new Date(startY, startM, 1);
+        var toD   = new Date(y, m + 1, 0); // วันสุดท้ายของเดือนปัจจุบัน
+        function fmt(d) {
+            var yy = d.getFullYear(), mm = ('0'+(d.getMonth()+1)).slice(-2), dd = ('0'+d.getDate()).slice(-2);
+            return yy+'-'+mm+'-'+dd;
+        }
+        return { from: fmt(fromD), to: fmt(toD) };
+    }
+
     function _loadDashboard() {
         var from = (document.getElementById('dashFromDate') || {}).value || '';
         var to   = (document.getElementById('dashToDate')   || {}).value || '';
@@ -4431,9 +4446,13 @@
             document.getElementById('dashFromDate').value = from;
             document.getElementById('dashToDate').value   = to;
         }
-        // ยิง 2 request พร้อมกัน (parallel) — ลด latency จาก A+B เหลือ max(A,B)
+        // ยิง 3 request พร้อมกัน (parallel):
+        //   1) current period → KPI + charts
+        //   2) previous period → trend arrows (เทียบ %)
+        //   3) 6-month range → trend line chart (ไม่ขึ้นกับ filter)
         var prevR = _prevPeriodRange(from, to);
         var needPrev = !!(prevR.from && prevR.to);
+        var trendR = _trend6MonthRange();
         var curData = null, prevData = null;
         var curDone = false, prevDone = !needPrev;
 
@@ -4462,6 +4481,12 @@
                 maybeRender();
             });
         }
+
+        // Trend chart — ยิงแยก ไม่รอ current/previous
+        gasGet('getDashboardStats', { from: trendR.from, to: trendR.to }, function(tdata) {
+            var tr = (tdata && tdata.ok && tdata.trend) ? tdata.trend : [];
+            _renderTrendChart(tr);
+        });
     }
 
     // helper: ดึงค่าเดียวกับที่ render ใช้ เพื่อเอาไปเทียบ trend
@@ -4588,24 +4613,35 @@
         var cn = (d.counseling && d.counseling.byType) || {};
         _barChart('counChart', Object.keys(cn), Object.values(cn), '#8ecf8e', true);
 
-        // Trend
+        // Trend chart ถูกโหลดแยก (อิสระจาก filter) — ดู _renderTrendChart()
+    }
+
+    // แสดง trend chart จาก data ที่ยิงแยกมา (6 เดือนย้อนหลัง)
+    function _renderTrendChart(tr) {
         _destroyChart('trendChart');
         var trendEl = document.getElementById('trendChart');
-        var tr = d.trend || [];
-        if (trendEl && tr.length) {
-            _dashCharts['trendChart'] = new Chart(trendEl.getContext('2d'), {
-                type: 'line',
-                data: {
-                    labels: tr.map(function(t){ return t.month || t.label; }),
-                    datasets: [
-                        { label: 'MR',       data: tr.map(function(t){ return t.mr       || 0; }), borderColor: '#2e3f58', backgroundColor: 'rgba(46,63,88,0.1)', tension: 0.3 },
-                        { label: 'Med Err',  data: tr.map(function(t){ return t.medError || 0; }), borderColor: '#c04040', backgroundColor: 'rgba(192,64,64,0.1)', tension: 0.3 },
-                        { label: 'HAD',      data: tr.map(function(t){ return t.had      || 0; }), borderColor: '#c62828', backgroundColor: 'rgba(198,40,40,0.1)', tension: 0.3 },
-                    ],
-                },
-                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom' } } },
-            });
+        if (!trendEl) return;
+        tr = tr || [];
+        if (!tr.length) {
+            // แสดง placeholder เมื่อไม่มีข้อมูล
+            var ctx0 = trendEl.getContext('2d');
+            ctx0.clearRect(0, 0, trendEl.width, trendEl.height);
+            ctx0.font = '13px sans-serif'; ctx0.fillStyle = '#999'; ctx0.textAlign = 'center';
+            ctx0.fillText('— ไม่มีข้อมูล trend —', trendEl.width/2, trendEl.height/2);
+            return;
         }
+        _dashCharts['trendChart'] = new Chart(trendEl.getContext('2d'), {
+            type: 'line',
+            data: {
+                labels: tr.map(function(t){ return t.month || t.label; }),
+                datasets: [
+                    { label: 'MR',       data: tr.map(function(t){ return t.mr       || 0; }), borderColor: '#2e3f58', backgroundColor: 'rgba(46,63,88,0.1)', tension: 0.3 },
+                    { label: 'Med Err',  data: tr.map(function(t){ return t.medError || 0; }), borderColor: '#c04040', backgroundColor: 'rgba(192,64,64,0.1)', tension: 0.3 },
+                    { label: 'HAD',      data: tr.map(function(t){ return t.had      || 0; }), borderColor: '#c62828', backgroundColor: 'rgba(198,40,40,0.1)', tension: 0.3 },
+                ],
+            },
+            options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom' } } },
+        });
     }
 
     function exportChartPNG(canvasId, name) {
