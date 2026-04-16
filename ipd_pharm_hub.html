@@ -1618,12 +1618,87 @@
             border: 1.5px solid #d8d5d0;
         }
 
+        /* ─── Dashboard v2 ─── */
+        .dash-section {
+            border-radius: 16px;
+            padding: 16px;
+            margin: 16px 0;
+            border: 1px solid #e8e5e0;
+        }
+        .dash-section.safety   { background: #fdfafa; border-color: #f8e8e8; }
+        .dash-section.activity { background: #fafbfd; border-color: #e8edf5; }
+        .dash-section.quality  { background: #fafdf9; border-color: #e5f1e5; }
+
+        .dash-section-header {
+            display: flex; align-items: baseline; gap: 10px;
+            margin-bottom: 12px; padding: 0 4px;
+        }
+        .dash-section-header h2 {
+            font-size: 13px; font-weight: 700;
+            text-transform: uppercase; letter-spacing: 0.8px;
+            color: #2e3f58; margin: 0;
+        }
+        .dash-section.safety   .dash-section-header h2 { color: #c62828; }
+        .dash-section.activity .dash-section-header h2 { color: #2e3f58; }
+        .dash-section.quality  .dash-section-header h2 { color: #1b5e20; }
+        .dash-section-header .section-icon { font-size: 14px; }
+        .dash-section-header .section-count { font-size: 11px; color: #999; font-weight: 400; }
+        .dash-section-divider { flex: 1; height: 1px; background: linear-gradient(to right, #e8e5e0, transparent); }
+
+        .kpi-v2 {
+            background: white; border-radius: 12px; padding: 14px 16px;
+            border: 1px solid #e8e5e0; border-left: 3px solid #e8e5e0;
+            transition: box-shadow 0.15s;
+        }
+        .kpi-v2:hover { box-shadow: 0 2px 8px rgba(0,0,0,0.04); }
+        .kpi-v2.safety   { border-left-color: #c62828; }
+        .kpi-v2.activity { border-left-color: #3a5a9a; }
+        .kpi-v2.quality  { border-left-color: #1b5e20; }
+        .kpi-v2 .k-label {
+            font-size: 11px; color: #666; margin-bottom: 6px;
+            display: flex; align-items: center; gap: 6px;
+        }
+        .kpi-v2 .k-icon { font-size: 12px; opacity: 0.75; }
+        .kpi-v2 .k-value { font-size: 22px; font-weight: 700; line-height: 1.2; color: #2e3f58; }
+        .kpi-v2.safety  .k-value { color: #c62828; }
+        .kpi-v2.quality .k-value { color: #1b5e20; }
+        .kpi-v2 .k-sub { font-size: 10px; color: #999; margin-top: 4px; }
+        .kpi-v2 .k-breakdown {
+            display: flex; gap: 10px; margin-top: 6px; padding-top: 6px;
+            border-top: 1px dashed #e8e5e0;
+            font-size: 10px; color: #888;
+        }
+        .kpi-v2 .k-breakdown span { display: flex; align-items: center; gap: 3px; }
+        .kpi-v2 .k-breakdown strong { color: #2e3f58; font-weight: 600; }
+
+        .k-trend {
+            display: inline-flex; align-items: center; gap: 3px;
+            font-size: 10px; padding: 2px 7px; border-radius: 10px;
+            margin-top: 6px; font-weight: 500;
+        }
+        .k-trend:empty { display: none; }
+        .k-trend.up-bad    { background: #ffebee; color: #c62828; }
+        .k-trend.down-good { background: #e8f5e9; color: #1b5e20; }
+        .k-trend.up-good   { background: #e8f5e9; color: #1b5e20; }
+        .k-trend.down-bad  { background: #ffebee; color: #c62828; }
+        .k-trend.flat      { background: #f0eeeb; color: #888; }
+
+        .dash-subgrid { display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 12px; }
+        .dash-subgrid.cols-3 { grid-template-columns: 1fr 1fr 1fr; }
+        .dash-section .dashboard-grid { margin-top: 12px; }
+
+        /* Featured trend at top */
+        .trend-featured { margin-top: 12px; }
+        .trend-featured .card-title { font-size: 13px; font-weight: 700; }
+        .trend-featured .chart-container { height: 220px; }
+
         /* Responsive */
         @media (max-width: 768px) {
             .grid-2, .grid-4 { grid-template-columns: 1fr; }
             .form-row, .form-row.cols-3, .form-row.cols-4 { grid-template-columns: 1fr; }
             .modal-panel { width: 100%; max-width: none; }
             .dashboard-grid { grid-template-columns: 1fr; }
+            .dash-subgrid, .dash-subgrid.cols-3 { grid-template-columns: 1fr 1fr; }
         }
     </style>
 </head>
@@ -1756,132 +1831,166 @@
                     <button class="btn-export-xlsx" id="btnExportXlsx" onclick="exportDashboardExcel()">📊 Export Excel</button>
                 </div>
 
-                <!-- ── Core KPI (row 1: existing 4) ── -->
-                <div class="grid-4">
-                    <div class="kpi-chip" style="text-align: center; padding: 16px; border-radius: 12px; background: white; border: 0.5px solid #e8e5e0;">
-                        <div style="font-size: 11px; color: #666;">MR Coverage %</div>
-                        <div style="font-size: 20px; font-weight: 700; color: #2e3f58;" id="dashMRCov">0%</div>
+                <!-- ── Featured Trend (ย้ายขึ้นบนสุด) ── -->
+                <div class="card trend-featured">
+                    <div class="chart-header">
+                        <h3 class="card-title">📈 6-Month Trend — ภาพรวม <span style="font-size:11px; color:#888; font-weight:400;">MR · Med Error · HAD</span></h3>
+                        <button class="chart-png-btn" onclick="exportChartPNG('trendChart','6_Month_Trend')" title="Export PNG">📷</button>
                     </div>
-                    <div class="kpi-chip" style="text-align: center; padding: 16px; border-radius: 12px; background: white; border: 0.5px solid #e8e5e0;">
-                        <div style="font-size: 11px; color: #666;">Med Error</div>
-                        <div style="font-size: 20px; font-weight: 700; color: #c04040;" id="dashMedErr">0</div>
+                    <div class="chart-container" style="height: 220px;"><canvas id="trendChart"></canvas></div>
+                </div>
+
+                <!-- ══ SAFETY ══ -->
+                <div class="dash-section safety">
+                    <div class="dash-section-header">
+                        <span class="section-icon">🛡️</span>
+                        <h2>Safety</h2>
+                        <span class="section-count">ความปลอดภัยผู้ป่วย</span>
+                        <span class="dash-section-divider"></span>
                     </div>
-                    <div class="kpi-chip" style="text-align: center; padding: 16px; border-radius: 12px; background: white; border: 0.5px solid #e8e5e0;">
-                        <div style="font-size: 11px; color: #666;">DRP (rate%)</div>
-                        <div style="font-size: 20px; font-weight: 700; color: #3a5a9a;" id="dashDRP">0</div>
+                    <div class="dash-subgrid">
+                        <div class="kpi-v2 safety">
+                            <div class="k-label"><span class="k-icon">⚠️</span> Med Error</div>
+                            <div class="k-value" id="dashMedErr">0</div>
+                            <div class="k-sub" id="dashMedErrSub">A–B 0 · C–D 0 · E–I 0</div>
+                            <span class="k-trend" id="dashMedErrTrend"></span>
+                        </div>
+                        <div class="kpi-v2 safety">
+                            <div class="k-label"><span class="k-icon">💊</span> ADR Cases</div>
+                            <div class="k-value" id="dashADR">0</div>
+                            <span class="k-trend" id="dashADRTrend"></span>
+                        </div>
+                        <div class="kpi-v2 safety">
+                            <div class="k-label"><span class="k-icon">🔬</span> HAD Rounds</div>
+                            <div class="k-value" id="dashHADRounds">0</div>
+                            <span class="k-trend" id="dashHADRoundsTrend"></span>
+                        </div>
+                        <div class="kpi-v2 safety">
+                            <div class="k-label"><span class="k-icon">📄</span> Incident Report</div>
+                            <div class="k-value" id="dashIncident">0</div>
+                            <div class="k-sub">แยกจาก Med Error</div>
+                            <span class="k-trend" id="dashIncidentTrend"></span>
+                        </div>
                     </div>
-                    <div class="kpi-chip" style="text-align: center; padding: 16px; border-radius: 12px; background: white; border: 0.5px solid #e8e5e0;">
-                        <div style="font-size: 11px; color: #666;">Counseling</div>
-                        <div style="font-size: 20px; font-weight: 700; color: #1b5e20;" id="dashCoun">0</div>
+                    <!-- hidden legacy IDs — บาง code path อาจยังอ้างอิง errAB/CD/ePlus -->
+                    <span style="display:none;" id="errAB">0</span>
+                    <span style="display:none;" id="errCD">0</span>
+                    <span style="display:none;" id="errEI">0</span>
+                    <div class="dashboard-grid">
+                        <div class="card">
+                            <div class="chart-header">
+                                <h3 class="card-title">Med Error by Stage</h3>
+                                <button class="chart-png-btn" onclick="exportChartPNG('meStageChart','MedError_by_Stage')" title="Export PNG">📷</button>
+                            </div>
+                            <div class="chart-container"><canvas id="meStageChart"></canvas></div>
+                        </div>
+                        <div class="card">
+                            <div class="chart-header">
+                                <h3 class="card-title">HAD Rounds by Drug</h3>
+                                <button class="chart-png-btn" onclick="exportChartPNG('hadByDrugChart','HAD_by_Drug')" title="Export PNG">📷</button>
+                            </div>
+                            <div class="chart-container"><canvas id="hadByDrugChart"></canvas></div>
+                        </div>
                     </div>
                 </div>
 
-                <!-- ── Activity KPI (row 2: HAD / ADR / D/C / MR total) ── -->
-                <div class="grid-4" style="margin-top: 12px;">
-                    <div class="kpi-chip" style="text-align: center; padding: 16px; border-radius: 12px; background: white; border: 0.5px solid #e8e5e0;">
-                        <div style="font-size: 11px; color: #666;">HAD Rounds</div>
-                        <div style="font-size: 20px; font-weight: 700; color: #c62828;" id="dashHADRounds">0</div>
+                <!-- ══ ACTIVITY ══ -->
+                <div class="dash-section activity">
+                    <div class="dash-section-header">
+                        <span class="section-icon">📋</span>
+                        <h2>Activity</h2>
+                        <span class="section-count">ปริมาณงานที่ทำ</span>
+                        <span class="dash-section-divider"></span>
                     </div>
-                    <div class="kpi-chip" style="text-align: center; padding: 16px; border-radius: 12px; background: white; border: 0.5px solid #e8e5e0;">
-                        <div style="font-size: 11px; color: #666;">ADR Cases</div>
-                        <div style="font-size: 20px; font-weight: 700; color: #a03040;" id="dashADR">0</div>
+                    <div class="dash-subgrid cols-3">
+                        <div class="kpi-v2 activity">
+                            <div class="k-label"><span class="k-icon">📝</span> MR Total</div>
+                            <div class="k-value" id="dashMRTotal">0</div>
+                            <div class="k-breakdown" id="dashMRBreakdown">
+                                <span>รับใหม่ <strong>0</strong></span>
+                                <span>เสร็จ <strong>0</strong></span>
+                                <span>รอ MD <strong>0</strong></span>
+                            </div>
+                            <span class="k-trend" id="dashMRTotalTrend"></span>
+                        </div>
+                        <div class="kpi-v2 activity">
+                            <div class="k-label"><span class="k-icon">💬</span> Counseling</div>
+                            <div class="k-value" id="dashCoun">0</div>
+                            <span class="k-trend" id="dashCounTrend"></span>
+                        </div>
+                        <div class="kpi-v2 activity">
+                            <div class="k-label"><span class="k-icon">🔄</span> D/C Changes</div>
+                            <div class="k-value" id="dashDC">0</div>
+                            <span class="k-trend" id="dashDCTrend"></span>
+                        </div>
                     </div>
-                    <div class="kpi-chip" style="text-align: center; padding: 16px; border-radius: 12px; background: white; border: 0.5px solid #e8e5e0;">
-                        <div style="font-size: 11px; color: #666;">D/C Changes</div>
-                        <div style="font-size: 20px; font-weight: 700; color: #6e4a9a;" id="dashDC">0</div>
-                    </div>
-                    <div class="kpi-chip" style="text-align: center; padding: 16px; border-radius: 12px; background: white; border: 0.5px solid #e8e5e0;">
-                        <div style="font-size: 11px; color: #666;">MR Total</div>
-                        <div style="font-size: 20px; font-weight: 700; color: #2e3f58;" id="dashMRTotal">0</div>
-                        <div style="font-size: 10px; color: #999; margin-top: 2px;" id="dashMRBreakdown">รับใหม่ 0 · เสร็จ 0 · รอ MD 0</div>
+                    <div class="dashboard-grid">
+                        <div class="card">
+                            <div class="chart-header">
+                                <h3 class="card-title">MR per Pharmacist</h3>
+                                <button class="chart-png-btn" onclick="exportChartPNG('pharmacistChart','MR_per_Pharmacist')" title="Export PNG">📷</button>
+                            </div>
+                            <div class="chart-container"><canvas id="pharmacistChart"></canvas></div>
+                        </div>
+                        <div class="card">
+                            <div class="chart-header">
+                                <h3 class="card-title">Counseling Activities</h3>
+                                <button class="chart-png-btn" onclick="exportChartPNG('counChart','Counseling')" title="Export PNG">📷</button>
+                            </div>
+                            <div class="chart-container"><canvas id="counChart"></canvas></div>
+                        </div>
                     </div>
                 </div>
 
-                <!-- ── MR Detailed Performance ── -->
-                <div class="dashboard-grid" style="margin-top: 16px;">
-                    <div class="card">
-                        <h3 class="card-title">MR Performance</h3>
-                        <div style="font-size: 12px; line-height: 1.8;">
-                            <div>MR ทันเวลา: <span style="float: right; font-weight: 600;" id="mr24h">0%</span></div>
-                            <div>MD ตอบเวรเดียวกัน: <span style="float: right; font-weight: 600;" id="mrShift1">0%</span></div>
-                            <div>MD ตอบ ≤1 เวร: <span style="float: right; font-weight: 600;" id="mrShift2">0%</span></div>
+                <!-- ══ QUALITY ══ -->
+                <div class="dash-section quality">
+                    <div class="dash-section-header">
+                        <span class="section-icon">✅</span>
+                        <h2>Quality</h2>
+                        <span class="section-count">ตัวชี้วัดคุณภาพ</span>
+                        <span class="dash-section-divider"></span>
+                    </div>
+                    <div class="dash-subgrid">
+                        <div class="kpi-v2 quality">
+                            <div class="k-label"><span class="k-icon">📊</span> MR Coverage</div>
+                            <div class="k-value" id="dashMRCov">0%</div>
+                            <span class="k-trend" id="dashMRCovTrend"></span>
+                        </div>
+                        <div class="kpi-v2 quality">
+                            <div class="k-label"><span class="k-icon">⏱️</span> MR ทันเวลา</div>
+                            <div class="k-value" id="mr24h">0%</div>
+                            <span class="k-trend" id="mr24hTrend"></span>
+                        </div>
+                        <div class="kpi-v2 quality">
+                            <div class="k-label"><span class="k-icon">⚡</span> MD ตอบ ≤1 เวร</div>
+                            <div class="k-value" id="mrShift2">0%</div>
+                            <div class="k-sub">เวรเดียวกัน: <span id="mrShift1">0%</span></div>
+                            <span class="k-trend" id="mrShift2Trend"></span>
+                        </div>
+                        <div class="kpi-v2 quality">
+                            <div class="k-label"><span class="k-icon">🎯</span> DRP Rate</div>
+                            <div class="k-value" id="dashDRP">0</div>
+                            <div class="k-sub">จาก MR ที่ review</div>
+                            <span class="k-trend" id="dashDRPTrend"></span>
                         </div>
                     </div>
-
-                    <div class="card">
-                        <h3 class="card-title">Med Error Severity</h3>
-                        <div style="font-size: 12px; line-height: 1.8;">
-                            <div>A–B (no harm): <span style="float: right; font-weight: 600;" id="errAB">0</span></div>
-                            <div>C–D (harm no serious): <span style="float: right; font-weight: 600;" id="errCD">0</span></div>
-                            <div>E–I (serious): <span style="float: right; font-weight: 600;" id="errEI">0</span></div>
+                    <div class="dashboard-grid">
+                        <div class="card">
+                            <div class="chart-header">
+                                <h3 class="card-title">MD Response — จำนวน shift ที่ใช้ตอบ</h3>
+                                <button class="chart-png-btn" onclick="exportChartPNG('mdHistChart','MD_Response')" title="Export PNG">📷</button>
+                            </div>
+                            <div class="chart-container"><canvas id="mdHistChart"></canvas></div>
+                        </div>
+                        <div class="card">
+                            <div class="chart-header">
+                                <h3 class="card-title">DRP Types (Top 5)</h3>
+                                <button class="chart-png-btn" onclick="exportChartPNG('drpChart','DRP_Types')" title="Export PNG">📷</button>
+                            </div>
+                            <div class="chart-container"><canvas id="drpChart"></canvas></div>
                         </div>
                     </div>
                 </div>
-
-                <!-- ── Charts — 2 per row ── -->
-                <div class="dashboard-grid">
-                    <div class="card">
-                        <div class="chart-header">
-                            <h3 class="card-title">MR per Pharmacist</h3>
-                            <button class="chart-png-btn" onclick="exportChartPNG('pharmacistChart','MR_per_Pharmacist')" title="Export PNG">📷</button>
-                        </div>
-                        <div class="chart-container"><canvas id="pharmacistChart"></canvas></div>
-                    </div>
-                    <div class="card">
-                        <div class="chart-header">
-                            <h3 class="card-title">MD Response — จำนวน shift ที่ใช้ตอบ</h3>
-                            <button class="chart-png-btn" onclick="exportChartPNG('mdHistChart','MD_Response')" title="Export PNG">📷</button>
-                        </div>
-                        <div class="chart-container"><canvas id="mdHistChart"></canvas></div>
-                    </div>
-                    <div class="card">
-                        <div class="chart-header">
-                            <h3 class="card-title">HAD Rounds by Drug</h3>
-                            <button class="chart-png-btn" onclick="exportChartPNG('hadByDrugChart','HAD_by_Drug')" title="Export PNG">📷</button>
-                        </div>
-                        <div class="chart-container"><canvas id="hadByDrugChart"></canvas></div>
-                    </div>
-                    <div class="card">
-                        <div class="chart-header">
-                            <h3 class="card-title">Med Error by Stage</h3>
-                            <button class="chart-png-btn" onclick="exportChartPNG('meStageChart','MedError_by_Stage')" title="Export PNG">📷</button>
-                        </div>
-                        <div class="chart-container"><canvas id="meStageChart"></canvas></div>
-                    </div>
-                    <div class="card">
-                        <div class="chart-header">
-                            <h3 class="card-title">DRP Types (Top 5)</h3>
-                            <button class="chart-png-btn" onclick="exportChartPNG('drpChart','DRP_Types')" title="Export PNG">📷</button>
-                        </div>
-                        <div class="chart-container"><canvas id="drpChart"></canvas></div>
-                    </div>
-                    <div class="card">
-                        <div class="chart-header">
-                            <h3 class="card-title">Counseling Activities</h3>
-                            <button class="chart-png-btn" onclick="exportChartPNG('counChart','Counseling')" title="Export PNG">📷</button>
-                        </div>
-                        <div class="chart-container"><canvas id="counChart"></canvas></div>
-                    </div>
-
-                    <!-- Trend spans full width inside same grid -->
-                    <div class="card" style="grid-column: 1/-1;">
-                        <div class="chart-header">
-                            <h3 class="card-title">6-Month Trend</h3>
-                            <button class="chart-png-btn" onclick="exportChartPNG('trendChart','6_Month_Trend')" title="Export PNG">📷</button>
-                        </div>
-                        <div class="chart-container" style="height: 320px;"><canvas id="trendChart"></canvas></div>
-                    </div>
-                </div>
-
-                <!-- ── Incident Report (collapsed at bottom) ── -->
-                <details class="card" style="grid-column: 1/-1; margin-top: 12px;">
-                    <summary style="cursor:pointer; font-weight:600; color:#666; font-size:13px; padding:4px 0;">
-                        📄 Incident Report — <span id="dashIncident">0</span>
-                    </summary>
-                    <div style="font-size: 12px; color:#666; line-height: 1.7; margin-top: 10px;">
-                        จำนวนรายงานเหตุการณ์ไม่พึงประสงค์ในช่วงเวลาที่เลือก (รวมเฉพาะที่บันทึกเป็น Incident Report แยกจาก Med Error)
-                    </div>
-                </details>
             </div>
 
             <!-- TAB 3: Workload -->
@@ -4263,6 +4372,56 @@
         _loadDashboard();
     }
 
+    // คำนวณช่วงเวลา "งวดก่อน" โดยเลื่อนกลับไปเป็นช่วงที่ยาวเท่ากัน
+    function _prevPeriodRange(from, to) {
+        if (!from || !to) return { from: '', to: '' };
+        var f = new Date(from + 'T00:00:00');
+        var t = new Date(to   + 'T00:00:00');
+        if (isNaN(f) || isNaN(t)) return { from: '', to: '' };
+        var days = Math.round((t - f) / (1000*60*60*24)) + 1;  // inclusive length
+        var prevTo   = new Date(f); prevTo.setDate(prevTo.getDate() - 1);
+        var prevFrom = new Date(prevTo); prevFrom.setDate(prevFrom.getDate() - (days - 1));
+        function fmt(d) {
+            var yy = d.getFullYear(), mm = ('0'+(d.getMonth()+1)).slice(-2), dd = ('0'+d.getDate()).slice(-2);
+            return yy+'-'+mm+'-'+dd;
+        }
+        return { from: fmt(prevFrom), to: fmt(prevTo) };
+    }
+
+    // คำนวณ % การเปลี่ยนแปลง แล้ว render ลงใน span id ให้เลย
+    // polarity: 'up-bad' (เช่น Med Error — ขึ้น = แย่) หรือ 'up-good' (เช่น MR Total — ขึ้น = ดี)
+    function _setTrend(id, cur, prev, polarity) {
+        var el = document.getElementById(id);
+        if (!el) return;
+        el.className = 'k-trend';
+        el.textContent = '';
+        cur = Number(cur) || 0;
+        if (prev == null || isNaN(prev)) { return; }           // ไม่มีข้อมูลงวดก่อน → ซ่อน
+        prev = Number(prev) || 0;
+        if (prev === 0 && cur === 0) {
+            el.classList.add('flat'); el.textContent = '= เท่าเดิม'; return;
+        }
+        var delta = cur - prev;
+        var pct;
+        if (prev === 0) {
+            pct = cur > 0 ? 100 : 0;
+        } else {
+            pct = Math.round((delta / Math.abs(prev)) * 100);
+        }
+        if (delta === 0) {
+            el.classList.add('flat'); el.textContent = '= เท่าเดิม'; return;
+        }
+        var arrow = delta > 0 ? '↑' : '↓';
+        var cls;
+        if (polarity === 'up-bad') {
+            cls = delta > 0 ? 'up-bad' : 'down-good';
+        } else {
+            cls = delta > 0 ? 'up-good' : 'down-bad';
+        }
+        el.classList.add(cls);
+        el.textContent = arrow + ' ' + Math.abs(pct) + '% vs ก่อน';
+    }
+
     function _loadDashboard() {
         var from = (document.getElementById('dashFromDate') || {}).value || '';
         var to   = (document.getElementById('dashToDate')   || {}).value || '';
@@ -4272,39 +4431,110 @@
             document.getElementById('dashFromDate').value = from;
             document.getElementById('dashToDate').value   = to;
         }
+        // ยิง 2 request พร้อมกัน (parallel) — ลด latency จาก A+B เหลือ max(A,B)
+        var prevR = _prevPeriodRange(from, to);
+        var needPrev = !!(prevR.from && prevR.to);
+        var curData = null, prevData = null;
+        var curDone = false, prevDone = !needPrev;
+
+        function maybeRender() {
+            if (!curDone || !prevDone) return;
+            if (!curData) return;   // fail case รอให้ error toast แสดงแล้ว
+            _renderDashKPI(curData, prevData);
+            _renderDashCharts(curData);
+        }
+
         gasGet('getDashboardStats', { from: from, to: to }, function(data) {
-            if (!data || !data.ok) { showToast('โหลด dashboard ไม่สำเร็จ', { type:'error' }); return; }
+            if (!data || !data.ok) {
+                showToast('โหลด dashboard ไม่สำเร็จ', { type:'error' });
+                curDone = true; maybeRender(); return;
+            }
             _dashStats = data;
-            _renderDashKPI(data);
-            _renderDashCharts(data);
+            curData = data;
+            curDone = true;
+            maybeRender();
         });
+
+        if (needPrev) {
+            gasGet('getDashboardStats', { from: prevR.from, to: prevR.to }, function(pdata) {
+                prevData = (pdata && pdata.ok) ? pdata : null;
+                prevDone = true;
+                maybeRender();
+            });
+        }
     }
 
-    function _renderDashKPI(d) {
+    // helper: ดึงค่าเดียวกับที่ render ใช้ เพื่อเอาไปเทียบ trend
+    function _kpiVals(d) {
+        if (!d) return null;
         var mrTotal = (d.mr && d.mr.total) || 0;
         var ptTotal = (d.patients && d.patients.total) || 0;
         var cov = ptTotal ? Math.round((mrTotal / ptTotal) * 100) : 0;
-        _setText('dashMRCov',    cov + '%');
-        _setText('dashMedErr',   (d.medError && d.medError.total) || 0);
         var drpTotal = (d.drp && d.drp.total) || 0;
         var drpRate  = ptTotal ? Math.round((drpTotal / ptTotal) * 100) : 0;
-        _setText('dashDRP',      drpRate + '% (' + drpTotal + ')');
-        _setText('dashCoun',     (d.counseling && d.counseling.total) || 0);
-        _setText('dashHADRounds',(d.had && d.had.roundsCount) || 0);
-        _setText('dashADR',      d.adrCount || 0);
-        _setText('dashDC',       d.dcChangesCount || 0);
-        _setText('dashMRTotal',  mrTotal);
-        _setText('dashMRBreakdown',
-            'รับใหม่ ' + ptTotal +
-            ' · เสร็จ ' + ((d.mrTotal && d.mrTotal.done) || 0) +
-            ' · รอ MD ' + ((d.mrTotal && d.mrTotal.pendingMD) || 0));
-        _setText('mr24h',    ((d.mr && d.mr.within24hPct) || 0) + '%');
+        return {
+            mrCov:    cov,
+            medErr:   (d.medError && d.medError.total) || 0,
+            drpRate:  drpRate,
+            coun:     (d.counseling && d.counseling.total) || 0,
+            had:      (d.had && d.had.roundsCount) || 0,
+            adr:      d.adrCount || 0,
+            dc:       d.dcChangesCount || 0,
+            mrTotal:  mrTotal,
+            mr24h:    (d.mr && d.mr.within24hPct) || 0,
+            mrShift2: (d.mr && d.mr.mdReview2ShiftPct) || 0,
+            incident: d.incidentCount || 0,
+        };
+    }
+
+    function _renderDashKPI(d, prev) {
+        var cur = _kpiVals(d);
+        var pv  = _kpiVals(prev);
+        _setText('dashMRCov',    cur.mrCov + '%');
+        _setText('dashMedErr',   cur.medErr);
+        _setText('dashDRP',      cur.drpRate + '% (' + ((d.drp && d.drp.total) || 0) + ')');
+        _setText('dashCoun',     cur.coun);
+        _setText('dashHADRounds',cur.had);
+        _setText('dashADR',      cur.adr);
+        _setText('dashDC',       cur.dc);
+        _setText('dashMRTotal',  cur.mrTotal);
+        // Med Error severity breakdown (ใน Safety KPI k-sub)
+        var sev = (d.medError && d.medError.severity) || {};
+        var eSub = document.getElementById('dashMedErrSub');
+        if (eSub) eSub.textContent = 'A–B ' + (sev.ab || 0) + ' · C–D ' + (sev.cd || 0) + ' · E–I ' + (sev.ePlus || 0);
+        // legacy hidden spans (เผื่อโค้ดอื่นใช้)
+        _setText('errAB', sev.ab || 0);
+        _setText('errCD', sev.cd || 0);
+        _setText('errEI', sev.ePlus || 0);
+        // MR Total breakdown — ใช้ DOM structure ใหม่
+        var mrbEl = document.getElementById('dashMRBreakdown');
+        if (mrbEl) {
+            var ptTotal = (d.patients && d.patients.total) || 0;
+            mrbEl.innerHTML =
+                '<span>รับใหม่ <strong>' + ptTotal + '</strong></span>' +
+                '<span>เสร็จ <strong>' + ((d.mrTotal && d.mrTotal.done) || 0) + '</strong></span>' +
+                '<span>รอ MD <strong>' + ((d.mrTotal && d.mrTotal.pendingMD) || 0) + '</strong></span>';
+        }
+        _setText('mr24h',    cur.mr24h + '%');
         _setText('mrShift1', ((d.mr && d.mr.mdReview1ShiftPct) || 0) + '%');
-        _setText('mrShift2', ((d.mr && d.mr.mdReview2ShiftPct) || 0) + '%');
-        _setText('errAB',    (d.medError && d.medError.severity && d.medError.severity.ab) || 0);
-        _setText('errCD',    (d.medError && d.medError.severity && d.medError.severity.cd) || 0);
-        _setText('errEI',    (d.medError && d.medError.severity && d.medError.severity.ePlus) || 0);
-        _setText('dashIncident', d.incidentCount || 0);
+        _setText('mrShift2', cur.mrShift2 + '%');
+        _setText('dashIncident', cur.incident);
+
+        // ── Trend indicators (เทียบงวดก่อน) ──
+        // Safety: ขึ้น = แย่
+        _setTrend('dashMedErrTrend',    cur.medErr,   pv ? pv.medErr   : null, 'up-bad');
+        _setTrend('dashADRTrend',       cur.adr,      pv ? pv.adr      : null, 'up-bad');
+        _setTrend('dashHADRoundsTrend', cur.had,      pv ? pv.had      : null, 'up-good'); // HAD round มากขึ้น = pharmacist active ดี
+        _setTrend('dashIncidentTrend',  cur.incident, pv ? pv.incident : null, 'up-bad');
+        // Activity: ขึ้น = ดี
+        _setTrend('dashMRTotalTrend',   cur.mrTotal,  pv ? pv.mrTotal  : null, 'up-good');
+        _setTrend('dashCounTrend',      cur.coun,     pv ? pv.coun     : null, 'up-good');
+        _setTrend('dashDCTrend',        cur.dc,       pv ? pv.dc       : null, 'up-good');
+        // Quality: ขึ้น = ดี ยกเว้น DRP rate (rate สูง = ปัญหามาก)
+        _setTrend('dashMRCovTrend',     cur.mrCov,    pv ? pv.mrCov    : null, 'up-good');
+        _setTrend('mr24hTrend',         cur.mr24h,    pv ? pv.mr24h    : null, 'up-good');
+        _setTrend('mrShift2Trend',      cur.mrShift2, pv ? pv.mrShift2 : null, 'up-good');
+        _setTrend('dashDRPTrend',       cur.drpRate,  pv ? pv.drpRate  : null, 'up-bad');
     }
 
     function _setText(id, val) { var el = document.getElementById(id); if (el) el.textContent = val; }
