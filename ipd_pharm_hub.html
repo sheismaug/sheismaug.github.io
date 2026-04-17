@@ -729,6 +729,55 @@
             border: 1px solid #d8d5d0;
         }
 
+        /* ── NEW: Patient list v2 ── */
+        /* Priority row tint */
+        .patient-table tr.priority-high {
+            background: #fffbf0;
+            border-left: 3px solid #e6a817;
+        }
+        .patient-table tr.priority-high:hover { background: #fff6e0; }
+        .patient-table tr.priority-normal { border-left: 3px solid transparent; }
+
+        /* Name / HN split */
+        .pt-name { font-weight: 500; color: #2e3f58; display: block; }
+        .pt-hn { font-size: 11px; color: #999; }
+        .pt-dx { color: #666; font-size: 12px; }
+        .pt-days { font-size: 10px; color: #b0a090; }
+
+        /* Compact status pills */
+        .s-pill {
+            display: inline-flex; align-items: center; gap: 4px;
+            padding: 2px 8px; border-radius: 9999px;
+            font-size: 10px; font-weight: 600; white-space: nowrap;
+        }
+        .s-pill .s-dot { width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0; }
+        .s-mr-todo { background: #fdf0d0; color: #8a5e10; }
+        .s-mr-todo .s-dot { background: #d4a017; }
+        .s-mr-done { background: #e8f5e8; color: #1e6b28; }
+        .s-mr-done .s-dot { background: #4caf50; }
+        .s-had { background: #e4eef8; color: #2a4a88; }
+        .s-had .s-dot { background: #4a7abf; }
+        .s-adr { background: #f8e4e4; color: #8a2020; }
+        .s-adr .s-dot { background: #c04040; }
+        .s-dc  { background: #fff3e0; color: #bf6900; }
+        .s-dc .s-dot  { background: #ff9800; }
+        .status-stack { display: flex; flex-wrap: wrap; gap: 4px; }
+
+        /* Priority open button */
+        .priority-high .btn.btn-sm { background: #fff8e6; border-color: #d4a017; color: #8a5e10; }
+        .priority-high .btn.btn-sm:hover { background: #d4a017; color: white; }
+
+        /* Summary bar */
+        .pt-summary-bar {
+            display: flex; gap: 12px; padding: 10px 16px;
+            background: white; border-radius: 10px; margin-bottom: 12px;
+            border: 0.5px solid #e8e5e0; font-size: 12px; color: #666;
+            align-items: center;
+        }
+        .pt-summary-bar .sb-num { font-weight: 700; color: #2e3f58; font-size: 14px; margin-right: 2px; }
+        .pt-summary-bar .sb-alert { color: #bf6900; font-weight: 600; }
+        .pt-summary-bar .sb-sep { width: 1px; height: 20px; background: #e8e5e0; }
+
         .btn {
             padding: 8px 16px;
             border: none;
@@ -1776,18 +1825,26 @@
                     </div>
                 </div>
 
+                <!-- Summary bar -->
+                <div class="pt-summary-bar" id="ptSummaryBar">
+                    <div><span class="sb-num" id="sbTotal">0</span> คนไข้</div>
+                    <div class="sb-sep"></div>
+                    <div class="sb-alert" id="sbMrPending">⚡ 0 รอ MR</div>
+                    <div class="sb-sep"></div>
+                    <div id="sbHad">💊 0 HAD</div>
+                    <div class="sb-sep"></div>
+                    <div id="sbAdr">🔬 0 ADR</div>
+                </div>
+
                 <!-- Patient Table -->
                 <table class="patient-table" id="patientTable">
                     <thead>
                         <tr>
-                            <th>ชื่อ — HN</th>
-                            <th>Dx</th>
-                            <th>วัน admit</th>
-                            <th>MR</th>
-                            <th>HAD</th>
-                            <th>ADR</th>
-                            <th>D/C</th>
-                            <th></th>
+                            <th style="width:26%;">คนไข้</th>
+                            <th style="width:16%;">Dx</th>
+                            <th style="width:13%;">Admit</th>
+                            <th style="width:30%;">สถานะ</th>
+                            <th style="width:15%;"></th>
                         </tr>
                     </thead>
                     <tbody id="patientBody"></tbody>
@@ -4023,6 +4080,26 @@
         });
     }
 
+    // คำนวณจำนวนวันนอน
+    function _daysAdmitted(admitDate) {
+        if (!admitDate) return '';
+        var d = new Date(admitDate);
+        if (isNaN(d)) return '';
+        var now = new Date(); now.setHours(0,0,0,0); d.setHours(0,0,0,0);
+        var diff = Math.floor((now - d) / (1000*60*60*24));
+        return diff >= 0 ? diff + ' วัน' : '';
+    }
+
+    // แปลงวันที่เป็นรูปแบบสั้น เช่น "13 เม.ย. 69"
+    function _shortDate(dateStr) {
+        if (!dateStr) return '−';
+        var d = new Date(dateStr);
+        if (isNaN(d)) return dateStr;
+        var thMonths = ['ม.ค.','ก.พ.','มี.ค.','เม.ย.','พ.ค.','มิ.ย.','ก.ค.','ส.ค.','ก.ย.','ต.ค.','พ.ย.','ธ.ค.'];
+        var buddhistYr = (d.getFullYear() + 543) % 100;
+        return d.getDate() + ' ' + thMonths[d.getMonth()] + ' ' + buddhistYr;
+    }
+
     function updatePatientTable() {
         let filtered = filterPatients(allPatients, currentFilter);
         // Apply search filter
@@ -4046,30 +4123,53 @@
             let row = document.createElement('tr');
 
             let mrStatus = p.mrStatus || 'todo';
-            let mrBadge = '<span class="status-badge status-mr-' + (mrStatus === 'done' ? 'done' : 'todo') + '">' + (mrStatus === 'done' ? 'ทำแล้ว' : 'ต้องทำ') + '</span>';
+            let isMrTodo = mrStatus !== 'done';
+            let isAdrPending = p.adrStatus === 'pending';
+            let hasPriority = isMrTodo || isAdrPending;
 
-            let hadBadge = p.hasHAD ? '<span class="status-badge status-had">HAD</span>' : '<span class="status-badge status-nil">−</span>';
+            row.className = hasPriority ? 'priority-high' : 'priority-normal';
 
-            let adrBadge = p.adrStatus || 'nil';
-            let adrText = adrBadge === 'pending' ? 'Pending' : '−';
-            let adrClass = adrBadge === 'pending' ? 'status-adr' : 'status-nil';
-            adrBadge = '<span class="status-badge ' + adrClass + '">' + adrText + '</span>';
+            // Status pills — แสดงเฉพาะที่มีข้อมูลจริง
+            let pills = '';
+            if (isMrTodo) {
+                pills += '<span class="s-pill s-mr-todo"><span class="s-dot"></span>MR ต้องทำ</span>';
+            } else {
+                pills += '<span class="s-pill s-mr-done"><span class="s-dot"></span>MR เสร็จ</span>';
+            }
+            if (p.hasHAD) pills += '<span class="s-pill s-had"><span class="s-dot"></span>HAD</span>';
+            if (isAdrPending) pills += '<span class="s-pill s-adr"><span class="s-dot"></span>ADR</span>';
+            if (p.dcToday) pills += '<span class="s-pill s-dc"><span class="s-dot"></span>D/C วันนี้</span>';
 
-            let dcBadge = p.dcToday ? '<span class="status-badge status-had">วันนี้</span>' : '<span class="status-badge status-nil">−</span>';
+            var days = _daysAdmitted(p.admitDate);
 
-            row.innerHTML = '<td>' + p.name + ' — ' + p.hn + '</td>' +
-                '<td>' + (p.dx || '−') + '</td>' +
-                '<td>' + (p.admitDate || '−') + '</td>' +
-                '<td>' + mrBadge + '</td>' +
-                '<td>' + hadBadge + '</td>' +
-                '<td>' + adrBadge + '</td>' +
-                '<td>' + dcBadge + '</td>' +
-                '<td><button class="btn btn-sm btn-secondary" onclick="openPatientDetail(\'' + p.hn + '\')">เปิด</button></td>';
+            row.innerHTML =
+                '<td><span class="pt-name">' + (p.name || '−') + '</span><span class="pt-hn">HN ' + (p.hn || '') + '</span></td>' +
+                '<td class="pt-dx">' + (p.dx || '−') + '</td>' +
+                '<td><span>' + _shortDate(p.admitDate) + '</span>' + (days ? '<br><span class="pt-days">' + days + '</span>' : '') + '</td>' +
+                '<td><div class="status-stack">' + pills + '</div></td>' +
+                '<td style="text-align:right;"><button class="btn btn-sm btn-secondary" onclick="openPatientDetail(\'' + p.hn + '\')">เปิด</button></td>';
 
             tbody.appendChild(row);
         }
 
         updateFilterCounts();
+        _updateSummaryBar();
+    }
+
+    // อัพเดต summary bar
+    function _updateSummaryBar() {
+        var active = filterPatients(allPatients, 'all');
+        var mrPending = 0, hadCount = 0, adrCount = 0;
+        for (var i = 0; i < active.length; i++) {
+            if ((active[i].mrStatus || 'todo') !== 'done') mrPending++;
+            if (active[i].hasHAD) hadCount++;
+            if (active[i].adrStatus === 'pending') adrCount++;
+        }
+        var el;
+        el = document.getElementById('sbTotal'); if (el) el.textContent = active.length;
+        el = document.getElementById('sbMrPending'); if (el) el.innerHTML = '⚡ ' + mrPending + ' รอ MR';
+        el = document.getElementById('sbHad'); if (el) el.innerHTML = '💊 ' + hadCount + ' HAD';
+        el = document.getElementById('sbAdr'); if (el) el.innerHTML = '🔬 ' + adrCount + ' ADR';
     }
 
     function filterPatients(list, filter) {
@@ -5097,6 +5197,8 @@
         let dx = document.getElementById('formDx').value;
         let admitDate = document.getElementById('formAdmitDate').value;
 
+        console.log('[addNewPatient] HN=' + hn + ', name=' + name);
+
         if (!hn || !name) {
             alert('กรุณากรอก HN และ ชื่อ');
             return;
@@ -5110,10 +5212,13 @@
 
         // ป้องกัน duplicate HN — เช็คเฉพาะคนไข้ active (discharged สามารถ re-admit ได้)
         for (let i = 0; i < allPatients.length; i++) {
-            var st = (allPatients[i].status || '').toLowerCase();
-            if (String(allPatients[i].hn).trim() === hn && st !== 'discharged') {
-                alert('HN ' + hn + ' มีอยู่แล้วในรายชื่อ (active)');
-                return;
+            if (String(allPatients[i].hn).trim() === hn) {
+                var st = (allPatients[i].status || '').toLowerCase();
+                console.log('[addNewPatient] พบ HN ซ้ำ idx=' + i + ' status=' + st);
+                if (st !== 'discharged') {
+                    alert('HN ' + hn + ' มีอยู่แล้วในรายชื่อ (active)');
+                    return;
+                }
             }
         }
 
@@ -5129,9 +5234,9 @@
             dcToday: false
         };
 
+        console.log('[addNewPatient] saving:', JSON.stringify(newPatient));
+
         // ─── OPTIMISTIC UI UPDATE ───
-        // เพิ่มเข้า list ทันที (ไม่ต้องรอ GAS) เพราะ fetch mode:'no-cors' resolves ก่อน
-        // GAS จะ commit ลง sheet เสร็จ ทำให้ loadPatients() เดิมเห็น sheet ยังไม่มีข้อมูลใหม่
         allPatients.push(newPatient);
         localStorage.setItem('ipd_patients', JSON.stringify(allPatients));
         updatePatientTable();
@@ -5144,8 +5249,16 @@
         document.getElementById('formAdmitDate').value = '';
         document.getElementById('addPatientForm').classList.remove('expanded');
 
-        // Save ไป GAS แล้วค่อย reload จาก sheet (หน่วงเวลาให้ GAS commit เสร็จก่อน)
-        gasPost('savePatient', newPatient, function() {
+        showToast('กำลังบันทึก HN ' + hn + '...', { type:'info' });
+
+        // Save ไป GAS แล้วค่อย reload จาก sheet
+        gasPost('savePatient', newPatient, function(resp) {
+            console.log('[addNewPatient] savePatient response:', resp);
+            if (resp && resp.ok === false) {
+                showToast('Backend ปฏิเสธ: ' + (resp.error || 'unknown'), { type:'error' });
+            } else {
+                showToast('บันทึก HN ' + hn + ' สำเร็จ', { type:'success' });
+            }
             setTimeout(function() { loadPatients(); }, 1500);
         });
     }
