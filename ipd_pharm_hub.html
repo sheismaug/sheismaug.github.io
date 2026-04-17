@@ -5108,10 +5108,11 @@
             return;
         }
 
-        // ป้องกัน duplicate HN ใน local list (เทียบแบบ trim)
+        // ป้องกัน duplicate HN — เช็คเฉพาะคนไข้ active (discharged สามารถ re-admit ได้)
         for (let i = 0; i < allPatients.length; i++) {
-            if (String(allPatients[i].hn).trim() === hn) {
-                alert('HN ' + hn + ' มีอยู่แล้วในรายชื่อ');
+            var st = (allPatients[i].status || '').toLowerCase();
+            if (String(allPatients[i].hn).trim() === hn && st !== 'discharged') {
+                alert('HN ' + hn + ' มีอยู่แล้วในรายชื่อ (active)');
                 return;
             }
         }
