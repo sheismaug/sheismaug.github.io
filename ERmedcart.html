@@ -5892,7 +5892,7 @@ function renderSessionLog() {
   requestAnimationFrame(function(){ _adjustWizardFooter(true); });
   if (cnt) cnt.textContent = active.length + ' รายการ · กด แก้ไข เพื่อแก้ qty/exp หรือกด ลบ';
   list.innerHTML = APP.sessionLog.map(function(e) {
-    var actionTh = e.action === 'RESTOCK' ? 'เติม' : 'จ่าย';
+    var actionTh = e.action === 'RESTOCK' ? 'เติม' : e.action === 'WITHDRAW' ? 'ถอน' : 'จ่าย';
     var expLabel = e.exp ? dateToBE(e.exp.length === 7 ? e.exp + '-01' : e.exp).slice(3) : '—';
     var detail   = actionTh + ' ' + e.qty + ' ' + e.unit + ' · EXP ' + expLabel + (e.purpose ? ' · ' + e.purpose : '');
     if (e.voided) {
@@ -6099,7 +6099,7 @@ async function ccBuildBody(drugId) {
 
   if (!CART_CHECK.cardState[drugId]) {
     // default: newLotOn=true (ล็อตใหม่) — toggle "ล็อตเดียวกับที่มีอยู่" default uncheck
-    CART_CHECK.cardState[drugId] = { status:'pending', actuals:{}, newLotOn:true, newLotExp:'', loaded:false };
+    CART_CHECK.cardState[drugId] = { status:'pending', actuals:{}, withdrawnExps:{}, newLotOn:true, newLotExp:'', loaded:false };
   }
   const st = CART_CHECK.cardState[drugId];
 
@@ -6242,6 +6242,7 @@ function ccRecalc(drugId) {
   if (!st) return;
 
   let totalDisp = 0;
+  let totalWithdraw = 0;
   let hasError  = false;
 
   // "untouched" = blank input = ถือว่าครบ (actual = system). Only filled rows are evaluated.
@@ -6249,13 +6250,24 @@ function ccRecalc(drugId) {
     const a = st.actuals[lot.exp_date];
     if (a == null) return;
     if (a > lot.available_qty) { hasError = true; return; }
-    totalDisp += (lot.available_qty - a);
+    const diff = lot.available_qty - a;
+    if (st.withdrawnExps[lot.exp_date]) {
+      totalWithdraw += diff;
+    } else {
+      totalDisp += diff;
+    }
   });
+  const totalOut = totalDisp + totalWithdraw;
 
   const dispEl = document.getElementById('cc-disp-' + drugId);
   const refEl  = document.getElementById('cc-refill-' + drugId);
-  if (dispEl) dispEl.textContent = totalDisp + ' ' + d.unit;
-  if (refEl)  refEl.textContent  = totalDisp + ' ' + d.unit;
+  if (dispEl) {
+    let parts = [];
+    if (totalDisp > 0) parts.push('จ่าย ' + totalDisp);
+    if (totalWithdraw > 0) parts.push('ถอน ' + totalWithdraw);
+    dispEl.textContent = (parts.length ? parts.join(' + ') : '0') + ' ' + d.unit;
+  }
+  if (refEl) refEl.textContent = totalOut + ' ' + d.unit;
 
   const btn = document.getElementById('cc-btn-' + drugId);
   if (!btn) return;
@@ -6270,7 +6282,7 @@ function ccRecalc(drugId) {
     // empty locker — need new lot exp to restock target
     btn.textContent = st.newLotExp ? ('เติมล็อตแรก ' + d.target + ' ' + d.unit) : 'กรอก exp ล็อตใหม่ก่อน';
     btn.disabled = !st.newLotExp;
-  } else if (totalDisp === 0) {
+  } else if (totalOut === 0) {
     // no missing stock detected → just close (no API, no done mark)
     btn.textContent = 'ปิด · ไม่มีการเปลี่ยนแปลง';
     btn.disabled = false;
@@ -6281,7 +6293,10 @@ function ccRecalc(drugId) {
       btn.textContent = 'กรอก exp ล็อตใหม่ก่อน';
       btn.disabled = true;
     } else {
-      btn.textContent = 'ยืนยัน · จ่าย '+totalDisp+' · เติม '+totalDisp;
+      let btnParts = [];
+      if (totalDisp > 0) btnParts.push('จ่าย '+totalDisp);
+      if (totalWithdraw > 0) btnParts.push('ถอน '+totalWithdraw);
+      btn.textContent = 'ยืนยัน · '+btnParts.join(' + ')+' · เติม '+totalOut;
       btn.disabled = false;
     }
   }
@@ -6292,6 +6307,8 @@ function ccWithdraw(drugId, expDate) {
   if (!st) return;
   // auto-fill 0 → means "remove entire lot"
   st.actuals[expDate] = 0;
+  // mark as withdrawn (not dispensed to patient)
+  st.withdrawnExps[expDate] = true;
   // update the input field visually
   const inp = document.querySelector('.cc-inp[data-did="'+drugId+'"][data-exp="'+expDate+'"]');
   if (inp) {
@@ -6376,21 +6393,29 @@ async function ccConfirm(drugId) {
   const btn = document.getElementById('cc-btn-' + drugId);
   if (!st) return;
 
-  // compute per-lot dispense
+  // compute per-lot dispense vs withdraw
   const dispItems = [];
+  const withdrawItems = [];
   let totalDisp = 0;
+  let totalWithdraw = 0;
   lots.forEach(lot => {
     const a = st.actuals[lot.exp_date];
     if (a == null || a > lot.available_qty) return;
     const diff = lot.available_qty - a;
     if (diff > 0) {
-      totalDisp += diff;
-      dispItems.push({ exp_date: lot.exp_date, qty: diff });
+      if (st.withdrawnExps[lot.exp_date]) {
+        totalWithdraw += diff;
+        withdrawItems.push({ exp_date: lot.exp_date, qty: diff });
+      } else {
+        totalDisp += diff;
+        dispItems.push({ exp_date: lot.exp_date, qty: diff });
+      }
     }
   });
+  const totalOut = totalDisp + totalWithdraw;
 
   // Case A: existing lots, nothing missing → just close card (ถือว่าครบ, no API, no done mark)
-  if (lots.length > 0 && totalDisp === 0) {
+  if (lots.length > 0 && totalOut === 0) {
     ccToggle(drugId);
     return;
   }
@@ -6442,6 +6467,7 @@ async function ccConfirm(drugId) {
   btn.disabled = true; btn.textContent = 'กำลังบันทึก...';
 
   try {
+    // 1. บันทึกจ่ายยา (DISPENSE) — เฉพาะที่จ่ายคนไข้จริง
     for (const item of dispItems) {
       await callScript('saveDispense', {
         pharmacistName : APP.userName,
@@ -6459,17 +6485,34 @@ async function ccConfirm(drugId) {
       });
     }
 
+    // 2. บันทึกถอนยาใกล้หมดอายุ (WITHDRAW) — แยกจากการจ่าย
+    for (const item of withdrawItems) {
+      await callScript('saveWithdraw', {
+        pharmacistName : APP.userName,
+        drug_id        : drugId,
+        qty_withdrawn  : item.qty,
+        exp_date       : item.exp_date,
+      });
+      addSessionLog({
+        id: drugId + '_' + Date.now() + '_' + Math.random().toString(36).slice(2,6),
+        drug_id: drugId, drugName: d.name, unit: d.unit,
+        qty: item.qty, exp: item.exp_date, action: 'WITHDRAW',
+        timestamp: new Date().toISOString(),
+      });
+    }
+
+    // 3. เติมยากลับ (RESTOCK) — จำนวนรวมทั้งจ่าย + ถอน
     await callScript('saveRestock', {
       pharmacistName : APP.userName,
       drug_id        : drugId,
-      qty_added      : totalDisp,
+      qty_added      : totalOut,
       lot_number     : '',
       exp_date       : restockExp,
     });
     addSessionLog({
       id: drugId + '_' + Date.now() + '_' + Math.random().toString(36).slice(2,6),
       drug_id: drugId, drugName: d.name, unit: d.unit,
-      qty: totalDisp, exp: restockExp, action: 'RESTOCK',
+      qty: totalOut, exp: restockExp, action: 'RESTOCK',
       timestamp: new Date().toISOString(),
     });
 
