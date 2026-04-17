@@ -307,11 +307,45 @@
             border-radius: 10px;
             padding: 12px;
             text-align: center;
+            position: relative;
+            cursor: default;
         }
         .today-kpi-icon { font-size: 18px; }
         .today-kpi-label { font-size: 11px; color: #666; margin-top: 2px; }
         .today-kpi-value { font-size: 24px; font-weight: 700; color: #2e3f58; margin-top: 4px; line-height: 1; }
         .today-kpi-sub { font-size: 11px; color: #999; margin-top: 4px; min-height: 14px; }
+
+        /* KPI hover tooltip */
+        .kpi-tooltip {
+            display: none; position: absolute; bottom: calc(100% + 8px); left: 50%;
+            transform: translateX(-50%); background: #2e3f58; color: #fff;
+            padding: 8px 12px; border-radius: 8px; font-size: 11px;
+            white-space: nowrap; z-index: 100; text-align: left;
+            box-shadow: 0 4px 12px rgba(0,0,0,.15); line-height: 1.6;
+        }
+        .kpi-tooltip::after {
+            content: ''; position: absolute; top: 100%; left: 50%;
+            transform: translateX(-50%); border: 6px solid transparent;
+            border-top-color: #2e3f58;
+        }
+        .today-kpi:hover .kpi-tooltip { display: block; }
+
+        /* Feed group expand */
+        .feed-group { border-bottom: 1px solid #eee; }
+        .feed-group-header {
+            display: flex; align-items: center; gap: 8px;
+            padding: 8px 10px; cursor: pointer; font-size: 13px;
+        }
+        .feed-group-header:hover { background: #f9f8f7; }
+        .feed-group-time { color: #888; min-width: 40px; }
+        .feed-group-text { flex: 1; }
+        .feed-group-count { font-size: 11px; color: #999; background: #f0efed; padding: 1px 8px; border-radius: 99px; }
+        .feed-group-chevron { color: #bbb; font-size: 10px; transition: transform .2s; }
+        .feed-group.open .feed-group-chevron { transform: rotate(90deg); }
+        .feed-group-detail {
+            display: none; padding: 2px 10px 8px 56px; font-size: 12px; color: #666; line-height: 1.7;
+        }
+        .feed-group.open .feed-group-detail { display: block; }
 
         /* Activity Feed */
         .activity-feed {
@@ -2075,30 +2109,35 @@
                         <div class="today-kpi-label">MR</div>
                         <div class="today-kpi-value" id="todayMr">0</div>
                         <div class="today-kpi-sub" id="todayMrSub">&nbsp;</div>
+                        <div class="kpi-tooltip" id="tipMr">—</div>
                     </div>
                     <div class="today-kpi">
                         <div class="today-kpi-icon">💊</div>
                         <div class="today-kpi-label">HAD round</div>
                         <div class="today-kpi-value" id="todayHad">0</div>
                         <div class="today-kpi-sub">&nbsp;</div>
+                        <div class="kpi-tooltip" id="tipHad">—</div>
                     </div>
                     <div class="today-kpi">
                         <div class="today-kpi-icon">🔍</div>
                         <div class="today-kpi-label">DRP</div>
                         <div class="today-kpi-value" id="todayDrp">0</div>
                         <div class="today-kpi-sub">&nbsp;</div>
+                        <div class="kpi-tooltip" id="tipDrp">—</div>
                     </div>
                     <div class="today-kpi">
                         <div class="today-kpi-icon">💬</div>
                         <div class="today-kpi-label">Counseling</div>
                         <div class="today-kpi-value" id="todayCoun">0</div>
                         <div class="today-kpi-sub">&nbsp;</div>
+                        <div class="kpi-tooltip" id="tipCoun">—</div>
                     </div>
                     <div class="today-kpi">
                         <div class="today-kpi-icon">⚠️</div>
                         <div class="today-kpi-label">Med Err</div>
                         <div class="today-kpi-value" id="todayMe">0</div>
                         <div class="today-kpi-sub">&nbsp;</div>
+                        <div class="kpi-tooltip" id="tipMe">—</div>
                     </div>
                 </div>
 
@@ -6125,6 +6164,14 @@
         if (_shiftRefreshInt) { clearInterval(_shiftRefreshInt); _shiftRefreshInt = null; }
     }
 
+    // แปลง breakdown object เป็น text สำหรับ tooltip
+    function _breakdownText(obj) {
+        if (!obj) return '—';
+        var parts = [];
+        for (var k in obj) { if (obj[k]) parts.push(k + ' ' + obj[k]); }
+        return parts.length ? parts.join(', ') : 'ไม่มีข้อมูล';
+    }
+
     function loadShiftToday() {
         gasGet('getShiftToday', {}, function(data) {
             if (!data || !data.ok) {
@@ -6132,32 +6179,80 @@
                 return;
             }
             document.getElementById('shiftNow').textContent = data.shift || '—';
-            const k = data.todayKpi || {};
+            var k = data.todayKpi || {};
             document.getElementById('todayMr').textContent = k.mrCount || 0;
-            const pend = k.mrPendingMD || 0;
+            var pend = k.mrPendingMD || 0;
             document.getElementById('todayMrSub').textContent = pend > 0 ? ('รอ MD ' + pend) : '';
             document.getElementById('todayHad').textContent = k.hadRounds || 0;
             document.getElementById('todayDrp').textContent = k.drpCount || 0;
             document.getElementById('todayCoun').textContent = k.counselCount || 0;
             document.getElementById('todayMe').textContent = k.medErrCount || 0;
+
+            // Tooltips
+            var tip;
+            tip = document.getElementById('tipMr');
+            if (tip) tip.innerHTML = (k.mrCount || 0) + ' MR วันนี้<br>' + _breakdownText(k.mrByShift) + (pend ? '<br>รอ MD review: ' + pend : '');
+            tip = document.getElementById('tipHad');
+            if (tip) tip.innerHTML = (k.hadRounds || 0) + ' HAD round<br>' + _breakdownText(k.hadByDrug);
+            tip = document.getElementById('tipDrp');
+            if (tip) tip.textContent = (k.drpCount || 0) + ' DRP วันนี้';
+            tip = document.getElementById('tipCoun');
+            if (tip) tip.innerHTML = (k.counselCount || 0) + ' Counseling<br>' + _breakdownText(k.counByType);
+            tip = document.getElementById('tipMe');
+            if (tip) tip.innerHTML = (k.medErrCount || 0) + ' Med Error<br>' + _breakdownText(k.meByDrug);
         });
     }
 
     function loadActivityFeed() {
         gasGet('getActivityFeed', {}, function(data) {
-            const feed = document.getElementById('activityFeed');
+            var feed = document.getElementById('activityFeed');
             if (!feed) return;
-            if (!data || !data.ok || !data.items || data.items.length === 0) {
+            var items = (data && data.ok && data.items) ? data.items : [];
+            if (!items.length) {
                 feed.innerHTML = '<div class="activity-empty">ยังไม่มีกิจกรรมวันนี้</div>';
                 return;
             }
-            let html = '';
-            for (let i = 0; i < data.items.length; i++) {
-                const it = data.items[i];
-                html += '<div class="activity-item" style="padding:8px 10px; border-bottom:1px solid #eee; font-size:13px;">'
-                     +   '<span style="color:#888; margin-right:8px;">' + (it.time || '') + '</span>'
-                     +   '<span>' + (it.text || '') + '</span>'
-                     + '</div>';
+
+            // Group by type + hn
+            var groups = [];
+            var gmap = {};
+            for (var i = 0; i < items.length; i++) {
+                var it = items[i];
+                // parse type from text: "📋 MR — HN 15308 · detail"
+                var m = (it.text || '').match(/^(.+?)\s—\sHN\s(\S+)/);
+                var type = m ? m[1] : '📌';
+                var hn   = m ? m[2] : '?';
+                var detail = (it.text || '').replace(/^.+?·\s*/, '');
+                var key = type + '|' + hn;
+                if (!gmap[key]) {
+                    gmap[key] = { type: type, hn: hn, time: it.time || '', details: [], count: 0 };
+                    groups.push(gmap[key]);
+                }
+                gmap[key].count++;
+                gmap[key].details.push(detail);
+                if (it.time && it.time > gmap[key].time) gmap[key].time = it.time;
+            }
+
+            var html = '';
+            for (var g = 0; g < groups.length; g++) {
+                var gr = groups[g];
+                var hasDetail = gr.details.length > 0 && gr.details[0] !== gr.type;
+                var countBadge = gr.count > 1 ? '<span class="feed-group-count">' + gr.count + '</span>' : '';
+                var chevron = hasDetail ? '<span class="feed-group-chevron">▶</span>' : '';
+                html += '<div class="feed-group" onclick="this.classList.toggle(\'open\')">';
+                html += '<div class="feed-group-header">';
+                html += '<span class="feed-group-time">' + gr.time + '</span>';
+                html += '<span class="feed-group-text">' + gr.type + ' — HN ' + gr.hn + ' ' + countBadge + '</span>';
+                html += chevron;
+                html += '</div>';
+                if (hasDetail) {
+                    html += '<div class="feed-group-detail">';
+                    for (var d = 0; d < gr.details.length; d++) {
+                        html += '<div>· ' + gr.details[d] + '</div>';
+                    }
+                    html += '</div>';
+                }
+                html += '</div>';
             }
             feed.innerHTML = html;
         });
