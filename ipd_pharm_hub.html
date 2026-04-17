@@ -6165,11 +6165,15 @@
     }
 
     // แปลง breakdown object เป็น text สำหรับ tooltip
-    function _breakdownText(obj) {
-        if (!obj) return '—';
+    function _breakdownText(obj, unit) {
+        if (!obj) return '';
         var parts = [];
-        for (var k in obj) { if (obj[k]) parts.push(k + ' ' + obj[k]); }
-        return parts.length ? parts.join(', ') : 'ไม่มีข้อมูล';
+        for (var k in obj) {
+            if (!obj[k]) continue;
+            var label = (k && k !== 'undefined' && k !== 'null' && k !== '?') ? k : 'ไม่ระบุ';
+            parts.push('· ' + label + ': ' + obj[k] + (unit ? ' ' + unit : ''));
+        }
+        return parts.length ? parts.join('<br>') : '';
     }
 
     function loadShiftToday() {
@@ -6188,18 +6192,30 @@
             document.getElementById('todayCoun').textContent = k.counselCount || 0;
             document.getElementById('todayMe').textContent = k.medErrCount || 0;
 
-            // Tooltips
-            var tip;
+            // Tooltips — แสดง breakdown แยกบรรทัด อ่านง่าย
+            var tip, bd;
             tip = document.getElementById('tipMr');
-            if (tip) tip.innerHTML = (k.mrCount || 0) + ' MR วันนี้<br>' + _breakdownText(k.mrByShift) + (pend ? '<br>รอ MD review: ' + pend : '');
+            if (tip) {
+                bd = _breakdownText(k.mrByShift, 'ราย');
+                tip.innerHTML = '<b>' + (k.mrCount || 0) + ' MR วันนี้</b>' + (bd ? '<br>' + bd : '') + (pend ? '<br>⏳ รอ MD review: ' + pend : '');
+            }
             tip = document.getElementById('tipHad');
-            if (tip) tip.innerHTML = (k.hadRounds || 0) + ' HAD round<br>' + _breakdownText(k.hadByDrug);
+            if (tip) {
+                bd = _breakdownText(k.hadByDrug, 'ครั้ง');
+                tip.innerHTML = '<b>' + (k.hadRounds || 0) + ' HAD round</b>' + (bd ? '<br>' + bd : '');
+            }
             tip = document.getElementById('tipDrp');
-            if (tip) tip.textContent = (k.drpCount || 0) + ' DRP วันนี้';
+            if (tip) tip.innerHTML = '<b>' + (k.drpCount || 0) + ' DRP วันนี้</b>';
             tip = document.getElementById('tipCoun');
-            if (tip) tip.innerHTML = (k.counselCount || 0) + ' Counseling<br>' + _breakdownText(k.counByType);
+            if (tip) {
+                bd = _breakdownText(k.counByType, 'ราย');
+                tip.innerHTML = '<b>' + (k.counselCount || 0) + ' Counseling</b>' + (bd ? '<br>' + bd : '');
+            }
             tip = document.getElementById('tipMe');
-            if (tip) tip.innerHTML = (k.medErrCount || 0) + ' Med Error<br>' + _breakdownText(k.meByDrug);
+            if (tip) {
+                bd = _breakdownText(k.meByDrug);
+                tip.innerHTML = '<b>' + (k.medErrCount || 0) + ' Med Error</b>' + (bd ? '<br>' + bd : '');
+            }
         });
     }
 
