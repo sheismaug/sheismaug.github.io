@@ -1480,7 +1480,17 @@ function goPage(key, keepContext) {
       renderDispense();
     }
   }
-  if (key === 'dot') { buildDOTMonths(); renderDOT(); }
+  if (key === 'dot') {
+    // Sync regimen & start date from selected patient before rendering DOT
+    if (S.selectedPatient && S.patients?.length) {
+      const sp = S.patients.find(x => x.patient_id === S.selectedPatient);
+      if (sp) {
+        S.reg       = sp.regimen_code || Object.keys(REGS).find(k => REGS[k].label === sp.regimen_label) || S.reg;
+        if (sp.start_date) { S.startDate = sp.start_date; setStartDateDisplay(sp.start_date); }
+      }
+    }
+    buildDOTMonths(); renderDOT();
+  }
   // Pharmacist page syncs happen inside buildPharmPage via setTimeout
 
   // Activate page and nav
@@ -2068,7 +2078,7 @@ function recalcVNDose(wtVal) {
   // Determine phase from current visit
   const idx  = parseInt(document.querySelector('[id^="vn-dose-"]')?.id?.replace('vn-dose-','')) || 0;
   const v    = S.visitSched[idx] || {};
-  const phase = v.phase?.includes('IP') || true ? 'ip' : 'cp';
+  const phase = v.phase?.includes('IP') ? 'ip' : 'cp';
   const drugs = phase === 'ip' ? (reg.ipDrugs||[]) : (reg.cpDrugs||[]);
 
   drugs.forEach(abbr => {
@@ -2518,7 +2528,7 @@ function openVisitNote(idx) {
           ${(() => {
             const overrideReg = n.regOverride || S.reg;
             const visitReg    = overrideReg === 'custom' ? null : REGS[overrideReg] || REGS[S.reg];
-            const phase       = visitReg ? ((v.num <= (visitReg?.ip||2)) ? 'ip' : 'cp') : 'ip';
+            const phase       = visitReg ? (v.phase?.includes('IP') ? 'ip' : 'cp') : 'ip';
             const drugs       = overrideReg === 'custom'
               ? (n.customDrugs || ['H','R','Z','E','B6'])
               : phase === 'ip' ? (visitReg?.ipDrugs||[]) : (visitReg?.cpDrugs||[]);
@@ -2932,8 +2942,8 @@ function renderDOT() {
     if (sp) {
       const nameEl = document.getElementById('dot-name');
       const hnEl   = document.getElementById('dot-hn');
-      if (nameEl && !nameEl.value) nameEl.value = sp.name;
-      if (hnEl   && !hnEl.value)   hnEl.value   = sp.hn;
+      if (nameEl) nameEl.value = sp.name;
+      if (hnEl)   hnEl.value   = sp.hn;
     }
   }
   const ptName  = document.getElementById('dot-name').value || '...';
