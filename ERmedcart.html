@@ -262,7 +262,7 @@ h1,h2,h3 { font-family: 'Google Sans', 'Google Sans Text', sans-serif; font-weig
   .name { font-size: clamp(16px, 4vw, 20px); }
   .stat-grid-3 { grid-template-columns: repeat(3, minmax(0,1fr)); gap:6px; }
   .stat-grid-4 { grid-template-columns: repeat(2, minmax(0,1fr)); gap:6px; }
-  .stat-box p:last-child { font-size: 18px; }
+  .stat-box p:last-of-type { font-size: 18px; }
   .card { padding: .875rem 1rem; }
   .drug-row { padding: 9px 10px; gap: 6px; }
   .drug-name { font-size: 13px; }
@@ -432,7 +432,7 @@ input::placeholder, textarea::placeholder { color: var(--hint); }
 .stat-grid-4 { grid-template-columns: repeat(4, minmax(0,1fr)); }
 .stat-box { background: var(--white); border-radius: var(--radius); padding: .75rem; box-shadow: 0 2px 10px rgba(13,21,53,0.07); }
 .stat-box p:first-child { font-size: 10px; color: var(--muted); margin-bottom: 3px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.04em; }
-.stat-box p:last-child  { font-size: 22px; font-weight: 700; color: var(--text); font-family: 'Google Sans','Google Sans Text',sans-serif; }
+.stat-box p:last-of-type  { font-size: 22px; font-weight: 700; color: var(--text); font-family: 'Google Sans','Google Sans Text',sans-serif; }
 
 /* ============================================================
    PROGRESS BAR
@@ -1001,7 +1001,11 @@ input::placeholder, textarea::placeholder { color: var(--hint); }
       <p style="font-size:13px;font-weight:600;margin-bottom:.625rem;">สรุปเวรนี้</p>
       <div class="stat-grid stat-grid-4">
         <div class="stat-box"><p>ใบสั่งยา</p><p id="sum-rx">0</p></div>
-        <div class="stat-box"><p>ใบหาย</p><p id="sum-miss" style="color:var(--text)">0</p></div>
+        <div class="stat-box">
+          <p>คลาดเคลื่อน</p>
+          <p id="sum-miss" style="color:var(--text)">0</p>
+          <div id="sum-miss-breakdown" style="font-size:10px;color:var(--muted);margin-top:2px;font-weight:500;line-height:1.3;display:none;">สั่งไม่จ่าย 0 · จ่ายไร้สั่ง 0</div>
+        </div>
         <div class="stat-box"><p>ความเสี่ยง</p><p id="sum-risk" style="color:var(--text)">0</p></div>
         <div class="stat-box"><p>Med error</p><p id="sum-err" style="color:var(--text)">0</p></div>
       </div>
@@ -2432,9 +2436,16 @@ function adj(k, d) {
 function updateMismatch() {
   const box = document.getElementById('pv-mismatch');
   box.style.display = (pvCounts.rx > 0 && pvCounts.match < pvCounts.miss) ? 'block' : 'none';
-  const missAmt = Math.max(0, pvCounts.rx - pvCounts.match);
-  document.getElementById('sum-miss').textContent = missAmt;
-  document.getElementById('sum-miss').style.color = missAmt > 0 ? 'var(--red)' : 'var(--text)';
+  const unmatched   = Math.max(0, pvCounts.rx - pvCounts.match);   // สั่งไม่จ่าย — มีใบสั่ง แต่ยายังอยู่ในรถ
+  const missNoOrder = Math.max(0, pvCounts.miss);                   // จ่ายไร้สั่ง — ยาหายจากรถ แต่ไม่มีใบสั่ง
+  const discrepancy = unmatched + missNoOrder;
+  document.getElementById('sum-miss').textContent = discrepancy;
+  document.getElementById('sum-miss').style.color = discrepancy > 0 ? 'var(--red)' : 'var(--text)';
+  const bd = document.getElementById('sum-miss-breakdown');
+  if (bd) {
+    bd.textContent = 'สั่งไม่จ่าย ' + unmatched + ' · จ่ายไร้สั่ง ' + missNoOrder;
+    bd.style.display = discrepancy > 0 ? 'block' : 'none';
+  }
 }
 
 var _riskCurrentType = null;
