@@ -159,7 +159,7 @@ table.med td.qty{text-align:center;width:54px;}
 .prn-label{font-size:18px;color:#333;}
 
 /* Insulin syringe */
-.ins-guide-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin:14px 0 16px;}
+.ins-guide-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:14px;margin:14px 0 16px;}
 .ins-guide{border:2px solid #111;border-radius:12px;padding:12px 14px;background:#faf8f3;}
 .ins-guide-head{display:flex;align-items:center;gap:10px;margin-bottom:10px;padding-bottom:8px;border-bottom:1px solid #ddd;}
 .ins-guide-emoji{font-size:32px;line-height:1;}
@@ -240,12 +240,23 @@ table.med td.qty{text-align:center;width:54px;}
   function detectDrugType(drug){
     var name = (drug.name || '').toLowerCase();
     var route = (drug.route || '').toLowerCase();
+    var sig  = (drug.sig  || '').toLowerCase();
+
     if(/warfarin|orfarin|marevan/.test(name)) return 'warfarin';
-    if(/insulin/.test(name) || route === 'sc' || (drug.sig || '').toLowerCase().indexOf('sc') === 0)
+
+    // Insulin — expanded to include Thai hospital brands
+    if(/insulin|gensulin|mixtard|humulin|actrapid|novomix|lantus|levemir|humalog|novorapid|ryzodeg|tresiba|toujeo|novolin|apidra|\bnph\b|\bri\b/.test(name)
+       || route === 'sc'
+       || /^\*?sc\b/.test(sig)
+       || /penfill|cartridge/.test(name))
       return 'insulin';
-    if(/pcm|paracetamol/.test(name) && /pr|prn/i.test(drug.sig || ''))
-      return 'prn';
-    if(/pr|prn/i.test(drug.sig || '')) return 'prn';
+
+    // Inhaler (MDI/DPI)
+    if(/\binhaler\b|\bmdi\b|\bdpi\b|ventolin|berodual|seretide|symbicort|pulmicort|aerotide|accuhaler|evohaler|atrovent|spiriva|bricanyl|turbuhaler/.test(name)
+       || /^mdi/.test(sig))
+      return 'inhaler';
+
+    if(/pr\b|prn/.test(sig)) return 'prn';
     return 'oral';
   }
 
@@ -289,7 +300,56 @@ table.med td.qty{text-align:center;width:54px;}
     return `<div class="dot-grid">${cells.join('')}</div>`;
   }
 
-  // ── Syringe SVG (for insulin) — 0 at needle (top), 100 at plunger (bottom) ──
+  // ── Insulin pen SVG (GensuPen 2 — teal body + clear cartridge + black grip + dose window) ──
+  // ออกแบบตามรูปอุปกรณ์จริง: needle → cartridge โปร่งใส → teal barrel + label →
+  //                             black central clip → dose window → black end cap + green dot
+  function buildPenSVG(dose, opts){
+    opts = opts || {};
+    var color     = opts.color     || '#3BCFD4';   // GensuPen 2 teal (default)
+    var accent    = opts.accent    || '#0e7490';   // dark teal (stroke/accent)
+    var label     = opts.label     || 'GensuPen 2';
+    var labelColor= opts.labelColor|| accent;
+    return '<svg viewBox="0 0 500 100" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:auto;">'
+      // ── Far left: needle ──
+      + '<line x1="2" y1="50" x2="26" y2="50" stroke="#6b7280" stroke-width="1.3"/>'
+      + '<polygon points="2,50 10,47 10,53" fill="#4b5563"/>'
+      // needle cap / hub (clear plastic)
+      + '<rect x="26" y="37" width="48" height="26" rx="5" fill="#f3f4f6" fill-opacity="0.7" stroke="#9ca3af" stroke-width="1"/>'
+      // ── Cartridge holder (โปร่งใส เห็น insulin + plunger) ──
+      + '<rect x="74" y="30" width="80" height="40" fill="#ffffff" stroke="#9ca3af" stroke-width="1.5" rx="1"/>'
+      // insulin liquid (อ่อน ๆ)
+      + '<rect x="78" y="34" width="70" height="32" fill="#e0f2fe" opacity="0.5"/>'
+      // green plunger stopper (ตามรูปจริง)
+      + '<rect x="142" y="34" width="10" height="32" fill="#86efac" stroke="#16a34a" stroke-width="0.8"/>'
+      + '<rect x="144" y="36" width="2" height="28" fill="#4ade80"/>'
+      // ── Main teal body ──
+      + '<rect x="154" y="20" width="260" height="60" rx="8" fill="'+color+'" stroke="'+accent+'" stroke-width="1.5"/>'
+      // gloss (ด้านบน)
+      + '<rect x="160" y="24" width="250" height="7" rx="3.5" fill="white" opacity="0.35"/>'
+      // ── Product label "GensuPen 2" (ขาว-เงา พร้อมเส้นขอบ) ──
+      + '<rect x="168" y="38" width="84" height="24" rx="2" fill="#e0f7fa" stroke="'+accent+'" stroke-width="0.6"/>'
+      + '<text x="210" y="55" text-anchor="middle" font-size="12" font-family="Google Sans,sans-serif" font-weight="700" fill="'+labelColor+'">'+label+'</text>'
+      // ── Central black grip / clip (แนวตั้ง แคบ ตามรูป) ──
+      + '<rect x="258" y="28" width="50" height="44" rx="4" fill="#111827"/>'
+      // grip texture (ขีดแนวตั้ง)
+      + '<line x1="268" y1="34" x2="268" y2="66" stroke="#4b5563" stroke-width="0.6"/>'
+      + '<line x1="277" y1="34" x2="277" y2="66" stroke="#4b5563" stroke-width="0.6"/>'
+      + '<line x1="286" y1="34" x2="286" y2="66" stroke="#4b5563" stroke-width="0.6"/>'
+      + '<line x1="295" y1="34" x2="295" y2="66" stroke="#4b5563" stroke-width="0.6"/>'
+      // ── Dose window (ด้านขวา) ──
+      + '<rect x="320" y="32" width="80" height="36" rx="3" fill="#111827" stroke="#000" stroke-width="0.8"/>'
+      + '<rect x="326" y="37" width="68" height="26" fill="white" stroke="#374151" stroke-width="0.5" rx="1"/>'
+      + '<text x="360" y="57" text-anchor="middle" font-size="22" font-family="Google Sans,sans-serif" font-weight="700" fill="#0f172a">'+dose+'</text>'
+      // indicator tick (สีขาว ใต้ window)
+      + '<line x1="360" y1="65" x2="360" y2="71" stroke="white" stroke-width="2" stroke-linecap="round"/>'
+      // ── Black end cap + green indicator dot ──
+      + '<rect x="414" y="20" width="72" height="60" rx="8" fill="#1f2937" stroke="#000" stroke-width="1"/>'
+      + '<rect x="418" y="24" width="64" height="6" rx="3" fill="white" opacity="0.15"/>'
+      + '<circle cx="468" cy="50" r="5" fill="#10b981" stroke="#047857" stroke-width="1"/>'
+      + '</svg>';
+  }
+
+  // ── Syringe SVG (for insulin vial — 0 at needle/top, 100 at plunger/bottom) ──
 
   function buildSyringeSVG(dose){
     function yF(u){return 12 + u*2.5;}
@@ -516,30 +576,61 @@ table.med td.qty{text-align:center;width:54px;}
 
   /** Insulin card — syringe guide per dose time */
   function buildInsulinCard(drug, status, idx, total, patient){
-    // doses: [{time:'morning'|'evening'|'bedtime', units:10}, ...]
+    // doses: [{time:'morning'|'noon'|'evening'|'bedtime', units:N}, ...]
     var doses = drug.doses || [];
-    // Fallback: try to parse from sig like "*sc 10-0-8"
+    // Fallback: parse จาก sig เช่น "22-0-14 u" หรือ "10-0-0-8" หรือ "*sc 10-0-8"
+    // 4-position convention: morning-noon-evening-bedtime
+    // 3-position convention: morning-noon-evening  (standard Thai prescribing)
     if(!doses.length && drug.sig){
-      var m = String(drug.sig).match(/(\d+)\s*-\s*(\d+)\s*-\s*(\d+)/);
-      if(m){
-        if(+m[1]>0) doses.push({time:'morning', units:+m[1]});
-        if(+m[2]>0) doses.push({time:'evening', units:+m[2]});
-        if(+m[3]>0) doses.push({time:'bedtime', units:+m[3]});
+      var s = String(drug.sig);
+      var m4 = s.match(/(\d+)\s*-\s*(\d+)\s*-\s*(\d+)\s*-\s*(\d+)/);
+      var m3 = s.match(/(\d+)\s*-\s*(\d+)\s*-\s*(\d+)/);
+      if(m4){
+        if(+m4[1]>0) doses.push({time:'morning', units:+m4[1]});
+        if(+m4[2]>0) doses.push({time:'noon',    units:+m4[2]});
+        if(+m4[3]>0) doses.push({time:'evening', units:+m4[3]});
+        if(+m4[4]>0) doses.push({time:'bedtime', units:+m4[4]});
+      } else if(m3){
+        if(+m3[1]>0) doses.push({time:'morning', units:+m3[1]});
+        if(+m3[2]>0) doses.push({time:'noon',    units:+m3[2]});
+        if(+m3[3]>0) doses.push({time:'evening', units:+m3[3]});
       }
     }
 
-    var timeEmojis = { morning:'🌅', evening:'🌆', bedtime:'🌙' };
-    var timeTh = { morning:'เช้า', evening:'เย็น', bedtime:'ก่อนนอน' };
+    var timeEmojis = { morning:'🌅', noon:'☀️', evening:'🌆', bedtime:'🌙' };
+    var timeTh     = { morning:'เช้า', noon:'กลางวัน', evening:'เย็น', bedtime:'ก่อนนอน' };
+
+    // เลือก device type — ที่ รพ.ห้วยผึ้ง:
+    //   • Gensulin → Gensupen (teal pen)
+    //   • Mixtard, NPH, RI → syringe + vial
+    //   • ยี่ห้ออื่นที่ชื่อระบุ penfill/flexpen/kwikpen/solostar → pen
+    var nameL = (drug.name || '').toLowerCase();
+    var isPen = /gensulin|gensupen/.test(nameL)
+             || /penfill|flexpen|kwikpen|solostar|prefilled/.test(nameL);
+
+    // ตั้งค่าปากกาตาม brand (GensuPen 2 = default ที่ รพ.ห้วยผึ้ง)
+    var penOpts = { color:'#3BCFD4', accent:'#0e7490', label:'GensuPen 2' };
+    if(/lantus|solostar/.test(nameL))        { penOpts = { color:'#9ca3af', accent:'#4b5563', label:'Lantus SoloStar' }; }
+    else if(/levemir|flexpen/.test(nameL))   { penOpts = { color:'#10b981', accent:'#065f46', label:'Levemir FlexPen' }; }
+    else if(/novorapid|kwikpen/.test(nameL)) { penOpts = { color:'#ef4444', accent:'#991b1b', label:'NovoRapid' }; }
+
+    var deviceLabel = isPen
+      ? 'หมุน dial ให้ตัวเลขในช่องตรงกับขนาดที่ต้องฉีด'
+      : 'กล่องดำ = ขีดที่ต้องดูดยาถึง · 1 ขีด = 2 ยูนิต · 0 อยู่ด้านเข็ม';
+    var deviceTitle = isPen
+      ? 'วิธีฉีด — ' + penOpts.label + ' (SC) ที่หน้าท้อง/ต้นขา'
+      : 'วิธีฉีด — ใต้ผิวหนัง (SC) ที่หน้าท้อง/ต้นขา';
 
     var guides = doses.map(function(d){
+      var deviceSVG = isPen ? buildPenSVG(d.units, penOpts) : buildSyringeSVG(d.units);
       return `<div class="ins-guide">
         <div class="ins-guide-head">
           <div class="ins-guide-emoji">${timeEmojis[d.time] || '💉'}</div>
           <div class="ins-guide-time">${esc(timeTh[d.time] || d.time)}</div>
           <div class="ins-guide-dose">${d.units}<small>U</small></div>
         </div>
-        <div class="ins-guide-body">${buildSyringeSVG(d.units)}</div>
-        <div class="ins-guide-note">กล่องดำ = ขีดที่ต้องดูดยาถึง · 1 ขีด = 2 ยูนิต · <b>0 อยู่ด้านเข็ม</b></div>
+        <div class="ins-guide-body${isPen ? ' ins-pen' : ''}">${deviceSVG}</div>
+        <div class="ins-guide-note">${deviceLabel}</div>
       </div>`;
     });
 
@@ -548,7 +639,7 @@ table.med td.qty{text-align:center;width:54px;}
       <div class="drug-name">${esc(drug.name)}</div>
       ${drug.strength ? `<div class="drug-strength">${esc(drug.strength)}</div>` : ''}
       ${drug.purpose ? `<div class="drug-purpose">${esc(drug.purpose)}</div>` : ''}
-      <div style="font-size:13px;color:#666;letter-spacing:0.06em;text-transform:uppercase;margin:10px 0 6px;font-weight:500;">วิธีฉีด — ใต้ผิวหนัง (SC) ที่หน้าท้อง/ต้นขา</div>
+      <div style="font-size:13px;color:#666;letter-spacing:0.06em;text-transform:uppercase;margin:10px 0 6px;font-weight:500;">${deviceTitle}</div>
       <div class="ins-guide-grid">${guides.join('')}</div>
       ${sigBlock(drug)}
       ${warnBlock(drug.warnings || 'ถ้ารู้สึก ใจสั่น เหงื่อออก หิวจัด มือสั่น ให้อม ลูกอม/น้ำหวาน ทันที แล้วรีบมาพบแพทย์', 'สัญญาณน้ำตาลต่ำ')}
@@ -701,12 +792,96 @@ table.med td.qty{text-align:center;width:54px;}
     </div>`;
   }
 
+  /** Inhaler card — MDI/DPI (puff-based, มักเป็น PRN) */
+  function buildInhalerCard(drug, status, idx, total, patient){
+    var sigTrans = translateSig(drug.sig, drug.sigThai);
+    var fullText = (drug.sig || '') + ' ' + (drug.sigThai || '') + ' ' + (sigTrans.ok ? sigTrans.thai : '');
+    // PRN detection: keywords หรือ bare "mdiNpuff" (ไม่มี freq) → default = PRN
+    var isPRN = /pr\b|prn|มีอาการ|หอบ|ไอ|เหนื่อย|หายใจ/i.test(fullText)
+              || /^mdi\s*\d+\s*puff\s*$/i.test((drug.sig || '').trim())
+              || /^mdi\s*\d+\s*$/i.test((drug.sig || '').trim());
+
+    // Inhaler SVG — Evohaler style (MDI canister + boot + mouthpiece L-shape)
+    // สีของ boot ตาม brand (ถ้าระบุได้)
+    var drugNameL = (drug.name || '').toLowerCase();
+    var bootColor = '#a78bfa';     // default purple (Seretide)
+    var bootAccent = '#6d28d9';
+    if(/ventolin|salbutamol/.test(drugNameL))  { bootColor = '#60a5fa'; bootAccent = '#1d4ed8'; }  // blue
+    if(/berodual|atrovent|ipratropium/.test(drugNameL)) { bootColor = '#5eead4'; bootAccent = '#0f766e'; }  // teal
+    if(/pulmicort|budesonide/.test(drugNameL)) { bootColor = '#fca5a5'; bootAccent = '#b91c1c'; }  // reddish
+    if(/symbicort/.test(drugNameL))            { bootColor = '#fbbf24'; bootAccent = '#b45309'; }  // amber
+
+    var inhalerSVG = '<svg viewBox="0 0 120 180" xmlns="http://www.w3.org/2000/svg">'
+      // puff clouds (ด้านบน แสดงว่าเป็นยาพ่น)
+      + '<ellipse cx="60" cy="6" rx="18" ry="4" fill="#bfdbfe" opacity="0.5"/>'
+      + '<ellipse cx="75" cy="14" rx="10" ry="3" fill="#bfdbfe" opacity="0.35"/>'
+      + '<ellipse cx="48" cy="16" rx="8" ry="2.5" fill="#bfdbfe" opacity="0.35"/>'
+      // ── Metal canister (silver, บนสุด โผล่ออกจาก boot) ──
+      + '<rect x="40" y="22" width="40" height="55" rx="2" fill="#e5e7eb" stroke="#6b7280" stroke-width="1.5"/>'
+      + '<ellipse cx="60" cy="23" rx="20" ry="2.5" fill="#d1d5db"/>'
+      // ridges บน canister
+      + '<line x1="42" y1="30" x2="78" y2="30" stroke="#9ca3af" stroke-width="0.8"/>'
+      + '<line x1="42" y1="33" x2="78" y2="33" stroke="#9ca3af" stroke-width="0.5" opacity="0.5"/>'
+      + '<line x1="42" y1="36" x2="78" y2="36" stroke="#9ca3af" stroke-width="0.5" opacity="0.5"/>'
+      + '<rect x="43" y="50" width="34" height="22" fill="#9ca3af" opacity="0.3"/>'
+      // ── Boot body (plastic holder, สี brand) ──
+      + '<rect x="28" y="75" width="64" height="75" rx="5" fill="'+bootColor+'" stroke="#6b7280" stroke-width="1.5"/>'
+      // gloss highlight
+      + '<rect x="32" y="80" width="56" height="4" rx="2" fill="white" opacity="0.35"/>'
+      // white label
+      + '<rect x="37" y="92" width="46" height="42" rx="2" fill="white" opacity="0.95" stroke="#e5e7eb" stroke-width="0.5"/>'
+      + '<text x="60" y="108" text-anchor="middle" font-size="11" font-family="Google Sans,sans-serif" font-weight="700" fill="'+bootAccent+'">MDI</text>'
+      + '<text x="60" y="120" text-anchor="middle" font-size="7" font-family="Google Sans,sans-serif" fill="'+bootAccent+'">Inhaler</text>'
+      + '<rect x="42" y="124" width="36" height="5" fill="'+bootColor+'" opacity="0.5"/>'
+      // ── Mouthpiece (ด้านล่าง) ──
+      + '<path d="M 28 145 L 28 165 L 20 175 L 20 180 L 100 180 L 100 175 L 92 165 L 92 145 Z" fill="'+bootColor+'" stroke="#6b7280" stroke-width="1.5"/>'
+      // mouthpiece opening (ช่องดำ)
+      + '<rect x="38" y="168" width="44" height="6" rx="1" fill="#1f2937"/>'
+      + '</svg>';
+
+    var dosageSection;
+    if(isPRN){
+      dosageSection = '<div style="display:grid;grid-template-columns:170px 1fr;gap:24px;margin:16px 0;align-items:center;">'
+        + '<div style="text-align:center;padding:10px;background:#f0f9ff;border-radius:12px;border:2px solid #7FB3E5;">' + inhalerSVG + '</div>'
+        + '<div>'
+          + '<div style="font-size:22px;font-weight:600;color:#555;margin-bottom:12px;">พ่นเมื่อมีอาการ:</div>'
+          + '<div style="display:flex;gap:30px;align-items:center;">'
+            + '<div style="text-align:center;"><div style="font-size:52px;">💨</div><div style="font-size:18px;color:#333;font-weight:500;">หอบ</div></div>'
+            + '<div style="font-size:26px;color:#ccc;font-weight:300;">หรือ</div>'
+            + '<div style="text-align:center;"><div style="font-size:52px;">😤</div><div style="font-size:18px;color:#333;font-weight:500;">หายใจไม่ออก</div></div>'
+          + '</div>'
+        + '</div></div>';
+    } else {
+      // Scheduled: show dot grid with puff count
+      var parts = (sigTrans.parts || {});
+      var puffs = parts.puffs || parts.qty || 1;
+      var freq = parts.freq || 2;
+      var suffix = parts.suffix || '';
+      dosageSection = '<div style="display:grid;grid-template-columns:170px 1fr;gap:20px;margin:12px 0;align-items:start;">'
+        + '<div style="text-align:center;padding:10px;background:#f0f9ff;border-radius:12px;border:2px solid #7FB3E5;">' + inhalerSVG + '</div>'
+        + '<div>' + renderDotGrid(puffs, freq, suffix).replace(/>เม็ด</g, '>puff<') + '</div>'
+        + '</div>';
+    }
+
+    return `<div class="page card-page">
+      ${bannerHTML(status, idx, total)}
+      <div class="drug-name">${esc(drug.name)}</div>
+      ${drug.strength ? `<div class="drug-strength">${esc(drug.strength)}</div>` : ''}
+      ${drug.purpose ? `<div class="drug-purpose">${esc(drug.purpose)}</div>` : ''}
+      ${dosageSection}
+      ${sigBlock(drug)}
+      ${warnBlock(drug.warnings || (isPRN ? 'ถ้าพ่นแล้วไม่ดีขึ้น หรือต้องพ่นถี่ผิดปกติ ให้รีบมาโรงพยาบาล · เขย่าขวดก่อนพ่นทุกครั้ง' : 'เขย่าขวดก่อนพ่นทุกครั้ง · บ้วนปากหลังพ่น (ถ้าเป็นสเตียรอยด์)'), 'ข้อควรระวัง')}
+      ${footerHTML(patient, idx, total)}
+    </div>`;
+  }
+
   /** Dispatch to correct card builder */
   function buildDrugCard(drug, status, idx, total, patient, options){
     if(status === 'stop') return buildStopCard(drug, idx, total, patient);
     var type = detectDrugType(drug);
     if(type === 'warfarin') return buildWarfarinCard(drug, status, idx, total, patient, options);
     if(type === 'insulin')  return buildInsulinCard(drug, status, idx, total, patient);
+    if(type === 'inhaler')  return buildInhalerCard(drug, status, idx, total, patient);
     if(type === 'prn')      return buildPRNCard(drug, status, idx, total, patient);
     if(status === 'chg')    return buildChangeCard(drug, idx, total, patient);
     return buildOralCard(drug, status, idx, total, patient);
@@ -871,6 +1046,7 @@ table.med td.qty{text-align:center;width:54px;}
     buildChangeCard: buildChangeCard,
     buildPRNCard: buildPRNCard,
     buildInsulinCard: buildInsulinCard,
+    buildInhalerCard: buildInhalerCard,
     buildWarfarinCard: buildWarfarinCard,
     buildStopCard: buildStopCard,
     detectDrugType: detectDrugType,
