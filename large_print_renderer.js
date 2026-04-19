@@ -123,7 +123,8 @@ table.med td.qty{text-align:center;width:54px;}
 .dot-unit{font-size:13px;color:#777;margin-top:2px;}
 
 /* Sig Thai */
-.sig-thai{font-size:36px;line-height:1.3;margin:16px 0;padding:16px 20px;background:#fffbea;border-radius:10px;border-left:6px solid #f59e0b;}
+.sig-thai{font-size:44px;line-height:1.35;margin:16px 0;padding:18px 22px;background:#fffbea;border-radius:10px;border-left:7px solid #f59e0b;font-weight:500;}
+.sig-thai > b{font-size:22px;font-weight:600;color:#92400e;display:block;margin-bottom:6px;letter-spacing:0.02em;}
 .sig-thai.error{background:#fef2f2;border-left-color:#dc2626;color:#991b1b;}
 .sig-orig{font-size:13px;color:#888;margin-top:8px;font-family:monospace;}
 .sig-orig b{color:#555;}
@@ -175,8 +176,8 @@ table.med td.qty{text-align:center;width:54px;}
 .twd-label{font-size:14px;color:#92400e;letter-spacing:0.06em;text-transform:uppercase;font-weight:500;}
 .twd-value{font-size:52px;font-weight:700;color:#7c2d12;line-height:1;}
 .twd-value small{font-size:18px;font-weight:500;margin-left:4px;color:#92400e;}
-.twd-note{font-size:14px;color:#7c2d12;text-align:right;line-height:1.5;}
-.twd-note b{display:block;font-size:16px;}
+.twd-note{font-size:13px;color:#7c2d12;text-align:right;line-height:1.4;min-width:220px;}
+.twd-note b{font-size:14px;}
 .strength-legend{display:flex;gap:12px;margin:8px 0 14px;padding:10px 14px;background:#fafafa;border-radius:10px;border:1px solid #e5e5e5;flex-wrap:wrap;}
 .sl-item{display:flex;align-items:center;gap:8px;font-size:14px;}
 .sl-swatch{width:28px;height:28px;border-radius:50%;border:1.5px solid #333;}
@@ -262,15 +263,18 @@ table.med td.qty{text-align:center;width:54px;}
 
   // ── Dot grid renderer ──────────────────────────────────────────
 
-  function renderDotGrid(qty, freq, suffix){
+  function renderDotGrid(qty, freq, suffix, timing){
     // Use SigTranslator.dotGrid if available
     var grid;
     var T = (typeof SigTranslator !== 'undefined') ? SigTranslator : null;
-    if(T && T.dotGrid) grid = T.dotGrid(freq, qty, suffix);
+    if(T && T.dotGrid) grid = T.dotGrid(freq, qty, suffix, timing);
     else {
       // Fallback — default spread
       grid = { m:0, n:0, e:0, b:0 };
-      if(freq === 1) grid.m = qty;
+      if(timing === 'h') grid.b = qty;   // ก่อนนอน
+      else if(suffix === 'ชท'){ grid.m = qty; grid.n = qty; }
+      else if(suffix === 'ชน'){ grid.m = qty; grid.b = qty; }
+      else if(freq === 1) grid.m = qty;
       else if(freq === 2){ grid.m = qty; grid.e = qty; }
       else if(freq === 3){ grid.m = qty; grid.n = qty; grid.e = qty; }
       else if(freq === 4){ grid.m = qty; grid.n = qty; grid.e = qty; grid.b = qty; }
@@ -478,8 +482,7 @@ table.med td.qty{text-align:center;width:54px;}
     var r = translateSig(drug.sig, drug.sigThai);
     if(r.ok){
       return `<div class="sig-thai">
-        <b>วิธีรับประทาน:</b><br>
-        ${esc(r.thai)}
+        <b>วิธีใช้:</b>${esc(r.thai)}
         <div class="sig-orig"><b>HOSxP code:</b> ${esc(drug.sig || '—')}</div>
       </div>`;
     } else {
@@ -513,13 +516,14 @@ table.med td.qty{text-align:center;width:54px;}
     var qty = parts.qty || 1;
     var freq = parts.freq || 1;
     var suffix = parts.suffix || '';
+    var timing = parts.timing || '';
 
     return `<div class="page card-page">
       ${bannerHTML(status, idx, total)}
       <div class="drug-name">${esc(drug.name)}</div>
       ${drug.strength ? `<div class="drug-strength">${esc(drug.strength)}</div>` : ''}
       ${drug.purpose ? `<div class="drug-purpose">${esc(drug.purpose)}</div>` : ''}
-      ${renderDotGrid(qty, freq, suffix)}
+      ${renderDotGrid(qty, freq, suffix, timing)}
       ${sigBlock(drug)}
       ${warnBlock(drug.warnings)}
       ${status === 'chg' && drug.reason ? `<div class="next-box"><b>เหตุผลที่แพทย์ปรับขนาด:</b>${esc(drug.reason)}</div>` : ''}
@@ -542,7 +546,7 @@ table.med td.qty{text-align:center;width:54px;}
         <div class="ba-box ba-before"><div class="ba-label">ของเดิม</div><div class="ba-text">${esc(before.ok?before.thai:drug.sigBefore||'—')}</div></div>
         <div class="ba-box ba-after"><div class="ba-label">ของใหม่ (กินแบบนี้)</div><div class="ba-text">${esc(after.ok?after.thai:drug.sig||'—')}</div></div>
       </div>
-      ${renderDotGrid(parts.qty||1, parts.freq||1, parts.suffix||'')}
+      ${renderDotGrid(parts.qty||1, parts.freq||1, parts.suffix||'', parts.timing||'')}
       ${sigBlock(drug)}
       ${drug.reason ? `<div class="next-box"><b>เหตุผลที่แพทย์ปรับขนาด:</b>${esc(drug.reason)}</div>` : ''}
       ${footerHTML(patient, idx, total)}
@@ -671,6 +675,7 @@ table.med td.qty{text-align:center;width:54px;}
     }
 
     var usedStrengths = {};
+    var pillsByStrength = {};  // { 2: 5, 3: 2 } = 5 เม็ด 2 mg + 2 เม็ด 3 mg
     var twdMg = 0, totalTabs = 0;
 
     var cells = dayNames.map(function(dn, i){
@@ -688,6 +693,7 @@ table.med td.qty{text-align:center;width:54px;}
         pills.forEach(function(p){
           var col = WF_COLORS[p.strength] || WF_COLORS[3];
           usedStrengths[p.strength] = true;
+          pillsByStrength[p.strength] = (pillsByStrength[p.strength] || 0) + p.count;
           if(p.count === 0.5) pillHTML += pillHalf(p.strength);
           else if(p.count === 1) pillHTML += pillFull(p.strength);
           else if(p.count === 1.5) pillHTML += pillFull(p.strength) + pillHalf(p.strength);
@@ -737,8 +743,15 @@ table.med td.qty{text-align:center;width:54px;}
           <div class="twd-value">${twdMg}<small>mg</small></div>
         </div>
         <div class="twd-note">
-          <b>${totalTabs} เม็ด / สัปดาห์</b>
-          ${Object.keys(usedStrengths).length > 1 ? '(รวม '+Object.keys(usedStrengths).sort().map(function(s){return s+' mg';}).join(' และ ')+')' : ''}
+          ${Object.keys(pillsByStrength).sort().map(function(s){
+            var count = pillsByStrength[s];
+            var col = WF_COLORS[s] || WF_COLORS[3];
+            var countTxt = (count === Math.floor(count)) ? count : (count.toString().replace('.5','½'));
+            return '<div style="display:flex;align-items:center;gap:6px;justify-content:flex-end;margin-bottom:4px;">' +
+              '<span style="display:inline-block;width:14px;height:14px;border-radius:50%;background:'+col.fill+';border:1.5px solid '+col.stroke+';"></span>' +
+              '<span><b>' + countTxt + ' เม็ด</b> × ' + s + ' mg = <b>' + (count * s) + ' mg</b></span>' +
+            '</div>';
+          }).join('')}
         </div>
       </div>
       <div class="strength-legend">
