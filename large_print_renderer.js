@@ -721,7 +721,7 @@ table.med td.qty{text-align:center;width:54px;}
     var legendItems = Object.keys(usedStrengths).sort().map(function(s){
       var c = WF_COLORS[s] || WF_COLORS[3];
       return `<div class="sl-item">
-        <div class="sl-swatch" style="background:${c.fill};border-color:${c.stroke};"></div>
+        <svg class="sl-swatch" width="28" height="28" viewBox="0 0 100 100"><circle cx="50" cy="50" r="44" fill="${c.fill}" stroke="${c.stroke}" stroke-width="5"/></svg>
         <div class="sl-text">Warfarin <b>${s} mg</b> · <b style="color:${c.stroke};">สี${c.name}</b></div>
       </div>`;
     });
@@ -746,10 +746,16 @@ table.med td.qty{text-align:center;width:54px;}
           ${Object.keys(pillsByStrength).sort().map(function(s){
             var count = pillsByStrength[s];
             var col = WF_COLORS[s] || WF_COLORS[3];
-            var countTxt = (count === Math.floor(count)) ? count : (count.toString().replace('.5','½'));
+            // แสดง count: 5, ½, 1½, 2½ (ไม่ใช่ 0½)
+            var whole = Math.floor(count);
+            var hasHalf = (count - whole) >= 0.5;
+            var countTxt = (whole > 0 ? whole : '') + (hasHalf ? '½' : '');
+            if(countTxt === '') countTxt = '0';
+            var totalMg = count * s;
+            var totalTxt = (totalMg === Math.floor(totalMg)) ? totalMg : totalMg.toString().replace('.5','½');
             return '<div style="display:flex;align-items:center;gap:6px;justify-content:flex-end;margin-bottom:4px;">' +
-              '<span style="display:inline-block;width:14px;height:14px;border-radius:50%;background:'+col.fill+';border:1.5px solid '+col.stroke+';"></span>' +
-              '<span><b>' + countTxt + ' เม็ด</b> × ' + s + ' mg = <b>' + (count * s) + ' mg</b></span>' +
+              '<svg width="14" height="14" viewBox="0 0 100 100" style="flex-shrink:0;"><circle cx="50" cy="50" r="42" fill="'+col.fill+'" stroke="'+col.stroke+'" stroke-width="10"/></svg>' +
+              '<span><b>' + s + ' mg</b> × ' + countTxt + ' เม็ด = <b>' + totalTxt + ' mg</b></span>' +
             '</div>';
           }).join('')}
         </div>
