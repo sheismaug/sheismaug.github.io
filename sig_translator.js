@@ -101,8 +101,10 @@
   }
 
   /** Dot grid (for large-print label rendering) — returns {m,n,e,b} quantities */
-  function dotGrid(freq, qty, suffix){
+  function dotGrid(freq, qty, suffix, timing){
     var g = { m:0, n:0, e:0, b:0 };   // morning, noon, evening, bedtime
+    // 'h' = ก่อนนอน → ลงช่อง bedtime โดยไม่สนใจ freq (11ht = 1 เม็ด ก่อนนอน)
+    if(timing === 'h'){ g.b = qty; return g; }
     if(suffix === 'ชท'){ g.m = qty; g.n = qty; return g; }
     if(suffix === 'ชน'){ g.m = qty; g.b = qty; return g; }
     switch(Number(freq)){
@@ -236,7 +238,7 @@
         unit:    unit,
         suffix:  suffix,
         note:    trail,
-        dotGrid: dotGrid(freq, qty, suffix),
+        dotGrid: dotGrid(freq, qty, suffix, timing),
       }
     };
   }
