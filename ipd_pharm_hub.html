@@ -1181,12 +1181,18 @@
         }
         .atb-form-title { font-size: 13px; font-weight: 600; margin-bottom: 10px; color: #2e3f58; }
         .atb-form-grid {
-            display: grid; grid-template-columns: 2fr 1fr 1.2fr 1fr;
+            display: grid; grid-template-columns: repeat(4, 1fr);
             gap: 10px; margin-bottom: 10px;
         }
-        @media (max-width: 700px) {
+        @media (max-width: 900px) {
             .atb-form-grid { grid-template-columns: 1fr 1fr; }
+            .atb-form-grid .atb-field[style*="span 2"] { grid-column: span 2 !important; }
         }
+        .atb-field select {
+            padding: 7px 10px; border: 1px solid #d8d5d0; border-radius: 6px;
+            font-size: 13px; font-family: inherit; background: #fff; cursor: pointer;
+        }
+        .atb-field select:focus { outline: none; border-color: #8ecf8e; }
         .atb-field { display: flex; flex-direction: column; gap: 4px; }
         .atb-field label {
             font-size: 11px; font-weight: 600; color: #555;
@@ -4369,7 +4375,7 @@
                         <div class="atb-form-title" id="atbFormTitle">เพิ่ม ATB ใหม่</div>
                         <input type="hidden" id="atbFormId">
                         <div class="atb-form-grid">
-                            <div class="atb-field">
+                            <div class="atb-field" style="grid-column: span 2;">
                                 <label>ชื่อยา <span class="req">*</span></label>
                                 <input type="text" id="atbFormDrug" placeholder="เช่น Ceftriaxone 2g" autocomplete="off">
                             </div>
@@ -4382,18 +4388,36 @@
                                 </div>
                             </div>
                             <div class="atb-field">
+                                <label>ความถี่ <span class="req">*</span></label>
+                                <select id="atbFormFrequency" onchange="onATBFrequencyChange()">
+                                    <option value="q24h">q24h (1×/วัน)</option>
+                                    <option value="q12h">q12h (2×/วัน)</option>
+                                    <option value="q8h" selected>q8h (3×/วัน)</option>
+                                    <option value="q6h">q6h (4×/วัน)</option>
+                                </select>
+                            </div>
+                            <div class="atb-field">
                                 <label>วันเริ่ม <span class="req">*</span></label>
                                 <input type="text" class="form-input date-input" id="atbFormStartDate" placeholder="DD/MM/YYYY">
+                            </div>
+                            <div class="atb-field">
+                                <label>เวลา dose แรก <span class="req">*</span></label>
+                                <select id="atbFormStartTime">
+                                    <option value="06:00">06:00</option>
+                                    <option value="14:00">14:00</option>
+                                    <option value="22:00">22:00</option>
+                                </select>
                             </div>
                             <div class="atb-field">
                                 <label>Plan (วัน)</label>
                                 <input type="number" id="atbFormPlanDays" value="7" min="1">
                                 <div class="atb-ongoing-row">
                                     <input type="checkbox" id="atbFormOngoing" onchange="toggleATBOngoing()">
-                                    <label for="atbFormOngoing" style="font-weight:400; text-transform:none; letter-spacing:0;">ongoing (ระยะยาว เช่น TB)</label>
+                                    <label for="atbFormOngoing" style="font-weight:400; text-transform:none; letter-spacing:0;">ongoing (TB)</label>
                                 </div>
                             </div>
                         </div>
+                        <div class="atb-form-preview" id="atbFormPreview" style="font-size:11.5px; color:#1e6b28; padding:6px 10px; background:#f0f8f0; border-radius:6px; margin-bottom:10px; display:none;"></div>
                         <div class="atb-field" style="margin-bottom: 10px;">
                             <label>Notes (optional)</label>
                             <input type="text" id="atbFormNotes" placeholder="เช่น CAP empirical, sensitivity pending">
@@ -6680,8 +6704,12 @@
                 drugsHtml = '<span class="icon">💉</span>';
                 for (var ai = 0; ai < atbList.length && ai < 3; ai++) {
                     var ab = atbList[ai];
-                    var info = _atbDayInfo(ab.startDate, ab.planDays, ab.ongoing, 'active');
-                    drugsHtml += '<span class="pl-atb-chip">' + (ab.drug || '—')
+                    var info = _atbDayInfo(ab);
+                    var tooltip = ab.frequency
+                        ? (ab.frequency + (info.endLabel ? ' · ครบ ' + info.endLabel : '')
+                           + (info.totalDoses ? ' · ' + info.dosesGiven + '/' + info.totalDoses + ' doses' : ''))
+                        : '';
+                    drugsHtml += '<span class="pl-atb-chip" title="' + _esc(tooltip) + '">' + _esc(ab.drug || '—')
                               + '<span class="day ' + info.colorClass + '">' + info.label + '</span></span>';
                 }
             } else {
@@ -6732,16 +6760,22 @@
         el = document.getElementById('sbAdr'); if (el) el.innerHTML = '🔬 ' + adrCount + ' ADR';
     }
 
-    // helper: ตรวจว่ามี ATB อย่างน้อย 1 ตัวที่ Day === planDays วันนี้ (หรือเกิน) — ไม่นับ ongoing
+    // helper: ตรวจว่ามี ATB อย่างน้อย 1 ตัวที่ "ครบวันนี้" หรือ "เกินแล้ว"
+    //   ครบวันนี้ = endDateTime ตกอยู่วันเดียวกับวันนี้
+    //   เกินแล้ว = now > endDateTime
     function _hasATBDueToday(p) {
         if (!p || !p.atbActive || !p.atbActive.length) return false;
+        var now = new Date();
+        var todayMid = new Date(now); todayMid.setHours(0,0,0,0);
         for (var i = 0; i < p.atbActive.length; i++) {
             var ab = p.atbActive[i];
             if (ab.ongoing) continue;
             if (!ab.planDays || ab.planDays < 1) continue;
-            var info = _atbDayInfo(ab.startDate, ab.planDays, false, 'active');
-            // ครบวันนี้ = วันนี้คือวัน planDays พอดี (Day === planDays) หรือเกิน
-            if (info.dayNum >= ab.planDays) return true;
+            var info = _atbDayInfo(ab);
+            if (!info.endDateTime) continue;
+            var endMid = new Date(info.endDateTime); endMid.setHours(0,0,0,0);
+            // ครบ "วันนี้" = end อยู่ในวันเดียวกัน หรือ เกินแล้ว (todayMid >= endMid)
+            if (todayMid.getTime() >= endMid.getTime()) return true;
         }
         return false;
     }
@@ -8511,21 +8545,13 @@
 
     // คำนวณข้อมูล Day X/Y + สี + label
     //   return: { dayNum, planDays, label, colorClass, isOver }
-    function _atbDayInfo(startDate, planDays, ongoing, status) {
-        var info = { dayNum: 0, planDays: planDays || 0, label: '', colorClass: 'early', isOver: false };
-        if (status === 'completed') {
-            info.label = 'Done';
-            info.colorClass = 'done';
-            return info;
-        }
-        if (status === 'discontinued') {
-            info.label = 'Stopped';
-            info.colorClass = 'done';
-            return info;
-        }
-        // Calculate days elapsed from startDate
-        var d = null;
-        var m = String(startDate || '').match(/^(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{4})$/);
+    // ── interval (hours) ของ frequency แต่ละแบบ ──
+    var ATB_FREQ_HOURS = { 'q24h': 24, 'q12h': 12, 'q8h': 8, 'q6h': 6 };
+
+    // parse "DD/MM/YYYY" (BE หรือ CE) → Date object (เที่ยงคืน) หรือ null
+    function _atbParseDate(dateStr) {
+        var m = String(dateStr || '').match(/^(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{4})$/);
+        var d;
         if (m) {
             var dd = parseInt(m[1], 10);
             var mm = parseInt(m[2], 10) - 1;
@@ -8533,38 +8559,99 @@
             if (yy > 2400) yy -= 543;
             d = new Date(yy, mm, dd);
         } else {
-            d = new Date(startDate);
+            d = new Date(dateStr);
         }
-        if (!d || isNaN(d)) {
-            info.label = '?';
-            info.colorClass = 'done';
-            return info;
+        return (d && !isNaN(d)) ? d : null;
+    }
+
+    // รวม startDate + startTime → Date object พร้อมเวลา
+    //   "24:00" จะถูกตีความเป็น 00:00 ของวันถัดไป
+    function _atbStartDateTime(startDate, startTime) {
+        var d = _atbParseDate(startDate);
+        if (!d) return null;
+        var tm = String(startTime || '06:00').match(/^(\d{1,2}):(\d{2})$/);
+        var hh = tm ? parseInt(tm[1], 10) : 6;
+        var mn = tm ? parseInt(tm[2], 10) : 0;
+        // 24:00 → 00:00 ของวันถัดไป
+        if (hh === 24) {
+            d.setDate(d.getDate() + 1);
+            hh = 0;
         }
-        var today = new Date();
-        today.setHours(0,0,0,0);
-        d.setHours(0,0,0,0);
-        var elapsed = Math.floor((today - d) / 86400000) + 1;   // Day 1 = วันแรกที่เริ่ม
-        if (elapsed < 1) elapsed = 1;
-        info.dayNum = elapsed;
-        if (ongoing) {
-            info.label = 'D' + elapsed;
+        d.setHours(hh, mn, 0, 0);
+        return d;
+    }
+
+    // format Date → "DD/MM/YY HH:MM" (BE)
+    function _atbFmtDateTime(d) {
+        if (!d || isNaN(d)) return '';
+        var dd = String(d.getDate()).padStart(2, '0');
+        var mm = String(d.getMonth() + 1).padStart(2, '0');
+        var yy = (d.getFullYear() + 543) % 100;
+        var hh = String(d.getHours()).padStart(2, '0');
+        var mn = String(d.getMinutes()).padStart(2, '0');
+        return dd + '/' + mm + '/' + String(yy).padStart(2, '0') + ' ' + hh + ':' + mn;
+    }
+
+    // คำนวณข้อมูล ATB — รับ item object เต็ม
+    //   item: { startDate, startTime, frequency, planDays, ongoing, status }
+    //   return: { dayNum, planDays, totalDoses, dosesGiven, endDateTime, endLabel,
+    //             label, colorClass, isOver, intervalH }
+    function _atbDayInfo(item) {
+        var info = {
+            dayNum: 0, planDays: 0, totalDoses: 0, dosesGiven: 0,
+            endDateTime: null, endLabel: '', intervalH: 24,
+            label: '', colorClass: 'early', isOver: false,
+        };
+        if (!item) return info;
+        var status = item.status || 'active';
+        info.planDays = Number(item.planDays) || 0;
+        info.intervalH = ATB_FREQ_HOURS[item.frequency] || 24;
+        if (status === 'completed') { info.label = 'Done'; info.colorClass = 'done'; return info; }
+        if (status === 'discontinued') { info.label = 'Stopped'; info.colorClass = 'done'; return info; }
+
+        var startDt = _atbStartDateTime(item.startDate, item.startTime);
+        if (!startDt) { info.label = '?'; info.colorClass = 'done'; return info; }
+
+        var now = new Date();
+        // calendar day count (Day 1 = วันที่ startDate)
+        var sMid = new Date(startDt); sMid.setHours(0,0,0,0);
+        var nMid = new Date(now); nMid.setHours(0,0,0,0);
+        var dayNum = Math.floor((nMid - sMid) / 86400000) + 1;
+        if (dayNum < 1) dayNum = 1;
+        info.dayNum = dayNum;
+
+        if (item.ongoing) {
+            info.label = 'D' + dayNum;
             info.colorClass = 'ongoing';
             return info;
         }
-        var pct = planDays > 0 ? (elapsed / planDays) : 0;
-        info.label = 'D' + elapsed + '/' + planDays;
-        if (elapsed > planDays) {
+
+        // Compute end datetime (last dose) and dose progress
+        var dosesPerDay = 24 / info.intervalH;
+        var totalDoses = info.planDays * dosesPerDay;
+        info.totalDoses = totalDoses;
+        var endDt = new Date(startDt.getTime() + (totalDoses - 1) * info.intervalH * 3600000);
+        info.endDateTime = endDt;
+        info.endLabel = _atbFmtDateTime(endDt);
+        // Doses given so far (assume all on-schedule doses given)
+        var elapsedH = (now - startDt) / 3600000;
+        var dg = Math.floor(elapsedH / info.intervalH) + 1;
+        if (dg < 1) dg = 1;
+        if (dg > totalDoses) dg = totalDoses;
+        info.dosesGiven = dg;
+
+        info.label = 'D' + dayNum + '/' + info.planDays;
+
+        // Color logic — based on dose progress + endDateTime crossing
+        if (now > endDt) {
             info.label += ' ⚠';
             info.colorClass = 'over';
             info.isOver = true;
-        } else if (pct >= 1) {
-            info.colorClass = 'late';
-        } else if (pct >= 0.7) {
-            info.colorClass = 'late';
-        } else if (pct >= 0.5) {
-            info.colorClass = 'mid';
         } else {
-            info.colorClass = 'early';
+            var pct = totalDoses > 0 ? (dg / totalDoses) : 0;
+            if (pct >= 0.85)      info.colorClass = 'late';
+            else if (pct >= 0.5)  info.colorClass = 'mid';
+            else                  info.colorClass = 'early';
         }
         return info;
     }
@@ -8604,16 +8691,16 @@
             return;
         }
         var html = '<table class="atb-table"><thead><tr>'
-                 + '<th style="width:30%">ยา</th>'
-                 + '<th style="width:14%">เริ่ม</th>'
-                 + '<th style="width:14%">Day</th>'
+                 + '<th style="width:26%">ยา · ความถี่</th>'
+                 + '<th style="width:18%">เริ่ม</th>'
+                 + '<th style="width:18%">Day · ครบเมื่อ</th>'
                  + '<th style="width:14%">สถานะ</th>'
                  + '<th>Notes</th>'
                  + '<th style="width:160px"></th>'
                  + '</tr></thead><tbody>';
         for (var j = 0; j < items.length; j++) {
             var it = items[j];
-            var info = _atbDayInfo(it.startDate, it.planDays, it.ongoing, it.status);
+            var info = _atbDayInfo(it);
             var routeLow = String(it.route || 'IV').toLowerCase();
             var rowCls = (it.status !== 'active') ? 'atb-row-completed' : '';
             var statusLabel = it.status === 'completed' ? 'Completed'
@@ -8628,10 +8715,27 @@
                 actionsHtml = '<button class="atb-row-btn" onclick="editATB(\'' + it.id + '\')" title="Edit">📝</button>'
                             + '<button class="atb-row-btn del" onclick="deleteATB(\'' + it.id + '\')" title="Delete">🗑</button>';
             }
+            // Day cell with detail line under
+            var dayCellHtml = '<span class="day-badge ' + info.colorClass + '">' + info.label + '</span>';
+            if (info.endLabel && it.status === 'active' && !it.ongoing) {
+                dayCellHtml += '<div style="font-size:10.5px; color:#888; margin-top:3px;">'
+                             + 'ครบ ' + info.endLabel + ' · ' + info.dosesGiven + '/' + info.totalDoses + ' doses'
+                             + '</div>';
+            }
+            // Drug cell with frequency + start time
+            var freqHtml = '';
+            if (it.frequency && !it.ongoing) {
+                freqHtml = '<div style="font-size:10.5px; color:#888; margin-top:3px;">'
+                         + _esc(it.frequency) + ' · เริ่ม ' + _esc(it.startTime || '06:00')
+                         + '</div>';
+            } else if (it.ongoing) {
+                freqHtml = '<div style="font-size:10.5px; color:#888; margin-top:3px;">'
+                         + _esc(it.frequency || '—') + ' · ongoing</div>';
+            }
             html += '<tr class="' + rowCls + '">'
-                  +   '<td><span class="atb-drug-name">' + _esc(it.drug) + '</span><span class="atb-route ' + routeLow + '">' + _esc(it.route) + '</span></td>'
+                  +   '<td><span class="atb-drug-name">' + _esc(it.drug) + '</span><span class="atb-route ' + routeLow + '">' + _esc(it.route) + '</span>' + freqHtml + '</td>'
                   +   '<td class="atb-date-cell">' + _shortDate(it.startDate) + '</td>'
-                  +   '<td><span class="day-badge ' + info.colorClass + '">' + info.label + '</span></td>'
+                  +   '<td>' + dayCellHtml + '</td>'
                   +   '<td><div class="atb-status-cell"><span class="atb-status-dot ' + it.status + '"></span><span>' + statusLabel + '</span></div></td>'
                   +   '<td style="font-size:11px; color:#888;">' + (_esc(it.notes) || '—') + '</td>'
                   +   '<td><div class="atb-row-actions">' + actionsHtml + '</div></td>'
@@ -8661,10 +8765,24 @@
         document.getElementById('atbFormOngoing').checked = false;
         document.getElementById('atbFormNotes').value = '';
         setATBRoute('IV');
+        document.getElementById('atbFormFrequency').value = 'q8h';
+        onATBFrequencyChange();   // refresh startTime options
+        document.getElementById('atbFormStartTime').value = '06:00';
+        _atbUpdateFormPreview();
         document.getElementById('atbFormTitle').textContent = 'เพิ่ม ATB ใหม่';
         form.style.display = '';
         btn.style.display = 'none';
         document.getElementById('atbFormDrug').focus();
+        // Listen for live preview updates
+        ['atbFormStartDate','atbFormStartTime','atbFormPlanDays','atbFormOngoing']
+            .forEach(function(id){
+                var el = document.getElementById(id);
+                if (el && !el._atbPreviewBound) {
+                    el.addEventListener('input', _atbUpdateFormPreview);
+                    el.addEventListener('change', _atbUpdateFormPreview);
+                    el._atbPreviewBound = true;
+                }
+            });
     }
 
     function hideATBForm() {
@@ -8721,11 +8839,74 @@
         document.getElementById('atbFormOngoing').checked = !!it.ongoing;
         document.getElementById('atbFormNotes').value = it.notes || '';
         setATBRoute(it.route || 'IV');
+        document.getElementById('atbFormFrequency').value = it.frequency || 'q24h';
+        onATBFrequencyChange(it.startTime || '06:00');
+        _atbUpdateFormPreview();
         document.getElementById('atbFormTitle').textContent = 'แก้ไข ATB';
         var form = document.getElementById('atbForm');
         var btn  = document.getElementById('atbShowFormBtn');
         if (form) form.style.display = '';
         if (btn)  btn.style.display = 'none';
+    }
+
+    // เปลี่ยน startTime options ตาม frequency ที่เลือก
+    //   q8h: 06:00 / 14:00 / 22:00
+    //   q12h: 06:00 / 12:00 / 18:00 / 24:00
+    //   q24h: 06:00 / 14:00 / 18:00
+    //   q6h: 06:00 / 12:00 / 18:00 / 24:00
+    function onATBFrequencyChange(preserveValue) {
+        var freq = document.getElementById('atbFormFrequency').value;
+        var sel  = document.getElementById('atbFormStartTime');
+        if (!sel) return;
+        var slots = {
+            'q24h': ['06:00', '14:00', '18:00'],
+            'q12h': ['06:00', '12:00', '18:00', '24:00'],
+            'q8h':  ['06:00', '14:00', '22:00'],
+            'q6h':  ['06:00', '12:00', '18:00', '24:00'],
+        }[freq] || ['06:00'];
+        var prevVal = preserveValue || sel.value || '06:00';
+        sel.innerHTML = '';
+        for (var i = 0; i < slots.length; i++) {
+            var opt = document.createElement('option');
+            opt.value = slots[i];
+            opt.textContent = slots[i];
+            sel.appendChild(opt);
+        }
+        // เลือก previous value ถ้ายังอยู่ใน options ใหม่ ไม่งั้นใช้ slot แรก
+        if (slots.indexOf(prevVal) >= 0) sel.value = prevVal;
+        else sel.value = slots[0];
+        _atbUpdateFormPreview();
+    }
+
+    // คำนวณ + แสดง "ครบเมื่อ" preview ใต้ฟอร์ม (real-time)
+    function _atbUpdateFormPreview() {
+        var preview = document.getElementById('atbFormPreview');
+        if (!preview) return;
+        var ongoing = document.getElementById('atbFormOngoing').checked;
+        if (ongoing) {
+            preview.style.display = 'none';
+            return;
+        }
+        var startDate = document.getElementById('atbFormStartDate').value;
+        var startTime = document.getElementById('atbFormStartTime').value || '06:00';
+        var frequency = document.getElementById('atbFormFrequency').value;
+        var planDays = parseInt(document.getElementById('atbFormPlanDays').value, 10);
+        if (!startDate || !planDays || planDays < 1) {
+            preview.style.display = 'none';
+            return;
+        }
+        var info = _atbDayInfo({
+            startDate: startDate,
+            startTime: startTime,
+            frequency: frequency,
+            planDays: planDays,
+            ongoing: false,
+            status: 'active',
+        });
+        if (!info.endLabel) { preview.style.display = 'none'; return; }
+        preview.innerHTML = '✓ ครบ <strong>' + info.endLabel + '</strong> · '
+                          + info.totalDoses + ' doses (' + frequency + ')';
+        preview.style.display = '';
     }
 
     function saveATB() {
@@ -8749,6 +8930,8 @@
             return;
         }
         var route = document.getElementById('atbFormRoute').dataset.route || 'IV';
+        var frequency = document.getElementById('atbFormFrequency').value || 'q24h';
+        var startTime = document.getElementById('atbFormStartTime').value || '06:00';
         var notes = (document.getElementById('atbFormNotes').value || '').trim();
         var id = document.getElementById('atbFormId').value || _atbEditingId || null;
 
@@ -8757,7 +8940,9 @@
             hn: currentPatientHN,
             drug: drug,
             route: route,
+            frequency: frequency,
             startDate: startDate,
+            startTime: startTime,
             planDays: planDays,
             ongoing: ongoing,
             status: 'active',
