@@ -8548,6 +8548,25 @@
     // ── interval (hours) ของ frequency แต่ละแบบ ──
     var ATB_FREQ_HOURS = { 'q24h': 24, 'q12h': 12, 'q8h': 8, 'q6h': 6 };
 
+    // Defensive: ถ้า startTime หลุดมาเป็น ISO string "1899-12-30T07:00:00.000Z" หรือ Date-like
+    //   ให้ extract "HH:MM" ออกมา (รองรับ legacy data ก่อน fix backend)
+    function _atbCleanTime(t) {
+        if (!t) return '06:00';
+        var s = String(t);
+        // ISO date string — parse + extract local hours
+        if (/^\d{4}-\d{2}-\d{2}T/.test(s)) {
+            var d = new Date(s);
+            if (!isNaN(d)) {
+                var hh = String(d.getHours()).padStart(2, '0');
+                var mn = String(d.getMinutes()).padStart(2, '0');
+                return hh + ':' + mn;
+            }
+        }
+        var m = s.match(/^(\d{1,2}):(\d{2})/);
+        if (m) return String(parseInt(m[1], 10)).padStart(2, '0') + ':' + m[2];
+        return '06:00';
+    }
+
     // parse "DD/MM/YYYY" (BE หรือ CE) → Date object (เที่ยงคืน) หรือ null
     function _atbParseDate(dateStr) {
         var m = String(dateStr || '').match(/^(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{4})$/);
@@ -8566,10 +8585,12 @@
 
     // รวม startDate + startTime → Date object พร้อมเวลา
     //   "24:00" จะถูกตีความเป็น 00:00 ของวันถัดไป
+    //   รองรับ ISO string "1899-12-30T..." (legacy data) ผ่าน _atbCleanTime
     function _atbStartDateTime(startDate, startTime) {
         var d = _atbParseDate(startDate);
         if (!d) return null;
-        var tm = String(startTime || '06:00').match(/^(\d{1,2}):(\d{2})$/);
+        var clean = _atbCleanTime(startTime);
+        var tm = clean.match(/^(\d{1,2}):(\d{2})$/);
         var hh = tm ? parseInt(tm[1], 10) : 6;
         var mn = tm ? parseInt(tm[2], 10) : 0;
         // 24:00 → 00:00 ของวันถัดไป
@@ -8726,7 +8747,7 @@
             var freqHtml = '';
             if (it.frequency && !it.ongoing) {
                 freqHtml = '<div style="font-size:10.5px; color:#888; margin-top:3px;">'
-                         + _esc(it.frequency) + ' · เริ่ม ' + _esc(it.startTime || '06:00')
+                         + _esc(it.frequency) + ' · เริ่ม ' + _esc(_atbCleanTime(it.startTime))
                          + '</div>';
             } else if (it.ongoing) {
                 freqHtml = '<div style="font-size:10.5px; color:#888; margin-top:3px;">'
@@ -8840,7 +8861,7 @@
         document.getElementById('atbFormNotes').value = it.notes || '';
         setATBRoute(it.route || 'IV');
         document.getElementById('atbFormFrequency').value = it.frequency || 'q24h';
-        onATBFrequencyChange(it.startTime || '06:00');
+        onATBFrequencyChange(_atbCleanTime(it.startTime));
         _atbUpdateFormPreview();
         document.getElementById('atbFormTitle').textContent = 'แก้ไข ATB';
         var form = document.getElementById('atbForm');
