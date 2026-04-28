@@ -993,7 +993,7 @@
             z-index: 2;
             background: #f5f4f2;
             display: grid;
-            grid-template-columns: 4px 280px 180px 1fr 16px;
+            grid-template-columns: 4px 280px 170px 1fr 130px 16px;
             padding: 10px 14px 10px 18px;
             font-size: 11px;
             font-weight: 600;
@@ -1005,7 +1005,7 @@
         }
         .plv2-row {
             display: grid;
-            grid-template-columns: 4px 280px 180px 1fr 16px;
+            grid-template-columns: 4px 280px 170px 1fr 130px 16px;
             padding: 10px 14px;
             border-bottom: 0.5px solid #f0eeea;
             align-items: center;
@@ -1099,6 +1099,158 @@
         }
         .plv2-backtop:hover { background: #1f2c3f; }
         .plv2-backtop:active { transform: translateY(0) scale(0.95); }
+
+        /* ─── Phase 5: ATB Plan section in patient detail ─── */
+        .atb-section { padding: 0; }
+        .atb-section h3 {
+            font-size: 14px; font-weight: 600; color: #2e3f58;
+            margin-bottom: 10px; display: flex; align-items: center; gap: 8px;
+        }
+        .atb-section h3 .pill {
+            font-size: 10.5px; font-weight: 700; background: #2e3f58; color: #fff;
+            padding: 2px 8px; border-radius: 9999px;
+        }
+        .atb-table {
+            width: 100%; border-collapse: collapse; margin-bottom: 12px; font-size: 13px;
+        }
+        .atb-table th {
+            text-align: left; font-weight: 600; font-size: 11px; color: #888;
+            text-transform: uppercase; letter-spacing: 0.04em;
+            padding: 8px 10px; border-bottom: 1px solid #e8e5e0; background: #f5f4f2;
+        }
+        .atb-table td {
+            padding: 8px 10px; border-bottom: 0.5px solid #f0eeea; vertical-align: middle;
+        }
+        .atb-table tr:last-child td { border-bottom: none; }
+        .atb-drug-name { font-weight: 500; color: #2e3f58; }
+        .atb-route {
+            display: inline-block; padding: 1px 6px; background: #f0ede8;
+            border-radius: 4px; font-size: 10.5px; font-weight: 600; color: #555; margin-left: 6px;
+        }
+        .atb-route.iv { background: #ffefe0; color: #b85820; }
+        .atb-route.po { background: #e6f4e6; color: #1e6b28; }
+        .atb-route.im { background: #ede4f8; color: #523088; }
+        .atb-date-cell { font-size: 12px; color: #666; }
+        .atb-status-cell { display: flex; align-items: center; gap: 4px; font-size: 12px; color: #555; }
+        .atb-status-dot { width: 6px; height: 6px; border-radius: 9999px; }
+        .atb-status-dot.active { background: #28a040; }
+        .atb-status-dot.completed { background: #888; }
+        .atb-status-dot.discontinued { background: #c04040; }
+        .atb-row-completed { opacity: 0.55; }
+        .atb-row-actions { display: flex; gap: 4px; flex-wrap: wrap; }
+        .atb-row-btn {
+            background: #fff; border: 1px solid #d8d5d0; border-radius: 6px;
+            padding: 3px 8px; font-size: 11px; color: #555; cursor: pointer;
+            font-family: inherit; line-height: 1.3;
+        }
+        .atb-row-btn:hover { background: #2e3f58; color: #fff; border-color: #2e3f58; }
+        .atb-row-btn.done { color: #1e6b28; border-color: #a0d0a0; }
+        .atb-row-btn.done:hover { background: #28a040; color: #fff; border-color: #28a040; }
+        .atb-row-btn.del { color: #a02020; border-color: #d09090; }
+        .atb-row-btn.del:hover { background: #c04040; color: #fff; border-color: #c04040; }
+
+        .day-badge {
+            display: inline-flex; align-items: center; gap: 4px;
+            padding: 3px 9px; border-radius: 9999px;
+            font-size: 12px; font-weight: 600; font-variant-numeric: tabular-nums;
+            white-space: nowrap;
+        }
+        .day-badge.early   { background: #e8f5e8; color: #1e6b28; }
+        .day-badge.mid     { background: #fff8e0; color: #8a5e10; }
+        .day-badge.late    { background: #ffe8d0; color: #b8580f; }
+        .day-badge.over    { background: #ffe0e0; color: #a02020; }
+        .day-badge.done    { background: #eeecea; color: #999; }
+        .day-badge.ongoing { background: #e4eef8; color: #2a4a88; }
+
+        .atb-add-btn {
+            background: #2e3f58; color: #fff; border: none; border-radius: 8px;
+            padding: 7px 14px; font-size: 13px; font-weight: 500;
+            cursor: pointer; font-family: inherit;
+            display: inline-flex; align-items: center; gap: 6px;
+        }
+        .atb-add-btn:hover { background: #1f2c3f; }
+
+        .atb-empty {
+            text-align: center; padding: 18px; color: #999; font-size: 12px; font-style: italic;
+        }
+
+        /* ATB inline form */
+        .atb-form {
+            background: #fbfaf8; border: 1px dashed #d8d5d0; border-radius: 12px;
+            padding: 14px 16px; margin-top: 10px;
+        }
+        .atb-form-title { font-size: 13px; font-weight: 600; margin-bottom: 10px; color: #2e3f58; }
+        .atb-form-grid {
+            display: grid; grid-template-columns: 2fr 1fr 1.2fr 1fr;
+            gap: 10px; margin-bottom: 10px;
+        }
+        @media (max-width: 700px) {
+            .atb-form-grid { grid-template-columns: 1fr 1fr; }
+        }
+        .atb-field { display: flex; flex-direction: column; gap: 4px; }
+        .atb-field label {
+            font-size: 11px; font-weight: 600; color: #555;
+            text-transform: uppercase; letter-spacing: 0.04em;
+        }
+        .atb-field label .req { color: #c04040; }
+        .atb-field input[type="text"],
+        .atb-field input[type="number"] {
+            padding: 7px 10px; border: 1px solid #d8d5d0; border-radius: 6px;
+            font-size: 13px; font-family: inherit; background: #fff;
+        }
+        .atb-field input:focus { outline: none; border-color: #8ecf8e; }
+        .atb-route-toggle {
+            display: flex; gap: 4px; background: #fff;
+            border: 1px solid #d8d5d0; border-radius: 6px; padding: 2px;
+        }
+        .atb-route-toggle button {
+            flex: 1; padding: 5px 8px; border: none; background: transparent;
+            cursor: pointer; font-family: inherit; font-size: 12px; font-weight: 600;
+            color: #888; border-radius: 4px;
+        }
+        .atb-route-toggle button.active.iv { background: #ffefe0; color: #b85820; }
+        .atb-route-toggle button.active.po { background: #e6f4e6; color: #1e6b28; }
+        .atb-route-toggle button.active.im { background: #ede4f8; color: #523088; }
+        .atb-ongoing-row {
+            display: flex; align-items: center; gap: 6px;
+            font-size: 11px; color: #666; margin-top: 4px;
+        }
+        .atb-form-actions {
+            display: flex; justify-content: flex-end; gap: 8px;
+            padding-top: 8px; border-top: 1px solid #e8e5e0;
+        }
+        .atb-form-btn {
+            border-radius: 6px; padding: 7px 14px; font-size: 13px;
+            font-family: inherit; cursor: pointer;
+        }
+        .atb-form-btn.cancel { background: #fff; border: 1px solid #d8d5d0; color: #555; }
+        .atb-form-btn.save   { background: #2e3f58; color: #fff; border: none; font-weight: 500; }
+        .atb-form-btn.save:hover { background: #1f2c3f; }
+
+        /* ── ATB chip in patient list ── */
+        .pl-atb-chip {
+            display: inline-flex; align-items: center; gap: 4px;
+            background: #fff; border: 1px solid #d8d5d0;
+            padding: 2px 6px 2px 8px; border-radius: 9999px;
+            font-size: 10.5px; font-weight: 500; color: #555;
+            white-space: nowrap;
+        }
+        .pl-atb-chip .day {
+            font-weight: 700; font-variant-numeric: tabular-nums;
+            margin-left: 3px; padding: 0 5px; border-radius: 4px; line-height: 1.4;
+        }
+        .pl-atb-chip .day.early   { background: #e8f5e8; color: #1e6b28; }
+        .pl-atb-chip .day.mid     { background: #fff8e0; color: #8a5e10; }
+        .pl-atb-chip .day.late    { background: #ffe8d0; color: #b8580f; }
+        .pl-atb-chip .day.over    { background: #ffe0e0; color: #a02020; }
+        .pl-atb-chip .day.ongoing { background: #e4eef8; color: #2a4a88; }
+        .plv2-drugs {
+            display: flex; flex-wrap: wrap; gap: 4px; align-items: center;
+            font-size: 11px;
+        }
+        .plv2-drugs .icon { font-size: 13px; color: #888; margin-right: 1px; }
+        .plv2-drugs-empty { font-style: italic; color: #c4baad; font-size: 11px; }
+
 
         /* Compact status pills */
         .s-pill {
@@ -3701,6 +3853,7 @@
                     <button class="filter-chip" data-filter="adr-pending">ADR <span class="fc-count" id="fc-adr">0</span></button>
                     <button class="filter-chip" data-filter="warfarin">Warfarin <span class="fc-count" id="fc-warfarin">0</span></button>
                     <button class="filter-chip" data-filter="counseling">Counseling <span class="fc-count" id="fc-counseling">0</span></button>
+                    <button class="filter-chip urgent" data-filter="atb-due">⏰ ATB ครบวันนี้ <span class="fc-count" id="fc-atb-due">0</span></button>
                     <button class="filter-chip" data-filter="dc-today">D/C วันนี้ <span class="fc-count" id="fc-dc">0</span></button>
                 </div>
 
@@ -3741,6 +3894,7 @@
                             <div></div>
                             <div>คนไข้</div>
                             <div>Dx · Admit</div>
+                            <div>ยาเด่น</div>
                             <div style="text-align:right">สถานะ</div>
                             <div></div>
                         </div>
@@ -4089,6 +4243,7 @@
             <!-- Sub-Tab Strip -->
             <div class="subtab-strip" id="detailTabs">
                 <div class="subtab-item active" data-subtab="mr">MR</div>
+                <div class="subtab-item" data-subtab="atb">ATB</div>
                 <div class="subtab-item" data-subtab="med-error-drp">Med Error + DRP</div>
                 <div class="subtab-item" data-subtab="had">HAD Monitoring</div>
                 <div class="subtab-item" data-subtab="counseling">Counseling</div>
@@ -4200,6 +4355,55 @@
                 </div>
 
                 <button class="btn btn-primary" style="margin-top: 8px; width: 100%;" onclick="saveMRData()">บันทึก MR</button>
+            </div>
+
+            <!-- Sub-Tab: ATB Plan (Phase 5) -->
+            <div class="subtab-content" id="atb">
+                <div class="atb-section">
+                    <h3>💉 ATB Plan <span class="pill" id="atbCountPill" style="display:none;">0 active</span></h3>
+                    <div id="atbListContainer">
+                        <div class="atb-empty">— ยังไม่มี ATB —</div>
+                    </div>
+                    <button class="atb-add-btn" id="atbShowFormBtn" type="button" onclick="showATBForm()">+ เพิ่ม ATB</button>
+                    <div class="atb-form" id="atbForm" style="display:none;">
+                        <div class="atb-form-title" id="atbFormTitle">เพิ่ม ATB ใหม่</div>
+                        <input type="hidden" id="atbFormId">
+                        <div class="atb-form-grid">
+                            <div class="atb-field">
+                                <label>ชื่อยา <span class="req">*</span></label>
+                                <input type="text" id="atbFormDrug" placeholder="เช่น Ceftriaxone 2g" autocomplete="off">
+                            </div>
+                            <div class="atb-field">
+                                <label>Route</label>
+                                <div class="atb-route-toggle" id="atbFormRoute" data-route="IV">
+                                    <button type="button" data-route-val="IV" class="active iv" onclick="setATBRoute('IV')">IV</button>
+                                    <button type="button" data-route-val="PO" onclick="setATBRoute('PO')">PO</button>
+                                    <button type="button" data-route-val="IM" onclick="setATBRoute('IM')">IM</button>
+                                </div>
+                            </div>
+                            <div class="atb-field">
+                                <label>วันเริ่ม <span class="req">*</span></label>
+                                <input type="text" class="form-input date-input" id="atbFormStartDate" placeholder="DD/MM/YYYY">
+                            </div>
+                            <div class="atb-field">
+                                <label>Plan (วัน)</label>
+                                <input type="number" id="atbFormPlanDays" value="7" min="1">
+                                <div class="atb-ongoing-row">
+                                    <input type="checkbox" id="atbFormOngoing" onchange="toggleATBOngoing()">
+                                    <label for="atbFormOngoing" style="font-weight:400; text-transform:none; letter-spacing:0;">ongoing (ระยะยาว เช่น TB)</label>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="atb-field" style="margin-bottom: 10px;">
+                            <label>Notes (optional)</label>
+                            <input type="text" id="atbFormNotes" placeholder="เช่น CAP empirical, sensitivity pending">
+                        </div>
+                        <div class="atb-form-actions">
+                            <button type="button" class="atb-form-btn cancel" onclick="hideATBForm()">ยกเลิก</button>
+                            <button type="button" class="atb-form-btn save" onclick="saveATB()">บันทึก</button>
+                        </div>
+                    </div>
+                </div>
             </div>
 
             <!-- Sub-Tab 2: Med Error + DRP -->
@@ -6469,6 +6673,21 @@
             row.setAttribute('role', 'button');
             row.tabIndex = 0;
             row.setAttribute('data-hn', p.hn || '');
+            // Build ATB chips for "ยาเด่น" column
+            var drugsHtml = '';
+            var atbList = (p.atbActive && p.atbActive.length) ? p.atbActive : [];
+            if (atbList.length) {
+                drugsHtml = '<span class="icon">💉</span>';
+                for (var ai = 0; ai < atbList.length && ai < 3; ai++) {
+                    var ab = atbList[ai];
+                    var info = _atbDayInfo(ab.startDate, ab.planDays, ab.ongoing, 'active');
+                    drugsHtml += '<span class="pl-atb-chip">' + (ab.drug || '—')
+                              + '<span class="day ' + info.colorClass + '">' + info.label + '</span></span>';
+                }
+            } else {
+                drugsHtml = '<span class="plv2-drugs-empty">—</span>';
+            }
+
             row.innerHTML =
                 '<div class="plv2-bar"></div>' +
                 '<div>' +
@@ -6479,6 +6698,7 @@
                     '<div class="plv2-dx">' + (p.dx || '−') + '</div>' +
                     '<div class="plv2-admit">' + _shortDate(p.admitDate) + (days ? ' · ' + days : '') + '</div>' +
                 '</div>' +
+                '<div class="plv2-drugs">' + drugsHtml + '</div>' +
                 '<div class="plv2-status">' + pills + '</div>' +
                 '<div class="plv2-chev">›</div>';
 
@@ -6510,6 +6730,20 @@
         el = document.getElementById('sbMrPending'); if (el) el.innerHTML = '⚡ ' + mrPending + ' รอ MR';
         el = document.getElementById('sbHad'); if (el) el.innerHTML = '💊 ' + hadCount + ' HAD';
         el = document.getElementById('sbAdr'); if (el) el.innerHTML = '🔬 ' + adrCount + ' ADR';
+    }
+
+    // helper: ตรวจว่ามี ATB อย่างน้อย 1 ตัวที่ Day === planDays วันนี้ (หรือเกิน) — ไม่นับ ongoing
+    function _hasATBDueToday(p) {
+        if (!p || !p.atbActive || !p.atbActive.length) return false;
+        for (var i = 0; i < p.atbActive.length; i++) {
+            var ab = p.atbActive[i];
+            if (ab.ongoing) continue;
+            if (!ab.planDays || ab.planDays < 1) continue;
+            var info = _atbDayInfo(ab.startDate, ab.planDays, false, 'active');
+            // ครบวันนี้ = วันนี้คือวัน planDays พอดี (Day === planDays) หรือเกิน
+            if (info.dayNum >= ab.planDays) return true;
+        }
+        return false;
     }
 
     // helper: ตรวจว่า admit วันนี้หรือไม่ (รับ dd/mm/yyyy หรือ Date string)
@@ -6549,6 +6783,9 @@
                 case 'counseling':
                     if (!isDischarged && p.hasCounseling) result.push(p);
                     break;
+                case 'atb-due':
+                    if (!isDischarged && _hasATBDueToday(p)) result.push(p);
+                    break;
                 case 'dc-today':
                     if (p.dcToday) result.push(p);
                     break;
@@ -6569,6 +6806,7 @@
             ['fc-adr',        'adr-pending'],
             ['fc-warfarin',   'warfarin'],
             ['fc-counseling', 'counseling'],
+            ['fc-atb-due',    'atb-due'],
             ['fc-dc',         'dc-today'],
         ];
         for (var i = 0; i < ids.length; i++) {
@@ -7646,6 +7884,15 @@
         document.getElementById('detailPatientName').textContent = patient.name + ' (HN: ' + hn + ')';
         document.getElementById('patientDetailModal').classList.add('active');
 
+        // ── Phase 5: load ATB plan แยก (มีฉาก subtab ATB อยู่แล้วใน modal) ──
+        try {
+            _atbCurrentList = [];
+            var _atbList = document.getElementById('atbListContainer');
+            if (_atbList) _atbList.innerHTML = '<div class="atb-empty">— กำลังโหลด —</div>';
+            hideATBForm();
+            loadATBPlan(hn);
+        } catch (e) { console.warn('loadATBPlan trigger failed', e); }
+
         // ──  populate ทันทีด้วย local cache (ถ้ามี) ──
         let cached = null;
         try { cached = JSON.parse(localStorage.getItem('ipd_bundle_' + hn)); } catch(e) {}
@@ -8249,6 +8496,315 @@
             }
             // ไม่ต้องเรียก loadPatients() อีก — optimistic update ครอบคลุมแล้ว
             // ถ้าจำเป็นต้อง sync จาก server จริงๆ → ผู้ใช้กดรีเฟรชเอง หรือเปลี่ยน tab จะ trigger
+        });
+    }
+
+    // ═══════════════════════════════════════════════════════════════
+    //  Phase 5: ATB Plan — antibiotic course tracking (Day X/Y)
+    //  · เภสัชกรกรอกเท่านั้น
+    //  · Day counter คำนวณ runtime
+    //  · ongoing = TB regimen / long-term (ไม่นับ planDays)
+    // ═══════════════════════════════════════════════════════════════
+
+    var _atbCurrentList = [];     // cache รายการ ATB ของคนไข้ปัจจุบัน
+    var _atbEditingId = null;     // ถ้า edit อยู่ จะมี id; ถ้า add ใหม่ = null
+
+    // คำนวณข้อมูล Day X/Y + สี + label
+    //   return: { dayNum, planDays, label, colorClass, isOver }
+    function _atbDayInfo(startDate, planDays, ongoing, status) {
+        var info = { dayNum: 0, planDays: planDays || 0, label: '', colorClass: 'early', isOver: false };
+        if (status === 'completed') {
+            info.label = 'Done';
+            info.colorClass = 'done';
+            return info;
+        }
+        if (status === 'discontinued') {
+            info.label = 'Stopped';
+            info.colorClass = 'done';
+            return info;
+        }
+        // Calculate days elapsed from startDate
+        var d = null;
+        var m = String(startDate || '').match(/^(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{4})$/);
+        if (m) {
+            var dd = parseInt(m[1], 10);
+            var mm = parseInt(m[2], 10) - 1;
+            var yy = parseInt(m[3], 10);
+            if (yy > 2400) yy -= 543;
+            d = new Date(yy, mm, dd);
+        } else {
+            d = new Date(startDate);
+        }
+        if (!d || isNaN(d)) {
+            info.label = '?';
+            info.colorClass = 'done';
+            return info;
+        }
+        var today = new Date();
+        today.setHours(0,0,0,0);
+        d.setHours(0,0,0,0);
+        var elapsed = Math.floor((today - d) / 86400000) + 1;   // Day 1 = วันแรกที่เริ่ม
+        if (elapsed < 1) elapsed = 1;
+        info.dayNum = elapsed;
+        if (ongoing) {
+            info.label = 'D' + elapsed;
+            info.colorClass = 'ongoing';
+            return info;
+        }
+        var pct = planDays > 0 ? (elapsed / planDays) : 0;
+        info.label = 'D' + elapsed + '/' + planDays;
+        if (elapsed > planDays) {
+            info.label += ' ⚠';
+            info.colorClass = 'over';
+            info.isOver = true;
+        } else if (pct >= 1) {
+            info.colorClass = 'late';
+        } else if (pct >= 0.7) {
+            info.colorClass = 'late';
+        } else if (pct >= 0.5) {
+            info.colorClass = 'mid';
+        } else {
+            info.colorClass = 'early';
+        }
+        return info;
+    }
+
+    function loadATBPlan(hn) {
+        if (!hn) return;
+        gasGet('getATBPlan', { hn: hn }, function(resp) {
+            if (resp && resp.ok && resp.atbPlan) {
+                _atbCurrentList = resp.atbPlan;
+                renderATBTable();
+            } else {
+                _atbCurrentList = [];
+                renderATBTable();
+            }
+        });
+    }
+
+    function renderATBTable() {
+        var container = document.getElementById('atbListContainer');
+        var pill = document.getElementById('atbCountPill');
+        if (!container) return;
+        var items = _atbCurrentList || [];
+        var activeCount = 0;
+        for (var i = 0; i < items.length; i++) {
+            if (items[i].status === 'active') activeCount++;
+        }
+        if (pill) {
+            if (activeCount > 0) {
+                pill.style.display = '';
+                pill.textContent = activeCount + ' active';
+            } else {
+                pill.style.display = 'none';
+            }
+        }
+        if (items.length === 0) {
+            container.innerHTML = '<div class="atb-empty">— ยังไม่มี ATB · กดปุ่มข้างล่างเพื่อเพิ่ม —</div>';
+            return;
+        }
+        var html = '<table class="atb-table"><thead><tr>'
+                 + '<th style="width:30%">ยา</th>'
+                 + '<th style="width:14%">เริ่ม</th>'
+                 + '<th style="width:14%">Day</th>'
+                 + '<th style="width:14%">สถานะ</th>'
+                 + '<th>Notes</th>'
+                 + '<th style="width:160px"></th>'
+                 + '</tr></thead><tbody>';
+        for (var j = 0; j < items.length; j++) {
+            var it = items[j];
+            var info = _atbDayInfo(it.startDate, it.planDays, it.ongoing, it.status);
+            var routeLow = String(it.route || 'IV').toLowerCase();
+            var rowCls = (it.status !== 'active') ? 'atb-row-completed' : '';
+            var statusLabel = it.status === 'completed' ? 'Completed'
+                            : it.status === 'discontinued' ? 'Stopped'
+                            : 'Active';
+            var actionsHtml = '';
+            if (it.status === 'active') {
+                actionsHtml = '<button class="atb-row-btn done" onclick="completeATB(\'' + it.id + '\')" title="Mark completed">✓ Done</button>'
+                            + '<button class="atb-row-btn" onclick="editATB(\'' + it.id + '\')" title="Edit">📝</button>'
+                            + '<button class="atb-row-btn del" onclick="deleteATB(\'' + it.id + '\')" title="Delete">🗑</button>';
+            } else {
+                actionsHtml = '<button class="atb-row-btn" onclick="editATB(\'' + it.id + '\')" title="Edit">📝</button>'
+                            + '<button class="atb-row-btn del" onclick="deleteATB(\'' + it.id + '\')" title="Delete">🗑</button>';
+            }
+            html += '<tr class="' + rowCls + '">'
+                  +   '<td><span class="atb-drug-name">' + _esc(it.drug) + '</span><span class="atb-route ' + routeLow + '">' + _esc(it.route) + '</span></td>'
+                  +   '<td class="atb-date-cell">' + _shortDate(it.startDate) + '</td>'
+                  +   '<td><span class="day-badge ' + info.colorClass + '">' + info.label + '</span></td>'
+                  +   '<td><div class="atb-status-cell"><span class="atb-status-dot ' + it.status + '"></span><span>' + statusLabel + '</span></div></td>'
+                  +   '<td style="font-size:11px; color:#888;">' + (_esc(it.notes) || '—') + '</td>'
+                  +   '<td><div class="atb-row-actions">' + actionsHtml + '</div></td>'
+                  + '</tr>';
+        }
+        html += '</tbody></table>';
+        container.innerHTML = html;
+    }
+
+    function _esc(s) {
+        return String(s == null ? '' : s)
+            .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+    }
+
+    function showATBForm() {
+        _atbEditingId = null;
+        var form = document.getElementById('atbForm');
+        var btn  = document.getElementById('atbShowFormBtn');
+        if (!form || !btn) return;
+        // Reset fields with sensible defaults
+        document.getElementById('atbFormId').value = '';
+        document.getElementById('atbFormDrug').value = '';
+        document.getElementById('atbFormStartDate').value = _todayStr();
+        document.getElementById('atbFormPlanDays').value = '7';
+        document.getElementById('atbFormPlanDays').disabled = false;
+        document.getElementById('atbFormOngoing').checked = false;
+        document.getElementById('atbFormNotes').value = '';
+        setATBRoute('IV');
+        document.getElementById('atbFormTitle').textContent = 'เพิ่ม ATB ใหม่';
+        form.style.display = '';
+        btn.style.display = 'none';
+        document.getElementById('atbFormDrug').focus();
+    }
+
+    function hideATBForm() {
+        var form = document.getElementById('atbForm');
+        var btn  = document.getElementById('atbShowFormBtn');
+        if (form) form.style.display = 'none';
+        if (btn)  btn.style.display = '';
+        _atbEditingId = null;
+    }
+
+    function setATBRoute(route) {
+        var wrap = document.getElementById('atbFormRoute');
+        if (!wrap) return;
+        wrap.dataset.route = route;
+        var btns = wrap.querySelectorAll('button');
+        for (var i = 0; i < btns.length; i++) {
+            var v = btns[i].dataset.routeVal;
+            btns[i].classList.remove('active', 'iv', 'po', 'im');
+            if (v === route) {
+                btns[i].classList.add('active', String(route).toLowerCase());
+            }
+        }
+    }
+
+    function toggleATBOngoing() {
+        var ongoing = document.getElementById('atbFormOngoing').checked;
+        var planDaysInput = document.getElementById('atbFormPlanDays');
+        if (!planDaysInput) return;
+        planDaysInput.disabled = ongoing;
+        if (ongoing) planDaysInput.value = '';
+        else if (!planDaysInput.value) planDaysInput.value = '7';
+    }
+
+    function _todayStr() {
+        var d = new Date();
+        var dd = String(d.getDate()).padStart(2, '0');
+        var mm = String(d.getMonth() + 1).padStart(2, '0');
+        var yy = d.getFullYear() + 543;   // BE
+        return dd + '/' + mm + '/' + yy;
+    }
+
+    function editATB(id) {
+        var it = null;
+        for (var i = 0; i < _atbCurrentList.length; i++) {
+            if (String(_atbCurrentList[i].id) === String(id)) { it = _atbCurrentList[i]; break; }
+        }
+        if (!it) return;
+        _atbEditingId = id;
+        document.getElementById('atbFormId').value = id;
+        document.getElementById('atbFormDrug').value = it.drug || '';
+        document.getElementById('atbFormStartDate').value = it.startDate || _todayStr();
+        document.getElementById('atbFormPlanDays').value = it.planDays || 7;
+        document.getElementById('atbFormPlanDays').disabled = !!it.ongoing;
+        document.getElementById('atbFormOngoing').checked = !!it.ongoing;
+        document.getElementById('atbFormNotes').value = it.notes || '';
+        setATBRoute(it.route || 'IV');
+        document.getElementById('atbFormTitle').textContent = 'แก้ไข ATB';
+        var form = document.getElementById('atbForm');
+        var btn  = document.getElementById('atbShowFormBtn');
+        if (form) form.style.display = '';
+        if (btn)  btn.style.display = 'none';
+    }
+
+    function saveATB() {
+        if (!currentPatientHN) { showToast('ไม่พบ HN', { type: 'error' }); return; }
+        var drug = (document.getElementById('atbFormDrug').value || '').trim();
+        if (!drug) {
+            showToast('กรุณาใส่ชื่อยา', { type: 'error' });
+            document.getElementById('atbFormDrug').focus();
+            return;
+        }
+        var startDate = (document.getElementById('atbFormStartDate').value || '').trim();
+        if (!startDate) {
+            showToast('กรุณาใส่วันเริ่ม', { type: 'error' });
+            document.getElementById('atbFormStartDate').focus();
+            return;
+        }
+        var ongoing = document.getElementById('atbFormOngoing').checked;
+        var planDays = ongoing ? 0 : parseInt(document.getElementById('atbFormPlanDays').value, 10);
+        if (!ongoing && (!planDays || planDays < 1)) {
+            showToast('Plan days ต้องมากกว่า 0', { type: 'error' });
+            return;
+        }
+        var route = document.getElementById('atbFormRoute').dataset.route || 'IV';
+        var notes = (document.getElementById('atbFormNotes').value || '').trim();
+        var id = document.getElementById('atbFormId').value || _atbEditingId || null;
+
+        var payload = {
+            id: id || undefined,
+            hn: currentPatientHN,
+            drug: drug,
+            route: route,
+            startDate: startDate,
+            planDays: planDays,
+            ongoing: ongoing,
+            status: 'active',
+            notes: notes,
+        };
+        showToast('กำลังบันทึก ATB...', { type: 'info' });
+        gasPost('saveATBPlan', payload, function(r) {
+            if (r && r.ok === false) {
+                showToast('บันทึก ATB ไม่สำเร็จ: ' + (r.error || 'unknown'), { type: 'error' });
+                return;
+            }
+            showToast(id ? 'แก้ไข ATB เรียบร้อย' : 'เพิ่ม ATB เรียบร้อย', { type: 'success' });
+            hideATBForm();
+            loadATBPlan(currentPatientHN);
+            // refresh patient list (atbActive ใน allPatients จะ stale)
+            try { localStorage.removeItem('ipd_patients'); } catch(e) {}
+            if (typeof loadPatients === 'function') loadPatients();
+        });
+    }
+
+    function completeATB(id) {
+        if (!confirm('Mark ATB นี้ว่า "Completed" ใช่ไหม?')) return;
+        showToast('กำลังบันทึก...', { type: 'info' });
+        gasPost('completeATBPlan', { id: id, hn: currentPatientHN }, function(r) {
+            if (r && r.ok === false) {
+                showToast('ไม่สำเร็จ: ' + (r.error || 'unknown'), { type: 'error' });
+                return;
+            }
+            showToast('Mark Completed แล้ว', { type: 'success' });
+            loadATBPlan(currentPatientHN);
+            try { localStorage.removeItem('ipd_patients'); } catch(e) {}
+            if (typeof loadPatients === 'function') loadPatients();
+        });
+    }
+
+    function deleteATB(id) {
+        if (!confirm('ลบ ATB นี้? (ลบถาวรไม่กู้คืน)')) return;
+        showToast('กำลังลบ...', { type: 'info' });
+        gasPost('deleteATBPlan', { id: id, hn: currentPatientHN }, function(r) {
+            if (r && r.ok === false) {
+                showToast('ไม่สำเร็จ: ' + (r.error || 'unknown'), { type: 'error' });
+                return;
+            }
+            showToast('ลบ ATB แล้ว', { type: 'success' });
+            loadATBPlan(currentPatientHN);
+            try { localStorage.removeItem('ipd_patients'); } catch(e) {}
+            if (typeof loadPatients === 'function') loadPatients();
         });
     }
 
