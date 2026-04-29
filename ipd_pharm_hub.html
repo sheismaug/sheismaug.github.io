@@ -6696,6 +6696,8 @@
             let mrStatus = p.mrStatus || 'todo';
             let isMrTodo = mrStatus !== 'done';
             let isAdrPending = p.adrStatus === 'pending';
+            // ★ มี ADR record (เคย/กำลังบันทึก) → แสดง pill เสมอ ไม่ว่า pending/done
+            let hasAdrRecord = !!p.hasADR || isAdrPending;
             let hasPriority = isMrTodo || isAdrPending;
 
             // Status pills — แสดงเฉพาะที่มีข้อมูลจริง
@@ -6706,7 +6708,7 @@
                 pills += '<span class="s-pill s-mr-done"><span class="s-dot"></span>MR เสร็จ</span>';
             }
             if (p.hasHAD) pills += '<span class="s-pill s-had"><span class="s-dot"></span>HAD</span>';
-            if (isAdrPending) pills += '<span class="s-pill s-adr"><span class="s-dot"></span>ADR</span>';
+            if (hasAdrRecord) pills += '<span class="s-pill s-adr"><span class="s-dot"></span>ADR</span>';
             if (p.dcToday) pills += '<span class="s-pill s-dc"><span class="s-dot"></span>D/C</span>';
 
             var days = _daysAdmitted(p.admitDate);
@@ -6770,7 +6772,8 @@
         for (var i = 0; i < active.length; i++) {
             if ((active[i].mrStatus || 'todo') !== 'done') mrPending++;
             if (active[i].hasHAD) hadCount++;
-            if (active[i].adrStatus === 'pending') adrCount++;
+            // นับทุกคนไข้ที่มี ADR ไม่ว่า pending หรือ done — ให้ chip ตรงกับสายตา
+            if (active[i].hasADR || active[i].adrStatus === 'pending') adrCount++;
         }
         var el;
         el = document.getElementById('sbTotal'); if (el) el.textContent = active.length;
@@ -6828,7 +6831,8 @@
                     if (!isDischarged && p.hasHAD) result.push(p);
                     break;
                 case 'adr-pending':
-                    if (!isDischarged && p.adrStatus === 'pending') result.push(p);
+                    // chip "ADR" — รวมทั้ง pending และ done (ทุก case ที่มีบันทึก ADR monitoring)
+                    if (!isDischarged && (p.hasADR || p.adrStatus === 'pending')) result.push(p);
                     break;
                 case 'warfarin':
                     if (!isDischarged && p.hasWarfarin) result.push(p);
