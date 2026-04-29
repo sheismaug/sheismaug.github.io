@@ -3517,6 +3517,9 @@
           gap: 8px; margin-top: 10px;
         }
         .adr-module .rd-v2-photo-grid:empty { display: none; }
+        .adr-module .rd-v2-photo-tile {
+          position: relative; width: 110px; height: 110px;
+        }
         .adr-module .rd-v2-photo {
           width: 110px; height: 110px; border-radius: 6px;
           border: 0.5px solid #dadce0; overflow: hidden;
@@ -3525,6 +3528,22 @@
         }
         .adr-module .rd-v2-photo:hover { transform: scale(1.04); border-color: #1a73e8; }
         .adr-module .rd-v2-photo img { width: 100%; height: 100%; object-fit: cover; display: block; }
+        /* Per-thumbnail edit pencil overlay (รอบ 12.2) */
+        .adr-module .rd-v2-photo-edit {
+          position: absolute; top: 4px; right: 4px;
+          width: 24px; height: 24px; padding: 0;
+          border-radius: 50%; border: 0.5px solid #dadce0;
+          background: rgba(255,255,255,0.92); cursor: pointer;
+          display: none; align-items: center; justify-content: center;
+          font-size: 12px; line-height: 1;
+          font-family: inherit; z-index: 2;
+          box-shadow: 0 1px 2px rgba(0,0,0,0.10);
+        }
+        .adr-module .rd-v2-photo-tile:hover .rd-v2-photo-edit,
+        .adr-module .rd-v2-photo-edit:focus { display: inline-flex; }
+        .adr-module .rd-v2-photo-edit:hover {
+          background: #fff; border-color: #1a73e8; color: #1a73e8;
+        }
 
         .adr-module details.rd-v2-collapsible {
           border-top: 0.5px solid #ece9e2;
@@ -10361,7 +10380,9 @@
         });
     }
 
-    /** ดึงข้อมูล print จาก backend */
+    /** ดึงข้อมูล print จาก backend แล้ว overlay กับ dcMeds (frontend state) ทันที
+     *  ★ Phase 4.1 fix (Issue 1): หลัง user แก้ d/c change ต้องเห็นค่าใหม่
+     *  เผื่อยังไม่กด "บันทึก D/C" — ใช้ dcMeds (live state) เป็น source of truth */
     function fetchDCPrintData() {
         var status = document.getElementById('dcPrintStatus');
         if (status) status.textContent = 'กำลังโหลดข้อมูล...';
@@ -10370,6 +10391,8 @@
                 if (status) status.textContent = 'โหลดไม่สำเร็จ: ' + (r && r.error || 'unknown');
                 return;
             }
+            // ★ Overlay จาก dcMeds (D/C tab live state) — กำจัดปัญหา cache ค่าเดิม
+            try { r = mergeDCPrintDataWithLocal(r); } catch(e) { console.error('overlay dcMeds:', e); }
             _dcPrintData = r;
             _dcPrintOverrides = {};
             buildDCMedSelector();
@@ -10378,7 +10401,95 @@
         });
     }
 
-    /** สร้าง checkbox list ให้เภสัชฯ เลือกยา */
+    /** Overlay backend print data ด้วย dcMeds (frontend state) ตามชื่อยา
+     *  จุดประสงค์: รับประกันว่า "วิธีใช้" ใน fฉลากใหญ่ตรงกับที่ user เห็นใน D/C tab
+     *  Logic:
+     *    - ถ้ามี dcMeds → rebuild sections ทั้งหมดจาก dcMeds (status, sig, qty, reason)
+     *      โดยคงไว้ซึ่ง enrichment (purpose, warnings, category) จาก backend ผ่าน name match
+     *    - คงไว้ซึ่ง Warfarin consolidated entry (มี regimen) ที่ backend สร้าง
+     *    - ถ้า dcMeds ว่าง → ใช้ data จาก backend ตามเดิม (fallback) */
+    function mergeDCPrintDataWithLocal(printData) {
+        if (!Array.isArray(dcMeds) || !dcMeds.length) return printData;
+        if (!printData || !printData.sections) return printData;
+
+        // 1) Collect enrichment (purpose/warnings/category) จาก backend ตามชื่อยา
+        var enrichment = {};
+        ['continue','change','new','stop'].forEach(function(k){
+            (printData.sections[k] || []).forEach(function(d){
+                var key = String(d.name || '').toLowerCase().trim();
+                if (key && !enrichment[key]) {
+                    enrichment[key] = {
+                        purpose:  d.purpose,
+                        warnings: d.warnings,
+                        category: d.category,
+                        strength: d.strength,
+                    };
+                }
+            });
+        });
+
+        // 2) Find Warfarin consolidated entry (with regimen) — keep as-is
+        var warfarinEntry = null, warfarinSection = null;
+        ['continue','change','new','stop'].forEach(function(k){
+            (printData.sections[k] || []).forEach(function(d){
+                if (/warfarin|orfarin|marevan/i.test(d.name || '') && d.regimen) {
+                    warfarinEntry = d; warfarinSection = k;
+                }
+            });
+        });
+
+        // 3) Rebuild sections from dcMeds
+        var statusToKey = { continue: 'continue', change: 'change', new: 'new', stop: 'stop' };
+        var newSections = { continue: [], change: [], new: [], stop: [] };
+        dcMeds.forEach(function(m){
+            // Skip warfarin — handled by consolidated entry separately
+            if (warfarinEntry && /warfarin|orfarin|marevan/i.test(m.name || '')) return;
+            var key = statusToKey[m.status] || 'continue';
+            var enr = enrichment[String(m.name || '').toLowerCase().trim()] || {};
+            newSections[key].push({
+                name:      m.name || '',
+                sig:       m.sig || '',
+                sigBefore: m.origSig || '',
+                sigAfter:  m.sig || '',
+                reason:    m.reason || '',
+                qty:       m.qty || '',
+                purpose:   enr.purpose  || '',
+                warnings: enr.warnings || '',
+                category:  enr.category || '',
+                strength:  enr.strength || '',
+            });
+        });
+
+        if (warfarinEntry) {
+            newSections[warfarinSection || 'continue'].push(warfarinEntry);
+        }
+
+        printData.sections = newSections;
+        return printData;
+    }
+
+    /** Manual refresh button — re-pull from backend + overlay dcMeds */
+    function dcPrintRefresh() {
+        var status = document.getElementById('dcPrintStatus');
+        if (status) status.textContent = 'กำลังรีเฟรช...';
+        // เก็บ override ปัจจุบัน — ผู้ใช้คงคาดหวังว่ารีเฟรชเฉพาะข้อมูลยา ไม่ใช่ override
+        var savedOverrides = JSON.parse(JSON.stringify(_dcPrintOverrides || {}));
+        gasGet('getDCPrintData', { hn: currentPatientHN }, function(r) {
+            if (!r || !r.ok) {
+                if (status) status.textContent = 'รีเฟรชไม่สำเร็จ: ' + (r && r.error || 'unknown');
+                return;
+            }
+            try { r = mergeDCPrintDataWithLocal(r); } catch(e) {}
+            _dcPrintData = r;
+            _dcPrintOverrides = savedOverrides;
+            buildDCMedSelector();
+            refreshDCPreview();
+            if (status) status.textContent = 'รีเฟรชเรียบร้อย ✓';
+            setTimeout(function(){ if (status) status.textContent = ''; }, 1800);
+        });
+    }
+
+    /** สร้าง checkbox list ให้เภสัชฯ เลือกยา + manual override */
     function buildDCMedSelector() {
         if (!_dcPrintData) return;
         var all = LargePrintRenderer.flattenSections(_dcPrintData.sections);
@@ -10389,22 +10500,92 @@
             var statusTh = { cont:'ยาเดิม', chg:'ปรับ', new:'ใหม่', stop:'หยุด' }[item.status] || '';
             var statusColor = { cont:'#888', chg:'#c27803', new:'#15803d', stop:'#b91c1c' }[item.status] || '#666';
             var sigTrans = (typeof SigTranslator !== 'undefined') ? SigTranslator.translate(d.sig || '') : { ok:false };
-            var sigPreview = sigTrans.ok ? sigTrans.thai : '<span style="color:#dc2626;">⚠ ต้องแก้ — </span>' + (d.sig || '');
+            var sigPreview = sigTrans.ok ? sigTrans.thai : '<span style="color:#dc2626;">⚠ ต้องแก้ — </span>' + escHtml(d.sig || '');
+
+            // Pre-fill override panel จากค่าที่ parse ได้ (ถ้ามี) เพื่อให้แก้ง่าย
+            var p = (sigTrans.ok && sigTrans.parts) ? sigTrans.parts : {};
+            var preQty = (p.qty != null) ? p.qty : 1;
+            var preFreq = p.freq || 1;
+            // คำนวณ slots ที่ "default" จาก parse
+            var preSlots = [];
+            try {
+                var T = (typeof SigTranslator !== 'undefined') ? SigTranslator : null;
+                var grid = (T && T.dotGrid) ? T.dotGrid(preFreq, preQty, p.suffix||'', p.timing||'') : null;
+                if (grid) {
+                    ['m','n','e','b'].forEach(function(s){ if (grid[s] > 0) preSlots.push(s); });
+                }
+            } catch(e) {}
+
+            // Existing override (user already touched)
+            var ov = _dcPrintOverrides[i] || {};
+            var ovQty = (ov.partsOverride && ov.partsOverride.qty != null) ? ov.partsOverride.qty : preQty;
+            var ovFreq = (ov.partsOverride && ov.partsOverride.freq != null) ? ov.partsOverride.freq : preFreq;
+            var ovSlots = (ov.partsOverride && Array.isArray(ov.partsOverride.slots)) ? ov.partsOverride.slots : preSlots;
+            var ovUse = !!(ov.partsOverride && ov.partsOverride.useOverride);
+
+            function slotChk(s, label) {
+                var on = ovSlots.indexOf(s) >= 0;
+                return '<label style="font-size:11px; display:inline-flex; gap:3px; align-items:center; cursor:pointer; margin-right:8px;">'
+                    + '<input type="checkbox" data-override-slot="' + i + '" data-slot="' + s + '"' + (on ? ' checked' : '')
+                    + ' onchange="onPartsSlotChange(' + i + ', \'' + s + '\', this.checked)" style="margin:0;">'
+                    + label + '</label>';
+            }
+
             return '<div class="dc-print-row" style="padding:8px 10px; border:1px solid #e0e0e0; border-radius:6px; margin-bottom:6px; background:white;">' +
-              '<label style="display:flex; gap:8px; align-items:flex-start; cursor:pointer;">' +
-                '<input type="checkbox" checked data-idx="' + i + '" onchange="refreshDCPreview()" style="margin-top:3px;">' +
-                '<div style="flex:1;">' +
-                  '<div style="display:flex; gap:6px; align-items:center;">' +
+              '<div style="display:flex; gap:8px; align-items:flex-start;">' +
+                '<input type="checkbox" checked data-idx="' + i + '" onchange="refreshDCPreview()" style="margin-top:3px; cursor:pointer;">' +
+                '<div style="flex:1; min-width:0;">' +
+                  '<div style="display:flex; gap:6px; align-items:center; flex-wrap:wrap;">' +
                     '<span style="font-weight:600;">' + escHtml(d.name || '') + '</span>' +
                     '<span style="font-size:10px; padding:1px 6px; border-radius:99px; background:' + statusColor + '22; color:' + statusColor + '; font-weight:500;">' + statusTh + '</span>' +
                   '</div>' +
-                  '<div style="font-size:12px; color:#555; margin-top:3px;">' + sigPreview + '</div>' +
+                  '<div style="font-size:12px; color:#555; margin-top:3px; word-break:break-word;">' + sigPreview + '</div>' +
                   '<div style="margin-top:6px; display:flex; gap:6px;">' +
-                    '<input type="text" placeholder="แก้วิธีใช้ไทย (override)" style="font-size:11px; padding:4px 6px; border:1px solid #ddd; border-radius:4px; flex:2;" data-override-sig="' + i + '" onchange="setOverride(' + i + ',\'sigThai\',this.value); refreshDCPreview();" value="' + escHtml(d.sigThai || '') + '">' +
-                    '<input type="text" placeholder="สรรพคุณ" style="font-size:11px; padding:4px 6px; border:1px solid #ddd; border-radius:4px; flex:1;" data-override-purpose="' + i + '" onchange="setOverride(' + i + ',\'purpose\',this.value); refreshDCPreview();" value="' + escHtml(d.purpose || '') + '">' +
+                    '<input type="text" placeholder="แก้วิธีใช้ไทย (override)" style="font-size:11px; padding:4px 6px; border:1px solid #ddd; border-radius:4px; flex:2;" data-override-sig="' + i + '" onchange="setOverride(' + i + ',\'sigThai\',this.value); refreshDCPreview();" value="' + escHtml((ov.sigThai != null ? ov.sigThai : (d.sigThai || ''))) + '">' +
+                    '<input type="text" placeholder="สรรพคุณ" style="font-size:11px; padding:4px 6px; border:1px solid #ddd; border-radius:4px; flex:1;" data-override-purpose="' + i + '" onchange="setOverride(' + i + ',\'purpose\',this.value); refreshDCPreview();" value="' + escHtml((ov.purpose != null ? ov.purpose : (d.purpose || ''))) + '">' +
                   '</div>' +
+                  // ── Manual override panel (Issue 2 fix) ──
+                  '<details style="margin-top:6px;"' + (ovUse ? ' open' : '') + '>' +
+                    '<summary style="font-size:11px; color:#2e3f58; cursor:pointer; padding:3px 0; user-select:none;">' +
+                      '✏️ แก้ขนาด/เวลามือเอง <span style="color:#888; font-weight:400;">(สำหรับ sig ที่ระบบอ่านไม่ออก เช่น 1/4 x 1 pc, 1x2 ช ท)</span>' +
+                    '</summary>' +
+                    '<div style="margin-top:6px; padding:8px; background:#f8f9fc; border:1px dashed #c5cad5; border-radius:6px;">' +
+                      '<label style="font-size:11px; display:flex; gap:6px; align-items:center; cursor:pointer; margin-bottom:6px;">' +
+                        '<input type="checkbox" data-override-use="' + i + '"' + (ovUse ? ' checked' : '') +
+                          ' onchange="onPartsUseChange(' + i + ', this.checked)" style="margin:0;">' +
+                        '<b>ใช้ค่าที่กรอกเอง (override การ parse จาก HOSxP)</b>' +
+                      '</label>' +
+                      '<div style="display:flex; gap:8px; align-items:center; flex-wrap:wrap;">' +
+                        '<label style="font-size:11px;">ขนาดต่อครั้ง: ' +
+                          '<input type="text" data-override-qty="' + i + '" value="' + escHtml(String(ovQty)) +
+                          '" placeholder="1, 0.5, 0.25, 1.5" ' +
+                          'style="width:70px; font-size:11px; padding:3px 5px; border:1px solid #ddd; border-radius:4px;" ' +
+                          'onchange="onPartsQtyChange(' + i + ', this.value)">' +
+                          ' <span style="color:#888;">เม็ด/หน่วย</span>' +
+                        '</label>' +
+                        '<label style="font-size:11px;">ความถี่/วัน: ' +
+                          '<select data-override-freq="' + i + '" onchange="onPartsFreqChange(' + i + ', this.value)" ' +
+                          'style="font-size:11px; padding:3px 5px; border:1px solid #ddd; border-radius:4px;">' +
+                            ['1','2','3','4'].map(function(f){
+                              return '<option value="' + f + '"' + (String(ovFreq) === f ? ' selected' : '') + '>' + f + ' ครั้ง</option>';
+                            }).join('') +
+                          '</select>' +
+                        '</label>' +
+                      '</div>' +
+                      '<div style="margin-top:6px;">' +
+                        '<span style="font-size:11px; color:#555; margin-right:6px;">ลงช่อง:</span>' +
+                        slotChk('m', '☀️ เช้า') +
+                        slotChk('n', '🌤 เที่ยง') +
+                        slotChk('e', '🌆 เย็น') +
+                        slotChk('b', '🌙 ก่อนนอน') +
+                      '</div>' +
+                      '<div style="font-size:10.5px; color:#888; margin-top:4px;">' +
+                        'เคล็ด: ติ๊ก "ใช้ค่าที่กรอกเอง" แล้วระบบจะใช้ขนาด+ช่องเวลาที่ติ๊ก แทนการ parse sig' +
+                      '</div>' +
+                    '</div>' +
+                  '</details>' +
                 '</div>' +
-              '</label>' +
+              '</div>' +
             '</div>';
         }).join('');
     }
@@ -10412,6 +10593,63 @@
     function setOverride(idx, field, value) {
         if (!_dcPrintOverrides[idx]) _dcPrintOverrides[idx] = {};
         _dcPrintOverrides[idx][field] = value;
+    }
+
+    /** ★ Manual parts override helpers (Issue 2)
+     *  เก็บโครงสร้าง: _dcPrintOverrides[idx].partsOverride = {useOverride, qty, freq, slots} */
+    function _ensurePartsOv(idx) {
+        if (!_dcPrintOverrides[idx]) _dcPrintOverrides[idx] = {};
+        if (!_dcPrintOverrides[idx].partsOverride) {
+            _dcPrintOverrides[idx].partsOverride = { useOverride: false, qty: 1, freq: 1, slots: [] };
+        }
+        return _dcPrintOverrides[idx].partsOverride;
+    }
+    function onPartsUseChange(idx, on) {
+        var po = _ensurePartsOv(idx);
+        po.useOverride = !!on;
+        // เก็บค่าจาก inputs ปัจจุบันไว้ด้วย (เผื่อ user ติ๊กก่อนกรอก)
+        var qEl = document.querySelector('[data-override-qty="' + idx + '"]');
+        var fEl = document.querySelector('[data-override-freq="' + idx + '"]');
+        if (qEl && qEl.value !== '') po.qty = _parseQtyInput(qEl.value);
+        if (fEl) po.freq = Number(fEl.value) || 1;
+        var slotEls = document.querySelectorAll('[data-override-slot="' + idx + '"]');
+        var slots = [];
+        slotEls.forEach(function(el){ if (el.checked) slots.push(el.getAttribute('data-slot')); });
+        po.slots = slots;
+        refreshDCPreview();
+    }
+    function onPartsQtyChange(idx, val) {
+        var po = _ensurePartsOv(idx);
+        po.qty = _parseQtyInput(val);
+        if (po.useOverride) refreshDCPreview();
+    }
+    function onPartsFreqChange(idx, val) {
+        var po = _ensurePartsOv(idx);
+        po.freq = Number(val) || 1;
+        if (po.useOverride) refreshDCPreview();
+    }
+    function onPartsSlotChange(idx, slot, on) {
+        var po = _ensurePartsOv(idx);
+        po.slots = po.slots || [];
+        var pos = po.slots.indexOf(slot);
+        if (on && pos < 0) po.slots.push(slot);
+        if (!on && pos >= 0) po.slots.splice(pos, 1);
+        if (po.useOverride) refreshDCPreview();
+    }
+    /** Parse 1/4, ½, 0.5, 1.5 etc. → number */
+    function _parseQtyInput(s) {
+        var t = String(s == null ? '' : s).trim();
+        if (!t) return 1;
+        if (t === '½') return 0.5;
+        if (t === '¼') return 0.25;
+        if (t === '¾') return 0.75;
+        var m = t.match(/^(\d+)\s*\/\s*(\d+)$/);
+        if (m) {
+            var num = parseFloat(m[1]), den = parseFloat(m[2]);
+            if (den) return num / den;
+        }
+        var n = parseFloat(t);
+        return isNaN(n) ? 1 : n;
     }
 
     function escHtml(s) {
@@ -10436,6 +10674,7 @@
             if (ov.sigThai)  item.drug.sigThai  = ov.sigThai;
             if (ov.purpose)  item.drug.purpose  = ov.purpose;
             if (ov.warnings) item.drug.warnings = ov.warnings;
+            if (ov.partsOverride) item.drug.partsOverride = ov.partsOverride;
         });
 
         var html = LargePrintRenderer.render({
@@ -10469,6 +10708,7 @@
             if (ov.sigThai)  item.drug.sigThai  = ov.sigThai;
             if (ov.purpose)  item.drug.purpose  = ov.purpose;
             if (ov.warnings) item.drug.warnings = ov.warnings;
+            if (ov.partsOverride) item.drug.partsOverride = ov.partsOverride;
         });
 
         var html = LargePrintRenderer.render({
@@ -10493,6 +10733,9 @@
 
     function closeDCPrintModal() {
         document.getElementById('dcPrintModal').classList.remove('active');
+        // Clear cache เผื่อเปิดคนไข้คนถัดไป — อย่าให้ค่า override ของคนก่อนหลุดมา
+        _dcPrintData = null;
+        _dcPrintOverrides = {};
     }
 
     // Hook: refresh INR field + Warfarin regimen เมื่อเปิด patient ใหม่ / dcMeds เปลี่ยน
@@ -13250,20 +13493,34 @@ if (typeof module !== 'undefined' && module.exports) {
         return (prose ? prose + '\n\n' : '') + urls.join('\n');
     }
 
-    /** Render thumbnail grid (Drive thumbnails) for a list of URLs */
-    function _adrRenderPhotoThumbs(urls) {
+    /** Render thumbnail grid (Drive thumbnails) for a list of URLs.
+     *  ถ้าส่ง roundId มาด้วย จะ render edit-pencil overlay บนแต่ละรูป
+     *  (เผื่อแนบลิ้งค์ผิด — แก้รายตัวได้โดยไม่ต้องเปิด textarea ทั้งก้อน) */
+    function _adrRenderPhotoThumbs(urls, roundId) {
         if (!urls || !urls.length) return '';
         var html = '';
-        urls.forEach(function(url){
+        urls.forEach(function(url, idx){
             var id = _adrExtractDriveId(url);
+            var editBtn = roundId
+                ? '<button type="button" class="rd-v2-photo-edit" '
+                  + 'data-rd-photo-edit-idx="' + idx + '" '
+                  + 'data-rd-round-id="' + _adrEsc(roundId) + '" '
+                  + 'title="แก้ไข/ลบลิ้งค์นี้"' + '>✏️</button>'
+                : '';
             if (id) {
-                html += '<a href="' + _adrEsc(_adrDriveViewUrl(id)) + '" target="_blank" '
-                     +    'class="rd-v2-photo" title="' + _adrEsc(url) + '">'
-                     +    '<img src="' + _adrEsc(_adrDriveThumbUrl(id, 220)) + '" loading="lazy" alt="photo">'
-                     +  '</a>';
+                html += '<div class="rd-v2-photo-tile">'
+                     +    '<a href="' + _adrEsc(_adrDriveViewUrl(id)) + '" target="_blank" '
+                     +       'class="rd-v2-photo" title="' + _adrEsc(url) + '">'
+                     +       '<img src="' + _adrEsc(_adrDriveThumbUrl(id, 220)) + '" loading="lazy" alt="photo">'
+                     +    '</a>'
+                     +    editBtn
+                     +  '</div>';
             } else {
-                html += '<a href="' + _adrEsc(url) + '" target="_blank" class="photo-thumb-link" '
-                     +    'title="' + _adrEsc(url) + '">🔗 ' + _adrEsc(url.slice(0, 40)) + '…</a>';
+                html += '<div class="rd-v2-photo-tile" style="width:auto;height:auto;">'
+                     +    '<a href="' + _adrEsc(url) + '" target="_blank" class="photo-thumb-link" '
+                     +       'title="' + _adrEsc(url) + '">🔗 ' + _adrEsc(url.slice(0, 40)) + '…</a>'
+                     +    editBtn
+                     +  '</div>';
             }
         });
         return html;
@@ -13388,7 +13645,7 @@ if (typeof module !== 'undefined' && module.exports) {
                     '<div class="rd-v2-photos-wrap' + (_parsedPhotos.photoUrls.length ? '' : ' empty') + '" id="adrRdPhotosWrap-' + _adrEsc(r.round_id) + '">' +
                         // View mode: thumbnails + inline + button
                         '<div class="rd-v2-photo-grid" id="adrRdThumbs-' + _adrEsc(r.round_id) + '" style="align-items:center;">' +
-                            _adrRenderPhotoThumbs(_parsedPhotos.photoUrls) +
+                            _adrRenderPhotoThumbs(_parsedPhotos.photoUrls, r.round_id) +
                             (_parsedPhotos.photoUrls.length ? '<button type="button" class="rd-v2-photos-add-inline" data-rd-photos-edit="1" title="แก้ไข/เพิ่มรูป">+</button>' : '') +
                         '</div>' +
                         // Empty mode button
@@ -13635,7 +13892,13 @@ if (typeof module !== 'undefined' && module.exports) {
         function _saveNoteCombined() {
             var c = _combinePhotosAndNote();
             adrSaveRoundField(r.round_id, 'note', c.combined);
-            if (thumbsEl) thumbsEl.innerHTML = _adrRenderPhotoThumbs(c.urls);
+            if (thumbsEl) thumbsEl.innerHTML = _adrRenderPhotoThumbs(c.urls, r.round_id);
+            // Sync wrap class so empty-state hint reappears when last URL deleted
+            var wrap = document.getElementById('adrRdPhotosWrap-' + r.round_id);
+            if (wrap) {
+                if (c.urls.length) wrap.classList.remove('empty');
+                else wrap.classList.add('empty');
+            }
         }
         if (photosTa) {
             photosTa.addEventListener('input', function(){
@@ -13644,7 +13907,7 @@ if (typeof module !== 'undefined' && module.exports) {
                 _adrInputDebounce[dKey] = setTimeout(_saveNoteCombined, 800);
                 // re-render thumbnails immediately (visual feedback)
                 var urls = photosTa.value.split('\n').map(function(l){ return l.trim(); }).filter(Boolean);
-                if (thumbsEl) thumbsEl.innerHTML = _adrRenderPhotoThumbs(urls);
+                if (thumbsEl) thumbsEl.innerHTML = _adrRenderPhotoThumbs(urls, r.round_id);
             });
             photosTa.addEventListener('change', _saveNoteCombined);
             // Auto-grow initial height (รอบ 10.1)
@@ -16357,9 +16620,40 @@ if (typeof module !== 'undefined' && module.exports) {
         // ───────── Wire photo thumbnails to lightbox (รอบ 12) ─────────
         // Round detail thumbnails (.rd-v2-photo) → open lightbox instead of Drive view
         document.addEventListener('click', function(ev){
+            // ── Per-thumbnail edit pencil (รอบ 12.2) — handle BEFORE lightbox ──
+            // เผื่อแนบลิ้งค์ผิด: คลิก ✏️ เพื่อแก้/ลบลิ้งค์เฉพาะรูปนั้น
+            var editBtn = ev.target.closest && ev.target.closest('.rd-v2-photo-edit');
+            if (editBtn) {
+                ev.preventDefault();
+                ev.stopPropagation();
+                var edRound = editBtn.getAttribute('data-rd-round-id');
+                var edIdx   = parseInt(editBtn.getAttribute('data-rd-photo-edit-idx'), 10);
+                if (!edRound || isNaN(edIdx)) return;
+                var edTa = document.getElementById('adrRdPhotos-' + edRound);
+                if (!edTa) return;
+                var edUrls = edTa.value.split('\n').map(function(l){ return l.trim(); }).filter(Boolean);
+                var edCurrent = edUrls[edIdx] || '';
+                var edNext = window.prompt(
+                    'แก้ไขลิ้งค์ Google Drive (เว้นว่างไว้แล้ว OK เพื่อลบรูปนี้):',
+                    edCurrent
+                );
+                if (edNext === null) return;  // user cancelled
+                edNext = String(edNext).trim();
+                if (edNext === '') {
+                    edUrls.splice(edIdx, 1);
+                } else {
+                    edUrls[edIdx] = edNext;
+                }
+                edTa.value = edUrls.join('\n');
+                // Trigger save + re-render via existing change handler
+                edTa.dispatchEvent(new Event('change', { bubbles: true }));
+                return;
+            }
+
             var photoEl = ev.target.closest && ev.target.closest('.rd-v2-photo');
             if (!photoEl) return;
-            var thumbs = photoEl.parentElement;
+            // After รอบ 12.2: photoEl อยู่ใน .rd-v2-photo-tile → ใช้ closest('.rd-v2-photo-grid')
+            var thumbs = photoEl.closest && photoEl.closest('.rd-v2-photo-grid');
             if (!thumbs || !thumbs.id || thumbs.id.indexOf('adrRdThumbs-') !== 0) return;
             ev.preventDefault();
             var roundId = thumbs.id.replace('adrRdThumbs-', '');
@@ -16439,8 +16733,11 @@ if (typeof module !== 'undefined' && module.exports) {
             <span style="font-weight:600; font-size:13px;">รวมหน้า D/C Sheet (สำหรับเภสัชฯ/แฟ้ม)</span>
           </label>
         </div>
-        <h4>เลือกยาที่จะทำฉลากใหญ่</h4>
-        <p style="font-size:11px; color:#666; margin-bottom:8px;">แก้ไขวิธีใช้ไทย/สรรพคุณได้ในช่องข้างล่าง</p>
+        <div style="display:flex; align-items:center; justify-content:space-between; margin:0 0 4px;">
+          <h4 style="margin:0;">เลือกยาที่จะทำฉลากใหญ่</h4>
+          <button class="btn btn-secondary" onclick="dcPrintRefresh()" style="font-size:11px; padding:3px 10px;" title="ดึงข้อมูลล่าสุดจาก D/C tab + เซิร์ฟเวอร์">🔄 รีเฟรช</button>
+        </div>
+        <p style="font-size:11px; color:#666; margin-bottom:8px;">แก้ไขวิธีใช้ไทย/สรรพคุณ + ขนาด/เวลามือเอง ได้ในช่องข้างล่าง · กด "🔄 รีเฟรช" เมื่อแก้ d/c change ใหม่</p>
         <div id="dcPrintMedList"></div>
         <div id="dcPrintStatus"></div>
       </div>

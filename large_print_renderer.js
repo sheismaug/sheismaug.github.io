@@ -263,6 +263,34 @@ table.med td.qty{text-align:center;width:54px;}
 
   // ── Dot grid renderer ──────────────────────────────────────────
 
+  function _qtyTxt(n){
+    if(!n) return '0';
+    if(n === 0.5) return '½';
+    if(n === 0.25) return '¼';
+    if(n === 0.75) return '¾';
+    if(n === 1.5) return '1½';
+    if(Number.isInteger(n)) return String(n);
+    return String(+n.toFixed(2));
+  }
+
+  /** Render dot-grid HTML จาก grid object {m,n,e,b} ที่ pre-computed แล้ว
+   *  ใช้สำหรับ manual-override (ผู้ใช้กำหนดช่องเช้า/เที่ยง/เย็น/ก่อนนอนเอง) */
+  function renderDotGridFromGrid(grid){
+    grid = grid || { m:0, n:0, e:0, b:0 };
+    var slots = ['m','n','e','b'];
+    var cells = slots.map(function(s){
+      var n = grid[s] || 0;
+      var on = n > 0;
+      return `<div class="dot-cell ${on?'on':'off'}">
+        <div class="dot-emoji">${MEAL_EMOJIS[s]}</div>
+        <div class="dot-time">${MEAL_TH[s]}</div>
+        <div class="dot-num ${on?'':'zero'}">${_qtyTxt(n)}</div>
+        <div class="dot-unit">${on ? 'เม็ด' : '&nbsp;'}</div>
+      </div>`;
+    });
+    return `<div class="dot-grid">${cells.join('')}</div>`;
+  }
+
   function renderDotGrid(qty, freq, suffix, timing){
     // Use SigTranslator.dotGrid if available
     var grid;
@@ -279,29 +307,19 @@ table.med td.qty{text-align:center;width:54px;}
       else if(freq === 3){ grid.m = qty; grid.n = qty; grid.e = qty; }
       else if(freq === 4){ grid.m = qty; grid.n = qty; grid.e = qty; grid.b = qty; }
     }
+    return renderDotGridFromGrid(grid);
+  }
 
-    function qtyTxt(n){
-      if(!n) return '0';
-      if(n === 0.5) return '½';
-      if(n === 0.25) return '¼';
-      if(n === 0.75) return '¾';
-      if(n === 1.5) return '1½';
-      if(Number.isInteger(n)) return String(n);
-      return String(+n.toFixed(2));
-    }
-
-    var slots = ['m','n','e','b'];
-    var cells = slots.map(function(s){
-      var n = grid[s];
-      var on = n > 0;
-      return `<div class="dot-cell ${on?'on':'off'}">
-        <div class="dot-emoji">${MEAL_EMOJIS[s]}</div>
-        <div class="dot-time">${MEAL_TH[s]}</div>
-        <div class="dot-num ${on?'':'zero'}">${qtyTxt(n)}</div>
-        <div class="dot-unit">${on ? 'เม็ด' : '&nbsp;'}</div>
-      </div>`;
-    });
-    return `<div class="dot-grid">${cells.join('')}</div>`;
+  /** Build dot grid from drug.partsOverride if useOverride=true.
+   *  Returns null ถ้าไม่ใช้ override (ให้ caller ใช้ renderDotGrid ปกติ) */
+  function _gridFromOverride(drug){
+    if(!drug || !drug.partsOverride || !drug.partsOverride.useOverride) return null;
+    var ov = drug.partsOverride;
+    var oqty = (ov.qty != null && !isNaN(Number(ov.qty))) ? Number(ov.qty) : 1;
+    var slots = Array.isArray(ov.slots) ? ov.slots : [];
+    var grid = { m:0, n:0, e:0, b:0 };
+    slots.forEach(function(s){ if(grid.hasOwnProperty(s)) grid[s] = oqty; });
+    return grid;
   }
 
   // ── Insulin pen SVG (GensuPen 2 — teal body + clear cartridge + black grip + dose window) ──
@@ -517,13 +535,15 @@ table.med td.qty{text-align:center;width:54px;}
     var freq = parts.freq || 1;
     var suffix = parts.suffix || '';
     var timing = parts.timing || '';
+    // ★ Manual override (เภสัชฯ แก้มือ) — ใช้แทนการ parse จาก HOSxP code
+    var gridOverride = _gridFromOverride(drug);
 
     return `<div class="page card-page">
       ${bannerHTML(status, idx, total)}
       <div class="drug-name">${esc(drug.name)}</div>
       ${drug.strength ? `<div class="drug-strength">${esc(drug.strength)}</div>` : ''}
       ${drug.purpose ? `<div class="drug-purpose">${esc(drug.purpose)}</div>` : ''}
-      ${renderDotGrid(qty, freq, suffix, timing)}
+      ${gridOverride ? renderDotGridFromGrid(gridOverride) : renderDotGrid(qty, freq, suffix, timing)}
       ${sigBlock(drug)}
       ${warnBlock(drug.warnings)}
       ${status === 'chg' && drug.reason ? `<div class="next-box"><b>เหตุผลที่แพทย์ปรับขนาด:</b>${esc(drug.reason)}</div>` : ''}
@@ -536,6 +556,8 @@ table.med td.qty{text-align:center;width:54px;}
     var before = translateSig(drug.sigBefore, drug.sigBeforeThai);
     var after  = translateSig(drug.sigAfter || drug.sig, drug.sigThai);
     var parts = (after.parts || {});
+    // ★ Manual override (เภสัชฯ แก้มือ)
+    var gridOverride = _gridFromOverride(drug);
 
     return `<div class="page card-page">
       ${bannerHTML('chg', idx, total)}
@@ -546,7 +568,7 @@ table.med td.qty{text-align:center;width:54px;}
         <div class="ba-box ba-before"><div class="ba-label">ของเดิม</div><div class="ba-text">${esc(before.ok?before.thai:drug.sigBefore||'—')}</div></div>
         <div class="ba-box ba-after"><div class="ba-label">ของใหม่ (กินแบบนี้)</div><div class="ba-text">${esc(after.ok?after.thai:drug.sig||'—')}</div></div>
       </div>
-      ${renderDotGrid(parts.qty||1, parts.freq||1, parts.suffix||'', parts.timing||'')}
+      ${gridOverride ? renderDotGridFromGrid(gridOverride) : renderDotGrid(parts.qty||1, parts.freq||1, parts.suffix||'', parts.timing||'')}
       ${sigBlock(drug)}
       ${drug.reason ? `<div class="next-box"><b>เหตุผลที่แพทย์ปรับขนาด:</b>${esc(drug.reason)}</div>` : ''}
       ${footerHTML(patient, idx, total)}
