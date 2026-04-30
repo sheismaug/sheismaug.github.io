@@ -622,6 +622,26 @@ table.med td.qty{text-align:center;width:54px;}
         if(+m3[3]>0) doses.push({time:'evening', units:+m3[3]});
       } else {
         // ── Fallback parser: รองรับรูปแบบ sig ที่ไม่ใช่ n-n-n ──
+        var sl = s.toLowerCase();
+
+        // ── Step 1: Thai meal-word parser (ใช้บ่อยใน HOSxP ไทย) ──
+        // ตัวอย่าง:
+        //   "SP: เช้า 10 ยูนิต ฉีดเข้าใต้ผิวหนัง ก่อนอาหาร 30 นาที" → เช้า 10
+        //   "เช้า 22 เย็น 14 ยูนิต"                                 → เช้า 22 + เย็น 14
+        //   "ก่อนนอน 8 ยูนิต"                                       → ก่อนนอน 8
+        //   "เช้า 10 กลางวัน 5 เย็น 8 ก่อนนอน 4"                    → ครบ 4 มื้อ
+        var thaiPatterns = [
+          { time:'bedtime', re:/ก่อนนอน\s*(\d+(?:\.\d+)?)/ },  // ตรวจก่อน "ก่อน..." อื่น ๆ
+          { time:'morning', re:/เช้า\s*(\d+(?:\.\d+)?)/ },
+          { time:'noon',    re:/(?:กลางวัน|เที่ยง)\s*(\d+(?:\.\d+)?)/ },
+          { time:'evening', re:/เย็น\s*(\d+(?:\.\d+)?)/ },
+        ];
+        thaiPatterns.forEach(function(p){
+          var m = sl.match(p.re);
+          if(m && +m[1] > 0) doses.push({ time:p.time, units:+m[1] });
+        });
+
+        // ── Step 2: ถ้า Thai parser ไม่เจอ → ใช้ abbreviation parser ──
         // ตัวอย่างที่จับได้:
         //   "*sc 10 u hs"       → ก่อนนอน 10
         //   "10 u sc bid"       → เช้า 10 + เย็น 10
@@ -633,55 +653,56 @@ table.med td.qty{text-align:center;width:54px;}
         //   "10 u qhs"          → ก่อนนอน 10
         //   "10 u q am" / "qam" → เช้า 10
         //   "10 u q pm" / "qpm" → เย็น 10
-        var sl = s.toLowerCase();
-        var units = 0;
-        // หา units: รูปแบบ "n u", "n unit", "n units", "n ยูนิต"
-        var um = sl.match(/(\d+(?:\.\d+)?)\s*(?:u(?:nits?)?|ยูนิต|ยน)\b/);
-        if(um) units = +um[1];
-        // ถ้าไม่เจอ "u" — ลองรูปแบบ "1x2", "2x3" (qty x freq)
-        var qxf = sl.match(/(\d+(?:\.\d+)?)\s*x\s*(\d+)/);
-        var freqFromX = null;
-        if(!units && qxf){ units = +qxf[1]; freqFromX = +qxf[2]; }
+        if(doses.length === 0){
+          var units = 0;
+          // หา units: "n u", "n unit", "n units" (ASCII, ใช้ \b ได้) หรือ "n ยูนิต" / "n ยน" (ไทย ไม่ใช้ \b)
+          var um = sl.match(/(\d+(?:\.\d+)?)\s*(?:u(?:nits?)?\b|ยูนิต|ยน)/);
+          if(um) units = +um[1];
+          // ถ้าไม่เจอ "u" — ลองรูปแบบ "1x2", "2x3" (qty x freq)
+          var qxf = sl.match(/(\d+(?:\.\d+)?)\s*x\s*(\d+)/);
+          var freqFromX = null;
+          if(!units && qxf){ units = +qxf[1]; freqFromX = +qxf[2]; }
 
-        if(units > 0){
-          // ตรวจ timing keyword
-          var hasHS  = /\b(?:q?hs|bed\s*time|ก่อนนอน|hor\.?\s*som|nocte)\b/.test(sl);
-          var hasAC  = /\bac\b|ก่อนอาหาร|ante\s*cib/.test(sl);
-          var hasPC  = /\bpc\b|หลังอาหาร|post\s*cib/.test(sl);
-          var hasQID = /\bqid\b|วันละ\s*4|q6h\b/.test(sl);
-          var hasTID = /\btid\b|วันละ\s*3|q8h\b/.test(sl);
-          var hasBID = /\bbid\b|วันละ\s*2|q12h\b/.test(sl);
-          var hasQAM = /\bq\s*am\b|qam\b|เช้า/.test(sl);
-          var hasQPM = /\bq\s*pm\b|qpm\b|เย็น/.test(sl);
-          var hasQD  = /\b(?:qd|od|q24h|วันละ\s*1|once\s*daily|sid)\b/.test(sl);
+          if(units > 0){
+            // ตรวจ timing keyword (เลี่ยง "เช้า/เย็น/ก่อน..." เพราะ Thai parser ใน Step 1 จัดการไปแล้ว)
+            var hasHS  = /\b(?:q?hs|bed\s*time|hor\.?\s*som|nocte)\b/.test(sl);
+            var hasAC  = /\bac\b|ante\s*cib/.test(sl);
+            var hasPC  = /\bpc\b|post\s*cib/.test(sl);
+            var hasQID = /\bqid\b|วันละ\s*4|q6h\b/.test(sl);
+            var hasTID = /\btid\b|วันละ\s*3|q8h\b/.test(sl);
+            var hasBID = /\bbid\b|วันละ\s*2|q12h\b/.test(sl);
+            var hasQAM = /\bq\s*am\b|qam\b/.test(sl);
+            var hasQPM = /\bq\s*pm\b|qpm\b/.test(sl);
+            var hasQD  = /\b(?:qd|od|q24h|วันละ\s*1|once\s*daily|sid)\b/.test(sl);
 
-          if(hasHS){
-            doses.push({time:'bedtime', units:units});
-          } else if(hasQID){
-            doses.push({time:'morning', units:units});
-            doses.push({time:'noon',    units:units});
-            doses.push({time:'evening', units:units});
-            doses.push({time:'bedtime', units:units});
-          } else if(hasTID || hasAC || hasPC){
-            doses.push({time:'morning', units:units});
-            doses.push({time:'noon',    units:units});
-            doses.push({time:'evening', units:units});
-          } else if(hasBID){
-            doses.push({time:'morning', units:units});
-            doses.push({time:'evening', units:units});
-          } else if(freqFromX){
-            // 1x2/1x3/1x4 — กระจายตาม freq
-            if(freqFromX >= 1) doses.push({time:'morning', units:units});
-            if(freqFromX >= 3) doses.push({time:'noon',    units:units});
-            if(freqFromX >= 2) doses.push({time:'evening', units:units});
-            if(freqFromX >= 4) doses.push({time:'bedtime', units:units});
-          } else if(hasQPM){
-            doses.push({time:'evening', units:units});
-          } else if(hasQAM || hasQD){
-            doses.push({time:'morning', units:units});
-          } else {
-            // ไม่เจอ timing — default = เช้า (เภสัชฯ ควรใช้ manual override)
-            doses.push({time:'morning', units:units});
+            if(hasHS){
+              doses.push({time:'bedtime', units:units});
+            } else if(hasQID){
+              doses.push({time:'morning', units:units});
+              doses.push({time:'noon',    units:units});
+              doses.push({time:'evening', units:units});
+              doses.push({time:'bedtime', units:units});
+            } else if(hasTID || hasAC || hasPC){
+              doses.push({time:'morning', units:units});
+              doses.push({time:'noon',    units:units});
+              doses.push({time:'evening', units:units});
+            } else if(hasBID){
+              doses.push({time:'morning', units:units});
+              doses.push({time:'evening', units:units});
+            } else if(freqFromX){
+              // 1x2/1x3/1x4 — กระจายตาม freq
+              if(freqFromX >= 1) doses.push({time:'morning', units:units});
+              if(freqFromX >= 3) doses.push({time:'noon',    units:units});
+              if(freqFromX >= 2) doses.push({time:'evening', units:units});
+              if(freqFromX >= 4) doses.push({time:'bedtime', units:units});
+            } else if(hasQPM){
+              doses.push({time:'evening', units:units});
+            } else if(hasQAM || hasQD){
+              doses.push({time:'morning', units:units});
+            } else {
+              // ไม่เจอ timing — default = เช้า (เภสัชฯ ควรใช้ manual override)
+              doses.push({time:'morning', units:units});
+            }
           }
         }
       }
