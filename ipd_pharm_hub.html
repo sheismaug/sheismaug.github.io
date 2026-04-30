@@ -10527,12 +10527,59 @@
             var ovSlots = (ov.partsOverride && Array.isArray(ov.partsOverride.slots)) ? ov.partsOverride.slots : preSlots;
             var ovUse = !!(ov.partsOverride && ov.partsOverride.useOverride);
 
+            // ── Insulin detection (sync กับ detectDrugType ใน large_print_renderer.js) ──
+            var nameL_ins = String(d.name || '').toLowerCase();
+            var isInsulinDrug = /insulin|gensulin|mixtard|humulin|actrapid|novomix|lantus|levemir|humalog|novorapid|ryzodeg|tresiba|toujeo|novolin|apidra|\bnph\b|\bri\b/.test(nameL_ins)
+                              || /penfill|cartridge|syringe/.test(nameL_ins);
+
+            // ── Insulin dose override (per-meal units) ──
+            var insOv = (ov.insulinDoses && typeof ov.insulinDoses === 'object') ? ov.insulinDoses : {};
+            var insUse = !!insOv.useOverride;
+            var insM = insOv.morning != null ? insOv.morning : '';
+            var insN = insOv.noon    != null ? insOv.noon    : '';
+            var insE = insOv.evening != null ? insOv.evening : '';
+            var insB = insOv.bedtime != null ? insOv.bedtime : '';
+
             function slotChk(s, label) {
                 var on = ovSlots.indexOf(s) >= 0;
                 return '<label style="font-size:11px; display:inline-flex; gap:3px; align-items:center; cursor:pointer; margin-right:8px;">'
                     + '<input type="checkbox" data-override-slot="' + i + '" data-slot="' + s + '"' + (on ? ' checked' : '')
                     + ' onchange="onPartsSlotChange(' + i + ', \'' + s + '\', this.checked)" style="margin:0;">'
                     + label + '</label>';
+            }
+
+            function insulinPanel() {
+                if (!isInsulinDrug) return '';
+                function uIn(time, val, emoji, label) {
+                    return '<label style="font-size:11px; display:flex; flex-direction:column; gap:2px; align-items:center;">'
+                        + '<span style="color:#555;">' + emoji + ' ' + label + '</span>'
+                        + '<input type="number" min="0" step="1" data-ins-dose="' + i + '" data-time="' + time + '" '
+                        + 'value="' + escHtml(String(val)) + '" placeholder="—" '
+                        + 'style="width:60px; font-size:13px; font-weight:600; padding:4px 6px; border:1px solid #ddd; border-radius:4px; text-align:center;" '
+                        + 'onchange="onInsulinDoseChange(' + i + ', \'' + time + '\', this.value)">'
+                        + '</label>';
+                }
+                return '<details style="margin-top:6px;"' + (insUse ? ' open' : '') + '>'
+                    + '<summary style="font-size:11px; color:#0e7490; cursor:pointer; padding:3px 0; user-select:none;">'
+                    +   '💉 ระบุขนาด Insulin มือเอง <span style="color:#888; font-weight:400;">(ยูนิตต่อมื้อ — สำหรับ sig ที่ไม่ใช่ n-n-n)</span>'
+                    + '</summary>'
+                    + '<div style="margin-top:6px; padding:8px; background:#ecfeff; border:1px dashed #67e8f9; border-radius:6px;">'
+                    +   '<label style="font-size:11px; display:flex; gap:6px; align-items:center; cursor:pointer; margin-bottom:8px;">'
+                    +     '<input type="checkbox" data-ins-use="' + i + '"' + (insUse ? ' checked' : '')
+                    +       ' onchange="onInsulinUseChange(' + i + ', this.checked)" style="margin:0;">'
+                    +     '<b>ใช้ขนาดที่กรอกเอง (override sig)</b>'
+                    +   '</label>'
+                    +   '<div style="display:grid; grid-template-columns:repeat(4, 1fr); gap:8px; align-items:end;">'
+                    +     uIn('morning', insM, '🌅', 'เช้า')
+                    +     uIn('noon',    insN, '☀️', 'กลางวัน')
+                    +     uIn('evening', insE, '🌆', 'เย็น')
+                    +     uIn('bedtime', insB, '🌙', 'ก่อนนอน')
+                    +   '</div>'
+                    +   '<div style="font-size:10.5px; color:#0e7490; margin-top:6px;">'
+                    +     'กรอก <b>ยูนิต</b> ในมื้อที่ฉีด · เว้นว่าง/0 = ไม่ฉีดมื้อนั้น · เช่น Mixtard 22-0-14 → เช้า 22, เย็น 14'
+                    +   '</div>'
+                    + '</div>'
+                    + '</details>';
             }
 
             return '<div class="dc-print-row" style="padding:8px 10px; border:1px solid #e0e0e0; border-radius:6px; margin-bottom:6px; background:white;">' +
@@ -10588,6 +10635,7 @@
                       '</div>' +
                     '</div>' +
                   '</details>' +
+                  insulinPanel() +
                 '</div>' +
               '</div>' +
             '</div>';
@@ -10640,6 +10688,32 @@
         if (!on && pos >= 0) po.slots.splice(pos, 1);
         if (po.useOverride) refreshDCPreview();
     }
+    /** ★ Insulin manual dose override helpers
+     *  เก็บโครงสร้าง: _dcPrintOverrides[idx].insulinDoses = {useOverride, morning, noon, evening, bedtime} */
+    function _ensureInsulinOv(idx) {
+        if (!_dcPrintOverrides[idx]) _dcPrintOverrides[idx] = {};
+        if (!_dcPrintOverrides[idx].insulinDoses) {
+            _dcPrintOverrides[idx].insulinDoses = { useOverride: false };
+        }
+        return _dcPrintOverrides[idx].insulinDoses;
+    }
+    function onInsulinUseChange(idx, on) {
+        var io = _ensureInsulinOv(idx);
+        io.useOverride = !!on;
+        // เก็บค่าจาก inputs ปัจจุบันไว้ด้วย (เผื่อ user ติ๊กก่อนกรอก)
+        ['morning','noon','evening','bedtime'].forEach(function(t){
+            var el = document.querySelector('[data-ins-dose="' + idx + '"][data-time="' + t + '"]');
+            if (el && el.value !== '') io[t] = Number(el.value) || 0;
+        });
+        refreshDCPreview();
+    }
+    function onInsulinDoseChange(idx, time, val) {
+        var io = _ensureInsulinOv(idx);
+        var n = Number(val);
+        io[time] = isNaN(n) ? 0 : n;
+        if (io.useOverride) refreshDCPreview();
+    }
+
     /** Parse 1/4, ½, 0.5, 1.5 etc. → number */
     function _parseQtyInput(s) {
         var t = String(s == null ? '' : s).trim();
@@ -10679,6 +10753,15 @@
             if (ov.purpose)  item.drug.purpose  = ov.purpose;
             if (ov.warnings) item.drug.warnings = ov.warnings;
             if (ov.partsOverride) item.drug.partsOverride = ov.partsOverride;
+            // ★ Insulin manual override → สร้าง doses array ส่งให้ buildInsulinCard
+            if (ov.insulinDoses && ov.insulinDoses.useOverride) {
+                var doses = [];
+                ['morning','noon','evening','bedtime'].forEach(function(t){
+                    var u = Number(ov.insulinDoses[t]);
+                    if (!isNaN(u) && u > 0) doses.push({ time: t, units: u });
+                });
+                if (doses.length) item.drug.doses = doses;
+            }
         });
 
         var html = LargePrintRenderer.render({
@@ -10713,6 +10796,15 @@
             if (ov.purpose)  item.drug.purpose  = ov.purpose;
             if (ov.warnings) item.drug.warnings = ov.warnings;
             if (ov.partsOverride) item.drug.partsOverride = ov.partsOverride;
+            // ★ Insulin manual override → สร้าง doses array ส่งให้ buildInsulinCard
+            if (ov.insulinDoses && ov.insulinDoses.useOverride) {
+                var doses = [];
+                ['morning','noon','evening','bedtime'].forEach(function(t){
+                    var u = Number(ov.insulinDoses[t]);
+                    if (!isNaN(u) && u > 0) doses.push({ time: t, units: u });
+                });
+                if (doses.length) item.drug.doses = doses;
+            }
         });
 
         var html = LargePrintRenderer.render({

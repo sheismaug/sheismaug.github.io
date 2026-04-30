@@ -620,6 +620,70 @@ table.med td.qty{text-align:center;width:54px;}
         if(+m3[1]>0) doses.push({time:'morning', units:+m3[1]});
         if(+m3[2]>0) doses.push({time:'noon',    units:+m3[2]});
         if(+m3[3]>0) doses.push({time:'evening', units:+m3[3]});
+      } else {
+        // ── Fallback parser: รองรับรูปแบบ sig ที่ไม่ใช่ n-n-n ──
+        // ตัวอย่างที่จับได้:
+        //   "*sc 10 u hs"       → ก่อนนอน 10
+        //   "10 u sc bid"       → เช้า 10 + เย็น 10
+        //   "12 unit sc tid"    → เช้า 12 + กลางวัน 12 + เย็น 12
+        //   "*sc 14 u ac"       → เช้า 14 + กลางวัน 14 + เย็น 14 (ก่อนอาหาร)
+        //   "*sc 14 u pc"       → เหมือน ac (หลังอาหาร 3 มื้อ)
+        //   "1x2 sc"            → freq=2 qty=1 → เช้า 1 + เย็น 1
+        //   "10 u qd" / "od"    → เช้า 10
+        //   "10 u qhs"          → ก่อนนอน 10
+        //   "10 u q am" / "qam" → เช้า 10
+        //   "10 u q pm" / "qpm" → เย็น 10
+        var sl = s.toLowerCase();
+        var units = 0;
+        // หา units: รูปแบบ "n u", "n unit", "n units", "n ยูนิต"
+        var um = sl.match(/(\d+(?:\.\d+)?)\s*(?:u(?:nits?)?|ยูนิต|ยน)\b/);
+        if(um) units = +um[1];
+        // ถ้าไม่เจอ "u" — ลองรูปแบบ "1x2", "2x3" (qty x freq)
+        var qxf = sl.match(/(\d+(?:\.\d+)?)\s*x\s*(\d+)/);
+        var freqFromX = null;
+        if(!units && qxf){ units = +qxf[1]; freqFromX = +qxf[2]; }
+
+        if(units > 0){
+          // ตรวจ timing keyword
+          var hasHS  = /\b(?:q?hs|bed\s*time|ก่อนนอน|hor\.?\s*som|nocte)\b/.test(sl);
+          var hasAC  = /\bac\b|ก่อนอาหาร|ante\s*cib/.test(sl);
+          var hasPC  = /\bpc\b|หลังอาหาร|post\s*cib/.test(sl);
+          var hasQID = /\bqid\b|วันละ\s*4|q6h\b/.test(sl);
+          var hasTID = /\btid\b|วันละ\s*3|q8h\b/.test(sl);
+          var hasBID = /\bbid\b|วันละ\s*2|q12h\b/.test(sl);
+          var hasQAM = /\bq\s*am\b|qam\b|เช้า/.test(sl);
+          var hasQPM = /\bq\s*pm\b|qpm\b|เย็น/.test(sl);
+          var hasQD  = /\b(?:qd|od|q24h|วันละ\s*1|once\s*daily|sid)\b/.test(sl);
+
+          if(hasHS){
+            doses.push({time:'bedtime', units:units});
+          } else if(hasQID){
+            doses.push({time:'morning', units:units});
+            doses.push({time:'noon',    units:units});
+            doses.push({time:'evening', units:units});
+            doses.push({time:'bedtime', units:units});
+          } else if(hasTID || hasAC || hasPC){
+            doses.push({time:'morning', units:units});
+            doses.push({time:'noon',    units:units});
+            doses.push({time:'evening', units:units});
+          } else if(hasBID){
+            doses.push({time:'morning', units:units});
+            doses.push({time:'evening', units:units});
+          } else if(freqFromX){
+            // 1x2/1x3/1x4 — กระจายตาม freq
+            if(freqFromX >= 1) doses.push({time:'morning', units:units});
+            if(freqFromX >= 3) doses.push({time:'noon',    units:units});
+            if(freqFromX >= 2) doses.push({time:'evening', units:units});
+            if(freqFromX >= 4) doses.push({time:'bedtime', units:units});
+          } else if(hasQPM){
+            doses.push({time:'evening', units:units});
+          } else if(hasQAM || hasQD){
+            doses.push({time:'morning', units:units});
+          } else {
+            // ไม่เจอ timing — default = เช้า (เภสัชฯ ควรใช้ manual override)
+            doses.push({time:'morning', units:units});
+          }
+        }
       }
     }
 
