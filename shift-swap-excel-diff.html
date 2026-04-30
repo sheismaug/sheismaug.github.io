@@ -361,8 +361,8 @@ td select{appearance:none;cursor:pointer;}
       <button class="add-row" onclick="addRow()" id="btn-add">＋ เพิ่มรายการ</button>
       <div class="hint">
         ☀️ <b>ช (เช้า)</b> 08.30–16.30 &nbsp;|&nbsp;
-        🌤 <b>บ (บ่าย)</b> 16.30–00.30 &nbsp;|&nbsp;
-        🌙 <b>ด (ดึก)</b> 00.30–08.30
+        🌤 <b>บ (บ่าย)</b> 16.30–00.30
+        <br><span style="font-size:11px;opacity:.85;">📌 กฎเวรเช้าวันหยุด: ทีม 2 คน ต้องมีเภสัชกร ≥1 (ห้าม จพ.+จพ.) · เวรบ่าย: 1 คน ใครก็ได้</span>
       </div>
     </div>
   </div>
@@ -612,71 +612,179 @@ function splitShifts(val) {
   return n ? [n] : [];
 }
 
+// ──────────────────────────────────────────
+// SLOT MODEL (v2 — ใช้ตำแหน่ง+กฎจริง)
+// ──────────────────────────────────────────
+// กฎเวรห้องยา รพ.ห้วยผึ้ง:
+//   • วันธรรมดา      : มีแค่ slot บ่าย (1 คน, ใครก็ได้)
+//   • วันหยุด — เช้า  : ทีม 2 คน  เงื่อนไข ≥1 เภสัชกร  (ห้าม จพ+จพ)
+//   • วันหยุด — บ่าย  : 1 คน, ใครก็ได้
+// ตัวอักษรในเซลล์: 'ช' = อยู่ slot เช้า, 'บ' = อยู่ slot บ่าย, 'ช/บ' = ทั้งสอง
+
+function isPharmacist(pos) {
+  if (!pos) return false;
+  const s = String(pos).trim();
+  // จพ.เภสัชกรรม → false (เป็น tech)
+  if (/^จพ/.test(s) || /พนักงาน/.test(s)) return false;
+  // เภสัชกร / ภก. → true
+  return /เภสัชกร$/.test(s.replace(/\s/g,'')) || /^ภก/.test(s);
+}
+
+function autoDetectHolidays(parsedA, parsedB) {
+  // วันใดมีอย่างน้อย 1 cell ที่มี "ช" → ถือเป็นวันหยุด
+  const set = new Set();
+  [parsedA, parsedB].forEach(p => {
+    if (!p) return;
+    p.days.forEach(({day}) => {
+      const hasMorning = p.names.some(n => /ช/.test(p.data[n][day] || ''));
+      if (hasMorning) set.add(day);
+    });
+  });
+  return set;
+}
+
+function buildSlots(parsed, holidaySet) {
+  const slots = {};
+  parsed.days.forEach(({day}) => {
+    const isHoliday = holidaySet.has(day);
+    slots[day] = {
+      isHoliday,
+      morningTeam: new Set(),   // เซตของชื่อที่อยู่ slot เช้า (วันธรรมดา = ว่างเสมอ)
+      afternoon: null,          // ชื่อคนเดียวที่อยู่ slot บ่าย
+    };
+    parsed.names.forEach(name => {
+      const cell = parsed.data[name][day];
+      const sh   = splitShifts(cell);
+      if (sh.includes('ช')) slots[day].morningTeam.add(name);
+      if (sh.includes('บ')) slots[day].afternoon = name;
+    });
+  });
+  return slots;
+}
+
+// bipartite matching เมื่อทีมเช้าเปลี่ยน
+//   L = leavers (อยู่ before แต่ไม่อยู่ after)
+//   J = joiners (อยู่ after แต่ไม่อยู่ before)
+//   |L| = |J|  (ทีมขนาดคงที่)
+function diffMorning(beforeSet, afterSet, posLookup) {
+  const L = [...beforeSet].filter(n => !afterSet.has(n));
+  const J = [...afterSet].filter(n => !beforeSet.has(n));
+  if (L.length === 0) return { pairs: [], ambiguous: false };
+  if (L.length !== J.length) {
+    // ไม่สมดุล (อาจไม่ใช่ swap แต่เป็นเพิ่ม/ลด) → คู่ตามลำดับเท่าที่มี
+    const pairs = [];
+    for (let i = 0; i < Math.min(L.length, J.length); i++) pairs.push([L[i], J[i]]);
+    return { pairs, ambiguous: true, unbalanced: true };
+  }
+  if (L.length === 1) return { pairs: [[L[0], J[0]]], ambiguous: false };
+
+  // L.length === 2: enumerate 2 permutations
+  const cost = (a, b) => isPharmacist(posLookup[a]) === isPharmacist(posLookup[b]) ? 0 : 1;
+  const optA = cost(L[0], J[0]) + cost(L[1], J[1]);
+  const optB = cost(L[0], J[1]) + cost(L[1], J[0]);
+  if (optA < optB) return { pairs: [[L[0], J[0]], [L[1], J[1]]], ambiguous: false };
+  if (optB < optA) return { pairs: [[L[0], J[1]], [L[1], J[0]]], ambiguous: false };
+  return { pairs: [[L[0], J[0]], [L[1], J[1]]], ambiguous: true };  // tie → flag
+}
+
+function validateSlots(slots, posLookup) {
+  const issues = [];
+  Object.entries(slots).forEach(([day, s]) => {
+    if (s.isHoliday) {
+      const team = [...s.morningTeam];
+      if (team.length === 0)  issues.push({day, msg:'วันหยุด: ไม่มีคนขึ้นเวรเช้า'});
+      else if (team.length === 1) issues.push({day, msg:`วันหยุด: ทีมเช้าไม่ครบ 2 คน (มี ${team[0]})`});
+      else if (team.length > 2) issues.push({day, msg:`วันหยุด: ทีมเช้าเกิน 2 คน (${team.length} คน)`});
+      else {
+        const techs = team.filter(n => !isPharmacist(posLookup[n]));
+        if (techs.length === 2)
+          issues.push({day, msg:`วันหยุด: เช้าเป็น จพ.+จพ. (${team.join(', ')}) — ห้ามตามกฎ`});
+      }
+      if (!s.afternoon) issues.push({day, msg:'วันหยุด: ไม่มีคนเวรบ่าย'});
+    } else {
+      if (s.morningTeam.size > 0)
+        issues.push({day, msg:`วันธรรมดา: มี "ช" ผิดประเภท (${[...s.morningTeam].join(', ')})`});
+    }
+  });
+  return issues;
+}
+
+// ──────────────────────────────────────────
+// MAIN DIFF (slot-based)
+// ──────────────────────────────────────────
 function runDiff() {
   const reqName = document.getElementById('req-name').value;
   if (!reqName || !xlsBefore || !xlsAfter) return;
 
-  const before = xlsBefore.data;
-  const after  = xlsAfter.data;
-  const month  = document.getElementById('req-month').value;
-
-  const reqBefore = findName(Object.keys(before), reqName);
-  const reqAfter  = findName(Object.keys(after),  reqName);
+  const month     = document.getElementById('req-month').value;
+  const reqBefore = findName(Object.keys(xlsBefore.data), reqName);
+  const reqAfter  = findName(Object.keys(xlsAfter.data),  reqName);
 
   if (!reqBefore) {
     showBanner('warn', `⚠️ ไม่พบชื่อ "${reqName}" ในตารางก่อนแลก — ตรวจสอบชื่อใน Excel`);
     return;
   }
 
+  // Step 1: holidays
+  const holidaySet = autoDetectHolidays(xlsBefore, xlsAfter);
+
+  // Step 2: combined posMap (กันชื่อต่างกันเล็กน้อยระหว่าง 2 ไฟล์)
+  const posLookup = Object.assign({}, xlsBefore.posMap || {}, xlsAfter.posMap || {});
+
+  // Step 3: build slot maps
+  const slotsBefore = buildSlots(xlsBefore, holidaySet);
+  const slotsAfter  = buildSlots(xlsAfter,  holidaySet);
+
+  // Step 4: diff per slot, filter by requester
   const swaps = [];
-  const days = xlsBefore.days.map(d => d.day);
-  // build name lookup ฝั่ง before
-  const beforeNames = Object.keys(before);
-  const afterNames  = Object.keys(after);
+  const ambiguousDays = [];
+  const allDays = new Set([...Object.keys(slotsBefore), ...Object.keys(slotsAfter)]);
 
-  days.forEach(day => {
-    const bRaw = (before[reqBefore] || {})[day] || '';
-    const aRaw = (after[reqAfter || reqBefore] || {})[day] || '';
-    const bShifts = splitShifts(bRaw); // เวรเดิมของ req วันนี้
-    const aShifts = splitShifts(aRaw); // เวรใหม่ของ req วันนี้ (อาจว่าง)
-
-    // เวรที่ req "สูญเสีย" ไป (อยู่ใน before แต่ไม่อยู่ใน after)
-    const lostShifts = bShifts.filter(s => !aShifts.includes(s));
-    if (lostShifts.length === 0) return;
-
+  allDays.forEach(day => {
+    const sb = slotsBefore[day] || { isHoliday: holidaySet.has(day), morningTeam: new Set(), afternoon: null };
+    const sa = slotsAfter[day]  || { isHoliday: holidaySet.has(day), morningTeam: new Set(), afternoon: null };
     const dateStr = dayToDate(day, month);
 
-    // สำหรับแต่ละ shift ที่หายไป หาว่าใครรับไป
-    lostShifts.forEach(lostShift => {
-      // ค้นหาคนที่ after วันนี้มี lostShift แต่ before ไม่มี
-      let receiver = null;
-      afterNames.forEach(aName => {
-        if (aName === (reqAfter || reqBefore)) return;
-        const aOtherShifts = splitShifts((after[aName] || {})[day] || '');
-        if (!aOtherShifts.includes(lostShift)) return;
-        // ตรวจว่า before คนนี้ไม่มี lostShift วันนี้
-        const bMatch = findName(beforeNames, aName);
-        const bOtherShifts = splitShifts((before[bMatch || aName] || {})[day] || '');
-        if (!bOtherShifts.includes(lostShift)) {
-          receiver = aName;
-        }
-      });
-
+    // afternoon (1 person)
+    if (sb.afternoon !== sa.afternoon && sb.afternoon === reqBefore) {
       swaps.push({
         from_name:  reqName,
         from_date:  dateStr,
-        from_shift: lostShift,
-        to_name:    receiver || '',
+        from_shift: 'บ',
+        to_name:    sa.afternoon || '',
         to_date:    dateStr,
-        to_shift:   lostShift, // ผู้รับได้เวรเดิมของ req
+        to_shift:   'บ',
         approver:   'หัวหน้ากลุ่มงานเภสัชกรรมฯ',
         auto: true
       });
-    });
+    }
+
+    // morning team (วันหยุดเท่านั้น)
+    if (sb.isHoliday && sb.morningTeam.has(reqBefore) && !sa.morningTeam.has(reqAfter || reqBefore)) {
+      const result = diffMorning(sb.morningTeam, sa.morningTeam, posLookup);
+      const pair   = result.pairs.find(p => p[0] === reqBefore);
+      const receiver = pair ? pair[1] : '';
+      if (result.ambiguous) ambiguousDays.push(dateStr);
+      swaps.push({
+        from_name:  reqName,
+        from_date:  dateStr,
+        from_shift: 'ช',
+        to_name:    receiver || '',
+        to_date:    dateStr,
+        to_shift:   'ช',
+        approver:   'หัวหน้ากลุ่มงานเภสัชกรรมฯ',
+        auto: true,
+        ambiguous: result.ambiguous
+      });
+    }
   });
+
+  // Step 5: validate ตาราง after (ตารางจริงที่จะใช้)
+  const issues = validateSlots(slotsAfter, posLookup);
 
   if (swaps.length === 0) {
     showBanner('warn', `⚠️ ไม่พบความแตกต่างของเวร "${reqName}" ระหว่างสองไฟล์ — ตรวจสอบว่าไฟล์ถูกต้อง`);
+    renderValidationPanel(issues);
     return;
   }
 
@@ -684,9 +792,44 @@ function runDiff() {
   renderRows();
   updatePreview();
   document.getElementById('autofill-badge').style.display = 'inline-block';
-  showBanner('ok', `✅ Auto-fill สำเร็จ — พบการแลกเวร ${swaps.length} รายการ กรุณาตรวจสอบก่อนพิมพ์`);
+
+  // banner: success + ambiguity + violations
+  let msg = `✅ Auto-fill สำเร็จ — พบการแลกเวร ${swaps.length} รายการ`;
+  let bannerType = 'ok';
+  if (ambiguousDays.length > 0) {
+    msg += `  ⚠️ Matching คลุมเครือ ${ambiguousDays.length} วัน (${ambiguousDays.join(', ')}) — กรุณาตรวจสอบผู้รับ`;
+    bannerType = 'warn';
+  }
+  if (issues.length > 0) {
+    msg += `  ❗ พบ ${issues.length} ปัญหากฎเวรในตารางขึ้นจริง — ดูรายละเอียดด้านล่าง`;
+    bannerType = 'warn';
+  }
+  showBanner(bannerType, msg);
+  renderValidationPanel(issues);
   setStep(3);
   setTimeout(scrollPreview, 500);
+}
+
+function renderValidationPanel(issues) {
+  let panel = document.getElementById('validation-panel');
+  if (!panel) {
+    panel = document.createElement('div');
+    panel.id = 'validation-panel';
+    panel.style.cssText = 'margin-top:12px;border-radius:10px;padding:12px 14px;font-size:12.5px;';
+    document.getElementById('rbanner').insertAdjacentElement('afterend', panel);
+  }
+  if (!issues || issues.length === 0) {
+    panel.style.display = 'none';
+    return;
+  }
+  panel.style.display = 'block';
+  panel.style.background = 'var(--red-lt)';
+  panel.style.border = '1px solid #f0b8b2';
+  panel.style.color = 'var(--red)';
+  panel.innerHTML = `<div style="font-weight:700;margin-bottom:6px;">❗ ปัญหากฎเวร (ตารางขึ้นจริง)</div>` +
+    `<ul style="margin:0;padding-left:20px;line-height:1.7;">` +
+    issues.map(i => `<li>วันที่ <b>${i.day}</b>: ${i.msg}</li>`).join('') +
+    `</ul>`;
 }
 
 // fuzzy name match: ตัด prefix นาย/นาง/นางสาว/นส. ออกก่อนเทียบ
