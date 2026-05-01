@@ -7993,26 +7993,44 @@
         var _mrAdmit = document.getElementById('mrAdmitDate');
         if (_mrAdmit) _mrAdmit.value = formatDate(patient.admitDate || new Date());
 
-        // หา MR record ล่าสุดของ admission ปัจจุบัน
+        // หา MR record ของ admission ปัจจุบัน
         //   - MR_Data: เก็บ shift/quality/pharmacist/status (dedupe ต่อ HN)
-        //   - MRLog:   เก็บวันที่ MR เสร็จ + วันที่ MD review ที่ถูกต้อง (dedupe ต่อ HN)
-        // กติกาหา:
+        //   - MRLog:   เก็บวันที่ MR เสร็จ + วันที่ MD review (dedupe ต่อ HN)
+        // ★ STRICT MATCH (กัน admission ก่อนหน้าค้าง — เคส re-admit HN เดิม):
         //   - skip legacy (mrId ขึ้นต้น 'MR-LE')
-        //   - preference: record ที่ admitDate ตรงกับ patient.admitDate (กัน admission เก่า)
-        //   - fallback: latest non-legacy record (กันของเก่าที่ admitDate ใน sheet เพี้ยนจากบั๊กเดิม)
+        //   - ใช้เฉพาะ record ที่ admitDate ตรงกับ patient.admitDate เท่านั้น
+        //   - ถ้า patient ไม่มี admitDate (data corrupt) จึงค่อย fallback ใช้ตัวล่าสุด
+        //   - ถ้าไม่เจอ → ปล่อยฟอร์มเปล่า (อย่า re-fill ของรอบเก่า)
         var mrRecs = (bundle && bundle.mrData) ? bundle.mrData : [];
         var mrLogs = (bundle && bundle.mrLogs) ? bundle.mrLogs : [];
         var ptAdmit = patient.admitDate ? formatDate(patient.admitDate) : '';
-        var latestMR = null, latestMRAny = null;
+        var latestMR = null;
         for (var _k = mrRecs.length - 1; _k >= 0; _k--) {
             var _rec = mrRecs[_k];
             if (_rec.mrId && String(_rec.mrId).indexOf('MR-LE') === 0) continue;  // skip legacy
-            if (!latestMRAny) latestMRAny = _rec;
-            if (ptAdmit && formatDate(_rec.admitDate) === ptAdmit) { latestMR = _rec; break; }
+            if (ptAdmit) {
+                // strict: ต้อง match admit ปัจจุบันเท่านั้น
+                if (formatDate(_rec.admitDate) === ptAdmit) { latestMR = _rec; break; }
+            } else {
+                // ไม่มี ptAdmit → ใช้ตัวล่าสุด (เคสข้อมูลเพี้ยน)
+                latestMR = _rec; break;
+            }
         }
-        if (!latestMR) latestMR = latestMRAny;
-        // MRLog ถูก dedupe ต่อ HN ตอน save → record สุดท้ายคือของ admission ปัจจุบัน
-        var latestMRLog = mrLogs.length ? mrLogs[mrLogs.length - 1] : null;
+        // MRLog: dedupe ต่อ HN ที่ backend → row เดียวต่อ HN
+        // ถ้า re-admit แล้วยังไม่ได้ save MR ของรอบใหม่ row นั้นจะเป็นของรอบก่อน
+        // → ต้องกรองด้วย admitDate เหมือนกัน (ไม่ใช่หยิบ index สุดท้ายมั่ว ๆ)
+        var latestMRLog = null;
+        for (var _l = mrLogs.length - 1; _l >= 0; _l--) {
+            var _log = mrLogs[_l];
+            if (ptAdmit) {
+                if (_log.admitDate && formatDate(_log.admitDate) === ptAdmit) {
+                    latestMRLog = _log; break;
+                }
+                // ถ้า log ไม่มี admitDate field หรือไม่ตรง → ข้าม (กัน contamination)
+            } else {
+                latestMRLog = _log; break;
+            }
+        }
 
         if (latestMR || latestMRLog) {
             // ── Dates: ใช้จาก MRLog (ถูกต้อง) fallback เป็น admitDate หรือ today ──
@@ -8040,8 +8058,13 @@
             }
             if (typeof recomputeMRTimePass === 'function') { try { recomputeMRTimePass(); } catch(e){} }
         } else {
-            document.getElementById('mrDate').value = formatDate(new Date());
-            document.getElementById('mrMDDate').value = formatDate(new Date());
+            // ★ ไม่มี MR ของ admission ปัจจุบัน → ฟอร์มเปล่า (กัน re-fill ของรอบเก่า)
+            //   reset block ตอน openPatientDetail ล้าง shift/select/input ให้แล้ว
+            //   ที่นี่ตั้งวันที่ default เพื่อไม่ให้เป็นช่องว่าง
+            document.getElementById('mrDate').value   = formatDate(patient.admitDate || new Date());
+            document.getElementById('mrMDDate').value = formatDate(patient.admitDate || new Date());
+            // mrTimePass ขึ้นกับ shift+date — เคลียร์ไว้ก่อน รอ user ติ๊ก
+            var _tp = document.getElementById('mrTimePass'); if (_tp) _tp.value = '';
         }
 
         // Show/hide Warfarin tab
