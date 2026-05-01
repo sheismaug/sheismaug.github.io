@@ -6366,28 +6366,82 @@
             regimen:   regimen,
         };
         var _hn = currentPatientHN;
-        gasPost('saveWarfarinEvent', payload, function() {
-            showToast('บันทึก event แล้ว', { type: 'success' });
+
+        // ★ OPTIMISTIC UI — push/replace ใน currentBundle.warfarin + render ทันที
+        //   ตัด getBundle round-trip ที่เคยตามหลัง save
+        try {
+            if (!currentBundle) currentBundle = {};
+            if (!currentBundle.warfarin) currentBundle.warfarin = [];
+            var _isEdit = !!payload.id;
+            var _evtLocal = {
+                id:         payload.id || ('tmp-wf-' + Date.now()),
+                hn:         _hn,
+                date:       payload.date,
+                eventType:  payload.eventType,
+                title:      payload.title,
+                detail:     payload.detail,
+                inr:        payload.inr,
+                weeklyDose: payload.weeklyDose,
+                regimen:    payload.regimen || {},
+            };
+            if (_isEdit) {
+                // replace
+                for (var _wi = 0; _wi < currentBundle.warfarin.length; _wi++) {
+                    if (String(currentBundle.warfarin[_wi].id) === String(payload.id)) {
+                        currentBundle.warfarin[_wi] = _evtLocal;
+                        break;
+                    }
+                }
+            } else {
+                currentBundle.warfarin.push(_evtLocal);
+            }
             document.getElementById('warfEventModal').style.display = 'none';
+            try { renderWarfarinTimeline(); } catch(_re) {}
+        } catch (_e) { console.warn('[saveWarfarin] optimistic update failed', _e); }
+
+        showToast('กำลังบันทึก event...', { type: 'info' });
+        gasPost('saveWarfarinEvent', payload, function(r) {
+            if (r && r.ok === false) {
+                showToast('บันทึกไม่สำเร็จ: ' + (r.error || 'unknown'), { type: 'error' });
+                return;
+            }
+            showToast('บันทึก event แล้ว', { type: 'success' });
             try { localStorage.removeItem('ipd_bundle_' + _hn); } catch(e){}
-            gasGet('getBundle', { hn: _hn }, function(data) {
-                currentBundle = data || currentBundle;
-                try { localStorage.setItem('ipd_bundle_' + _hn, JSON.stringify(currentBundle)); } catch(e){}
-                renderWarfarinTimeline();
-            });
         });
     }
 
     function deleteWarfarinEvent(id) {
         if (!confirm('ลบ event นี้?')) return;
         var _hn = currentPatientHN;
-        gasPost('deleteWarfarinEvent', { id: id }, function() {
+
+        // ★ OPTIMISTIC UI — splice ออกจาก currentBundle.warfarin + render ทันที
+        var _backup = null;
+        try {
+            if (currentBundle && currentBundle.warfarin) {
+                for (var _wi = 0; _wi < currentBundle.warfarin.length; _wi++) {
+                    if (String(currentBundle.warfarin[_wi].id) === String(id)) {
+                        _backup = { idx: _wi, evt: currentBundle.warfarin[_wi] };
+                        currentBundle.warfarin.splice(_wi, 1);
+                        break;
+                    }
+                }
+                try { renderWarfarinTimeline(); } catch(_re) {}
+            }
+        } catch (_e) { console.warn('[deleteWarfarin] optimistic remove failed', _e); }
+
+        showToast('กำลังลบ...', { type: 'info' });
+        gasPost('deleteWarfarinEvent', { id: id }, function(r) {
+            if (r && r.ok === false) {
+                // rollback
+                if (_backup && currentBundle && currentBundle.warfarin) {
+                    currentBundle.warfarin.splice(_backup.idx, 0, _backup.evt);
+                    try { renderWarfarinTimeline(); } catch(_re) {}
+                }
+                showToast('ลบไม่สำเร็จ: ' + (r.error || 'unknown'), { type: 'error' });
+                return;
+            }
             showToast('ลบแล้ว', { type: 'success' });
             try { localStorage.removeItem('ipd_bundle_' + _hn); } catch(e){}
-            gasGet('getBundle', { hn: _hn }, function(data) {
-                currentBundle = data || currentBundle;
-                renderWarfarinTimeline();
-            });
         });
     }
 
@@ -6486,18 +6540,39 @@
         }
         var remaining = payloads.length;
         var _hn = currentPatientHN;
+
+        // ★ OPTIMISTIC UI — push payloads เข้า currentBundle.hadRounds + render trend ทันที
+        //   ตัด getBundle round-trip ที่เคยตามหลัง batch (ลด wait จาก ~5s เหลือ <100ms)
+        try {
+            if (!currentBundle) currentBundle = {};
+            if (!currentBundle.hadRounds) currentBundle.hadRounds = [];
+            for (var _pp = 0; _pp < payloads.length; _pp++) {
+                var _pl = payloads[_pp];
+                currentBundle.hadRounds.push({
+                    id:       'tmp-had-' + Date.now() + '-' + _pp,
+                    hn:       _pl.hn,
+                    date:     _pl.date,
+                    drugKey:  _pl.drugKey,
+                    drug:     _pl.drugKey,
+                    checks:   _pl.checks,
+                    labs:     _pl.checks.labs,
+                    vitals:   _pl.checks.vitals,
+                    clinical: _pl.checks.clinical,
+                    notes:    _pl.notes || '',
+                });
+            }
+            try { renderAllHADTrends(); } catch(_re) {}
+        } catch (_e) { console.warn('[saveHADRound] optimistic push failed', _e); }
+
+        showToast('กำลังบันทึก HAD (' + payloads.length + ' รายการ)...', { type: 'info' });
         for (var p = 0; p < payloads.length; p++) {
-            gasPost('saveHADRound', payloads[p], function() {
+            gasPost('saveHADRound', payloads[p], function(r) {
                 remaining--;
                 if (remaining === 0) {
                     showToast('บันทึก HAD แล้ว (' + payloads.length + ' รายการ)', { type: 'success' });
                     try { localStorage.removeItem('ipd_bundle_' + _hn); } catch(e) {}
-                    // ดึง bundle ใหม่เพื่อ refresh trend table
-                    gasGet('getBundle', { hn: _hn }, function(data) {
-                        currentBundle = data || currentBundle;
-                        try { localStorage.setItem('ipd_bundle_' + _hn, JSON.stringify(currentBundle)); } catch(e){}
-                        renderAllHADTrends();
-                    });
+                    // ไม่ต้อง getBundle อีก — optimistic update วาด trend ไปแล้ว
+                    // ครั้งหน้าที่เปิดคนไข้ จะ fetch bundle ใหม่ได้ id จริงเอง
                 }
             });
         }
@@ -8211,22 +8286,31 @@
     }
 
     function saveDCData() {
-        if (!currentPatientHN) { alert('ไม่พบ HN'); return; }
+        if (!currentPatientHN) { showToast('ไม่พบ HN', { type: 'error' }); return; }
         let payload = {
             hn: currentPatientHN,
             meds: dcMeds,
             timestamp: new Date().toISOString(),
         };
         let _hn = currentPatientHN;
+
+        // ★ OPTIMISTIC UI — ปิด panel + ลบ cache ทันที, fire-and-forget
+        //   ตัด loadPatients() roundtrip ออก (~3-5s) — local list ไม่กระทบ D/C info
+        try {
+            localStorage.removeItem('ipd_patients');
+            localStorage.removeItem('ipd_bundle_' + _hn);
+        } catch(e) {}
+        dcMeds = [];
+        closePatientDetail();
+        showToast('กำลังบันทึก D/C...', { type: 'info' });
+
         gasPost('saveDCChanges', payload, function(r) {
+            if (r && r.ok === false) {
+                showToast('บันทึก D/C ไม่สำเร็จ: ' + (r.error || 'unknown'), { type: 'error' });
+                return;
+            }
             showToast('บันทึก D/C แล้ว', { type: 'success' });
-            try {
-                localStorage.removeItem('ipd_patients');
-                localStorage.removeItem('ipd_bundle_' + _hn);  // invalidate stale bundle cache
-            } catch(e) {}
-            dcMeds = [];  // ensure next open re-seeds from fresh server bundle
-            closePatientDetail();
-            loadPatients();  // refresh รายชื่อ + KPI ทันที
+            // ครั้งหน้าเปิด list หรือ refresh จะ fetch ใหม่เอง (cache ลบแล้ว)
         });
     }
 
@@ -9015,6 +9099,49 @@
             status: 'active',
             notes: notes,
         };
+        var _hn = currentPatientHN;
+
+        // ★ OPTIMISTIC UI — update _atbCurrentList + render + ปิด form ทันที
+        //   ตัด loadATBPlan + loadPatients (= 2 round trips) ออก
+        try {
+            if (!_atbCurrentList) _atbCurrentList = [];
+            var _localItem = {
+                id:        id || ('tmp-atb-' + Date.now()),
+                hn:        _hn,
+                drug:      drug,
+                route:     route,
+                frequency: frequency,
+                startDate: startDate,
+                startTime: startTime,
+                planDays:  planDays,
+                ongoing:   ongoing,
+                status:    'active',
+                notes:     notes,
+            };
+            if (id) {
+                // edit — replace ใน list
+                for (var _ai = 0; _ai < _atbCurrentList.length; _ai++) {
+                    if (String(_atbCurrentList[_ai].id) === String(id)) {
+                        _atbCurrentList[_ai] = _localItem;
+                        break;
+                    }
+                }
+            } else {
+                _atbCurrentList.push(_localItem);
+            }
+            renderATBTable();
+            hideATBForm();
+            // อัพเดท atbActive ใน allPatients (กัน list หน้าหลักแสดงผิด)
+            for (var _pi = 0; _pi < allPatients.length; _pi++) {
+                if (String(allPatients[_pi].hn) === String(_hn)) {
+                    allPatients[_pi].atbActive = true;
+                    break;
+                }
+            }
+            try { localStorage.setItem('ipd_patients', JSON.stringify(allPatients)); } catch(e) {}
+            try { updatePatientTable(); } catch(_e) {}
+        } catch (_e) { console.warn('[saveATB] optimistic update failed', _e); }
+
         showToast('กำลังบันทึก ATB...', { type: 'info' });
         gasPost('saveATBPlan', payload, function(r) {
             if (r && r.ok === false) {
@@ -9022,16 +9149,37 @@
                 return;
             }
             showToast(id ? 'แก้ไข ATB เรียบร้อย' : 'เพิ่ม ATB เรียบร้อย', { type: 'success' });
-            hideATBForm();
-            loadATBPlan(currentPatientHN);
-            // refresh patient list (atbActive ใน allPatients จะ stale)
+            // invalidate cache → ครั้งหน้า fetch ใหม่ได้ id จริง
             try { localStorage.removeItem('ipd_patients'); } catch(e) {}
-            if (typeof loadPatients === 'function') loadPatients();
         });
     }
 
     function completeATB(id) {
         if (!confirm('Mark ATB นี้ว่า "Completed" ใช่ไหม?')) return;
+        var _hn = currentPatientHN;
+
+        // ★ OPTIMISTIC UI — flip status ใน list + render ทันที
+        var _hadActiveAfter = false;
+        try {
+            for (var _ai = 0; _ai < (_atbCurrentList || []).length; _ai++) {
+                if (String(_atbCurrentList[_ai].id) === String(id)) {
+                    _atbCurrentList[_ai].status = 'completed';
+                } else if (_atbCurrentList[_ai].status === 'active') {
+                    _hadActiveAfter = true;
+                }
+            }
+            renderATBTable();
+            // ถ้าไม่เหลือ active แล้ว → flip atbActive ใน patient row
+            for (var _pi = 0; _pi < allPatients.length; _pi++) {
+                if (String(allPatients[_pi].hn) === String(_hn)) {
+                    allPatients[_pi].atbActive = _hadActiveAfter;
+                    break;
+                }
+            }
+            try { localStorage.setItem('ipd_patients', JSON.stringify(allPatients)); } catch(e) {}
+            try { updatePatientTable(); } catch(_e) {}
+        } catch (_e) { console.warn('[completeATB] optimistic failed', _e); }
+
         showToast('กำลังบันทึก...', { type: 'info' });
         gasPost('completeATBPlan', { id: id, hn: currentPatientHN }, function(r) {
             if (r && r.ok === false) {
@@ -9039,24 +9187,51 @@
                 return;
             }
             showToast('Mark Completed แล้ว', { type: 'success' });
-            loadATBPlan(currentPatientHN);
             try { localStorage.removeItem('ipd_patients'); } catch(e) {}
-            if (typeof loadPatients === 'function') loadPatients();
         });
     }
 
     function deleteATB(id) {
         if (!confirm('ลบ ATB นี้? (ลบถาวรไม่กู้คืน)')) return;
+        var _hn = currentPatientHN;
+
+        // ★ OPTIMISTIC UI — splice ออกจาก list + render ทันที
+        var _backup = null;
+        var _hadActiveAfter = false;
+        try {
+            for (var _ai = 0; _ai < (_atbCurrentList || []).length; _ai++) {
+                if (String(_atbCurrentList[_ai].id) === String(id)) {
+                    _backup = { idx: _ai, item: _atbCurrentList[_ai] };
+                    _atbCurrentList.splice(_ai, 1);
+                    _ai--;
+                    continue;
+                }
+                if (_atbCurrentList[_ai].status === 'active') _hadActiveAfter = true;
+            }
+            renderATBTable();
+            for (var _pi = 0; _pi < allPatients.length; _pi++) {
+                if (String(allPatients[_pi].hn) === String(_hn)) {
+                    allPatients[_pi].atbActive = _hadActiveAfter;
+                    break;
+                }
+            }
+            try { localStorage.setItem('ipd_patients', JSON.stringify(allPatients)); } catch(e) {}
+            try { updatePatientTable(); } catch(_e) {}
+        } catch (_e) { console.warn('[deleteATB] optimistic failed', _e); }
+
         showToast('กำลังลบ...', { type: 'info' });
         gasPost('deleteATBPlan', { id: id, hn: currentPatientHN }, function(r) {
             if (r && r.ok === false) {
+                // rollback
+                if (_backup && _atbCurrentList) {
+                    _atbCurrentList.splice(_backup.idx, 0, _backup.item);
+                    try { renderATBTable(); } catch(_e) {}
+                }
                 showToast('ไม่สำเร็จ: ' + (r.error || 'unknown'), { type: 'error' });
                 return;
             }
             showToast('ลบ ATB แล้ว', { type: 'success' });
-            loadATBPlan(currentPatientHN);
             try { localStorage.removeItem('ipd_patients'); } catch(e) {}
-            if (typeof loadPatients === 'function') loadPatients();
         });
     }
 
@@ -9160,10 +9335,39 @@
             },
             outcome: document.getElementById('incOutcome').value
         };
+        var _hn = currentPatientHN;
 
-        gasPost('saveMedError', errData, function() {
-            alert('บันทึก Error สำเร็จ');
+        // ★ OPTIMISTIC UI — push เข้า medErrors + render + ปิด form ทันที
+        //   เลิกใช้ alert() ที่ block UI จนกว่า server จะตอบ — เปลี่ยนเป็น toast
+        try {
+            if (!currentBundle) currentBundle = {};
+            if (!currentBundle.medErrors) currentBundle.medErrors = [];
+            currentBundle.medErrors.push({
+                id:        'tmp-err-' + Date.now(),
+                hn:        _hn,
+                date:      errData.date,
+                kind:      'medError',
+                category:  'medError',
+                type:      errData.type,
+                errorType: errData.type,
+                drug:      errData.drug,
+                detail:    errData.detail,
+                severity:  errData.severity,
+                action:    errData.action,
+                outcome:   errData.outcome,
+            });
+            renderRoundLog(currentBundle.medErrors);
             document.getElementById('medErrorExpand').style.display = 'none';
+        } catch (_e) { console.warn('[saveMedError] optimistic update failed', _e); }
+
+        showToast('กำลังบันทึก Med Error...', { type: 'info' });
+        gasPost('saveMedError', errData, function(r) {
+            if (r && r.ok === false) {
+                showToast('บันทึกไม่สำเร็จ: ' + (r.error || 'unknown'), { type: 'error' });
+                return;
+            }
+            showToast('บันทึก Med Error สำเร็จ', { type: 'success' });
+            try { localStorage.removeItem('ipd_bundle_' + _hn); } catch(e) {}
         });
     }
 
@@ -9187,19 +9391,42 @@
             detail: document.getElementById('drpDetail').value,
             outcome: document.getElementById('drpOutcome').value
         };
+        var _hn = currentPatientHN;
 
-        gasPost('saveDRP', drpData, function() {
-            showToast('บันทึก DRP สำเร็จ', { type: 'success' });
+        // ★ OPTIMISTIC UI — push เข้า currentBundle.medErrors + render ทันที
+        //   ตัด getBundle round-trip ที่เคยตามหลัง save (ลด perceived latency จาก ~6-10s เหลือ <100ms)
+        try {
+            if (!currentBundle) currentBundle = {};
+            if (!currentBundle.medErrors) currentBundle.medErrors = [];
+            currentBundle.medErrors.push({
+                id:       'tmp-drp-' + Date.now(),
+                hn:       _hn,
+                date:     drpData.date,
+                kind:     'drp',
+                category: 'drp',
+                type:     drpData.type,
+                drpType:  drpData.type,
+                drug:     drpData.drug,
+                detail:   drpData.detail,
+                outcome:  drpData.outcome,
+            });
+            renderRoundLog(currentBundle.medErrors);
+            // ปิด form + เคลียร์ทันที (ไม่รอ server)
             document.getElementById('drpExpand').style.display = 'none';
-            // clear form
             document.getElementById('drpDrug').value = '';
             document.getElementById('drpDetail').value = '';
             document.getElementById('drpOutcome').value = '';
-            // reload bundle + re-render log
-            gasGet('getBundle', { hn: currentPatientHN }, function(b) {
-                currentBundle = b || {};
-                renderRoundLog(currentBundle.medErrors || []);
-            });
+        } catch (_e) { console.warn('[saveDRP] optimistic update failed', _e); }
+
+        showToast('กำลังบันทึก DRP...', { type: 'info' });
+        gasPost('saveDRP', drpData, function(r) {
+            if (r && r.ok === false) {
+                showToast('บันทึก DRP ไม่สำเร็จ: ' + (r.error || 'unknown'), { type: 'error' });
+                return;
+            }
+            showToast('บันทึก DRP สำเร็จ', { type: 'success' });
+            // invalidate bundle cache → ครั้งหน้าจะ fetch ใหม่ได้ id จริง
+            try { localStorage.removeItem('ipd_bundle_' + _hn); } catch(e) {}
         });
     }
 
