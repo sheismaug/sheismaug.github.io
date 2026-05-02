@@ -775,6 +775,111 @@ input::placeholder, textarea::placeholder { color: var(--hint); }
 #page-nurse-check #nc-submit:disabled { opacity: .55; cursor: not-allowed; }
 #page-nurse-check #nc-hint { font-size: 12px; color: rgba(20,50,90,.65); text-align: center; margin-top: 8px; text-shadow: 0 1px 0 rgba(255,255,255,.5); font-weight: 500; }
 #page-nurse-check #nc-miss-alert { background: var(--nc2-coral-bg); border: 1px solid rgba(255,111,104,.3); color: var(--nc2-coral-d); padding: .65rem 1rem; border-radius: 12px; font-size: 12.5px; font-weight: 600; margin-top: 1rem; display: none; }
+
+/* ============================================================
+   PHARMACIST SHIFT HUB — Sky theme dashboard
+   ============================================================ */
+#page-shift-hub {
+  --sh-card-border: 0.5px solid rgba(20,20,40,.06);
+  --sh-card-shadow: 0 1px 2px rgba(40,30,80,.04), 0 4px 12px rgba(40,30,80,.06);
+  --sh-card-shadow-h: 0 1px 3px rgba(40,30,80,.05), 0 8px 18px rgba(40,30,80,.08);
+  --sh-hero-shadow: 0 1px 3px rgba(40,30,80,.05), 0 10px 24px rgba(40,30,80,.08);
+  --sh-mint: #4DD091; --sh-mint-d: #2A8C5C; --sh-mint-bg: #D8F5E5;
+  --sh-coral: #FF6F68; --sh-coral-d: #D02B12; --sh-coral-bg: #FFE2DF;
+  --sh-butter: #E8B832; --sh-butter-bg: #FFF5D2;
+  --sh-peach: #FFA23A; --sh-peach-d: #D77A1F; --sh-peach-bg: #FFE2C4;
+  --sh-ink-1: #1A1814; --sh-ink-2: #5C574B; --sh-ink-3: #948F80; --sh-ink-4: #CFCBBE;
+  --sh-hairline: #E4DFD0;
+  background:
+    radial-gradient(ellipse 90% 60% at 10% 5%, rgba(255,255,255,1) 0%, rgba(255,255,255,.85) 28%, rgba(255,255,255,.45) 55%, transparent 85%),
+    radial-gradient(ellipse 80% 55% at 95% 12%, rgba(255,255,255,1) 0%, rgba(255,255,255,.85) 28%, rgba(255,255,255,.45) 55%, transparent 85%),
+    radial-gradient(ellipse 110% 50% at 60% 55%, rgba(255,255,255,.95) 0%, rgba(255,255,255,.7) 35%, rgba(255,255,255,.35) 60%, transparent 88%),
+    radial-gradient(ellipse 130% 55% at 30% 105%, rgba(255,255,255,1) 0%, rgba(255,255,255,.8) 30%, rgba(255,255,255,.4) 60%, transparent 90%),
+    radial-gradient(ellipse 70% 45% at 0% 45%, rgba(255,255,255,.95) 0%, rgba(255,255,255,.65) 30%, transparent 80%),
+    radial-gradient(ellipse 32% 28% at 65% 28%, #5BAEE8 0%, transparent 65%),
+    radial-gradient(ellipse 28% 25% at 28% 70%, #4FB8DC 0%, transparent 65%),
+    radial-gradient(ellipse 30% 25% at 82% 78%, #6FB8E0 0%, transparent 65%),
+    linear-gradient(160deg, #B8D5E5 0%, #A0C8DC 50%, #92BED4 100%);
+  background-attachment: fixed;
+  min-height: 100vh;
+  position: relative;
+}
+#page-shift-hub::before {
+  content:""; position:fixed; inset:0; z-index:0; pointer-events:none;
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='180' height='180'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 0   0 0 0 0 0   0 0 0 0 0   0 0 0 .6 0'/></filter><rect width='100%25' height='100%25' filter='url(%23n)'/></svg>");
+  opacity:.35; mix-blend-mode: overlay;
+}
+#page-shift-hub .container { position: relative; z-index: 1; max-width: 480px; padding: 1.6rem 1.25rem 6.5rem; }
+
+.sh-hero { position: relative; overflow: hidden; border-radius: 28px; padding: 1.85rem 1.65rem 1.5rem; margin-bottom: 1.25rem; background: #FFFFFF; border: var(--sh-card-border); box-shadow: var(--sh-hero-shadow); }
+.sh-hero-sun { position: absolute; top: 16px; right: 18px; width: 56px; height: 56px; z-index: 3; pointer-events: none; filter: drop-shadow(0 2px 6px rgba(184,60,24,.32)); }
+.sh-hero-top { position: relative; z-index: 2; display: flex; align-items: center; justify-content: space-between; margin-bottom: 1.7rem; padding-right: 60px; }
+.sh-hero-pill { display: inline-flex; align-items: center; gap: 8px; font-size: 12px; font-weight: 700; color: var(--sh-mint-d); background: var(--sh-mint-bg); padding: 5px 12px 5px 10px; border-radius: 999px; }
+.sh-hero-pill .live { width: 6px; height: 6px; border-radius: 50%; background: var(--sh-mint); box-shadow: 0 0 0 3px rgba(77,208,145,.22); animation: shpulse 1.6s ease-in-out infinite; }
+@keyframes shpulse { 0%,100% { box-shadow: 0 0 0 0 rgba(77,208,145,.5); } 50% { box-shadow: 0 0 0 5px rgba(77,208,145,0); } }
+.sh-hero-time { font-size: 13.5px; font-weight: 600; color: var(--sh-ink-2); font-feature-settings: "tnum"; letter-spacing: .01em; }
+.sh-hero-time .lbl { color: var(--sh-ink-3); font-weight: 500; font-size: 10.5px; margin-right: 5px; letter-spacing: .12em; text-transform: uppercase; }
+.sh-hero-date { position: relative; z-index: 2; font-size: 36px; font-weight: 700; letter-spacing: -.04em; line-height: 1; color: var(--sh-ink-1); margin-bottom: .45rem; }
+.sh-hero-day { position: relative; z-index: 2; font-size: 13px; font-weight: 500; color: var(--sh-ink-2); margin-bottom: 1.6rem; }
+.sh-hero-ph { position: relative; z-index: 2; display: flex; align-items: center; gap: 13px; padding-top: 1rem; border-top: 0.5px solid var(--sh-hairline); }
+.sh-hero-avatar { width: 44px; height: 44px; border-radius: 50%; flex-shrink: 0; overflow: hidden; box-shadow: 0 0 0 1px rgba(0,0,0,.05), 0 2px 6px rgba(20,40,40,.18); }
+.sh-hero-avatar svg { width: 100%; height: 100%; display: block; }
+.sh-hero-name { font-size: 14.5px; font-weight: 700; color: var(--sh-ink-1); letter-spacing: -.005em; }
+.sh-hero-meta { font-size: 12px; font-weight: 500; color: var(--sh-ink-3); margin-top: 2px; }
+
+.sh-kpi-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-bottom: 1rem; }
+.sh-kpi { position: relative; background: #FFFFFF; border: var(--sh-card-border); border-radius: 16px; padding: .9rem .75rem .75rem; cursor: pointer; transition: transform .25s cubic-bezier(.2,.8,.2,1), box-shadow .25s; box-shadow: var(--sh-card-shadow); }
+.sh-kpi:hover { transform: translateY(-2px); box-shadow: var(--sh-card-shadow-h); }
+.sh-kpi-lbl { display: flex; align-items: center; gap: 5px; font-size: 10px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; margin-bottom: 10px; white-space: nowrap; }
+.sh-kpi-dot { width: 5px; height: 5px; border-radius: 50%; flex-shrink: 0; background: var(--sh-ink-4); }
+.sh-kpi.danger .sh-kpi-lbl { color: var(--sh-coral-d); }
+.sh-kpi.danger .sh-kpi-dot { background: var(--sh-coral); }
+.sh-kpi.danger .sh-kpi-num { color: var(--sh-coral-d); }
+.sh-kpi.warn .sh-kpi-lbl { color: var(--sh-peach-d); }
+.sh-kpi.warn .sh-kpi-dot { background: var(--sh-peach); }
+.sh-kpi.warn .sh-kpi-num { color: var(--sh-peach-d); }
+.sh-kpi.butter .sh-kpi-lbl { color: var(--sh-butter); }
+.sh-kpi.butter .sh-kpi-dot { background: var(--sh-butter); }
+.sh-kpi.butter .sh-kpi-num { color: var(--sh-butter); }
+.sh-kpi.ok .sh-kpi-lbl { color: var(--sh-mint-d); }
+.sh-kpi.ok .sh-kpi-dot { background: var(--sh-mint); }
+.sh-kpi.ok .sh-kpi-num { color: var(--sh-mint-d); }
+.sh-kpi-num { font-size: 28px; font-weight: 700; line-height: 1; letter-spacing: -.04em; font-feature-settings: "tnum"; color: var(--sh-ink-1); }
+
+.sh-note { display: flex; align-items: center; gap: 10px; padding: .65rem .9rem; margin-bottom: 1.25rem; background: #FFFFFF; border: var(--sh-card-border); border-radius: 12px; font-size: 13px; color: var(--sh-ink-1); font-weight: 500; box-shadow: var(--sh-card-shadow); }
+.sh-note .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--sh-coral); box-shadow: 0 0 0 3px var(--sh-coral-bg); flex-shrink: 0; }
+.sh-note b { color: var(--sh-ink-1); font-weight: 700; }
+
+.sh-section-title { font-size: 11px; font-weight: 700; color: rgba(20,50,90,.68); margin: 1.4rem 0 .6rem; padding-left: 4px; letter-spacing: .14em; text-transform: uppercase; text-shadow: 0 1px 0 rgba(255,255,255,.7); }
+
+.sh-action-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.sh-action-card { position: relative; display: flex; flex-direction: column; background: #FFFFFF; border: var(--sh-card-border); border-radius: 20px; padding: 1.25rem 1.1rem 1rem; cursor: pointer; transition: transform .25s cubic-bezier(.2,.8,.2,1), box-shadow .25s; box-shadow: var(--sh-card-shadow); overflow: hidden; }
+.sh-action-card:hover { transform: translateY(-3px); box-shadow: var(--sh-card-shadow-h); }
+.sh-action-icon { width: 48px; height: 48px; display: flex; align-items: center; justify-content: center; font-size: 32px; line-height: 1; margin-bottom: 10px; margin-left: -4px; filter: drop-shadow(0 2px 4px rgba(20,40,40,.12)); }
+.sh-action-ttl { font-size: 15px; font-weight: 700; color: var(--sh-ink-1); margin-bottom: 3px; letter-spacing: -.005em; }
+.sh-action-sub { font-size: 11.5px; color: var(--sh-ink-3); line-height: 1.45; margin-bottom: 12px; flex: 1; font-weight: 500; }
+.sh-action-card.has-issue::after { content:""; position: absolute; top: 12px; right: 12px; width: 9px; height: 9px; background: var(--sh-coral); border-radius: 50%; box-shadow: 0 0 0 3px var(--sh-coral-bg), 0 0 0 4px rgba(255,255,255,.7); }
+.sh-action-meta { display: flex; align-items: center; gap: 8px; padding-top: 10px; border-top: 0.5px solid var(--sh-hairline); font-size: 11.5px; font-weight: 500; color: var(--sh-ink-2); }
+.sh-action-meta .dot { width: 5px; height: 5px; border-radius: 50%; flex-shrink: 0; background: var(--sh-ink-4); }
+.sh-action-meta .dot.danger { background: var(--sh-coral); }
+.sh-action-meta .dot.warn { background: var(--sh-peach); }
+.sh-action-meta .dot.ok { background: var(--sh-mint); }
+.sh-action-meta .text { flex: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: var(--sh-ink-1); font-weight: 600; }
+.sh-action-meta .time { color: var(--sh-ink-3); font-size: 11px; font-feature-settings: "tnum"; flex-shrink: 0; font-weight: 500; }
+
+.sh-feed { background: #FFFFFF; border: var(--sh-card-border); border-radius: 20px; padding: .25rem 1.1rem; box-shadow: var(--sh-card-shadow); }
+.sh-feed-empty { padding: 1.25rem 0; text-align: center; font-size: 13px; color: var(--sh-ink-3); font-weight: 500; }
+.sh-feed-item { display: grid; grid-template-columns: 44px 24px 1fr; gap: 10px; align-items: center; padding: .75rem 0; border-bottom: 0.5px solid var(--sh-hairline); font-size: 13px; line-height: 1.45; }
+.sh-feed-item:last-child { border-bottom: none; }
+.sh-feed-item .t { color: var(--sh-ink-3); font-size: 11px; font-weight: 600; letter-spacing: .02em; font-feature-settings: "tnum"; }
+.sh-feed-item .ic { width: 24px; height: 24px; display: flex; align-items: center; justify-content: center; font-size: 18px; line-height: 1; filter: drop-shadow(0 1px 1.5px rgba(20,40,40,.1)); }
+.sh-feed-item .txt { color: var(--sh-ink-1); font-weight: 500; letter-spacing: -.005em; }
+.sh-feed-item .txt b { font-weight: 700; }
+
+.sh-close-btn { width: 100%; padding: 1rem 1.2rem; border: none; border-radius: 16px; background: #0E0E0E; color: #FFFFFF; font-size: 15.5px; font-weight: 700; cursor: pointer; font-family: inherit; letter-spacing: -.005em; transition: all .25s cubic-bezier(.2,.8,.2,1); box-shadow: 0 1px 3px rgba(0,0,0,.10), 0 6px 16px rgba(0,0,0,.16); display: flex; align-items: center; justify-content: center; gap: 10px; margin-top: 1.6rem; }
+.sh-close-btn:hover { transform: translateY(-1px); background: #1F1F1F; }
+.sh-close-btn .orb { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; background: var(--sh-coral); box-shadow: 0 0 0 3px rgba(255,111,104,.3); }
+.sh-close-btn.ok .orb { background: var(--sh-mint); box-shadow: 0 0 0 3px rgba(77,208,145,.3); }
 </style>
 </head>
 <body>
@@ -862,6 +967,129 @@ input::placeholder, textarea::placeholder { color: var(--hint); }
     <div class="topbar-sub" id="tb-sub"></div>
   </div>
   <button class="topbar-logout" onclick="doLogout()">ออกจากระบบ</button>
+</div>
+
+<!-- ============================================================
+     PAGE: เภสัช — Shift Hub (landing dashboard)
+     ============================================================ -->
+<div id="page-shift-hub" class="page">
+  <div class="container">
+
+    <!-- HERO -->
+    <div class="sh-hero">
+      <svg class="sh-hero-sun" viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+        <line x1="32" y1="3"  x2="32" y2="11" stroke="#FF6F68" stroke-width="2.6" stroke-linecap="round"/>
+        <line x1="32" y1="53" x2="32" y2="61" stroke="#5BAEE8" stroke-width="2.6" stroke-linecap="round"/>
+        <line x1="3"  y1="32" x2="11" y2="32" stroke="#FF96C5" stroke-width="2.6" stroke-linecap="round"/>
+        <line x1="53" y1="32" x2="61" y2="32" stroke="#4DD091" stroke-width="2.6" stroke-linecap="round"/>
+        <line x1="11.5" y1="11.5" x2="17"   y2="17"   stroke="#FFA23A" stroke-width="2.6" stroke-linecap="round"/>
+        <line x1="47"   y1="47"   x2="52.5" y2="52.5" stroke="#A48EE8" stroke-width="2.6" stroke-linecap="round"/>
+        <line x1="52.5" y1="11.5" x2="47"   y2="17"   stroke="#FFD872" stroke-width="2.6" stroke-linecap="round"/>
+        <line x1="11.5" y1="52.5" x2="17"   y2="47"   stroke="#FF96C5" stroke-width="2.6" stroke-linecap="round"/>
+        <circle cx="32" cy="32" r="13" fill="url(#nc2-sunGrad)" stroke="#FFB833" stroke-width="0.5"/>
+        <circle cx="28" cy="31" r="1.4" fill="#1F1B14"/>
+        <circle cx="36" cy="31" r="1.4" fill="#1F1B14"/>
+        <path d="M 28 36 Q 32 39 36 36" stroke="#1F1B14" stroke-width="1.5" stroke-linecap="round" fill="none"/>
+        <circle cx="26" cy="34.5" r="1.5" fill="#FF96C5" opacity=".6"/>
+        <circle cx="38" cy="34.5" r="1.5" fill="#FF96C5" opacity=".6"/>
+      </svg>
+
+      <div class="sh-hero-top">
+        <span class="sh-hero-pill"><span class="live"></span>กำลังเข้าเวร</span>
+        <span class="sh-hero-time"><span class="lbl">เวลา</span><span id="sh-hero-time">--:--</span></span>
+      </div>
+
+      <div class="sh-hero-date" id="sh-hero-date">--</div>
+      <div class="sh-hero-day" id="sh-hero-day">--</div>
+
+      <div class="sh-hero-ph">
+        <div class="sh-hero-avatar">
+          <svg viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+            <rect width="48" height="48" fill="#FFE3C9"/>
+            <path d="M 4 48 Q 4 36 24 36 Q 44 36 44 48 Z" fill="#FFFFFF"/>
+            <path d="M 19 36 L 24 41 L 29 36 Z" fill="#F5EDE2"/>
+            <rect x="21.5" y="32" width="5" height="5" fill="#FFD0A8"/>
+            <ellipse cx="24" cy="22" rx="11" ry="11.5" fill="#3D2718"/>
+            <ellipse cx="24" cy="23.5" rx="8.5" ry="9.5" fill="#FFD9B5"/>
+            <path d="M 15.5 19 Q 17 13 24 12.5 Q 31 13 32.5 19 Q 30 17 27 17.5 Q 24 17 21 17.5 Q 18 17 15.5 19 Z" fill="#3D2718"/>
+            <ellipse cx="20.7" cy="24" rx="0.95" ry="1.3" fill="#1A1814"/>
+            <ellipse cx="27.3" cy="24" rx="0.95" ry="1.3" fill="#1A1814"/>
+            <path d="M 21.5 28.5 Q 24 30 26.5 28.5" stroke="#1A1814" stroke-width="1.1" fill="none" stroke-linecap="round"/>
+            <ellipse cx="18.5" cy="27" rx="1.6" ry="1" fill="#FF8B9C" opacity=".55"/>
+            <ellipse cx="29.5" cy="27" rx="1.6" ry="1" fill="#FF8B9C" opacity=".55"/>
+          </svg>
+        </div>
+        <div>
+          <div class="sh-hero-name" id="sh-hero-name">เภสัชกร</div>
+          <div class="sh-hero-meta" id="sh-hero-meta">--</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- KPI -->
+    <div class="sh-kpi-row">
+      <div class="sh-kpi danger" id="sh-kpi-expired" onclick="gotoPage('stock')">
+        <div class="sh-kpi-lbl"><span class="sh-kpi-dot"></span>หมดอายุ</div>
+        <div class="sh-kpi-num" id="sh-kpi-expired-n">0</div>
+      </div>
+      <div class="sh-kpi warn" onclick="gotoPage('stock')">
+        <div class="sh-kpi-lbl"><span class="sh-kpi-dot"></span>ใกล้ EXP</div>
+        <div class="sh-kpi-num" id="sh-kpi-near-n">0</div>
+      </div>
+      <div class="sh-kpi butter" onclick="gotoPage('cart-check')">
+        <div class="sh-kpi-lbl"><span class="sh-kpi-dot"></span>เติมไม่ครบ</div>
+        <div class="sh-kpi-num" id="sh-kpi-low-n">0</div>
+      </div>
+      <div class="sh-kpi ok" onclick="gotoPage('stock')">
+        <div class="sh-kpi-lbl"><span class="sh-kpi-dot"></span>ทั้งหมด</div>
+        <div class="sh-kpi-num" id="sh-kpi-total-n">0</div>
+      </div>
+    </div>
+
+    <!-- NOTE -->
+    <div class="sh-note" id="sh-note" style="display:none;">
+      <span class="dot"></span>
+      <span>มี <b id="sh-note-n">0 รายการ</b> ต้องจัดการก่อนปิดเวร</span>
+    </div>
+
+    <!-- ACTIONS -->
+    <div class="sh-section-title">งานในเวรนี้</div>
+    <div class="sh-action-row">
+      <div class="sh-action-card" id="sh-action-cart" onclick="gotoPage('cart-check')">
+        <div class="sh-action-icon">💊</div>
+        <div class="sh-action-ttl">ตรวจ / เติมยา</div>
+        <div class="sh-action-sub">กรอกที่เห็นจริง · ระบบจัดจ่าย/เติม</div>
+        <div class="sh-action-meta">
+          <span class="dot ok"></span>
+          <span class="text" id="sh-cart-status">พร้อมเริ่ม</span>
+          <span class="time" id="sh-cart-time"></span>
+        </div>
+      </div>
+      <div class="sh-action-card" onclick="gotoPage('pharm-verify')">
+        <div class="sh-action-icon">📝</div>
+        <div class="sh-action-ttl">บันทึกเวร</div>
+        <div class="sh-action-sub">Rx + ความเสี่ยง / med error</div>
+        <div class="sh-action-meta">
+          <span class="dot warn"></span>
+          <span class="text">รอบันทึก</span>
+          <span class="time"></span>
+        </div>
+      </div>
+    </div>
+
+    <!-- ACTIVITY FEED -->
+    <div class="sh-section-title">กิจกรรมล่าสุด</div>
+    <div class="sh-feed" id="sh-feed">
+      <div class="sh-feed-empty">กำลังโหลดกิจกรรม...</div>
+    </div>
+
+    <!-- CLOSE SHIFT BUTTON -->
+    <button class="sh-close-btn" id="sh-close-btn" onclick="gotoPage('pharm-verify')">
+      <span class="orb"></span>
+      <span>ปิดเวร · ไปหน้าบันทึก</span>
+    </button>
+
+  </div>
 </div>
 
 <!-- ============================================================
@@ -2111,6 +2339,11 @@ input::placeholder, textarea::placeholder { color: var(--hint); }
     </svg>Stock
   </button>
   <!-- เภสัช — tabs อิสระ -->
+  <button class="nav-btn" id="nav-shift-hub" onclick="gotoPage('shift-hub')" style="display:none;">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round">
+      <path d="M3 9l9-7 9 7v11a2 2 0 01-2 2h-4v-7h-6v7H5a2 2 0 01-2-2z"/>
+    </svg>เวร
+  </button>
   <button class="nav-btn" id="nav-cart-check" onclick="gotoPage('cart-check')" style="display:none;">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round">
       <rect x="4" y="3" width="16" height="18" rx="2"/>
@@ -2283,6 +2516,102 @@ function gotoPage(name) {
   if (name === 'nurse-check') initNurseCheck();
   if (name === 'add-drug')    initAddDrug();
   if (name === 'cart-check')  initCartCheck();
+  if (name === 'shift-hub')   initShiftHub();
+}
+
+// ============================================================
+//  SHIFT HUB (เภสัช landing dashboard)
+// ============================================================
+function initShiftHub() {
+  // Header date / time / pharmacist
+  var now = new Date();
+  var thMonths = ['ม.ค.','ก.พ.','มี.ค.','เม.ย.','พ.ค.','มิ.ย.','ก.ค.','ส.ค.','ก.ย.','ต.ค.','พ.ย.','ธ.ค.'];
+  var thDays   = ['อาทิตย์','จันทร์','อังคาร','พุธ','พฤหัสบดี','ศุกร์','เสาร์'];
+  var dateStr = now.getDate() + ' ' + thMonths[now.getMonth()];
+  var dayStr  = 'วัน' + thDays[now.getDay()];
+  var hh = String(now.getHours()).padStart(2,'0');
+  var mm = String(now.getMinutes()).padStart(2,'0');
+  var setText = function(id, val) { var el = document.getElementById(id); if (el) el.textContent = val; };
+  setText('sh-hero-date', dateStr);
+  setText('sh-hero-day', dayStr);
+  setText('sh-hero-time', hh + ':' + mm);
+  setText('sh-hero-name', APP.userName || 'เภสัชกร');
+  setText('sh-hero-meta', 'ตอนนี้ ' + hh + ':' + mm);
+
+  // KPIs computed from DRUGS array
+  var expired = 0, near = 0, low = 0, total = DRUGS.length;
+  DRUGS.forEach(function(d) {
+    if (d.status === 'danger' || d.status === 'critical') expired++;
+    else if (d.status === 'warn') near++;
+    if ((d.cur || 0) < (d.target || 0)) low++;
+  });
+  setText('sh-kpi-expired-n', expired);
+  setText('sh-kpi-near-n', near);
+  setText('sh-kpi-low-n', low);
+  setText('sh-kpi-total-n', total);
+
+  // Note banner — show only if issues exist
+  var issues = expired + low;
+  var note = document.getElementById('sh-note');
+  if (note) {
+    if (issues > 0) {
+      note.style.display = '';
+      setText('sh-note-n', issues + ' รายการ');
+    } else {
+      note.style.display = 'none';
+    }
+  }
+
+  // Action card 1: ตรวจ/เติมยา — show issue dot if low > 0
+  var cartCard = document.getElementById('sh-action-cart');
+  if (cartCard) {
+    cartCard.classList.toggle('has-issue', low > 0);
+    setText('sh-cart-status', low > 0 ? 'ค้าง ' + low + ' รายการ' : 'พร้อมเริ่ม');
+  }
+
+  // Close shift button state
+  var closeBtn = document.getElementById('sh-close-btn');
+  if (closeBtn) {
+    closeBtn.classList.toggle('ok', issues === 0);
+  }
+
+  // Activity feed
+  renderShiftHubFeed();
+}
+
+function renderShiftHubFeed() {
+  var feed = document.getElementById('sh-feed');
+  if (!feed) return;
+  // Try fetching recent activity from backend (Phase C endpoint)
+  if (typeof callScript === 'function') {
+    callScript('getRecentActivity', { limit: 6 }).then(function(items) {
+      if (!items || !items.length) {
+        feed.innerHTML = '<div class="sh-feed-empty">ยังไม่มีกิจกรรมในวันนี้</div>';
+        return;
+      }
+      var html = '';
+      items.forEach(function(it) {
+        var icon = '✨';
+        if (it.action === 'WITHDRAW' || it.action === 'EXPIRED')  icon = '⏰';
+        else if (it.action === 'DISPENSE') icon = '📦';
+        else if (it.action === 'RESTOCK')  icon = '✨';
+        else if (it.action === 'CHECK')    icon = '🔍';
+        else if (it.action === 'SHIFT_START') icon = '☀️';
+        var time = (it.timestamp || '').toString().slice(11,16) || '--:--';
+        html += '<div class="sh-feed-item">' +
+          '<span class="t">' + time + '</span>' +
+          '<span class="ic">' + icon + '</span>' +
+          '<span class="txt">' + (it.text || '') + '</span>' +
+        '</div>';
+      });
+      feed.innerHTML = html;
+    }).catch(function(err) {
+      // Backend endpoint not available yet — show graceful fallback
+      feed.innerHTML = '<div class="sh-feed-empty">ดูกิจกรรมเต็มได้ที่ Log</div>';
+    });
+  } else {
+    feed.innerHTML = '<div class="sh-feed-empty">ยังไม่มีกิจกรรม</div>';
+  }
 }
 
 /* ----------------------------------------------------------
@@ -2418,13 +2747,13 @@ async function doLogin() {
     document.getElementById('nav-nurse-check').style.display = 'flex';
     document.getElementById('nav-stock-nurse').style.display = 'flex';
   } else {
-    // เภสัช — tabs อิสระ (cart-check เป็นตัวแรก · nav-dispense/nav-restock ซ่อนไว้ เพราะ cart-check ครอบคลุมแล้ว)
-    ['nav-cart-check','nav-pharm-verify','nav-stock','nav-shift-log','nav-dashboard'].forEach(function(id){
+    // เภสัช — tabs อิสระ (shift-hub เป็น landing · cart-check / pharm-verify เป็น tab รอง)
+    ['nav-shift-hub','nav-cart-check','nav-pharm-verify','nav-stock','nav-shift-log','nav-dashboard'].forEach(function(id){
       var el = document.getElementById(id);
       if (el) el.style.display = 'flex';
     });
     document.getElementById('pv-sub').textContent = APP.userName + ' · ' + todayStr();
-    gotoPage('cart-check');
+    gotoPage('shift-hub');
   }
   // แสดงปุ่ม "+ เพิ่มยาเข้ารถ" เฉพาะเภสัช
   const addBtn = document.getElementById('stock-add-btn-wrap');
@@ -2440,7 +2769,7 @@ function doLogout() {
   _adjustWizardFooter(false);
   document.getElementById('topbar').style.display = 'none';
   document.getElementById('bottom-nav').style.display = 'none';
-  ['nav-nurse-check','nav-stock-nurse','nav-pharm-verify','nav-restock','nav-dispense','nav-stock','nav-shift-log','nav-dashboard'].forEach(id => {
+  ['nav-nurse-check','nav-stock-nurse','nav-shift-hub','nav-cart-check','nav-pharm-verify','nav-restock','nav-dispense','nav-stock','nav-shift-log','nav-dashboard'].forEach(id => {
     const el = document.getElementById(id);
     if (el) el.style.display = 'none';
   });
