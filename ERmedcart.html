@@ -644,9 +644,153 @@ input::placeholder, textarea::placeholder { color: var(--hint); }
 .cc-toggle-label { display:flex; align-items:center; gap:8px; font-size:13px; font-weight:500; color:var(--text); cursor:pointer; }
 .cc-toggle-label input { width:16px; height:16px; accent-color:var(--navy); cursor:pointer; }
 .cc-footer { display:flex; gap:8px; margin-top:4px; }
+
+/* ============================================================
+   NURSE CHECK V2 — Sky theme inspection
+   ============================================================ */
+#page-nurse-check {
+  --nc2-card-border: 0.5px solid rgba(20,20,40,.06);
+  --nc2-sh-card: 0 1px 2px rgba(40,30,80,.04), 0 4px 12px rgba(40,30,80,.06);
+  --nc2-sh-hero: 0 1px 3px rgba(40,30,80,.05), 0 10px 24px rgba(40,30,80,.08);
+  --nc2-mint: #4DD091; --nc2-mint-d: #2A8C5C; --nc2-mint-bg: #D8F5E5;
+  --nc2-coral: #FF6F68; --nc2-coral-d: #D02B12; --nc2-coral-bg: #FFE2DF;
+  --nc2-butter: #E8B832; --nc2-butter-bg: #FFF5D2;
+  --nc2-sky: #5BAEE8; --nc2-sky-bg: #DDEEFA;
+  --nc2-ink-1: #1A1814; --nc2-ink-2: #5C574B; --nc2-ink-3: #948F80; --nc2-ink-4: #CFCBBE;
+  --nc2-hairline: #E4DFD0;
+  background:
+    radial-gradient(ellipse 90% 60% at 10% 5%, rgba(255,255,255,1) 0%, rgba(255,255,255,.85) 28%, rgba(255,255,255,.45) 55%, transparent 85%),
+    radial-gradient(ellipse 80% 55% at 95% 12%, rgba(255,255,255,1) 0%, rgba(255,255,255,.85) 28%, rgba(255,255,255,.45) 55%, transparent 85%),
+    radial-gradient(ellipse 110% 50% at 60% 55%, rgba(255,255,255,.95) 0%, rgba(255,255,255,.7) 35%, rgba(255,255,255,.35) 60%, transparent 88%),
+    radial-gradient(ellipse 130% 55% at 30% 105%, rgba(255,255,255,1) 0%, rgba(255,255,255,.8) 30%, rgba(255,255,255,.4) 60%, transparent 90%),
+    radial-gradient(ellipse 70% 45% at 0% 45%, rgba(255,255,255,.95) 0%, rgba(255,255,255,.65) 30%, transparent 80%),
+    radial-gradient(ellipse 32% 28% at 65% 28%, #5BAEE8 0%, transparent 65%),
+    radial-gradient(ellipse 28% 25% at 28% 70%, #4FB8DC 0%, transparent 65%),
+    radial-gradient(ellipse 30% 25% at 82% 78%, #6FB8E0 0%, transparent 65%),
+    linear-gradient(160deg, #B8D5E5 0%, #A0C8DC 50%, #92BED4 100%);
+  background-attachment: fixed;
+  min-height: 100vh;
+  position: relative;
+}
+#page-nurse-check::before {
+  content:""; position:fixed; inset:0; z-index:0; pointer-events:none;
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='180' height='180'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 0   0 0 0 0 0   0 0 0 0 0   0 0 0 .6 0'/></filter><rect width='100%25' height='100%25' filter='url(%23n)'/></svg>");
+  opacity:.35; mix-blend-mode: overlay;
+}
+#page-nurse-check .container { position: relative; z-index: 1; max-width: 480px; padding: 1.4rem 1.25rem 6.5rem; }
+
+.nc2-hero {
+  position: relative; overflow: hidden;
+  border-radius: 26px; padding: 1.5rem 1.5rem 1.25rem;
+  margin-bottom: 1.25rem; background: #FFFFFF;
+  border: var(--nc2-card-border); box-shadow: var(--nc2-sh-hero);
+}
+.nc2-hero-sun {
+  position: absolute; top: 14px; right: 16px;
+  width: 52px; height: 52px; z-index: 3; pointer-events: none;
+  filter: drop-shadow(0 2px 6px rgba(184,60,24,.32));
+}
+.nc2-hero-row { display: flex; align-items: center; gap: 12px; margin-bottom: 1.1rem; padding-right: 56px; }
+.nc2-avatar { width: 44px; height: 44px; border-radius: 50%; flex-shrink: 0; overflow: hidden; box-shadow: 0 0 0 1px rgba(0,0,0,.05), 0 2px 6px rgba(20,40,40,.18); }
+.nc2-avatar svg { width: 100%; height: 100%; display: block; }
+.nc2-info { flex: 1; min-width: 0; }
+.nc2-pill {
+  display: inline-flex; align-items: center; gap: 7px;
+  font-size: 11px; font-weight: 700; padding: 4px 10px 4px 8px;
+  border-radius: 999px; margin-bottom: 4px; transition: all .25s;
+  color: #C4801A; background: var(--nc2-butter-bg);
+}
+.nc2-pill.inprogress { color: var(--nc2-mint-d); background: var(--nc2-mint-bg); }
+.nc2-pill.done { color: var(--nc2-mint-d); background: var(--nc2-mint-bg); }
+.nc2-pill .live { width: 6px; height: 6px; border-radius: 50%; background: var(--nc2-butter); }
+.nc2-pill.inprogress .live { background: var(--nc2-mint); animation: nc2pulse 1.6s ease-in-out infinite; }
+.nc2-pill.done .live { background: var(--nc2-mint); }
+@keyframes nc2pulse { 0%,100% { box-shadow: 0 0 0 0 rgba(77,208,145,.5); } 50% { box-shadow: 0 0 0 5px rgba(77,208,145,0); } }
+.nc2-name { font-size: 16px; font-weight: 700; color: var(--nc2-ink-1); letter-spacing: -.01em; }
+.nc2-meta { font-size: 12px; color: var(--nc2-ink-3); font-weight: 500; margin-top: 1px; }
+
+.nc2-progress { padding-top: 1rem; border-top: 0.5px solid var(--nc2-hairline); }
+.nc2-progress-top { display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 10px; }
+.nc2-progress-lbl { font-size: 10.5px; font-weight: 700; color: var(--nc2-ink-3); letter-spacing: .14em; text-transform: uppercase; }
+.nc2-progress-num { font-size: 22px; font-weight: 700; color: var(--nc2-ink-1); letter-spacing: -.02em; font-feature-settings: "tnum"; }
+.nc2-progress-num .total { font-size: 13px; color: var(--nc2-ink-3); font-weight: 500; margin-left: 4px; }
+.nc2-progress-track { width: 100%; height: 8px; background: rgba(40,30,80,.08); border-radius: 999px; overflow: hidden; margin-bottom: 10px; }
+.nc2-progress-fill { height: 100%; background: linear-gradient(90deg, var(--nc2-mint) 0%, var(--nc2-mint-d) 100%); border-radius: 999px; transition: width .4s cubic-bezier(.2,.8,.2,1); }
+.nc2-progress-stats { display: flex; justify-content: space-between; font-size: 11.5px; font-weight: 600; color: var(--nc2-ink-2); }
+.nc2-progress-stats .ok b { color: var(--nc2-mint-d); }
+.nc2-progress-stats .miss b { color: var(--nc2-coral-d); }
+.nc2-progress-stats .pending b { color: #C4801A; }
+
+.nc2-hint { display: flex; align-items: center; gap: 8px; padding: .65rem 1rem; margin-bottom: 1.25rem; background: #FFFFFF; border: var(--nc2-card-border); border-radius: 14px; font-size: 12px; color: var(--nc2-ink-2); font-weight: 500; box-shadow: var(--nc2-sh-card); line-height: 1.45; }
+.nc2-hint .ico { font-size: 16px; line-height: 1; }
+.nc2-hint b { color: var(--nc2-ink-1); font-weight: 700; }
+
+.nc2-cat { background: #FFFFFF; border: var(--nc2-card-border); border-radius: 22px; margin-bottom: 1rem; overflow: hidden; box-shadow: var(--nc2-sh-card); }
+.nc2-cat-head { padding: .9rem 1.1rem .55rem; display: flex; align-items: center; gap: 11px; }
+.nc2-cat-badge { width: 36px; height: 36px; border-radius: 11px; display: flex; align-items: center; justify-content: center; font-size: 16px; font-weight: 700; flex-shrink: 0; letter-spacing: -.01em; }
+.nc2-cat-badge.s1 { background: linear-gradient(135deg,#FFB7C9,#FF8AA8); color: #92143A; }
+.nc2-cat-badge.s2 { background: linear-gradient(135deg,#FFE8A0,#FFCB6B); color: #8C5E0A; }
+.nc2-cat-badge.s3 { background: linear-gradient(135deg,#C7F1DA,#7BD9A8); color: #1F6A50; }
+.nc2-cat-badge.s4 { background: linear-gradient(135deg,#C8E2F5,#86BCE5); color: #1F5680; }
+.nc2-cat-badge.s5 { background: linear-gradient(135deg,#E8DCFA,#C9B7F0); color: #4A2E8F; }
+.nc2-cat-info { flex: 1; min-width: 0; }
+.nc2-cat-name { font-size: 14px; font-weight: 700; color: var(--nc2-ink-1); line-height: 1.25; }
+.nc2-cat-sub { font-size: 11px; color: var(--nc2-ink-3); font-weight: 500; margin-top: 1px; }
+.nc2-cat-count { font-size: 12px; font-weight: 700; color: var(--nc2-ink-3); font-feature-settings: "tnum"; flex-shrink: 0; text-align: right; }
+.nc2-cat-count .ok { color: var(--nc2-mint-d); }
+
+.nc2-box-divider { padding: .55rem 1.25rem .35rem; background: rgba(40,30,80,.025); border-top: 0.5px solid var(--nc2-hairline); font-size: 10.5px; font-weight: 700; color: var(--nc2-ink-3); letter-spacing: .12em; text-transform: uppercase; }
+
+.nc2-med { display: flex; align-items: center; gap: 11px; padding: .75rem 1.25rem; border-top: 0.5px solid var(--nc2-hairline); transition: background .22s; user-select: none; }
+.nc2-med.ok { background: var(--nc2-mint-bg); }
+.nc2-med.miss { background: var(--nc2-coral-bg); }
+.nc2-med-info { flex: 1; min-width: 0; }
+.nc2-med-name { font-size: 14px; font-weight: 600; color: var(--nc2-ink-1); margin-bottom: 2px; letter-spacing: -.005em; }
+.nc2-med-target { font-size: 11.5px; color: var(--nc2-ink-3); font-weight: 500; }
+.nc2-med-target b { color: var(--nc2-ink-2); font-weight: 700; }
+.nc2-med-pos { font-feature-settings: "tnum"; color: var(--nc2-ink-3); font-weight: 600; margin-left: 4px; }
+
+.nc2-actions { display: flex; gap: 6px; flex-shrink: 0; }
+.nc2-btn { border: 1px solid var(--nc2-hairline); background: #FFFFFF; border-radius: 10px; padding: 8px 12px; font-size: 12.5px; font-weight: 700; color: var(--nc2-ink-2); cursor: pointer; transition: all .15s; font-family: inherit; min-width: 56px; }
+.nc2-btn:active { transform: scale(.96); }
+.nc2-btn-ok.on { background: var(--nc2-mint); color: #fff; border-color: var(--nc2-mint); }
+.nc2-btn-miss.on { background: var(--nc2-coral); color: #fff; border-color: var(--nc2-coral); }
+
+.nc2-miss-detail { display: none; padding: .75rem 1.25rem 1rem; background: var(--nc2-coral-bg); border-top: 0.5px solid rgba(255,111,104,.2); }
+.nc2-miss-detail.show { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+.nc2-miss-detail label { font-size: 11px; font-weight: 700; color: var(--nc2-coral-d); letter-spacing: .08em; text-transform: uppercase; }
+.nc2-num-ctrl { display: flex; align-items: center; gap: 8px; background: #FFFFFF; border: 1px solid rgba(255,111,104,.3); border-radius: 10px; padding: 4px; }
+.nc2-nq { width: 26px; height: 26px; border: none; background: var(--nc2-coral-bg); border-radius: 7px; font-weight: 700; font-size: 14px; color: var(--nc2-coral); cursor: pointer; font-family: inherit; }
+.nc2-nq:hover { background: rgba(255,111,104,.2); }
+.nc2-num-val { min-width: 18px; text-align: center; font-size: 14px; font-weight: 700; color: var(--nc2-ink-1); font-feature-settings: "tnum"; }
+.nc2-num-unit { font-size: 11px; color: var(--nc2-ink-3); }
+.nc2-miss-note { flex: 1; min-width: 140px; padding: 6px 10px; border: 1px solid rgba(255,111,104,.3); border-radius: 10px; background: #FFFFFF; font-size: 12.5px; font-family: inherit; color: var(--nc2-ink-1); }
+
+#page-nurse-check .section-label { font-size: 11px; font-weight: 700; color: rgba(20,50,90,.68); margin: 1.6rem 0 .65rem; padding-left: 4px; letter-spacing: .14em; text-transform: uppercase; text-shadow: 0 1px 0 rgba(255,255,255,.7); }
+#page-nurse-check #nc-note { background: #FFFFFF; border: var(--nc2-card-border); border-radius: 14px; padding: 12px 14px; font-size: 13px; color: var(--nc2-ink-1); width: 100%; resize: none; font-family: inherit; box-shadow: var(--nc2-sh-card); margin-bottom: 1rem; }
+#page-nurse-check #nc-submit { width: 100%; padding: 1.05rem 1.2rem; border: none; border-radius: 18px; background: #0E0E0E; color: #FFFFFF; font-size: 16px; font-weight: 700; cursor: pointer; font-family: inherit; transition: all .25s cubic-bezier(.2,.8,.2,1); box-shadow: 0 1px 3px rgba(0,0,0,.10), 0 6px 16px rgba(0,0,0,.16); display: flex; align-items: center; justify-content: center; gap: 12px; margin-top: 1rem; }
+#page-nurse-check #nc-submit:hover:not(:disabled) { transform: translateY(-1px); background: #1F1F1F; }
+#page-nurse-check #nc-submit:disabled { opacity: .55; cursor: not-allowed; }
+#page-nurse-check #nc-hint { font-size: 12px; color: rgba(20,50,90,.65); text-align: center; margin-top: 8px; text-shadow: 0 1px 0 rgba(255,255,255,.5); font-weight: 500; }
+#page-nurse-check #nc-miss-alert { background: var(--nc2-coral-bg); border: 1px solid rgba(255,111,104,.3); color: var(--nc2-coral-d); padding: .65rem 1rem; border-radius: 12px; font-size: 12.5px; font-weight: 600; margin-top: 1rem; display: none; }
 </style>
 </head>
 <body>
+
+<!-- SVG defs for nurse v2 (sun + avatar) -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <radialGradient id="nc2-sunGrad" cx="35%" cy="35%" r="68%">
+      <stop offset="0%" stop-color="#FFF4D2"/>
+      <stop offset="50%" stop-color="#FFCB6B"/>
+      <stop offset="100%" stop-color="#E88234"/>
+    </radialGradient>
+    <linearGradient id="nc2-nurseBg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#FFE0EC"/>
+      <stop offset="100%" stop-color="#FF9CB8"/>
+    </linearGradient>
+  </defs>
+</svg>
 
 <!-- ============================================================
      PAGE: LOGIN
@@ -724,34 +868,88 @@ input::placeholder, textarea::placeholder { color: var(--hint); }
 <div id="page-nurse-check" class="page">
   <div class="container">
 
-    <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:1rem;margin-top:.5rem;">
-      <div>
-        <h2 style="font-size:17px;">รับรถยา</h2>
-        <p style="font-size:12px;color:var(--muted);margin-top:2px;" id="nurse-check-time">--:--</p>
+    <!-- HERO -->
+    <div class="nc2-hero">
+      <svg class="nc2-hero-sun" viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+        <line x1="32" y1="3"  x2="32" y2="11" stroke="#FF6F68" stroke-width="2.6" stroke-linecap="round"/>
+        <line x1="32" y1="53" x2="32" y2="61" stroke="#5BAEE8" stroke-width="2.6" stroke-linecap="round"/>
+        <line x1="3"  y1="32" x2="11" y2="32" stroke="#FF96C5" stroke-width="2.6" stroke-linecap="round"/>
+        <line x1="53" y1="32" x2="61" y2="32" stroke="#4DD091" stroke-width="2.6" stroke-linecap="round"/>
+        <line x1="11.5" y1="11.5" x2="17"   y2="17"   stroke="#FFA23A" stroke-width="2.6" stroke-linecap="round"/>
+        <line x1="47"   y1="47"   x2="52.5" y2="52.5" stroke="#A48EE8" stroke-width="2.6" stroke-linecap="round"/>
+        <line x1="52.5" y1="11.5" x2="47"   y2="17"   stroke="#FFD872" stroke-width="2.6" stroke-linecap="round"/>
+        <line x1="11.5" y1="52.5" x2="17"   y2="47"   stroke="#FF96C5" stroke-width="2.6" stroke-linecap="round"/>
+        <circle cx="32" cy="32" r="13" fill="url(#nc2-sunGrad)" stroke="#FFB833" stroke-width="0.5"/>
+        <circle cx="28" cy="31" r="1.4" fill="#1F1B14"/>
+        <circle cx="36" cy="31" r="1.4" fill="#1F1B14"/>
+        <path d="M 28 36 Q 32 39 36 36" stroke="#1F1B14" stroke-width="1.5" stroke-linecap="round" fill="none"/>
+        <circle cx="26" cy="34.5" r="1.5" fill="#FF96C5" opacity=".6"/>
+        <circle cx="38" cy="34.5" r="1.5" fill="#FF96C5" opacity=".6"/>
+      </svg>
+
+      <div class="nc2-hero-row">
+        <div class="nc2-avatar">
+          <svg viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+            <rect width="48" height="48" fill="url(#nc2-nurseBg)"/>
+            <path d="M 11 24 Q 11 36 13 44 L 13 48 L 8 48 L 8 28 Q 8 24 11 24 Z" fill="#5D3A1F"/>
+            <path d="M 37 24 Q 37 36 35 44 L 35 48 L 40 48 L 40 28 Q 40 24 37 24 Z" fill="#5D3A1F"/>
+            <path d="M 4 48 Q 4 36 24 36 Q 44 36 44 48 Z" fill="#F4869F"/>
+            <path d="M 19 36 L 24 42 L 29 36 Z" fill="#D86A85"/>
+            <rect x="21.5" y="32" width="5" height="5" fill="#FFD0A8"/>
+            <ellipse cx="24" cy="22" rx="11" ry="11.5" fill="#5D3A1F"/>
+            <ellipse cx="24" cy="23.5" rx="8.5" ry="9.5" fill="#FFD9B5"/>
+            <path d="M 15.5 19 Q 17 14 24 13 Q 31 14 32.5 19 Q 30 18 27 17.8 Q 24 17.5 21 17.8 Q 18 18 15.5 19 Z" fill="#5D3A1F"/>
+            <path d="M 17 14 L 24 9 L 31 14 L 31 17 Q 24 15.5 17 17 Z" fill="#FFFFFF" stroke="#E5E5E5" stroke-width="0.3"/>
+            <rect x="22.6" y="12.4" width="2.8" height="1.1" fill="#E84438"/>
+            <rect x="23.4" y="11.6" width="1.2" height="2.7" fill="#E84438"/>
+            <ellipse cx="20.7" cy="24" rx="0.95" ry="1.3" fill="#1A1814"/>
+            <ellipse cx="27.3" cy="24" rx="0.95" ry="1.3" fill="#1A1814"/>
+            <path d="M 21.5 28.5 Q 24 30 26.5 28.5" stroke="#1A1814" stroke-width="1.1" fill="none" stroke-linecap="round"/>
+            <ellipse cx="18.5" cy="27" rx="1.6" ry="1" fill="#FF6B8A" opacity=".5"/>
+            <ellipse cx="29.5" cy="27" rx="1.6" ry="1" fill="#FF6B8A" opacity=".5"/>
+          </svg>
+        </div>
+        <div class="nc2-info">
+          <span id="nc2-pill" class="nc2-pill"><span class="live"></span><span id="nc2-pill-text">ยังไม่เริ่มตรวจ</span></span>
+          <div class="nc2-name" id="nc2-nurse-name">พยาบาล</div>
+          <div class="nc2-meta" id="nurse-check-time">ตอนนี้ --:--</div>
+        </div>
       </div>
-      <span class="pill pill-blue">เวรดึก</span>
+
+      <div class="nc2-progress">
+        <div class="nc2-progress-top">
+          <span class="nc2-progress-lbl">ความคืบหน้า</span>
+          <span class="nc2-progress-num"><span id="nc-ok">0</span><span class="total">/<span id="nc2-total">0</span></span></span>
+        </div>
+        <div class="nc2-progress-track"><div class="nc2-progress-fill" id="nc-prog" style="width:0%"></div></div>
+        <div class="nc2-progress-stats">
+          <span class="ok">ครบ <b id="nc2-ok">0</b></span>
+          <span class="miss">ขาด <b id="nc-miss">0</b></span>
+          <span class="pending">รอตรวจ <b id="nc2-pending">0</b></span>
+        </div>
+      </div>
     </div>
 
-    <div class="stat-grid stat-grid-3">
-      <div class="stat-box"><p>ตรวจแล้ว</p><p id="nc-done">0</p></div>
-      <div class="stat-box"><p>ครบ</p><p style="color:var(--green)" id="nc-ok">0</p></div>
-      <div class="stat-box"><p>ขาด</p><p style="color:var(--red)" id="nc-miss">0</p></div>
+    <!-- HINT -->
+    <div class="nc2-hint">
+      <span class="ico">📋</span>
+      <span>ตรวจตามชั้น <b>1 → 2 → 3 → 4</b> · กด <b>ครบ</b> หรือ <b>ขาด</b> ทีละตัว</span>
     </div>
 
-    <div class="prog-wrap"><div class="prog-fill" id="nc-prog" style="width:0%"></div></div>
-
+    <!-- SHELVES (rendered by renderNurseByShelf) -->
     <div id="nc-shelf-groups"></div>
 
+    <!-- legacy hidden tracker (compat) -->
+    <span id="nc-done" style="display:none">0</span>
+
+    <!-- NOTE -->
     <div class="section-label">หมายเหตุ (ถ้ามี)</div>
-    <textarea id="nc-note" rows="2" placeholder="เช่น บรรจุภัณฑ์ชำรุด, อุณหภูมิผิดปกติ..."
-      style="margin-bottom:1rem;"></textarea>
+    <textarea id="nc-note" rows="2" placeholder="เช่น บรรจุภัณฑ์ชำรุด, อุณหภูมิผิดปกติ..."></textarea>
 
-    <div class="alert-box alert-red" id="nc-miss-alert"></div>
+    <div id="nc-miss-alert"></div>
 
-    <button class="btn btn-primary" id="nc-submit" disabled
-      style="margin-top:.75rem;" onclick="submitNurseCheck()">ยืนยันรับรถยา</button>
-    <p style="font-size:12px;color:var(--hint);text-align:center;margin-top:6px;" id="nc-hint">
-      ต้องตรวจครบทุกรายการก่อนยืนยัน</p>
+    <button id="nc-submit" disabled onclick="submitNurseCheck()">ยืนยันรับรถยา</button>
+    <p id="nc-hint">ต้องตรวจครบทุกรายการก่อนยืนยัน</p>
   </div>
 </div>
 
@@ -2260,21 +2458,22 @@ function doLogout() {
 function initNurseCheck() {
   APP.ncStatus = {};
   APP.ncMissQty = {};
-  document.getElementById('nurse-check-time').textContent = nowTh() + ' น.';
+  document.getElementById('nurse-check-time').textContent = 'ตอนนี้ ' + nowTh() + ' น.';
+  // Set nurse name from APP
+  var nameEl = document.getElementById('nc2-nurse-name');
+  if (nameEl) nameEl.textContent = APP.userName || 'พยาบาล';
   renderNurseByShelf();
   updateNcStats();
 }
 
-// จัดกลุ่มยาตาม shelf-box แล้วเรียงตาม cart_pos
+// จัดกลุ่มยาตาม shelf แล้วเรียงตาม cart_pos
 function renderNurseByShelf() {
   const container = document.getElementById('nc-shelf-groups');
   container.innerHTML = '';
 
-  // เฉพาะยาในรถ (ไม่รวมตู้เย็น)
   const cartDrugs = DRUGS.filter(d => d.location !== 'ตู้เย็น ER');
   const fridgeDrugs = DRUGS.filter(d => d.location === 'ตู้เย็น ER');
 
-  // sort ตาม cart_pos
   function sortByPos(a, b) {
     const pa = (a.cart_pos || '9-9-9').split('-').map(Number);
     const pb = (b.cart_pos || '9-9-9').split('-').map(Number);
@@ -2284,63 +2483,107 @@ function renderNurseByShelf() {
     return 0;
   }
 
-  // แบ่งกลุ่มตาม shelf-box (2 ส่วนแรกของ cart_pos)
-  const groups = {};
+  // Shelf metadata (ลิ้นชัก 1-4)
+  const shelfNames = {
+    '1': { name: 'ลิ้นชัก 1', sub: 'ชั้นบนสุด' },
+    '2': { name: 'ลิ้นชัก 2', sub: 'ชั้นกลางบน' },
+    '3': { name: 'ลิ้นชัก 3', sub: 'ชั้นกลางล่าง' },
+    '4': { name: 'ลิ้นชัก 4', sub: 'ชั้นล่างสุด' }
+  };
+
+  // Group by shelf (first part of cart_pos)
+  const shelves = {};
   cartDrugs.sort(sortByPos).forEach(d => {
     const parts = (d.cart_pos || '').split('-');
-    const key = parts.length >= 2 ? 'ชั้น ' + parts[0] + ' กล่อง ' + parts[1] : 'ไม่ระบุตำแหน่ง';
-    if (!groups[key]) groups[key] = [];
-    groups[key].push(d);
+    const shelfNum = parts[0] || '?';
+    if (!shelves[shelfNum]) shelves[shelfNum] = [];
+    shelves[shelfNum].push(d);
   });
 
-  Object.entries(groups).forEach(([label, drugs]) => {
-    const sec = document.createElement('div');
-    sec.innerHTML = '<div class="section-label">' + label + '</div>';
-    const list = document.createElement('div');
-    drugs.forEach(d => renderNurseRow(list, d));
-    sec.appendChild(list);
-    container.appendChild(sec);
+  Object.keys(shelves).sort().forEach(shelfNum => {
+    const drugs = shelves[shelfNum];
+    const meta = shelfNames[shelfNum] || { name: 'ชั้น ' + shelfNum, sub: '' };
+    const cls = 's' + (Number(shelfNum) >= 1 && Number(shelfNum) <= 4 ? shelfNum : '4');
+
+    const cat = document.createElement('div');
+    cat.className = 'nc2-cat';
+    cat.innerHTML =
+      '<div class="nc2-cat-head">' +
+        '<div class="nc2-cat-badge ' + cls + '">' + shelfNum + '</div>' +
+        '<div class="nc2-cat-info">' +
+          '<div class="nc2-cat-name">' + meta.name + '</div>' +
+          '<div class="nc2-cat-sub">' + meta.sub + '</div>' +
+        '</div>' +
+        '<div class="nc2-cat-count" id="nc2-cat-count-' + shelfNum + '" data-total="' + drugs.length + '">0/' + drugs.length + '</div>' +
+      '</div>';
+
+    let lastBox = '';
+    drugs.forEach(d => {
+      const parts = (d.cart_pos || '').split('-');
+      const box = parts.length >= 2 ? parts.slice(0, 2).join('-') : '';
+      if (box && box !== lastBox) {
+        const div = document.createElement('div');
+        div.className = 'nc2-box-divider';
+        div.textContent = 'กล่อง ' + box;
+        cat.appendChild(div);
+        lastBox = box;
+      }
+      renderNurseRow(cat, d);
+    });
+
+    container.appendChild(cat);
   });
 
-  // ตู้เย็น ER
+  // ตู้เย็น ER (shelf 5)
   if (fridgeDrugs.length > 0) {
-    const sec = document.createElement('div');
-    sec.innerHTML = '<div class="section-label">ตู้เย็น ER</div>';
-    const list = document.createElement('div');
-    fridgeDrugs.sort(sortByPos).forEach(d => renderNurseRow(list, d));
-    sec.appendChild(list);
-    container.appendChild(sec);
+    const cat = document.createElement('div');
+    cat.className = 'nc2-cat';
+    cat.innerHTML =
+      '<div class="nc2-cat-head">' +
+        '<div class="nc2-cat-badge s5">❄</div>' +
+        '<div class="nc2-cat-info">' +
+          '<div class="nc2-cat-name">ตู้เย็น ER</div>' +
+          '<div class="nc2-cat-sub">ยาที่ต้องเก็บเย็น</div>' +
+        '</div>' +
+        '<div class="nc2-cat-count" id="nc2-cat-count-fridge" data-total="' + fridgeDrugs.length + '">0/' + fridgeDrugs.length + '</div>' +
+      '</div>';
+    fridgeDrugs.sort(sortByPos).forEach(d => renderNurseRow(cat, d));
+    container.appendChild(cat);
   }
 }
 
 function renderNurseRow(container, d) {
+  const isFridge = d.location === 'ตู้เย็น ER';
+  const posLabel = isFridge ? 'ตู้เย็น' : (d.cart_pos || '—');
+  const packExtra = (d.pack_size > 0) ? ' (' + (d.target * d.pack_size) + ' เม็ด)' : '';
+
   const row = document.createElement('div');
-  row.className = 'drug-row' + hadClass(d); row.id = 'nc-' + d.id;
-  row.innerHTML = `
-    <span class="loc-badge">${d.cart_pos || d.location}</span>
-    <div class="drug-name ${d.had?'had-name':''}" style="flex:1;">${d.name}${hadBadge(d)}
-      <div style="font-size:11px;color:var(--muted);">${d.target} ${d.unit}${d.pack_size>0?' ('+d.target*d.pack_size+' เม็ด)':''}</div>
-    </div>
-    <button class="btn-sm" id="nc-ok-${d.id}"   onclick="setNc('${d.id}','ok')">ครบ</button>
-    <button class="btn-sm" id="nc-miss-${d.id}" onclick="setNc('${d.id}','miss')">ขาด</button>`;
+  row.className = 'nc2-med';
+  row.id = 'nc2-row-' + d.id;
+  row.innerHTML =
+    '<div class="nc2-med-info">' +
+      '<div class="nc2-med-name">' + d.name + (typeof hadBadge === 'function' ? hadBadge(d) : '') + '</div>' +
+      '<div class="nc2-med-target">เป้า <b>' + d.target + ' ' + d.unit + packExtra + '</b><span class="nc2-med-pos"> · ' + posLabel + '</span></div>' +
+    '</div>' +
+    '<div class="nc2-actions">' +
+      '<button class="nc2-btn nc2-btn-ok"   id="nc-ok-'   + d.id + '" onclick="setNc(\'' + d.id + '\',\'ok\')">ครบ</button>' +
+      '<button class="nc2-btn nc2-btn-miss" id="nc-miss-' + d.id + '" onclick="setNc(\'' + d.id + '\',\'miss\')">ขาด</button>' +
+    '</div>';
   container.appendChild(row);
 
-  // miss detail row (ซ่อนไว้ก่อน)
+  // Miss detail row (hidden until status='miss')
   const missRow = document.createElement('div');
   missRow.id = 'nc-miss-detail-' + d.id;
-  missRow.style.cssText = 'display:none;background:var(--red-bg);border:1px solid var(--red-b);border-top:none;border-radius:0 0 var(--radius) var(--radius);padding:8px 12px;margin-top:-5px;margin-bottom:5px;';
-  missRow.innerHTML = `
-    <div style="display:flex;align-items:center;gap:8px;">
-      <label style="font-size:12px;color:var(--red);white-space:nowrap;">ขาด</label>
-      <div class="num-ctrl" style="gap:6px;">
-        <button class="nq" style="width:26px;height:26px;" onclick="adjNcMiss('${d.id}',-1)">−</button>
-        <span id="nc-miss-qty-${d.id}" style="font-size:14px;font-weight:600;min-width:16px;text-align:center;">1</span>
-        <button class="nq" style="width:26px;height:26px;" onclick="adjNcMiss('${d.id}',1)">+</button>
-        <span style="font-size:12px;color:var(--muted);">${d.unit}</span>
-      </div>
-      <input type="text" id="nc-miss-note-${d.id}" placeholder="หมายเหตุ (ไม่บังคับ)"
-        style="flex:1;font-size:13px;padding:5px 8px;border-radius:var(--radius);border:1px solid var(--red-b);background:var(--white);">
-    </div>`;
+  missRow.className = 'nc2-miss-detail';
+  missRow.innerHTML =
+    '<label>ขาด</label>' +
+    '<div class="nc2-num-ctrl">' +
+      '<button class="nc2-nq" onclick="adjNcMiss(\'' + d.id + '\',-1)">−</button>' +
+      '<span class="nc2-num-val" id="nc-miss-qty-' + d.id + '">1</span>' +
+      '<button class="nc2-nq" onclick="adjNcMiss(\'' + d.id + '\',1)">+</button>' +
+      '<span class="nc2-num-unit">' + d.unit + '</span>' +
+    '</div>' +
+    '<input type="text" class="nc2-miss-note" id="nc-miss-note-' + d.id + '" placeholder="หมายเหตุ (ไม่บังคับ)">';
   container.appendChild(missRow);
 }
 
@@ -2352,17 +2595,27 @@ function adjNcMiss(id, delta) {
 }
 
 function setNc(id, status) {
-  APP.ncStatus[id] = status;
-  const row = document.getElementById('nc-' + id);
-  if (row) row.className = 'drug-row ' + status + (row.className.includes('had-row')?' had-row':'');
-  const okBtn = document.getElementById('nc-ok-'+id);
-  const missBtn = document.getElementById('nc-miss-'+id);
-  if (okBtn)   okBtn.className   = 'btn-sm' + (status==='ok'   ? ' on-ok'   : '');
-  if (missBtn) missBtn.className = 'btn-sm' + (status==='miss' ? ' on-miss' : '');
-  // แสดง/ซ่อน miss detail
+  // Toggle off if same status (3rd tap clears)
+  if (APP.ncStatus[id] === status) {
+    delete APP.ncStatus[id];
+    status = null;
+  } else {
+    APP.ncStatus[id] = status;
+  }
+
+  const row = document.getElementById('nc2-row-' + id);
+  if (row) {
+    row.classList.remove('ok', 'miss');
+    if (status) row.classList.add(status);
+  }
+  const okBtn = document.getElementById('nc-ok-' + id);
+  const missBtn = document.getElementById('nc-miss-' + id);
+  if (okBtn)   okBtn.classList.toggle('on', status === 'ok');
+  if (missBtn) missBtn.classList.toggle('on', status === 'miss');
+
   const missDetail = document.getElementById('nc-miss-detail-' + id);
   if (missDetail) {
-    missDetail.style.display = status === 'miss' ? 'block' : 'none';
+    missDetail.classList.toggle('show', status === 'miss');
     if (status === 'miss') {
       if (!APP.ncMissQty) APP.ncMissQty = {};
       if (!APP.ncMissQty[id]) APP.ncMissQty[id] = 1;
@@ -2373,24 +2626,87 @@ function setNc(id, status) {
 
 function updateNcStats() {
   const vals = Object.values(APP.ncStatus);
-  const done = vals.length, ok = vals.filter(v=>v==='ok').length, miss = done - ok;
-  const total = DRUGS.filter(d => true).length;
-  document.getElementById('nc-done').textContent = done;
-  document.getElementById('nc-ok').textContent   = ok;
-  document.getElementById('nc-miss').textContent = miss;
-  document.getElementById('nc-prog').style.width = Math.round(done/total*100) + '%';
+  const done = vals.length;
+  const ok = vals.filter(v => v === 'ok').length;
+  const miss = done - ok;
+  const total = DRUGS.length;
+  const pending = total - done;
 
+  // Legacy elements (compat)
+  const ncDone = document.getElementById('nc-done');
+  if (ncDone) ncDone.textContent = done;
+  const ncOk = document.getElementById('nc-ok');           // hero progress num
+  if (ncOk) ncOk.textContent = ok;
+  const nc2Ok = document.getElementById('nc2-ok');         // stats row "ครบ"
+  if (nc2Ok) nc2Ok.textContent = ok;
+  const ncMiss = document.getElementById('nc-miss');
+  if (ncMiss) ncMiss.textContent = miss;
+  const nc2Pending = document.getElementById('nc2-pending');
+  if (nc2Pending) nc2Pending.textContent = pending;
+  const nc2Total = document.getElementById('nc2-total');
+  if (nc2Total) nc2Total.textContent = total;
+
+  const ncProg = document.getElementById('nc-prog');
+  if (ncProg) ncProg.style.width = Math.round(done / total * 100) + '%';
+
+  // Hero pill
+  const pill = document.getElementById('nc2-pill');
+  const pillText = document.getElementById('nc2-pill-text');
+  if (pill && pillText) {
+    pill.classList.remove('inprogress', 'done');
+    if (done === 0) {
+      pillText.textContent = 'ยังไม่เริ่มตรวจ';
+    } else if (pending > 0) {
+      pill.classList.add('inprogress');
+      pillText.textContent = 'กำลังตรวจ';
+    } else {
+      pill.classList.add('done');
+      pillText.textContent = miss > 0 ? 'ตรวจครบ · มีขาด ' + miss : 'ตรวจครบทุกตัว';
+    }
+  }
+
+  // Per-shelf "ครบ" counts
+  const shelfOk = {};
+  Object.entries(APP.ncStatus).forEach(([id, st]) => {
+    if (st !== 'ok') return;
+    const drug = DRUGS.find(x => x.id === id);
+    if (!drug) return;
+    const key = drug.location === 'ตู้เย็น ER'
+      ? 'fridge'
+      : ((drug.cart_pos || '?').split('-')[0]);
+    shelfOk[key] = (shelfOk[key] || 0) + 1;
+  });
+  document.querySelectorAll('.nc2-cat-count').forEach(el => {
+    const key = el.id.replace('nc2-cat-count-', '');
+    const okCnt = shelfOk[key] || 0;
+    const totalCnt = el.dataset.total || el.textContent.split('/')[1] || '?';
+    el.innerHTML = '<span class="ok">' + okCnt + '</span>/' + totalCnt;
+  });
+
+  // Miss alert
   const alert = document.getElementById('nc-miss-alert');
-  if (miss > 0) {
-    alert.style.display = 'block';
-    alert.textContent = 'พบยาขาด ' + miss + ' รายการ — โปรดระบุในหมายเหตุ';
-  } else { alert.style.display = 'none'; }
+  if (alert) {
+    if (miss > 0) {
+      alert.style.display = 'block';
+      alert.textContent = '⚠ พบยาขาด ' + miss + ' รายการ — โปรดระบุปริมาณ + หมายเหตุที่แต่ละแถว';
+    } else { alert.style.display = 'none'; }
+  }
 
-  const ready = done === total;
-  document.getElementById('nc-submit').disabled = !ready;
-  document.getElementById('nc-hint').textContent = ready
-    ? 'พร้อมยืนยัน — ระบบบันทึก timestamp อัตโนมัติ'
-    : 'ตรวจแล้ว ' + done + '/' + total + ' รายการ';
+  // Submit button
+  const ready = done === total && total > 0;
+  const btn = document.getElementById('nc-submit');
+  if (btn) {
+    btn.disabled = !ready;
+    btn.textContent = ready
+      ? (miss > 0 ? '⚠ ยืนยันรับรถยา (มีขาด ' + miss + ')' : '✓ ยืนยันรับรถยา')
+      : 'ตรวจให้ครบทุกตัวก่อน (' + done + '/' + total + ')';
+  }
+  const hint = document.getElementById('nc-hint');
+  if (hint) {
+    hint.textContent = ready
+      ? 'พร้อมยืนยัน — ระบบบันทึก timestamp อัตโนมัติ'
+      : 'ตรวจแล้ว ' + done + '/' + total + ' รายการ';
+  }
 }
 
 async function submitNurseCheck() {
