@@ -644,6 +644,12 @@ input::placeholder, textarea::placeholder { color: var(--hint); }
 .cc-toggle-label { display:flex; align-items:center; gap:8px; font-size:13px; font-weight:500; color:var(--text); cursor:pointer; }
 .cc-toggle-label input { width:16px; height:16px; accent-color:var(--navy); cursor:pointer; }
 .cc-footer { display:flex; gap:8px; margin-top:4px; }
+.cc-confirm-bar { margin-top: 1.5rem; padding-top: 1.25rem; border-top: 1px solid var(--border); }
+.cc-confirm-btn { width: 100%; padding: 1.05rem 1.2rem; border: none; border-radius: 16px; background: #0E0E0E; color: #FFFFFF; font-size: 15.5px; font-weight: 700; cursor: pointer; font-family: inherit; letter-spacing: -.005em; transition: all .25s cubic-bezier(.2,.8,.2,1); box-shadow: 0 1px 3px rgba(0,0,0,.10), 0 6px 16px rgba(0,0,0,.16); display: flex; align-items: center; justify-content: center; gap: 10px; }
+.cc-confirm-btn:hover:not(:disabled) { transform: translateY(-1px); background: #1F1F1F; }
+.cc-confirm-btn:disabled { opacity: .55; cursor: wait; }
+.cc-confirm-btn .arrow { opacity: .65; font-weight: 500; }
+.cc-confirm-hint { text-align: center; font-size: 12px; color: var(--muted); margin-top: 8px; line-height: 1.5; }
 
 /* ============================================================
    NURSE CHECK V2 — Sky theme inspection
@@ -880,6 +886,29 @@ input::placeholder, textarea::placeholder { color: var(--hint); }
 .sh-close-btn:hover { transform: translateY(-1px); background: #1F1F1F; }
 .sh-close-btn .orb { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; background: var(--sh-coral); box-shadow: 0 0 0 3px rgba(255,111,104,.3); }
 .sh-close-btn.ok .orb { background: var(--sh-mint); box-shadow: 0 0 0 3px rgba(77,208,145,.3); }
+.sh-close-btn.disabled, .sh-close-btn:disabled { opacity: .5; cursor: not-allowed; pointer-events: none; transform: none !important; }
+.sh-close-btn.alert { background: var(--sh-coral-d); }
+.sh-close-btn.alert:hover { background: var(--sh-coral); }
+.sh-close-hint { text-align: center; font-size: 12px; margin-top: 8px; color: rgba(20,50,90,.7); font-weight: 500; text-shadow: 0 1px 0 rgba(255,255,255,.5); line-height: 1.5; }
+
+/* Task checklist (replaces action cards) */
+.sh-checklist { display: grid; gap: 10px; }
+.sh-task { display: flex; align-items: center; gap: 12px; width: 100%; padding: 1rem 1.1rem; background: #FFFFFF; border: var(--sh-card-border); border-radius: 16px; box-shadow: var(--sh-card-shadow); cursor: pointer; text-align: left; font-family: inherit; transition: all .25s cubic-bezier(.2,.8,.2,1); }
+.sh-task:hover { transform: translateY(-2px); box-shadow: var(--sh-card-shadow-h); }
+.sh-task-icon { width: 44px; height: 44px; display: flex; align-items: center; justify-content: center; font-size: 26px; flex-shrink: 0; filter: drop-shadow(0 1px 2px rgba(20,40,40,.1)); }
+.sh-task-body { flex: 1; min-width: 0; }
+.sh-task-ttl { font-size: 15px; font-weight: 700; color: var(--sh-ink-1); margin-bottom: 2px; letter-spacing: -.005em; }
+.sh-task-status { font-size: 12px; color: var(--sh-ink-3); font-weight: 500; }
+.sh-task-state { width: 30px; height: 30px; display: flex; align-items: center; justify-content: center; border-radius: 50%; font-size: 16px; font-weight: 700; flex-shrink: 0; background: rgba(40,30,80,.06); color: var(--sh-ink-3); transition: all .2s; }
+.sh-task.partial { background: var(--sh-butter-bg); border-color: rgba(232,184,50,.3); }
+.sh-task.partial .sh-task-status { color: #8C5E0A; font-weight: 600; }
+.sh-task.partial .sh-task-state { background: var(--sh-butter); color: #8C5E0A; }
+.sh-task.alert { background: var(--sh-coral-bg); border-color: rgba(255,111,104,.3); }
+.sh-task.alert .sh-task-status { color: var(--sh-coral-d); font-weight: 600; }
+.sh-task.alert .sh-task-state { background: var(--sh-coral); color: #fff; }
+.sh-task.done { background: var(--sh-mint-bg); border-color: rgba(77,208,145,.3); }
+.sh-task.done .sh-task-status { color: var(--sh-mint-d); font-weight: 600; }
+.sh-task.done .sh-task-state { background: var(--sh-mint); color: #fff; }
 </style>
 </head>
 <body>
@@ -1052,29 +1081,25 @@ input::placeholder, textarea::placeholder { color: var(--hint); }
       <span>มี <b id="sh-note-n">0 รายการ</b> ต้องจัดการก่อนปิดเวร</span>
     </div>
 
-    <!-- ACTIONS -->
+    <!-- TASK CHECKLIST -->
     <div class="sh-section-title">งานในเวรนี้</div>
-    <div class="sh-action-row">
-      <div class="sh-action-card" id="sh-action-cart" onclick="gotoPage('cart-check')">
-        <div class="sh-action-icon">💊</div>
-        <div class="sh-action-ttl">ตรวจ / เติมยา</div>
-        <div class="sh-action-sub">กรอกที่เห็นจริง · ระบบจัดจ่าย/เติม</div>
-        <div class="sh-action-meta">
-          <span class="dot ok"></span>
-          <span class="text" id="sh-cart-status">พร้อมเริ่ม</span>
-          <span class="time" id="sh-cart-time"></span>
+    <div class="sh-checklist">
+      <button class="sh-task" data-task="cart" onclick="gotoPage('cart-check')">
+        <div class="sh-task-icon">💊</div>
+        <div class="sh-task-body">
+          <div class="sh-task-ttl">ตรวจ / เติมยา</div>
+          <div class="sh-task-status" id="sh-task-cart-status">ยังไม่เริ่ม</div>
         </div>
-      </div>
-      <div class="sh-action-card" onclick="gotoPage('pharm-verify')">
-        <div class="sh-action-icon">📝</div>
-        <div class="sh-action-ttl">บันทึกเวร</div>
-        <div class="sh-action-sub">Rx + ความเสี่ยง / med error</div>
-        <div class="sh-action-meta">
-          <span class="dot warn"></span>
-          <span class="text">รอบันทึก</span>
-          <span class="time"></span>
+        <span class="sh-task-state" id="sh-task-cart-state">○</span>
+      </button>
+      <button class="sh-task" data-task="record" onclick="gotoPage('pharm-verify')">
+        <div class="sh-task-icon">📝</div>
+        <div class="sh-task-body">
+          <div class="sh-task-ttl">บันทึกเวร</div>
+          <div class="sh-task-status" id="sh-task-record-status">ยังไม่บันทึก · Rx + ME</div>
         </div>
-      </div>
+        <span class="sh-task-state" id="sh-task-record-state">○</span>
+      </button>
     </div>
 
     <!-- ACTIVITY FEED -->
@@ -1083,11 +1108,12 @@ input::placeholder, textarea::placeholder { color: var(--hint); }
       <div class="sh-feed-empty">กำลังโหลดกิจกรรม...</div>
     </div>
 
-    <!-- CLOSE SHIFT BUTTON -->
-    <button class="sh-close-btn" id="sh-close-btn" onclick="gotoPage('pharm-verify')">
+    <!-- CLOSE SHIFT BUTTON (gated) -->
+    <button class="sh-close-btn disabled" id="sh-close-btn" onclick="trySheCloseShift()">
       <span class="orb"></span>
-      <span>ปิดเวร · ไปหน้าบันทึก</span>
+      <span class="text" id="sh-close-text">ปิดเวร</span>
     </button>
+    <div class="sh-close-hint" id="sh-close-hint">รอเริ่มงาน...</div>
 
   </div>
 </div>
@@ -1573,6 +1599,15 @@ input::placeholder, textarea::placeholder { color: var(--hint); }
 
     <div id="cc-empty" style="display:none;text-align:center;padding:2rem 1rem;color:var(--muted);">
       <p style="font-size:14px;">— ไม่มีการ์ดที่ตรงกับเงื่อนไข —</p>
+    </div>
+
+    <!-- Confirm + go to pharm-verify -->
+    <div class="cc-confirm-bar">
+      <button id="cc-confirm-btn" class="cc-confirm-btn" onclick="confirmCartCheck()">
+        <span>✓ ยืนยันการตรวจ / เติมรถ</span>
+        <span class="arrow">→ บันทึกเวร</span>
+      </button>
+      <p class="cc-confirm-hint" id="cc-confirm-hint">บันทึก log แล้วไปหน้าบันทึกเวรต่อ</p>
     </div>
   </div>
 </div>
@@ -2520,7 +2555,8 @@ function gotoPage(name) {
 }
 
 // ============================================================
-//  SHIFT HUB (เภสัช landing dashboard)
+//  SHIFT HUB — เภสัช summary dashboard
+//    Shows what's been done in current shift + gate ปิดเวร
 // ============================================================
 function initShiftHub() {
   // Header date / time / pharmacist
@@ -2538,7 +2574,7 @@ function initShiftHub() {
   setText('sh-hero-name', APP.userName || 'เภสัชกร');
   setText('sh-hero-meta', 'ตอนนี้ ' + hh + ':' + mm);
 
-  // KPIs computed from DRUGS array
+  // KPIs computed from DRUGS array (live cart state)
   var expired = 0, near = 0, low = 0, total = DRUGS.length;
   DRUGS.forEach(function(d) {
     if (d.status === 'danger' || d.status === 'critical') expired++;
@@ -2550,33 +2586,119 @@ function initShiftHub() {
   setText('sh-kpi-low-n', low);
   setText('sh-kpi-total-n', total);
 
-  // Note banner — show only if issues exist
-  var issues = expired + low;
+  // Note banner — only show if issues
   var note = document.getElementById('sh-note');
   if (note) {
-    if (issues > 0) {
+    if (low > 0 || expired > 0) {
       note.style.display = '';
-      setText('sh-note-n', issues + ' รายการ');
+      setText('sh-note-n', (low + expired) + ' รายการ');
     } else {
       note.style.display = 'none';
     }
   }
 
-  // Action card 1: ตรวจ/เติมยา — show issue dot if low > 0
-  var cartCard = document.getElementById('sh-action-cart');
-  if (cartCard) {
-    cartCard.classList.toggle('has-issue', low > 0);
-    setText('sh-cart-status', low > 0 ? 'ค้าง ' + low + ' รายการ' : 'พร้อมเริ่ม');
+  // === Cart-check task state ===
+  var cartTask = document.querySelector('.sh-task[data-task="cart"]');
+  if (cartTask) {
+    cartTask.classList.remove('partial','alert','done');
+    var ccDone = 0;
+    if (typeof CART_CHECK !== 'undefined' && CART_CHECK && CART_CHECK.cardState) {
+      Object.values(CART_CHECK.cardState).forEach(function(s) {
+        if (s && s.status === 'done') ccDone++;
+      });
+    }
+    if (APP.cartCheckSubmitted) {
+      // User has confirmed cart-check this shift
+      if (low > 0) {
+        cartTask.classList.add('alert');
+        setText('sh-task-cart-status', '⚠ ยืนยันแล้ว แต่ยังเติมไม่ครบ ' + low + ' รายการ');
+        setText('sh-task-cart-state', '!');
+      } else {
+        cartTask.classList.add('done');
+        var summ = APP.cartCheckSummary || {};
+        setText('sh-task-cart-status', '✓ ยืนยันแล้ว · จัดการ ' + (summ.done != null ? summ.done : ccDone) + ' รายการ');
+        setText('sh-task-cart-state', '✓');
+      }
+    } else if (low > 0) {
+      cartTask.classList.add('alert');
+      setText('sh-task-cart-status', '⚠ เติมยาไม่ครบ ' + low + ' รายการ · ตรวจต่อ');
+      setText('sh-task-cart-state', '!');
+    } else if (ccDone === 0) {
+      setText('sh-task-cart-status', 'ยังไม่เริ่ม · กดเข้า');
+      setText('sh-task-cart-state', '○');
+    } else if (ccDone < total) {
+      cartTask.classList.add('partial');
+      setText('sh-task-cart-status', 'ตรวจไป ' + ccDone + '/' + total + ' · ยืนยันที่ใต้รายการ');
+      setText('sh-task-cart-state', '○');
+    } else {
+      cartTask.classList.add('done');
+      setText('sh-task-cart-status', 'ตรวจครบ · ยังต้องกดยืนยัน');
+      setText('sh-task-cart-state', '○');
+    }
   }
 
-  // Close shift button state
-  var closeBtn = document.getElementById('sh-close-btn');
-  if (closeBtn) {
-    closeBtn.classList.toggle('ok', issues === 0);
+  // === Record (pharm-verify) task state ===
+  var recordTask = document.querySelector('.sh-task[data-task="record"]');
+  if (recordTask) {
+    recordTask.classList.remove('partial','alert','done');
+    if (APP.shiftSaved) {
+      recordTask.classList.add('done');
+      var rxTotal = APP.lastShiftRxTotal != null ? APP.lastShiftRxTotal : '?';
+      var meCnt   = (APP.errList || []).length;
+      var riskCnt = (APP.riskList || []).length;
+      var summary = 'บันทึกแล้ว · Rx ' + rxTotal + ' · ME ' + meCnt + (riskCnt > 0 ? ' · ความเสี่ยง ' + riskCnt : '');
+      setText('sh-task-record-status', summary);
+      setText('sh-task-record-state', '✓');
+    } else {
+      setText('sh-task-record-status', 'ยังไม่บันทึก · Rx + ME + ความเสี่ยง');
+      setText('sh-task-record-state', '○');
+    }
+  }
+
+  // === ปิดเวร button — gate logic ===
+  var btn = document.getElementById('sh-close-btn');
+  var hint = document.getElementById('sh-close-hint');
+  if (btn && hint) {
+    btn.classList.remove('disabled','alert','ok');
+    btn.disabled = false;
+
+    if (low > 0) {
+      btn.classList.add('alert');
+      setText('sh-close-text', '⚠ เติมยาไม่ครบ — ปิดเวรไม่ได้');
+      hint.textContent = 'ต้องเติมยาให้ครบก่อน · กดเข้าหน้า "ตรวจ/เติมยา"';
+    } else if (!APP.cartCheckSubmitted) {
+      btn.classList.add('disabled');
+      btn.disabled = true;
+      setText('sh-close-text', 'ต้องยืนยันการตรวจรถก่อน');
+      hint.textContent = 'กดเข้าหน้า "ตรวจ/เติมยา" → กดปุ่ม "ยืนยันการตรวจ" ที่ล่างสุด';
+    } else if (!APP.shiftSaved) {
+      btn.classList.add('disabled');
+      btn.disabled = true;
+      setText('sh-close-text', 'ต้องบันทึกเวรก่อน');
+      hint.textContent = 'กดเข้าหน้า "บันทึกเวร" → กรอก Rx + ME → กดบันทึก';
+    } else {
+      btn.classList.add('ok');
+      setText('sh-close-text', '✓ ปิดเวร');
+      hint.textContent = 'พร้อมปิดเวร · ทุกอย่างเรียบร้อย';
+    }
   }
 
   // Activity feed
   renderShiftHubFeed();
+}
+
+function trySheCloseShift() {
+  var btn = document.getElementById('sh-close-btn');
+  if (!btn || btn.disabled || btn.classList.contains('disabled')) return;
+  if (btn.classList.contains('alert')) {
+    // Cart issues — redirect to cart-check
+    gotoPage('cart-check');
+    return;
+  }
+  // All clear — confirm + logout
+  if (confirm('ยืนยันปิดเวรและออกจากระบบ?')) {
+    if (typeof doLogout === 'function') doLogout();
+  }
 }
 
 function renderShiftHubFeed() {
@@ -2761,7 +2883,7 @@ async function doLogin() {
 }
 
 function doLogout() {
-  APP.role = null; APP.userName = null; APP.currentShiftId = null; APP.shiftSaved = false; APP.riskList = []; APP.sessionLog = [];
+  APP.role = null; APP.userName = null; APP.currentShiftId = null; APP.shiftSaved = false; APP.cartCheckSubmitted = false; APP.cartCheckSummary = null; APP.lastShiftRxTotal = null; APP.riskList = []; APP.sessionLog = [];
   var bar = document.getElementById('session-log-bar'); if (bar) bar.style.display = 'none';
   _sessionLogCollapsed = false;
   var content = document.getElementById('session-log-content'); if (content) content.style.display = '';
@@ -4387,6 +4509,7 @@ async function submitShiftLog() {
     const result = await callScript('saveRecord', data);
     APP.shiftSaved = true;
     APP.currentShiftId = result.shift_id || APP.currentShiftId;
+    APP.lastShiftRxTotal = data.rx_total;
     if (btn) {
       btn.disabled = false;
       btn.textContent = 'บันทึกสำเร็จ ✓';
@@ -4394,7 +4517,9 @@ async function submitShiftLog() {
       setTimeout(function(){
         btn.textContent = 'บันทึกเวร';
         btn.style.background = '';
-      }, 2500);
+        // Return to Shift Hub to show updated summary
+        if (APP.role === 'pharm') gotoPage('shift-hub');
+      }, 1400);
     }
     // แสดง log ล่าสุด
     renderShiftLog();
@@ -6667,6 +6792,65 @@ function initCartCheck() {
   // preserve existing state across nav switches; just re-render
   renderCartCheckList();
   updateCcSummary();
+  // Update confirm hint with current state
+  updateCcConfirmHint();
+}
+
+function updateCcConfirmHint() {
+  var hint = document.getElementById('cc-confirm-hint');
+  if (!hint) return;
+  var done = 0, low = 0;
+  if (typeof CART_CHECK !== 'undefined' && CART_CHECK && CART_CHECK.cardState) {
+    Object.values(CART_CHECK.cardState).forEach(function(s){ if (s && s.status === 'done') done++; });
+  }
+  DRUGS.forEach(function(d){ if ((d.cur || 0) < (d.target || 0)) low++; });
+  if (low > 0) {
+    hint.innerHTML = '⚠ ยังเติมไม่ครบ <b style="color:var(--red)">' + low + '</b> รายการ · ยืนยันแล้วยังกลับมาเติมเพิ่มได้';
+  } else if (done > 0) {
+    hint.innerHTML = '✓ จัดการแล้ว ' + done + ' รายการ · พร้อมไปบันทึกเวร';
+  } else {
+    hint.innerHTML = 'บันทึก log แล้วไปหน้าบันทึกเวรต่อ';
+  }
+}
+
+async function confirmCartCheck() {
+  // Compute summary
+  var done = 0, low = 0, total = DRUGS.length;
+  if (typeof CART_CHECK !== 'undefined' && CART_CHECK && CART_CHECK.cardState) {
+    Object.values(CART_CHECK.cardState).forEach(function(s){ if (s && s.status === 'done') done++; });
+  }
+  DRUGS.forEach(function(d){ if ((d.cur || 0) < (d.target || 0)) low++; });
+
+  var msg = 'ยืนยันการตรวจ / เติมรถ?\n\n' +
+            '· จัดการแล้ว ' + done + ' รายการ\n' +
+            (low > 0
+              ? '· ⚠ ยังเติมไม่ครบ ' + low + ' รายการ\n'
+              : '· ✓ เติมครบทุกรายการ\n') +
+            '\nระบบจะบันทึก log และไปหน้า "บันทึกเวร" ต่อ';
+  if (!confirm(msg)) return;
+
+  var btn = document.getElementById('cc-confirm-btn');
+  if (btn) { btn.disabled = true; btn.innerHTML = '<span>กำลังบันทึก...</span>'; }
+
+  try {
+    await callScript('submitCartCheck', {
+      pharmacist : APP.userName,
+      timestamp  : new Date().toISOString(),
+      done_cnt   : done,
+      low_cnt    : low,
+      total_cnt  : total,
+    });
+    APP.cartCheckSubmitted = true;
+    APP.cartCheckSummary = { done: done, low: low, total: total, ts: new Date().toISOString() };
+    // Navigate to pharm-verify
+    gotoPage('pharm-verify');
+  } catch (err) {
+    if (btn) {
+      btn.disabled = false;
+      btn.innerHTML = '<span>✓ ยืนยันการตรวจ / เติมรถ</span><span class="arrow">→ บันทึกเวร</span>';
+    }
+    alert('บันทึกไม่สำเร็จ: ' + (err && err.message ? err.message : err));
+  }
 }
 
 function ccParseCartPos(s) {
@@ -7228,6 +7412,8 @@ function updateCcSummary() {
   if (allEl)   allEl.textContent   = all;
   if (doneEl)  doneEl.textContent  = done;
   if (emptyEl) emptyEl.textContent = empty;
+  // Update confirm hint live as user marks cards
+  if (typeof updateCcConfirmHint === 'function') updateCcConfirmHint();
 }
 
 function ccFilter() {
