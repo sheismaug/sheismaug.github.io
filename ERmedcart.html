@@ -15,11 +15,28 @@
 html { font-size: 16px; -webkit-text-size-adjust: 100%; }
 body {
   font-family: 'Google Sans Text', 'Google Sans', sans-serif;
-  background: #f4f5f9;
   color: #0d1535;
   min-height: 100vh;
   padding-bottom: 80px; /* bottom nav 72px + buffer */
+  position: relative;
+  background:
+    radial-gradient(ellipse 90% 60% at 10% 5%, rgba(255,255,255,1) 0%, rgba(255,255,255,.85) 28%, rgba(255,255,255,.45) 55%, transparent 85%),
+    radial-gradient(ellipse 80% 55% at 95% 12%, rgba(255,255,255,1) 0%, rgba(255,255,255,.85) 28%, rgba(255,255,255,.45) 55%, transparent 85%),
+    radial-gradient(ellipse 110% 50% at 60% 55%, rgba(255,255,255,.95) 0%, rgba(255,255,255,.7) 35%, rgba(255,255,255,.35) 60%, transparent 88%),
+    radial-gradient(ellipse 130% 55% at 30% 105%, rgba(255,255,255,1) 0%, rgba(255,255,255,.8) 30%, rgba(255,255,255,.4) 60%, transparent 90%),
+    radial-gradient(ellipse 70% 45% at 0% 45%, rgba(255,255,255,.95) 0%, rgba(255,255,255,.65) 30%, transparent 80%),
+    radial-gradient(ellipse 32% 28% at 65% 28%, #5BAEE8 0%, transparent 65%),
+    radial-gradient(ellipse 28% 25% at 28% 70%, #4FB8DC 0%, transparent 65%),
+    radial-gradient(ellipse 30% 25% at 82% 78%, #6FB8E0 0%, transparent 65%),
+    linear-gradient(160deg, #B8D5E5 0%, #A0C8DC 50%, #92BED4 100%);
+  background-attachment: fixed;
 }
+body::after {
+  content: ""; position: fixed; inset: 0; z-index: 0; pointer-events: none;
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='180' height='180'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 0   0 0 0 0 0   0 0 0 0 0   0 0 0 .6 0'/></filter><rect width='100%25' height='100%25' filter='url(%23n)'/></svg>");
+  opacity: .35; mix-blend-mode: overlay;
+}
+.page { position: relative; z-index: 1; }
 h1,h2,h3 { font-family: 'Google Sans', 'Google Sans Text', sans-serif; font-weight: 700; }
 
 /* ============================================================
@@ -557,33 +574,17 @@ input::placeholder, textarea::placeholder { color: var(--hint); }
   display: none;
   align-items: center;
   justify-content: center;
-  padding: 1.5rem 1rem;
-}
-#page-login {
-  min-height: 100vh;
-  display: flex; align-items: center; justify-content: center;
   padding: 1.5rem;
-  background: #f4f5f9;
   position: relative;
   overflow: hidden;
 }
-#page-login::before {
-  content: '';
-  position: absolute;
-  top: -100px; right: -100px;
-  width: 320px; height: 320px;
-  background: radial-gradient(circle, rgba(192,25,74,0.08) 0%, transparent 70%);
-  pointer-events: none;
-}
-#page-login::after {
-  content: '';
-  position: absolute;
-  bottom: -80px; left: -80px;
-  width: 280px; height: 280px;
-  background: radial-gradient(circle, rgba(13,21,53,0.07) 0%, transparent 70%);
-  pointer-events: none;
-}
 #page-login.active { display: flex; }
+#page-login .login-sun {
+  position: absolute; top: 24px; right: 24px;
+  width: 64px; height: 64px;
+  z-index: 2; pointer-events: none;
+  filter: drop-shadow(0 2px 8px rgba(184,60,24,.32));
+}
 .login-box {
   background: var(--white);
   border: 1px solid var(--border);
@@ -664,26 +665,8 @@ input::placeholder, textarea::placeholder { color: var(--hint); }
   --nc2-sky: #5BAEE8; --nc2-sky-bg: #DDEEFA;
   --nc2-ink-1: #1A1814; --nc2-ink-2: #5C574B; --nc2-ink-3: #948F80; --nc2-ink-4: #CFCBBE;
   --nc2-hairline: #E4DFD0;
-  background:
-    radial-gradient(ellipse 90% 60% at 10% 5%, rgba(255,255,255,1) 0%, rgba(255,255,255,.85) 28%, rgba(255,255,255,.45) 55%, transparent 85%),
-    radial-gradient(ellipse 80% 55% at 95% 12%, rgba(255,255,255,1) 0%, rgba(255,255,255,.85) 28%, rgba(255,255,255,.45) 55%, transparent 85%),
-    radial-gradient(ellipse 110% 50% at 60% 55%, rgba(255,255,255,.95) 0%, rgba(255,255,255,.7) 35%, rgba(255,255,255,.35) 60%, transparent 88%),
-    radial-gradient(ellipse 130% 55% at 30% 105%, rgba(255,255,255,1) 0%, rgba(255,255,255,.8) 30%, rgba(255,255,255,.4) 60%, transparent 90%),
-    radial-gradient(ellipse 70% 45% at 0% 45%, rgba(255,255,255,.95) 0%, rgba(255,255,255,.65) 30%, transparent 80%),
-    radial-gradient(ellipse 32% 28% at 65% 28%, #5BAEE8 0%, transparent 65%),
-    radial-gradient(ellipse 28% 25% at 28% 70%, #4FB8DC 0%, transparent 65%),
-    radial-gradient(ellipse 30% 25% at 82% 78%, #6FB8E0 0%, transparent 65%),
-    linear-gradient(160deg, #B8D5E5 0%, #A0C8DC 50%, #92BED4 100%);
-  background-attachment: fixed;
-  min-height: 100vh;
-  position: relative;
 }
-#page-nurse-check::before {
-  content:""; position:fixed; inset:0; z-index:0; pointer-events:none;
-  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='180' height='180'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 0   0 0 0 0 0   0 0 0 0 0   0 0 0 .6 0'/></filter><rect width='100%25' height='100%25' filter='url(%23n)'/></svg>");
-  opacity:.35; mix-blend-mode: overlay;
-}
-#page-nurse-check .container { position: relative; z-index: 1; max-width: 480px; padding: 1.4rem 1.25rem 6.5rem; }
+#page-nurse-check .container { max-width: 480px; padding: 1.4rem 1.25rem 6.5rem; }
 
 .nc2-hero {
   position: relative; overflow: hidden;
@@ -796,26 +779,8 @@ input::placeholder, textarea::placeholder { color: var(--hint); }
   --sh-peach: #FFA23A; --sh-peach-d: #D77A1F; --sh-peach-bg: #FFE2C4;
   --sh-ink-1: #1A1814; --sh-ink-2: #5C574B; --sh-ink-3: #948F80; --sh-ink-4: #CFCBBE;
   --sh-hairline: #E4DFD0;
-  background:
-    radial-gradient(ellipse 90% 60% at 10% 5%, rgba(255,255,255,1) 0%, rgba(255,255,255,.85) 28%, rgba(255,255,255,.45) 55%, transparent 85%),
-    radial-gradient(ellipse 80% 55% at 95% 12%, rgba(255,255,255,1) 0%, rgba(255,255,255,.85) 28%, rgba(255,255,255,.45) 55%, transparent 85%),
-    radial-gradient(ellipse 110% 50% at 60% 55%, rgba(255,255,255,.95) 0%, rgba(255,255,255,.7) 35%, rgba(255,255,255,.35) 60%, transparent 88%),
-    radial-gradient(ellipse 130% 55% at 30% 105%, rgba(255,255,255,1) 0%, rgba(255,255,255,.8) 30%, rgba(255,255,255,.4) 60%, transparent 90%),
-    radial-gradient(ellipse 70% 45% at 0% 45%, rgba(255,255,255,.95) 0%, rgba(255,255,255,.65) 30%, transparent 80%),
-    radial-gradient(ellipse 32% 28% at 65% 28%, #5BAEE8 0%, transparent 65%),
-    radial-gradient(ellipse 28% 25% at 28% 70%, #4FB8DC 0%, transparent 65%),
-    radial-gradient(ellipse 30% 25% at 82% 78%, #6FB8E0 0%, transparent 65%),
-    linear-gradient(160deg, #B8D5E5 0%, #A0C8DC 50%, #92BED4 100%);
-  background-attachment: fixed;
-  min-height: 100vh;
-  position: relative;
 }
-#page-shift-hub::before {
-  content:""; position:fixed; inset:0; z-index:0; pointer-events:none;
-  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='180' height='180'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 0   0 0 0 0 0   0 0 0 0 0   0 0 0 .6 0'/></filter><rect width='100%25' height='100%25' filter='url(%23n)'/></svg>");
-  opacity:.35; mix-blend-mode: overlay;
-}
-#page-shift-hub .container { position: relative; z-index: 1; max-width: 480px; padding: 1.6rem 1.25rem 6.5rem; }
+#page-shift-hub .container { max-width: 480px; padding: 1.6rem 1.25rem 6.5rem; }
 
 .sh-hero { position: relative; overflow: hidden; border-radius: 28px; padding: 1.85rem 1.65rem 1.5rem; margin-bottom: 1.25rem; background: #FFFFFF; border: var(--sh-card-border); box-shadow: var(--sh-hero-shadow); }
 .sh-hero-sun { position: absolute; top: 16px; right: 18px; width: 56px; height: 56px; z-index: 3; pointer-events: none; filter: drop-shadow(0 2px 6px rgba(184,60,24,.32)); }
@@ -932,6 +897,22 @@ input::placeholder, textarea::placeholder { color: var(--hint); }
      PAGE: LOGIN
      ============================================================ -->
 <div id="page-login" class="page active">
+  <svg class="login-sun" viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+    <line x1="32" y1="3"  x2="32" y2="11" stroke="#FF6F68" stroke-width="2.6" stroke-linecap="round"/>
+    <line x1="32" y1="53" x2="32" y2="61" stroke="#5BAEE8" stroke-width="2.6" stroke-linecap="round"/>
+    <line x1="3"  y1="32" x2="11" y2="32" stroke="#FF96C5" stroke-width="2.6" stroke-linecap="round"/>
+    <line x1="53" y1="32" x2="61" y2="32" stroke="#4DD091" stroke-width="2.6" stroke-linecap="round"/>
+    <line x1="11.5" y1="11.5" x2="17"   y2="17"   stroke="#FFA23A" stroke-width="2.6" stroke-linecap="round"/>
+    <line x1="47"   y1="47"   x2="52.5" y2="52.5" stroke="#A48EE8" stroke-width="2.6" stroke-linecap="round"/>
+    <line x1="52.5" y1="11.5" x2="47"   y2="17"   stroke="#FFD872" stroke-width="2.6" stroke-linecap="round"/>
+    <line x1="11.5" y1="52.5" x2="17"   y2="47"   stroke="#FF96C5" stroke-width="2.6" stroke-linecap="round"/>
+    <circle cx="32" cy="32" r="13" fill="url(#nc2-sunGrad)" stroke="#FFB833" stroke-width="0.5"/>
+    <circle cx="28" cy="31" r="1.4" fill="#1F1B14"/>
+    <circle cx="36" cy="31" r="1.4" fill="#1F1B14"/>
+    <path d="M 28 36 Q 32 39 36 36" stroke="#1F1B14" stroke-width="1.5" stroke-linecap="round" fill="none"/>
+    <circle cx="26" cy="34.5" r="1.5" fill="#FF96C5" opacity=".6"/>
+    <circle cx="38" cy="34.5" r="1.5" fill="#FF96C5" opacity=".6"/>
+  </svg>
   <div class="login-box">
     <div class="login-logo">
       <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round">
