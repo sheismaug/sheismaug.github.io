@@ -2810,6 +2810,30 @@ async function doLogin() {
       had      : d.had_alert === true || d.had_alert === 'TRUE' || d.had_alert === 1 || d.had_alert === 'true' || d.had_alert === 'Yes',
     }));
 
+    // === Rehydrate shift state จาก backend (เฉพาะเภสัช) ===
+    // กัน state หาย: ถ้าวันนี้บันทึกเวร / ยืนยันตรวจรถไปแล้ว
+    // ระบบดึงกลับมา ไม่ต้องให้ user ทำซ้ำตอน login ใหม่
+    if (loginRole === 'pharm') {
+      try {
+        const state = await callScript('getTodayShiftState', { pharmacist: APP.userName });
+        if (state && state.shiftSaved) {
+          APP.shiftSaved       = true;
+          APP.currentShiftId   = state.shiftId || null;
+          APP.lastShiftRxTotal = state.rxTotal != null ? state.rxTotal : null;
+          APP.errList          = Array.isArray(state.errList)  ? state.errList  : [];
+          APP.errCount         = APP.errList.length;
+          APP.riskList         = Array.isArray(state.riskList) ? state.riskList : [];
+        }
+        if (state && state.cartCheckSubmitted) {
+          APP.cartCheckSubmitted = true;
+          APP.cartCheckSummary   = state.cartCheckSummary || {};
+        }
+      } catch (e) {
+        // โหลดไม่ได้ก็ไม่เป็นไร — ปล่อยให้ default false (ผู้ใช้ทำใหม่ได้)
+        console.warn('rehydrate shift state failed:', e);
+      }
+    }
+
     // nurse: ไปหน้าตรวจยาหลัง DRUGS โหลดเสร็จ
     if (APP._gotoNurseAfterLoad) {
       APP._gotoNurseAfterLoad = false;
