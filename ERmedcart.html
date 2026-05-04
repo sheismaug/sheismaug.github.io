@@ -2828,6 +2828,19 @@ async function doLogin() {
           APP.cartCheckSubmitted = true;
           APP.cartCheckSummary   = state.cartCheckSummary || {};
         }
+        // Rehydrate cart-check cardState: drug ที่ restock/dispense วันนี้ = ตรวจแล้ว
+        if (state && Array.isArray(state.restockedDrugIds) && typeof CART_CHECK !== 'undefined') {
+          state.restockedDrugIds.forEach(function(did) {
+            CART_CHECK.cardState[did] = {
+              status: 'done',
+              actuals: {},
+              withdrawnExps: {},
+              newLotOn: true,
+              newLotExp: '',
+              loaded: false,
+            };
+          });
+        }
       } catch (e) {
         // โหลดไม่ได้ก็ไม่เป็นไร — ปล่อยให้ default false (ผู้ใช้ทำใหม่ได้)
         console.warn('rehydrate shift state failed:', e);
