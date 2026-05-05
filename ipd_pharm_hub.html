@@ -1866,9 +1866,11 @@
         .hb-prep-musts ul li { padding: 3px 0 3px 22px; position: relative; font-size: 13px; line-height: 1.5; color: #2e3f58; }
         .hb-prep-musts ul li::before { content: ''; position: absolute; left: 6px; top: 12px; width: 6px; height: 6px; background: #a07000; border-radius: 50%; }
 
-        /* CSS-styled icon to replace ⚠ emoji that fails on some fonts */
+        /* CSS-styled icons (replace emoji that fails on some fonts) */
         .ic-warn { display: inline-flex; align-items: center; justify-content: center; width: 18px; height: 18px; background: #ff9800; color: #fff; border-radius: 4px; font-size: 12px; font-weight: 500; vertical-align: -3px; }
         .ic-warn::before { content: '!'; }
+        .ic-serious { display: inline-flex; align-items: center; justify-content: center; width: 18px; height: 18px; background: #c62828; color: #fff; border-radius: 4px; font-size: 12px; font-weight: 500; vertical-align: -3px; letter-spacing: 0.5px; }
+        .ic-serious::before { content: '!!'; font-size: 10px; }
 
         /* ═══ Prep Infographic (replaces dense paragraph) ═══ */
         .pip-wrap { background: #faf8f4; border-radius: 14px; padding: 18px; margin-top: 6px; }
@@ -1917,6 +1919,49 @@
         .pip-qr.no ul { color: #2c1717; }
         .pip-qr.must ul { color: #2e3f58; }
         .pip-qr .why { color: #999; font-size: 11.5px; font-style: italic; }
+
+        /* ═══ Antidote — Emergency procedure box ═══ */
+        .anti-emergency { background: #fff; border: 2px solid #c62828; border-radius: 12px; overflow: hidden; margin-top: 6px; }
+        .anti-head { background: #c62828; color: #fff; padding: 10px 14px; display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+        .anti-head .ic { width: 24px; height: 24px; background: #fff; color: #c62828; border-radius: 4px; display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: 500; flex-shrink: 0; }
+        .anti-head .title { font-size: 15px; font-weight: 500; }
+        .anti-head .sub { font-size: 11px; opacity: 0.9; margin-left: auto; letter-spacing: 0.3px; }
+        .anti-body { padding: 6px 14px 12px; }
+        .anti-step { display: grid; grid-template-columns: 32px 1fr; gap: 12px; padding: 10px 0; border-bottom: 1px dashed #f0eeeb; align-items: start; }
+        .anti-step:last-child { border-bottom: none; }
+        .anti-step-num { width: 28px; height: 28px; background: #c62828; color: #fff; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: 500; }
+        .anti-step.urgent .anti-step-num { background: #b71c1c; box-shadow: 0 0 0 3px rgba(198,40,40,0.2); }
+        .anti-step .text { font-size: 14px; color: #2e3f58; font-weight: 500; line-height: 1.4; padding-top: 3px; }
+        .anti-step.urgent .text { color: #c62828; }
+        .anti-step .detail { font-size: 12px; color: #666; margin-top: 4px; line-height: 1.5; }
+
+        /* ═══ Monitoring schedule + red flags ═══ */
+        .mon-wrap { background: #fff; border: 1px solid #e8e5e0; border-radius: 12px; padding: 14px; margin-top: 6px; }
+        .mon-section { margin-bottom: 14px; }
+        .mon-section:last-child { margin-bottom: 0; }
+        .mon-section .lbl { font-size: 11px; font-weight: 500; color: #888; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 8px; }
+        .mon-schedule { display: grid; gap: 6px; }
+        .mon-row { display: grid; grid-template-columns: minmax(110px, auto) minmax(70px, auto) 1fr; gap: 12px; align-items: center; padding: 8px 12px; background: #f0f7ff; border-radius: 8px; font-size: 13px; }
+        .mon-row .what { color: #2e3f58; font-weight: 500; }
+        .mon-row .when { background: #5b8def; color: #fff; padding: 3px 10px; border-radius: 99px; text-align: center; font-size: 12px; font-weight: 500; justify-self: start; }
+        .mon-row .cond { color: #666; font-size: 12px; }
+        .mon-list { padding: 0; margin: 0; list-style: none; }
+        .mon-list li { padding: 4px 0 4px 22px; position: relative; font-size: 13px; color: #2e3f58; line-height: 1.5; }
+        .mon-list li::before { content: ''; position: absolute; left: 6px; top: 11px; width: 6px; height: 6px; background: #5b8def; border-radius: 50%; }
+
+        .mon-redflags { background: #fff5f5; border-left: 3px solid #c62828; border-radius: 8px; padding: 10px 14px; }
+        .mon-redflags .lbl { font-size: 11px; font-weight: 500; color: #c62828; letter-spacing: 0.5px; text-transform: uppercase; margin-bottom: 6px; display: flex; align-items: center; gap: 6px; }
+        .mon-redflags .lbl .ic { width: 18px; height: 18px; background: #c62828; color: #fff; border-radius: 4px; display: inline-flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 500; }
+        .mon-redflags ul { margin: 0; padding: 0; list-style: none; }
+        .mon-redflags li { padding: 3px 0 3px 24px; position: relative; font-size: 13px; line-height: 1.5; color: #2c1717; }
+        .mon-redflags li::before { content: '!'; position: absolute; left: 0; top: 3px; width: 18px; height: 18px; background: #c62828; color: #fff; border-radius: 4px; font-size: 11px; font-weight: 500; display: inline-flex; align-items: center; justify-content: center; }
+
+        .mon-protocol { padding: 0; margin: 0; list-style: none; }
+        .mon-protocol li { display: flex; align-items: flex-start; gap: 8px; padding: 6px 0; font-size: 13px; line-height: 1.5; color: #2e3f58; }
+        .mon-protocol li .tag { font-size: 10px; font-weight: 500; padding: 2px 8px; border-radius: 99px; letter-spacing: 0.3px; text-transform: uppercase; flex-shrink: 0; margin-top: 1px; }
+        .mon-protocol li .tag.preferred { background: #e8f5e9; color: #2e7d32; }
+        .mon-protocol li .tag.caution   { background: #fff8e1; color: #a07000; }
+        .mon-protocol li .reason { color: #999; font-size: 12px; font-style: italic; margin-left: 4px; }
 
         .hb-dose-list { display: flex; flex-direction: column; gap: 8px; margin-top: 4px; }
         .hb-dose-item { background: #f9f8f6; border-left: 3px solid #c62828; border-radius: 6px; padding: 10px 12px; }
@@ -7297,18 +7342,28 @@
                 html += '</ul></div>';
             }
             if (alarm.length) {
-                html += '<div class="hb-sb hb-sb-alarm"><h4>⚠ Alarm Sign</h4><ul>';
+                html += '<div class="hb-sb hb-sb-alarm"><h4><span class="ic-warn"></span>Alarm Sign</h4><ul>';
                 for (let i = 0; i < alarm.length; i++) html += '<li>' + alarm[i] + '</li>';
                 html += '</ul></div>';
             }
             if (serious.length) {
-                html += '<div class="hb-sb hb-sb-serious"><h4>🚨 Serious Adverse Event</h4><ul>';
+                html += '<div class="hb-sb hb-sb-serious"><h4><span class="ic-serious"></span>Serious Adverse Event</h4><ul>';
                 for (let i = 0; i < serious.length; i++) html += '<li>' + serious[i] + '</li>';
                 html += '</ul></div>';
             }
             html += '</div>';
         }
-        if (d.info && d.info.antidote) html += '<div class="hb-section"><h3>💊 Antidote / การแก้ไข</h3><p>' + d.info.antidote + '</p></div>';
+        // Monitoring schedule (structured) — between 4-block grid and antidote
+        if (d.monitoringStruct) {
+            html += '<div class="hb-section"><h3>🩺 Monitoring & Schedule</h3>' + renderMonitoringStruct(d.monitoringStruct) + '</div>';
+        }
+
+        // Antidote — structured emergency procedure if available, else fallback to paragraph
+        if (d.antidoteStruct) {
+            html += '<div class="hb-section"><h3>💊 Antidote / Emergency procedure</h3>' + renderAntidoteStruct(d.antidoteStruct) + '</div>';
+        } else if (d.info && d.info.antidote) {
+            html += '<div class="hb-section"><h3>💊 Antidote / การแก้ไข</h3><p>' + d.info.antidote + '</p></div>';
+        }
 
         // Source footer
         if (d.info && d.info.source) {
@@ -7508,6 +7563,82 @@
              + '<line x1="32" y1="96" x2="32" y2="100" stroke="#888" stroke-width="1.5"/>'
              + '</svg>';
     }
+    // ─── Render Antidote as emergency procedure box ───
+    function renderAntidoteStruct(a) {
+        if (!a) return '';
+        let html = '<div class="anti-emergency">';
+        html += '<div class="anti-head">';
+        html += '<span class="ic">!</span>';
+        html += '<span class="title">' + (a.trigger || 'Emergency') + '</span>';
+        html += '<span class="sub">' + (a.subtitle || 'Emergency procedure · ทำทันที') + '</span>';
+        html += '</div>';
+        html += '<div class="anti-body">';
+        if (a.steps && a.steps.length) {
+            for (let i = 0; i < a.steps.length; i++) {
+                let s = a.steps[i];
+                html += '<div class="anti-step' + (s.urgent ? ' urgent' : '') + '">';
+                html += '<div class="anti-step-num">' + (i + 1) + '</div>';
+                html += '<div><div class="text">' + s.text + '</div>';
+                if (s.detail) html += '<div class="detail">' + s.detail + '</div>';
+                html += '</div></div>';
+            }
+        }
+        html += '</div></div>';
+        return html;
+    }
+
+    // ─── Render Monitoring schedule + observations + red flags + protocol ───
+    function renderMonitoringStruct(m) {
+        if (!m) return '';
+        let html = '<div class="mon-wrap">';
+
+        // Schedule
+        if (m.schedule && m.schedule.length) {
+            html += '<div class="mon-section"><div class="lbl">📅 Schedule — ความถี่ตรวจติดตาม</div><div class="mon-schedule">';
+            for (let i = 0; i < m.schedule.length; i++) {
+                let r = m.schedule[i];
+                html += '<div class="mon-row">'
+                     + '<div class="what">' + r.what + '</div>'
+                     + '<div class="when">' + r.when + '</div>'
+                     + '<div class="cond">' + (r.cond || '') + '</div>'
+                     + '</div>';
+            }
+            html += '</div></div>';
+        }
+
+        // Observations
+        if (m.observe && m.observe.length) {
+            html += '<div class="mon-section"><div class="lbl">👁 สังเกต / ติดตาม</div><ul class="mon-list">';
+            for (let i = 0; i < m.observe.length; i++) html += '<li>' + m.observe[i] + '</li>';
+            html += '</ul></div>';
+        }
+
+        // Red flags
+        if (m.redFlags && m.redFlags.length) {
+            html += '<div class="mon-section"><div class="mon-redflags">';
+            html += '<div class="lbl"><span class="ic">!</span>รายงานแพทย์ทันทีเมื่อ</div><ul>';
+            for (let i = 0; i < m.redFlags.length; i++) html += '<li>' + m.redFlags[i] + '</li>';
+            html += '</ul></div></div>';
+        }
+
+        // Protocol
+        if (m.protocol && m.protocol.length) {
+            html += '<div class="mon-section"><div class="lbl">⚙ Protocol</div><ul class="mon-protocol">';
+            for (let i = 0; i < m.protocol.length; i++) {
+                let p = m.protocol[i];
+                html += '<li>';
+                if (p.tag) html += '<span class="tag ' + p.tag + '">' + p.tag + '</span>';
+                html += '<span>' + p.text;
+                if (p.reason) html += ' <span class="reason">— ' + p.reason + '</span>';
+                html += '</span></li>';
+            }
+            html += '</ul></div>';
+        }
+
+        html += '</div>';
+        return html;
+    }
+
     function svgStep(idx, p) {
         if (idx === 0) {
             // bag → syringe → trash
@@ -9888,6 +10019,42 @@
             'ใช้ infusion pump เท่านั้น',
             'ให้ทาง central line (preferred)',
             'เก็บพ้นแสง 15-30°C'
+          ]
+        },
+        antidoteStruct: {
+          trigger: 'Extravasation',
+          subtitle: 'Tissue necrosis emergency · ทำทันที',
+          steps: [
+            { text: 'หยุด IV ทันที + aspirate', urgent: true },
+            { text: 'ทา 2% Nitroglycerin ointment', detail: '1 inch ที่ IV site · ซ้ำทุก 6-8 ชม.' },
+            { text: 'Warm compress + ยกแขนขาสูง' },
+            { text: 'Terbutaline 1 mg + NSS 10 mL', detail: 'แบ่งฉีด 5 เข็ม × 2 mL SC clockwise รอบบริเวณ · เข็ม No.25' },
+            { text: 'Consult surgery ถ้ารุนแรง' }
+          ]
+        },
+        monitoringStruct: {
+          schedule: [
+            { what: 'BP & HR',  when: 'q2 min',  cond: 'เริ่มให้ยา' },
+            { what: 'BP & HR',  when: 'q5 min',  cond: 'BP คงที่ (SBP 80-100)' },
+            { what: 'BP & HR',  when: 'q15 min', cond: 'หลังจากนั้น' },
+            { what: 'IV site',  when: 'q1 hr',   cond: 'เฝ้าระวัง extravasation' }
+          ],
+          observe: [
+            'ระดับความรู้สึกตัว',
+            'ชีพจรส่วนปลาย',
+            'ปริมาณปัสสาวะ ≥ 0.5 mL/kg/hr',
+            'อุณหภูมิ + สีของผิวหนัง'
+          ],
+          redFlags: [
+            'HR > 120 (ผู้ใหญ่) · 180 (เด็ก)',
+            'BP > 160/100 (ผู้ใหญ่) · 120/80 (เด็ก)',
+            'ผิวซีด / เขียว ที่ IV site',
+            'หลอดเลือดอักเสบ'
+          ],
+          protocol: [
+            { text: 'ให้ทาง central line', tag: 'preferred' },
+            { text: 'Peripheral line — เฝ้าระวัง extravasation', tag: 'caution' },
+            { text: 'หยุดยาต้องค่อย ๆ ปรับลด', reason: 'abrupt stop → rebound hypotension' }
           ]
         }, note:'ℹ ควรให้ทาง central line — peripheral line เสี่ยง extravasation', noteClass:'info', indications:['เพิ่มความดันโลหิต (Vasopressor)','Septic shock','Refractory hypotension','ยกระดับ MAP ≥ 65 mmHg'], labs:[{key:'lactate',label:'Lactate',unit:'mmol/L',ph:'0.5-2.0',min:0.5,max:2.0,freqHr:4}], vitals:['BP / MAP ทุก 2-5 นาที','HR ทุก 2-5 นาที','EKG','IV site ทุก 1 ชม.','Urine output ≥ 0.5 mL/kg/hr'], clinical:['Tachycardia > 120','ปลายมือ/เท้า เย็น ซีด เขียว','ปวด/บวม/ดำรอบ IV site (extravasation)','Urine output ลดลง'], serious:['Tachyarrhythmia','Tissue necrosis (extravasation)','Mesenteric ischemia','Peripheral / Limb ischemia'], info:{doses:[{ind:'Hypotension/Shock (ผู้ใหญ่)', dose:'IV infusion start 8-12 mcg/min, titrate · typical 2-4 mcg/min · target SBP 80-100 mmHg'},{ind:'Post-cardiac arrest (ACLS)', dose:'IV infusion 0.1-0.5 mcg/kg/min, titrate per response'},{ind:'Pediatric hypotension/shock', dose:'IV infusion start 0.05-0.1 mcg/kg/min, titrate · max 2 mcg/kg/min'},{ind:'Infants (IV infusion)', dose:'8-16 mcg/mL concentration'}],prep:'Forms: Norepinephrine 4 mg/4 mL (1 mg/mL) · Standard: NE 4:250 = 4 mg + D5W 250 mL (16 mcg/mL) · วิธีเตรียม: ใช้ D5W 250 mL ดูดออก 4 mL แล้วดูด NE 4 mL เติมลง · ใช้ D5W หรือ D5S 100 mL · ⚠ ไม่แนะนำเจือจางใน NSS เดี่ยว (loss of potency จาก oxidation) · ⚠ ห้ามผสม sodium bicarbonate · ห้ามให้ IV line เดียวกับ blood/plasma · ใช้ infusion pump เท่านั้น · เก็บพ้นแสง 15-30°C · ห้ามใช้ถ้าเปลี่ยนเป็นสีชมพู/น้ำตาล/เหลืองเข้ม หรือตกตะกอน',monitoring:'BP และ HR ทุก 2 นาทีเมื่อเริ่มให้ยา → ทุก 5 นาทีเมื่อ BP คงที่ (SBP ~80-100 mmHg) → ทุก 15 นาที · ตรวจ IV site ทุก 1 ชม. · ให้ทาง central line หรือเส้นเลือดดำใหญ่ · Peripheral line ต้องเฝ้าระวัง extravasation · หยุดยาต้องค่อยๆ ปรับลด (abrupt stop → rebound hypotension) · ติดตามระดับความรู้สึกตัว, ชีพจรส่วนปลาย, ปริมาณปัสสาวะ, อุณหภูมิและสีของผิวหนัง · รายงานแพทย์ทันทีเมื่อ: HR >120 (ผู้ใหญ่), BP >160/100 (ผู้ใหญ่), HR >180 (เด็ก), BP >120/80 (เด็ก), ผิวซีด/เขียวที่ IV site, หลอดเลือดอักเสบ',alarm:'หัวใจเต้นช้า/ผิดจังหวะ · ปวดหัว HT · กระวนกระวาย หายใจลำบาก · Extravasation → tissue necrosis · ยาสูญเสียความแรงใน NSS เดี่ยว · ห้ามผสม NaHCO₃',source:'HAD รพ.ห้วยผึ้ง ฉบับปรับปรุง 2567 · หน้า 14, 21',antidote:'⚠ Extravasation: หยุด IV ทันที + aspirate → ทา 2% Nitroglycerin ointment 1 inch ที่ IV site ทุก 6-8 ชม. · Warm compress + ยกแขนขาสูง · Terbutaline 1 mg + NSS 10 mL แบ่งฉีด 5 เข็ม (2 mL/เข็ม) SC clockwise รอบบริเวณที่เกิด ด้วยเข็ม No.25 · Consult surgery ถ้ารุนแรง'} },
       adr:       { name:'Adrenaline', short:'Adr', badge:'IV drip/push/IM/SC', image:'HAD_picture/adrenaline.png', freq:'ทุก 3-5 นาที (BP/HR)', mode:'rate', inputUnit:'mL/hr', convUnit:'mcg/kg/min', weightBased:true, convFn:function(r,w){return(r*4)/(w*60)}, convFmt:function(v){return v.toFixed(3)}, warnAt:0.3, maxAt:1.0, defaultRate:15, note:'ℹ Anaphylaxis: IM ต้นขาด้านข้าง · CPR: IV push · Standard drip: 1 mg + NSS 250 mL (= 4 mcg/mL)', noteClass:'info', indications:['Anaphylactic reaction (first-line)','Cardiac arrest (first-line)','Severe acute bronchospasm (asthma)','ร่วมกับยาชาเฉพาะที่ (ลดการดูดซึม)'], labs:[{key:'lactate',label:'Lactate',unit:'mmol/L',ph:'0.5-2.0',min:0.5,max:2.0,freqHr:4}], vitals:['BP (ทุก 3-5 นาที)','HR','EKG (ตามคำสั่ง)','Urine output','RR (bronchospasm)'], clinical:['ใจสั่น','กระวนกระวาย','หัวใจเต้นเร็ว','หายใจเร็ว','Tremor','ปวดหัว'], serious:['Ventricular fibrillation','Pulmonary edema','Cerebrovascular hemorrhage','Cardiac arrhythmias','Tissue necrosis (extravasation)'], info:{doses:[{ind:'Anaphylaxis (ผู้ใหญ่) IM/SC', dose:'0.3-0.5 mg (0.3-0.5 mL of 1 mg/mL) IM ต้นขาด้านข้าง q5-15 min PRN'},{ind:'Anaphylaxis (เด็ก) IM/SC', dose:'0.01 mg/kg/dose (0.01 mL/kg of 1 mg/mL) q5-15 min · max 0.3 mg (prepubertal), 0.5 mg (adolescent)'},{ind:'Anaphylaxis refractory (IV infusion)', dose:'Standard: 1 mg + NSS 250 mL (= 4 mcg/mL) · start 0.1 mcg/kg/min titrate to effect · ใช้ infusion pump'},{ind:'Cardiac arrest (ผู้ใหญ่) IV/IO', dose:'1 mg (1 mL of 1:1000) IV push q3-5 min'},{ind:'Cardiac arrest (เด็ก) IV/IO', dose:'0.01 mg/kg q3-5 min · max 1 mg/dose'},{ind:'Severe bronchospasm SC', dose:'0.3-0.5 mg SC q20 min-4 hr PRN'}],prep:'Forms: Adrenaline 1 mg/mL (1:1000) 1 mL amp · Standard diluent: 1 mg + NSS 250 mL (= 4 mcg/mL) · Solvent: NSS · ใช้ infusion pump เท่านั้นสำหรับ IV infusion · Route: SC, IM, IV central line หรือเส้นเลือดดำใหญ่ · Stable 24 ชั่วโมง ที่อุณหภูมิห้อง (25°C) หรือตู้เย็น (4°C) หลังเจือจาง · เก็บ <25°C, ป้องกันแสง · ห้ามใช้ถ้าสารละลายเปลี่ยนเป็นสีชมพู/น้ำตาล หรือมีตะกอน · ห้ามผสมกับด่างหรือ antioxidants',monitoring:'BP ทุก 3-5 นาที · HR ต่อเนื่อง · EKG (ตามคำสั่งแพทย์) · Urine output (renal vasoconstriction) · ตรวจ IV site: เฝ้าระวัง extravasation (ซีด/เขียว/เย็น) · หลีกเลี่ยงฉีด intra-arterial และ IM บริเวณสะโพกโดยตรง (หลอดเลือดตีบ → กล้ามเนื้อตาย) · รายงานแพทย์ทันทีเมื่อ tachycardia, palpitation, BP สูง · ระวังในเด็ก, ผู้สูงอายุ, HT, hyperthyroid, โรคหัวใจ, ประวัติแพ้ sympathomimetic amines',alarm:'IV infusion เร็วเกินไป → Cerebrovascular hemorrhage, cardiac arrhythmias · Ventricular fibrillation, pulmonary edema → อันตรายถึงชีวิต · Hypertensive crisis · Extravasation → tissue necrosis · ชื่อคล้าย Adenosine — Double check ก่อนบริหาร · ตรวจสอบ route (IV/IM/SC/NB) ทุกครั้งก่อนให้',source:'HAD รพ.ห้วยผึ้ง ฉบับปรับปรุง 2567 · หน้า 7, 23',antidote:'⚠ Extravasation: หยุด IV + aspirate → ทา 2% Nitroglycerin ointment · Warm compress + ยกแขนขาสูง · Terbutaline 1 mg + NSS 10 mL แบ่งฉีด 5 เข็ม (2 mL/เข็ม) SC clockwise รอบบริเวณที่เกิด ด้วยเข็ม No.25 · Hypertension: Labetalol หรือ Nicardipine IV · Arrhythmia: β-blocker'} },
