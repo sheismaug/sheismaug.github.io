@@ -1829,6 +1829,95 @@
         .hb-section p, .hb-section ul { font-size: 13px; line-height: 1.7; margin: 4px 0; color: #333; }
         .hb-section ul { padding-left: 20px; }
         .hb-empty { padding: 40px; text-align: center; color: #999; font-size: 14px; }
+        /* ═══ Structured Preparation block (replaces dense paragraph) ═══ */
+        .hb-prep { display: grid; gap: 10px; margin-top: 6px; }
+        .hb-prep-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+        @media (max-width: 700px) { .hb-prep-row { grid-template-columns: 1fr; } }
+
+        .hb-prep-card { background: #fff; border: 1px solid #e8e5e0; border-radius: 10px; padding: 10px 12px; }
+        .hb-prep-card .lbl { font-size: 10px; font-weight: 500; color: #888; letter-spacing: 0.5px; text-transform: uppercase; margin-bottom: 4px; }
+        .hb-prep-card .val { font-size: 14px; color: #2e3f58; font-weight: 500; line-height: 1.4; }
+        .hb-prep-card .sub { font-size: 12px; color: #666; margin-top: 2px; }
+        .hb-prep-card .arrow { color: #5b8def; font-weight: 500; margin: 0 4px; }
+        .hb-prep-card .result { display: inline-block; background: #2e3f58; color: #fff; padding: 2px 10px; border-radius: 99px; font-size: 12px; font-weight: 500; margin-left: 6px; }
+
+        .hb-prep-steps { background: #f0f7ff; border-left: 3px solid #5b8def; border-radius: 8px; padding: 10px 14px; }
+        .hb-prep-steps .lbl { font-size: 11px; font-weight: 500; color: #5b8def; letter-spacing: 0.3px; text-transform: uppercase; margin-bottom: 6px; }
+        .hb-prep-steps ol { margin: 0; padding-left: 0; list-style: none; counter-reset: step; }
+        .hb-prep-steps ol li { counter-increment: step; padding: 4px 0 4px 30px; position: relative; font-size: 13px; line-height: 1.6; color: #333; }
+        .hb-prep-steps ol li::before { content: counter(step); position: absolute; left: 0; top: 5px; width: 22px; height: 22px; background: #5b8def; color: #fff; border-radius: 50%; font-size: 11px; font-weight: 500; display: flex; align-items: center; justify-content: center; }
+
+        .hb-prep-solvents { background: #f0fff0; border-left: 3px solid #43a047; border-radius: 8px; padding: 8px 12px; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+        .hb-prep-solvents .lbl { font-size: 11px; font-weight: 500; color: #2e7d32; letter-spacing: 0.3px; text-transform: uppercase; }
+        .hb-prep-solvents .check-ic { display: inline-flex; width: 18px; height: 18px; background: #43a047; color: #fff; border-radius: 4px; align-items: center; justify-content: center; font-size: 13px; font-weight: 500; }
+        .hb-prep-solvents .check-ic::before { content: '\2713'; }
+        .hb-prep-solvents .chip { background: #fff; border: 1px solid #c8e6c9; padding: 3px 10px; border-radius: 99px; font-size: 12px; font-weight: 500; color: #2e7d32; }
+
+        .hb-prep-warns { background: #fff5f5; border: 1px solid #f4c0c0; border-radius: 8px; padding: 10px 12px; }
+        .hb-prep-warns .lbl { font-size: 11px; font-weight: 500; color: #c62828; letter-spacing: 0.3px; text-transform: uppercase; margin-bottom: 6px; display: flex; align-items: center; gap: 6px; }
+        .hb-prep-warns ul { margin: 0; padding: 0; list-style: none; }
+        .hb-prep-warns ul li { padding: 3px 0 3px 26px; position: relative; font-size: 13px; line-height: 1.5; color: #2c1717; }
+        .hb-prep-warns ul li::before { content: '\2715'; position: absolute; left: 0; top: 3px; width: 18px; height: 18px; background: #c62828; color: #fff; border-radius: 4px; font-size: 11px; font-weight: 500; display: flex; align-items: center; justify-content: center; }
+        .hb-prep-warns ul li .why { color: #999; font-size: 12px; font-style: italic; }
+
+        .hb-prep-musts { background: #fffbef; border: 1px solid #f0d97a; border-radius: 8px; padding: 10px 12px; }
+        .hb-prep-musts .lbl { font-size: 11px; font-weight: 500; color: #a07000; letter-spacing: 0.3px; text-transform: uppercase; margin-bottom: 6px; }
+        .hb-prep-musts ul { margin: 0; padding: 0; list-style: none; }
+        .hb-prep-musts ul li { padding: 3px 0 3px 22px; position: relative; font-size: 13px; line-height: 1.5; color: #2e3f58; }
+        .hb-prep-musts ul li::before { content: ''; position: absolute; left: 6px; top: 12px; width: 6px; height: 6px; background: #a07000; border-radius: 50%; }
+
+        /* CSS-styled icon to replace ⚠ emoji that fails on some fonts */
+        .ic-warn { display: inline-flex; align-items: center; justify-content: center; width: 18px; height: 18px; background: #ff9800; color: #fff; border-radius: 4px; font-size: 12px; font-weight: 500; vertical-align: -3px; }
+        .ic-warn::before { content: '!'; }
+
+        /* ═══ Prep Infographic (replaces dense paragraph) ═══ */
+        .pip-wrap { background: #faf8f4; border-radius: 14px; padding: 18px; margin-top: 6px; }
+        .pip-section-label { font-size: 11px; font-weight: 500; color: #888; letter-spacing: 1px; text-transform: uppercase; margin-bottom: 10px; text-align: center; }
+
+        .pip-needs { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 18px; }
+        @media (max-width: 600px) { .pip-needs { grid-template-columns: 1fr; } }
+        .pip-card { background: #fff; border: 1px solid #e8e5e0; border-radius: 12px; padding: 12px 14px; display: flex; align-items: center; gap: 14px; }
+        .pip-card .meta { flex: 1; min-width: 0; }
+        .pip-card .meta .lbl { font-size: 10px; font-weight: 500; color: #888; letter-spacing: 0.5px; text-transform: uppercase; }
+        .pip-card .meta .name { font-size: 15px; color: #2e3f58; font-weight: 500; margin-top: 2px; line-height: 1.3; }
+        .pip-card .meta .val { font-size: 13px; color: #2e3f58; }
+        .pip-card .meta .note { font-size: 11px; color: #888; margin-top: 2px; }
+
+        .pip-steps { margin-bottom: 18px; }
+        .pip-step { background: #fff; border: 1px solid #e8e5e0; border-radius: 12px; padding: 12px 14px; margin-bottom: 8px; display: grid; grid-template-columns: 36px 1fr 160px; gap: 12px; align-items: center; }
+        @media (max-width: 600px) { .pip-step { grid-template-columns: 36px 1fr; } .pip-step > svg { display: none; } }
+        .pip-step-num { width: 32px; height: 32px; background: #5b8def; color: #fff; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 16px; font-weight: 500; }
+        .pip-step.done .pip-step-num { background: #43a047; }
+        .pip-step .text { font-size: 13.5px; color: #2e3f58; font-weight: 500; line-height: 1.4; }
+        .pip-step .sub { font-size: 12px; color: #888; margin-top: 3px; line-height: 1.4; }
+
+        .pip-result { background: #2e3f58; color: #fff; border-radius: 12px; padding: 14px 18px; margin-bottom: 18px; display: flex; align-items: center; justify-content: space-between; gap: 14px; flex-wrap: wrap; }
+        .pip-result .meta .lbl { font-size: 10px; opacity: 0.7; letter-spacing: 1px; text-transform: uppercase; font-weight: 500; }
+        .pip-result .meta .recipe { font-size: 14px; opacity: 0.9; margin-top: 2px; }
+        .pip-result .conc { font-size: 30px; font-weight: 500; line-height: 1; }
+        .pip-result .conc .unit { font-size: 13px; opacity: 0.75; margin-left: 4px; font-weight: 500; }
+
+        .pip-quickref { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; }
+        @media (max-width: 700px) { .pip-quickref { grid-template-columns: 1fr; } }
+        .pip-qr { border: 1px solid; border-radius: 10px; padding: 10px 12px; }
+        .pip-qr.ok { background: #f0fff0; border-color: #c8e6c9; }
+        .pip-qr.no { background: #fff5f5; border-color: #f4c0c0; }
+        .pip-qr.must { background: #fffbef; border-color: #f0d97a; }
+        .pip-qr .head { display: flex; align-items: center; gap: 6px; margin-bottom: 8px; }
+        .pip-qr .ic { display: inline-flex; width: 18px; height: 18px; color: #fff; border-radius: 4px; align-items: center; justify-content: center; font-size: 12px; font-weight: 500; }
+        .pip-qr.ok .ic { background: #43a047; }
+        .pip-qr.no .ic { background: #c62828; }
+        .pip-qr.must .ic { background: #f5b91f; }
+        .pip-qr .label { font-size: 11px; font-weight: 500; letter-spacing: 0.5px; text-transform: uppercase; }
+        .pip-qr.ok .label { color: #2e7d32; }
+        .pip-qr.no .label { color: #c62828; }
+        .pip-qr.must .label { color: #a07000; }
+        .pip-qr ul { margin: 0; padding-left: 14px; font-size: 12px; line-height: 1.7; }
+        .pip-qr.ok ul { color: #2e7d32; }
+        .pip-qr.no ul { color: #2c1717; }
+        .pip-qr.must ul { color: #2e3f58; }
+        .pip-qr .why { color: #999; font-size: 11.5px; font-style: italic; }
+
         .hb-dose-list { display: flex; flex-direction: column; gap: 8px; margin-top: 4px; }
         .hb-dose-item { background: #f9f8f6; border-left: 3px solid #c62828; border-radius: 6px; padding: 10px 12px; }
         .hb-dose-ind { font-size: 12px; font-weight: 700; color: #c62828; margin-bottom: 4px; text-transform: uppercase; letter-spacing: 0.3px; }
@@ -7175,7 +7264,11 @@
             } else if (d.info.dose) {
                 html += '<div class="hb-section"><h3>💉 Dose</h3><p>' + d.info.dose + '</p></div>';
             }
-            if (d.info.prep) html += '<div class="hb-section"><h3>🧪 Preparation</h3><p>' + d.info.prep + '</p></div>';
+            if (d.prepStruct) {
+                html += '<div class="hb-section"><h3>🧪 Preparation</h3>' + renderPrepStruct(d.prepStruct) + '</div>';
+            } else if (d.info.prep) {
+                html += '<div class="hb-section"><h3>🧪 Preparation</h3><p>' + d.info.prep + '</p></div>';
+            }
         }
         html += '<div class="hb-section"><h3>⏱ Monitoring Frequency</h3><p>' + (d.freq || 'ตาม order แพทย์') + '</p></div>';
 
@@ -7299,6 +7392,170 @@
                 vals[i].innerHTML = hbInjectInlineConv(orig[idx], key);
             }
         }
+    }
+
+    // ─── Render Preparation as infographic ───
+    // SVG illustrations + structured data → visual guide
+    function renderPrepStruct(p) {
+        if (!p) return '';
+        let html = '<div class="pip-wrap">';
+
+        // ─ What you need ─
+        if (p.form || p.diluent) {
+            html += '<div class="pip-section-label">— What you need —</div>';
+            html += '<div class="pip-needs">';
+            if (p.form) {
+                html += '<div class="pip-card">' + svgAmpoule(p.form) + '<div class="meta">'
+                     +  '<div class="lbl">' + (p.form.type || 'Form') + '</div>'
+                     +  '<div class="name">' + p.form.name + '</div>'
+                     +  '<div class="val">' + (p.form.detail || '') + '</div>'
+                     +  (p.form.subDetail ? '<div class="note">(' + p.form.subDetail + ')</div>' : '')
+                     +  '</div></div>';
+            }
+            if (p.diluent) {
+                html += '<div class="pip-card">' + svgBag(p.diluent) + '<div class="meta">'
+                     +  '<div class="lbl">' + (p.diluent.type || 'Diluent') + '</div>'
+                     +  '<div class="name">' + p.diluent.name + '</div>'
+                     +  '<div class="val">' + (p.diluent.detail || '') + '</div>'
+                     +  (p.diluent.subDetail ? '<div class="note">(' + p.diluent.subDetail + ')</div>' : '')
+                     +  '</div></div>';
+            }
+            html += '</div>';
+        }
+
+        // ─ Steps ─
+        if (p.steps && p.steps.length) {
+            html += '<div class="pip-section-label">— วิธีเตรียม · ' + p.steps.length + ' steps —</div>';
+            html += '<div class="pip-steps">';
+            for (let i = 0; i < p.steps.length; i++) {
+                let s = p.steps[i];
+                let isLast = (i === p.steps.length - 1);
+                html += '<div class="pip-step' + (isLast ? ' done' : '') + '">'
+                     +  '<div class="pip-step-num">' + (i + 1) + '</div>'
+                     +  '<div><div class="text">' + (s.text || s) + '</div>'
+                     +  (s.sub ? '<div class="sub">' + s.sub + '</div>' : '')
+                     +  '</div>'
+                     +  svgStep(i, p)
+                     +  '</div>';
+            }
+            html += '</div>';
+        }
+
+        // ─ Result bar ─
+        if (p.standardMix) {
+            let m = p.standardMix.result.match(/^([\d.\s]+)\s*([a-zA-Z\/]+)$/);
+            let num  = m ? m[1].trim() : p.standardMix.result;
+            let unit = m ? m[2] : '';
+            html += '<div class="pip-result">'
+                 +  '<div class="meta"><div class="lbl">Final concentration</div>'
+                 +  '<div class="recipe">' + p.standardMix.recipe + '</div></div>'
+                 +  '<div class="conc">' + num + (unit ? '<span class="unit">' + unit + '</span>' : '') + '</div>'
+                 +  '</div>';
+        }
+
+        // ─ Quick ref grid: ✓ ใช้ได้ · ✕ ห้าม · ! ต้อง ─
+        html += '<div class="pip-quickref">';
+        if (p.solvents && p.solvents.length) {
+            html += '<div class="pip-qr ok"><div class="head"><span class="ic">✓</span><span class="label">ใช้ได้</span></div><ul>';
+            for (let i = 0; i < p.solvents.length; i++) html += '<li>' + p.solvents[i] + '</li>';
+            html += '</ul></div>';
+        }
+        if (p.warnings && p.warnings.length) {
+            html += '<div class="pip-qr no"><div class="head"><span class="ic">✕</span><span class="label">ห้าม</span></div><ul>';
+            for (let i = 0; i < p.warnings.length; i++) {
+                let w = p.warnings[i];
+                html += '<li>' + w.text + (w.reason ? ' <span class="why">— ' + w.reason + '</span>' : '') + '</li>';
+            }
+            html += '</ul></div>';
+        }
+        if (p.requirements && p.requirements.length) {
+            html += '<div class="pip-qr must"><div class="head"><span class="ic">!</span><span class="label">ต้อง</span></div><ul>';
+            for (let i = 0; i < p.requirements.length; i++) html += '<li>' + p.requirements[i] + '</li>';
+            html += '</ul></div>';
+        }
+        html += '</div>';
+
+        html += '</div>';
+        return html;
+    }
+
+    // ─── SVG helpers for prep infographic ───
+    function svgAmpoule(form) {
+        let label = form.short || form.name || '';
+        let sub   = form.detailShort || form.detail || '';
+        return '<svg width="48" height="100" viewBox="0 0 48 100" style="flex-shrink:0;">'
+             + '<path d="M24 4 c -2.5 0 -4 1.5 -4 4 v5 h8 v-5 c 0 -2.5 -1.5 -4 -4 -4 z" fill="#fff5d8" stroke="#666" stroke-width="0.8"/>'
+             + '<rect x="21" y="13" width="6" height="6" fill="#fff5d8" stroke="#666" stroke-width="0.8"/>'
+             + '<line x1="18" y1="16" x2="30" y2="16" stroke="#c62828" stroke-width="1.5"/>'
+             + '<path d="M14 26 c 0 -3 3 -7 7 -7 h6 c 4 0 7 4 7 7 v62 c 0 3 -2 6 -5 6 h-10 c -3 0 -5 -3 -5 -6 z" fill="#fff" stroke="#666" stroke-width="1"/>'
+             + '<path d="M15 36 v52 c 0 2.5 2 5 4.5 5 h9 c 2.5 0 4.5 -2.5 4.5 -5 v-52 z" fill="#fff5d8"/>'
+             + '<rect x="13" y="44" width="22" height="26" fill="#fff" stroke="#c62828" stroke-width="0.8"/>'
+             + '<text x="24" y="54" font-size="7" font-weight="500" fill="#c62828" text-anchor="middle">' + label + '</text>'
+             + '<text x="24" y="63" font-size="4" fill="#666" text-anchor="middle">' + sub + '</text>'
+             + '<line x1="18" y1="32" x2="18" y2="80" stroke="#fff" stroke-width="1.5" opacity="0.7"/>'
+             + '</svg>';
+    }
+    function svgBag(diluent) {
+        let label = diluent.name + (diluent.detail ? ' ' + diluent.detail : '');
+        return '<svg width="64" height="100" viewBox="0 0 64 100" style="flex-shrink:0;">'
+             + '<line x1="32" y1="0" x2="32" y2="6" stroke="#888" stroke-width="1.5"/>'
+             + '<circle cx="32" cy="3" r="2.5" fill="none" stroke="#888" stroke-width="1.5"/>'
+             + '<path d="M14 10 h36 a3 3 0 0 1 3 3 v75 a3 3 0 0 1 -3 3 h-36 a3 3 0 0 1 -3 -3 v-75 a3 3 0 0 1 3 -3 z" fill="#e6f1fb" stroke="#5b8def" stroke-width="1.2"/>'
+             + '<rect x="11" y="28" width="42" height="63" fill="#cce4f7"/>'
+             + '<rect x="18" y="20" width="28" height="6" fill="#fff" stroke="#5b8def" stroke-width="0.5"/>'
+             + '<text x="32" y="25" font-size="4" font-weight="500" fill="#5b8def" text-anchor="middle">' + label + '</text>'
+             + '<rect x="29" y="91" width="6" height="5" fill="#888"/>'
+             + '<line x1="32" y1="96" x2="32" y2="100" stroke="#888" stroke-width="1.5"/>'
+             + '</svg>';
+    }
+    function svgStep(idx, p) {
+        if (idx === 0) {
+            // bag → syringe → trash
+            return '<svg width="160" height="60" viewBox="0 0 160 60">'
+                 + '<path d="M14 10 h26 v36 a2 2 0 0 1 -2 2 h-22 a2 2 0 0 1 -2 -2 z" fill="#e6f1fb" stroke="#5b8def" stroke-width="1"/>'
+                 + '<rect x="62" y="22" width="40" height="14" fill="#fff" stroke="#666" stroke-width="1"/>'
+                 + '<rect x="78" y="23" width="23" height="12" fill="#cce4f7"/>'
+                 + '<rect x="56" y="26" width="6" height="6" fill="#888"/>'
+                 + '<rect x="50" y="27" width="6" height="4" fill="#aaa"/>'
+                 + '<line x1="102" y1="29" x2="118" y2="29" stroke="#999" stroke-width="0.8"/>'
+                 + '<path d="M126 22 L142 22 L142 38 L126 38 Z M124 24 L144 36 M144 24 L124 36" stroke="#c62828" stroke-width="1.5" fill="none"/>'
+                 + '<text x="135" y="52" font-size="7" fill="#c62828" text-anchor="middle">ทิ้ง</text>'
+                 + '</svg>';
+        } else if (idx === 1) {
+            // mini ampoule → syringe → bag
+            return '<svg width="160" height="60" viewBox="0 0 160 60">'
+                 + '<path d="M12 8 c -1.5 0 -2.5 1 -2.5 2.5 v3 h5 v-3 c 0 -1.5 -1 -2.5 -2.5 -2.5 z" fill="#fff5d8" stroke="#666" stroke-width="0.5"/>'
+                 + '<rect x="10" y="13.5" width="5" height="3" fill="#fff5d8" stroke="#666" stroke-width="0.5"/>'
+                 + '<line x1="8" y1="15" x2="17" y2="15" stroke="#c62828" stroke-width="0.8"/>'
+                 + '<path d="M5 22 c 0 -2 2 -5 5 -5 h5 c 3 0 5 3 5 5 v23 c 0 2 -2 4 -4 4 h-7 c -2 0 -4 -2 -4 -4 z" fill="#fff" stroke="#666" stroke-width="0.8"/>'
+                 + '<path d="M6 28 v17 c 0 1.5 1.5 3 3 3 h6 c 1.5 0 3 -1.5 3 -3 v-17 z" fill="#fff5d8"/>'
+                 + '<line x1="28" y1="29" x2="40" y2="29" stroke="#999" stroke-width="0.8"/>'
+                 + '<path d="M40 26 L43 29 L40 32 Z" fill="#999"/>'
+                 + '<rect x="46" y="22" width="40" height="14" fill="#fff" stroke="#666" stroke-width="1"/>'
+                 + '<rect x="46" y="23" width="34" height="12" fill="#fff5d8"/>'
+                 + '<rect x="40" y="26" width="6" height="6" fill="#888"/>'
+                 + '<line x1="86" y1="29" x2="100" y2="29" stroke="#999" stroke-width="0.8"/>'
+                 + '<path d="M100 26 L103 29 L100 32 Z" fill="#999"/>'
+                 + '<path d="M110 14 h28 a2 2 0 0 1 2 2 v32 a2 2 0 0 1 -2 2 h-28 a2 2 0 0 1 -2 -2 v-32 a2 2 0 0 1 2 -2 z" fill="#fff5d8" stroke="#5b8def" stroke-width="1"/>'
+                 + '</svg>';
+        } else if (p && p.standardMix) {
+            // final bag with concentration label
+            let m = p.standardMix.result.match(/^([\d.\s]+)\s*([a-zA-Z\/]+)$/);
+            let num  = m ? m[1].trim() : p.standardMix.result;
+            let unit = m ? m[2] : '';
+            return '<svg width="160" height="60" viewBox="0 0 160 60">'
+                 + '<line x1="80" y1="0" x2="80" y2="4" stroke="#888" stroke-width="1.2"/>'
+                 + '<circle cx="80" cy="2" r="1.8" fill="none" stroke="#888" stroke-width="1.2"/>'
+                 + '<path d="M58 6 h44 a3 3 0 0 1 3 3 v40 a3 3 0 0 1 -3 3 h-44 a3 3 0 0 1 -3 -3 v-40 a3 3 0 0 1 3 -3 z" fill="#fff5d8" stroke="#f5b91f" stroke-width="1.2"/>'
+                 + '<rect x="55" y="20" width="50" height="29" fill="#ffe8a8"/>'
+                 + '<rect x="62" y="14" width="36" height="5" fill="#fff" stroke="#c62828" stroke-width="0.5"/>'
+                 + '<text x="80" y="18.2" font-size="3.5" font-weight="500" fill="#c62828" text-anchor="middle">' + p.standardMix.recipe + '</text>'
+                 + '<text x="80" y="34" font-size="9" font-weight="500" fill="#2e3f58" text-anchor="middle">' + num + '</text>'
+                 + '<text x="80" y="42" font-size="4" fill="#2e3f58" text-anchor="middle">' + unit + '</text>'
+                 + '<rect x="77" y="52" width="6" height="4" fill="#888"/>'
+                 + '</svg>';
+        }
+        return '';
     }
 
     // ─── NE drip rate calculation table ───
@@ -9610,6 +9867,28 @@
             { label: 'Pediatric — Max', range: [2, 2], unit: 'mcg/kg/min', weightBased: true, hint: 'ห้ามเกิน' }
           ],
           cheatSheet: [2, 4, 6, 8, 10, 12, 16, 20, 24, 30]
+        },
+        prepStruct: {
+          form: { type: 'Ampoule', name: 'Norepinephrine', short: 'NE', detail: '4 mg / 4 mL · 1 amp', detailShort: '4mg/4mL', subDetail: 'หักคอแก้วก่อนใช้' },
+          diluent: { type: 'Diluent bag', name: 'D5W', detail: '250 mL', subDetail: 'NSS เดี่ยวใช้ไม่ได้' },
+          standardMix: { label: 'NE 4:250', recipe: '4 mg + D5W 250 mL', result: '16 mcg/mL' },
+          steps: [
+            { text: 'ดูดออก 4 mL จาก D5W bag', sub: 'ทิ้งให้เหลือพื้นที่ในถุง' },
+            { text: 'หักคอ NE amp · ดูด 4 mL · เติมลงถุง', sub: 'ฉีดเข้าทาง injection port ของถุง' },
+            { text: 'ผสม + ติด label', sub: 'พลิกถุงเบา ๆ 5-10 ครั้ง · ระวังฟอง' }
+          ],
+          solvents: ['D5W', 'D5S 100 mL'],
+          warnings: [
+            { text: 'NSS เดี่ยว', reason: 'loss of potency จาก oxidation' },
+            { text: 'ผสม NaHCO₃' },
+            { text: 'IV line ร่วมกับ blood/plasma' },
+            { text: 'ใช้ถ้าเปลี่ยนสี / ตกตะกอน' }
+          ],
+          requirements: [
+            'ใช้ infusion pump เท่านั้น',
+            'ให้ทาง central line (preferred)',
+            'เก็บพ้นแสง 15-30°C'
+          ]
         }, note:'ℹ ควรให้ทาง central line — peripheral line เสี่ยง extravasation', noteClass:'info', indications:['เพิ่มความดันโลหิต (Vasopressor)','Septic shock','Refractory hypotension','ยกระดับ MAP ≥ 65 mmHg'], labs:[{key:'lactate',label:'Lactate',unit:'mmol/L',ph:'0.5-2.0',min:0.5,max:2.0,freqHr:4}], vitals:['BP / MAP ทุก 2-5 นาที','HR ทุก 2-5 นาที','EKG','IV site ทุก 1 ชม.','Urine output ≥ 0.5 mL/kg/hr'], clinical:['Tachycardia > 120','ปลายมือ/เท้า เย็น ซีด เขียว','ปวด/บวม/ดำรอบ IV site (extravasation)','Urine output ลดลง'], serious:['Tachyarrhythmia','Tissue necrosis (extravasation)','Mesenteric ischemia','Peripheral / Limb ischemia'], info:{doses:[{ind:'Hypotension/Shock (ผู้ใหญ่)', dose:'IV infusion start 8-12 mcg/min, titrate · typical 2-4 mcg/min · target SBP 80-100 mmHg'},{ind:'Post-cardiac arrest (ACLS)', dose:'IV infusion 0.1-0.5 mcg/kg/min, titrate per response'},{ind:'Pediatric hypotension/shock', dose:'IV infusion start 0.05-0.1 mcg/kg/min, titrate · max 2 mcg/kg/min'},{ind:'Infants (IV infusion)', dose:'8-16 mcg/mL concentration'}],prep:'Forms: Norepinephrine 4 mg/4 mL (1 mg/mL) · Standard: NE 4:250 = 4 mg + D5W 250 mL (16 mcg/mL) · วิธีเตรียม: ใช้ D5W 250 mL ดูดออก 4 mL แล้วดูด NE 4 mL เติมลง · ใช้ D5W หรือ D5S 100 mL · ⚠ ไม่แนะนำเจือจางใน NSS เดี่ยว (loss of potency จาก oxidation) · ⚠ ห้ามผสม sodium bicarbonate · ห้ามให้ IV line เดียวกับ blood/plasma · ใช้ infusion pump เท่านั้น · เก็บพ้นแสง 15-30°C · ห้ามใช้ถ้าเปลี่ยนเป็นสีชมพู/น้ำตาล/เหลืองเข้ม หรือตกตะกอน',monitoring:'BP และ HR ทุก 2 นาทีเมื่อเริ่มให้ยา → ทุก 5 นาทีเมื่อ BP คงที่ (SBP ~80-100 mmHg) → ทุก 15 นาที · ตรวจ IV site ทุก 1 ชม. · ให้ทาง central line หรือเส้นเลือดดำใหญ่ · Peripheral line ต้องเฝ้าระวัง extravasation · หยุดยาต้องค่อยๆ ปรับลด (abrupt stop → rebound hypotension) · ติดตามระดับความรู้สึกตัว, ชีพจรส่วนปลาย, ปริมาณปัสสาวะ, อุณหภูมิและสีของผิวหนัง · รายงานแพทย์ทันทีเมื่อ: HR >120 (ผู้ใหญ่), BP >160/100 (ผู้ใหญ่), HR >180 (เด็ก), BP >120/80 (เด็ก), ผิวซีด/เขียวที่ IV site, หลอดเลือดอักเสบ',alarm:'หัวใจเต้นช้า/ผิดจังหวะ · ปวดหัว HT · กระวนกระวาย หายใจลำบาก · Extravasation → tissue necrosis · ยาสูญเสียความแรงใน NSS เดี่ยว · ห้ามผสม NaHCO₃',source:'HAD รพ.ห้วยผึ้ง ฉบับปรับปรุง 2567 · หน้า 14, 21',antidote:'⚠ Extravasation: หยุด IV ทันที + aspirate → ทา 2% Nitroglycerin ointment 1 inch ที่ IV site ทุก 6-8 ชม. · Warm compress + ยกแขนขาสูง · Terbutaline 1 mg + NSS 10 mL แบ่งฉีด 5 เข็ม (2 mL/เข็ม) SC clockwise รอบบริเวณที่เกิด ด้วยเข็ม No.25 · Consult surgery ถ้ารุนแรง'} },
       adr:       { name:'Adrenaline', short:'Adr', badge:'IV drip/push/IM/SC', image:'HAD_picture/adrenaline.png', freq:'ทุก 3-5 นาที (BP/HR)', mode:'rate', inputUnit:'mL/hr', convUnit:'mcg/kg/min', weightBased:true, convFn:function(r,w){return(r*4)/(w*60)}, convFmt:function(v){return v.toFixed(3)}, warnAt:0.3, maxAt:1.0, defaultRate:15, note:'ℹ Anaphylaxis: IM ต้นขาด้านข้าง · CPR: IV push · Standard drip: 1 mg + NSS 250 mL (= 4 mcg/mL)', noteClass:'info', indications:['Anaphylactic reaction (first-line)','Cardiac arrest (first-line)','Severe acute bronchospasm (asthma)','ร่วมกับยาชาเฉพาะที่ (ลดการดูดซึม)'], labs:[{key:'lactate',label:'Lactate',unit:'mmol/L',ph:'0.5-2.0',min:0.5,max:2.0,freqHr:4}], vitals:['BP (ทุก 3-5 นาที)','HR','EKG (ตามคำสั่ง)','Urine output','RR (bronchospasm)'], clinical:['ใจสั่น','กระวนกระวาย','หัวใจเต้นเร็ว','หายใจเร็ว','Tremor','ปวดหัว'], serious:['Ventricular fibrillation','Pulmonary edema','Cerebrovascular hemorrhage','Cardiac arrhythmias','Tissue necrosis (extravasation)'], info:{doses:[{ind:'Anaphylaxis (ผู้ใหญ่) IM/SC', dose:'0.3-0.5 mg (0.3-0.5 mL of 1 mg/mL) IM ต้นขาด้านข้าง q5-15 min PRN'},{ind:'Anaphylaxis (เด็ก) IM/SC', dose:'0.01 mg/kg/dose (0.01 mL/kg of 1 mg/mL) q5-15 min · max 0.3 mg (prepubertal), 0.5 mg (adolescent)'},{ind:'Anaphylaxis refractory (IV infusion)', dose:'Standard: 1 mg + NSS 250 mL (= 4 mcg/mL) · start 0.1 mcg/kg/min titrate to effect · ใช้ infusion pump'},{ind:'Cardiac arrest (ผู้ใหญ่) IV/IO', dose:'1 mg (1 mL of 1:1000) IV push q3-5 min'},{ind:'Cardiac arrest (เด็ก) IV/IO', dose:'0.01 mg/kg q3-5 min · max 1 mg/dose'},{ind:'Severe bronchospasm SC', dose:'0.3-0.5 mg SC q20 min-4 hr PRN'}],prep:'Forms: Adrenaline 1 mg/mL (1:1000) 1 mL amp · Standard diluent: 1 mg + NSS 250 mL (= 4 mcg/mL) · Solvent: NSS · ใช้ infusion pump เท่านั้นสำหรับ IV infusion · Route: SC, IM, IV central line หรือเส้นเลือดดำใหญ่ · Stable 24 ชั่วโมง ที่อุณหภูมิห้อง (25°C) หรือตู้เย็น (4°C) หลังเจือจาง · เก็บ <25°C, ป้องกันแสง · ห้ามใช้ถ้าสารละลายเปลี่ยนเป็นสีชมพู/น้ำตาล หรือมีตะกอน · ห้ามผสมกับด่างหรือ antioxidants',monitoring:'BP ทุก 3-5 นาที · HR ต่อเนื่อง · EKG (ตามคำสั่งแพทย์) · Urine output (renal vasoconstriction) · ตรวจ IV site: เฝ้าระวัง extravasation (ซีด/เขียว/เย็น) · หลีกเลี่ยงฉีด intra-arterial และ IM บริเวณสะโพกโดยตรง (หลอดเลือดตีบ → กล้ามเนื้อตาย) · รายงานแพทย์ทันทีเมื่อ tachycardia, palpitation, BP สูง · ระวังในเด็ก, ผู้สูงอายุ, HT, hyperthyroid, โรคหัวใจ, ประวัติแพ้ sympathomimetic amines',alarm:'IV infusion เร็วเกินไป → Cerebrovascular hemorrhage, cardiac arrhythmias · Ventricular fibrillation, pulmonary edema → อันตรายถึงชีวิต · Hypertensive crisis · Extravasation → tissue necrosis · ชื่อคล้าย Adenosine — Double check ก่อนบริหาร · ตรวจสอบ route (IV/IM/SC/NB) ทุกครั้งก่อนให้',source:'HAD รพ.ห้วยผึ้ง ฉบับปรับปรุง 2567 · หน้า 7, 23',antidote:'⚠ Extravasation: หยุด IV + aspirate → ทา 2% Nitroglycerin ointment · Warm compress + ยกแขนขาสูง · Terbutaline 1 mg + NSS 10 mL แบ่งฉีด 5 เข็ม (2 mL/เข็ม) SC clockwise รอบบริเวณที่เกิด ด้วยเข็ม No.25 · Hypertension: Labetalol หรือ Nicardipine IV · Arrhythmia: β-blocker'} },
       morphine:  { name:'Morphine', short:'Mor', badge:'IV/IM/SC/Drip', image:'HAD_picture/morphine.png', freq:'ทุก 1 ชม. (RR/Pain)', mode:'rate', inputUnit:'mL/hr', convUnit:'mg/hr', weightBased:false, convFn:function(r){return r*1}, convFmt:function(v){return v.toFixed(1)}, warnAt:8, maxAt:10, defaultRate:3, note:'ℹ ยาแก้พิษ: Naloxone · เฝ้าระวัง respiratory depression RR < 10', noteClass:'info', indications:['Acute severe pain','Cancer pain','MI / Chest pain','Acute pulmonary edema','Post-op pain'], labs:[{key:'pain',label:'Pain score',unit:'/10',ph:'0-10',min:0,max:10,freqHr:2}], vitals:['BP','HR','RR ≥ 10','SpO₂','Sedation score','Pain score'], clinical:['ซึมลง','RR ช้าลง','Miosis (รูม่านตาหด)','คลื่นไส้ อาเจียน','ท้องผูก','คัน'], serious:['Respiratory depression / Apnea','Hypotension / Bradycardia','Coma','Circulatory collapse'], info:{doses:[{ind:'Moderate to severe pain (IM/SC adult)', dose:'5-20 mg q4h titrate per response · can increase as needed'},{ind:'Severe pain (IV adult opioid-naive)', dose:'2.5-5 mg q3-4h IV slow · may need higher doses if opioid-tolerant'},{ind:'Epidural (one-time)', dose:'2-5 mg · if inadequate in 1h may add 1-2 mg q interval · max 10 mg/24h'},{ind:'Intrathecal (one-time only)', dose:'0.1-1 mg · NOT recommended to repeat'},{ind:'Continuous IV infusion (severe pain)', dose:'เจือจาง 1 mg/mL (range 0.1-1 mg/mL) · titrate per pain/RR'}],prep:'Morphine injection 10 mg/mL (1 mL amp) · IV push: เจือจางด้วย Sterile Water for Injection (SWI) 4-5 mL ให้ช้าๆ >4-5 นาที · IV infusion: เจือจางใน D5W ความเข้มข้น 0.1-1 mg/mL · Solvent: SWI (push), D5W (infusion) · Stable 24 ชม. ที่อุณหภูมิห้องหลังเจือจาง · เก็บพ้นแสงและความชื้น 15-30°C · (ไม่ใช้ oral/extended-release ที่ รพ.)',monitoring:'HR, RR, BP (เฝ้าระวัง hypotension โดยเฉพาะถ้าปริมาตรเลือดต่ำ หรือได้ CNS depressants ร่วม) · Pain score, sedation score · IV push: q5 min x4 → q30 min x2 → per order · Continuous drip: q1h x4 → q4h · SC/IM: q15 min x4 → q30 min x2 · เฝ้าระวัง respiratory depression 24-72 ชม. (โดยเฉพาะผู้สูงอายุ, ผอม, อ่อนเพลีย, COPD, cor pulmonale) · RR <10: รายงานทันที · ให้ก่อนปวดรุนแรงจะได้ผลดีกว่า · เฝ้าระวัง pinpoint pupils (overdose sign) · ระวังในเด็ก, ผู้สูงอายุ, โรคหัวใจ/ไต/ตับ · ปัสสาวะควร >600 mL/วัน · ห้ามใช้ใน asthma, HT, shock, renal failure',alarm:'Respiratory depression (เสี่ยงสูงกับ CNS depressants ร่วม) · Hypotension, bradycardia · Pinpoint pupils (overdose) · Constipation (common, may need laxative) · Tolerance/dependence (continuous >72h) · ยาผ่านรก และขับทาง breast milk',source:'HAD รพ.ห้วยผึ้ง ฉบับปรับปรุง 2567 · หน้า 13, 21',antidote:'Naloxone 0.4-2mg IV ซ้ำได้ทุก 2-3 นาที (max 10 mg) · ระวัง withdrawal ในผู้ป่วย opioid dependent'} },
