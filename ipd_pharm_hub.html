@@ -1943,7 +1943,7 @@
         .mon-schedule { display: grid; gap: 6px; }
         .mon-row { display: grid; grid-template-columns: minmax(110px, auto) minmax(70px, auto) 1fr; gap: 12px; align-items: center; padding: 8px 12px; background: #f0f7ff; border-radius: 8px; font-size: 13px; }
         .mon-row .what { color: #2e3f58; font-weight: 500; }
-        .mon-row .when { background: #5b8def; color: #fff; padding: 3px 10px; border-radius: 99px; text-align: center; font-size: 12px; font-weight: 500; justify-self: start; }
+        .mon-row .when { background: #5b8def; color: #fff; padding: 4px 14px; border-radius: 99px; text-align: center; font-size: 12px; font-weight: 500; justify-self: start; word-spacing: 4px; letter-spacing: 0.3px; }
         .mon-row .cond { color: #666; font-size: 12px; }
         .mon-list { padding: 0; margin: 0; list-style: none; }
         .mon-list li { padding: 4px 0 4px 22px; position: relative; font-size: 13px; color: #2e3f58; line-height: 1.5; }
@@ -7315,7 +7315,10 @@
                 html += '<div class="hb-section"><h3>🧪 Preparation</h3><p>' + d.info.prep + '</p></div>';
             }
         }
-        html += '<div class="hb-section"><h3>⏱ Monitoring Frequency</h3><p>' + (d.freq || 'ตาม order แพทย์') + '</p></div>';
+        // Show simple frequency line only if there's no detailed monitoringStruct (avoid duplication)
+        if (!d.monitoringStruct) {
+            html += '<div class="hb-section"><h3>⏱ Monitoring Frequency</h3><p>' + (d.freq || 'ตาม order แพทย์') + '</p></div>';
+        }
 
         // ─── Siriraj-style 4-block card (Indication / Monitoring / Alarm / Serious) ───
         let mon = [];
@@ -10034,10 +10037,10 @@
         },
         monitoringStruct: {
           schedule: [
-            { what: 'BP & HR',  when: 'q2 min',  cond: 'เริ่มให้ยา' },
-            { what: 'BP & HR',  when: 'q5 min',  cond: 'BP คงที่ (SBP 80-100)' },
-            { what: 'BP & HR',  when: 'q15 min', cond: 'หลังจากนั้น' },
-            { what: 'IV site',  when: 'q1 hr',   cond: 'เฝ้าระวัง extravasation' }
+            { what: 'BP & HR',  when: 'q 2 min',  cond: 'เริ่มให้ยา' },
+            { what: 'BP & HR',  when: 'q 5 min',  cond: 'BP คงที่ (SBP 80-100)' },
+            { what: 'BP & HR',  when: 'q 15 min', cond: 'หลังจากนั้น' },
+            { what: 'IV site',  when: 'q 1 hr',   cond: 'เฝ้าระวัง extravasation' }
           ],
           observe: [
             'ระดับความรู้สึกตัว',
