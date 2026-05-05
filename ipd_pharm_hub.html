@@ -1893,6 +1893,15 @@
         .pip-step .text { font-size: 13.5px; color: #2e3f58; font-weight: 500; line-height: 1.4; }
         .pip-step .sub { font-size: 12px; color: #888; margin-top: 3px; line-height: 1.4; }
 
+        /* Ready-to-use banner (pre-mixed drugs — skip prep steps) */
+        .pip-rtu { background: linear-gradient(135deg, #e8f5e9 0%, #d6f0d8 100%); border: 2px solid #43a047; border-radius: 12px; padding: 16px 18px; margin-bottom: 18px; position: relative; }
+        .pip-rtu::before { content: 'READY TO USE'; position: absolute; top: -11px; left: 14px; background: #43a047; color: #fff; font-size: 11px; padding: 3px 12px; border-radius: 99px; font-weight: 500; letter-spacing: 0.5px; }
+        .pip-rtu-row { display: flex; align-items: center; justify-content: space-between; gap: 14px; flex-wrap: wrap; }
+        .pip-rtu-info .recipe { font-size: 16px; color: #1b5e20; font-weight: 500; line-height: 1.3; }
+        .pip-rtu-info .sub { font-size: 12px; color: #2e7d32; margin-top: 4px; }
+        .pip-rtu-conc { font-size: 30px; font-weight: 500; color: #1b5e20; line-height: 1; }
+        .pip-rtu-conc .unit { font-size: 13px; color: #2e7d32; margin-left: 4px; font-weight: 500; opacity: 0.8; }
+
         .pip-result { background: #2e3f58; color: #fff; border-radius: 12px; padding: 14px 18px; margin-bottom: 18px; display: flex; align-items: center; justify-content: space-between; gap: 14px; flex-wrap: wrap; }
         .pip-result .meta .lbl { font-size: 10px; opacity: 0.7; letter-spacing: 1px; text-transform: uppercase; font-weight: 500; }
         .pip-result .meta .recipe { font-size: 14px; opacity: 0.9; margin-top: 2px; }
@@ -7460,8 +7469,23 @@
         if (!p) return '';
         let html = '<div class="pip-wrap">';
 
-        // ─ What you need ─
-        if (p.form || p.diluent) {
+        // ─ Ready-to-use mode ─ (pre-mixed bag · skip prep steps entirely)
+        if (p.readyToUse && p.standardMix) {
+            let m = p.standardMix.result.match(/^([\d.\s]+)\s*([a-zA-Z\/]+)$/);
+            let num  = m ? m[1].trim() : p.standardMix.result;
+            let unit = m ? m[2] : '';
+            html += '<div class="pip-rtu">'
+                 +  '<div class="pip-rtu-row">'
+                 +  '<div class="pip-rtu-info">'
+                 +  '<div class="recipe">' + p.standardMix.recipe + '</div>'
+                 +  '<div class="sub">' + p.readyToUse + '</div>'
+                 +  '</div>'
+                 +  '<div class="pip-rtu-conc">' + num + (unit ? '<span class="unit">' + unit + '</span>' : '') + '</div>'
+                 +  '</div></div>';
+        }
+
+        // ─ What you need ─ (skipped if readyToUse)
+        if (!p.readyToUse && (p.form || p.diluent)) {
             html += '<div class="pip-section-label">— What you need —</div>';
             html += '<div class="pip-needs">';
             if (p.form) {
@@ -7483,8 +7507,8 @@
             html += '</div>';
         }
 
-        // ─ Steps ─
-        if (p.steps && p.steps.length) {
+        // ─ Steps ─ (skipped if readyToUse)
+        if (!p.readyToUse && p.steps && p.steps.length) {
             html += '<div class="pip-section-label">— วิธีเตรียม · ' + p.steps.length + ' steps —</div>';
             html += '<div class="pip-steps">';
             for (let i = 0; i < p.steps.length; i++) {
@@ -7501,8 +7525,8 @@
             html += '</div>';
         }
 
-        // ─ Result bar ─
-        if (p.standardMix) {
+        // ─ Result bar ─ (skipped if readyToUse — already shown in RTU banner)
+        if (!p.readyToUse && p.standardMix) {
             let m = p.standardMix.result.match(/^([\d.\s]+)\s*([a-zA-Z\/]+)$/);
             let num  = m ? m[1].trim() : p.standardMix.result;
             let unit = m ? m[2] : '';
@@ -10130,25 +10154,18 @@
       insulin:   { name:'Regular Insulin', short:'RI', badge:'IV/SC/Drip', image:'HAD_picture/regular_insulin.png', freq:'ทุก 1-2 ชม. (DTx)', mode:'insulin', inputUnit:'mL/hr', convUnit:'u/hr', weightBased:false, convFn:function(r){return r*1}, convFmt:function(v){return v.toFixed(1)}, warnAt:10, maxAt:15, defaultRate:5, note:'ℹ เฝ้าระวัง hypoglycemia · DTx ทุก 1-2 ชม. · ยาแก้พิษ: 50% Glucose IV', noteClass:'info', indications:['ลดระดับน้ำตาลในเลือด','DKA / HHS','Hyperkalemia (shift K⁺ เข้าเซลล์)','Stress hyperglycemia (ICU)'], labs:[{key:'dtx',label:'DTx',unit:'mg/dL',ph:'70-180',min:70,max:180,freqHr:2},{key:'k',label:'K⁺',unit:'mEq/L',ph:'3.5-5.0',min:3.5,max:5.0,freqHr:6}], vitals:['Consciousness','HR','POCT glucose','FBS'], clinical:['ใจสั่น เหงื่อออก ตัวเย็น ซีดลง','หิว มือสั่น','สับสน','ผู้ใหญ่: DTx < 70 mg/dL · เด็ก: DTx < 60 mg/dL'], serious:['Hypoglycemic shock','Coma / Brain damage','Hypokalemia','Seizure'], scale:[{min:200,max:250,dose:4},{min:251,max:300,dose:6},{min:301,max:350,dose:8},{min:351,max:400,dose:10},{min:401,max:450,dose:12},{min:451,max:9999,dose:null,alert:true}], info:{doses:[{ind:'Type 1 and Type 2 DM (initiation)', dose:'Initial: 0.2-0.4 units/kg/day divided · Maintenance: 0.5-1 units/kg/day · Adolescents in growth: may exceed 1 unit/kg/day'},{ind:'Regular insulin IV infusion (hyperglycemia)', dose:'Dilute to 0.1-1 IU/mL in NSS · Give via infusion pump · Monitor capillary glucose closely'},{ind:'DKA (pediatric/adult)', dose:'Follow institution protocol · typically 0.1 IU/kg/hr IV infusion titrated'},{ind:'Hyperkalemia (shift K⁺ เข้าเซลล์)', dose:'Dextrose 0.5-1 mL/kg + RI 1 unit ต่อ dextrose 4-5 g'}],prep:'Forms: Regular Insulin (RI) 100 units/mL (10 mL vial) — ใช้ใน รพ.ห้วยผึ้ง · Insulin syringe ที่ unit marking ตรงกับ concentration · หยดขวดเบาๆ กลิ้งให้ผสม (⚠ ห้ามเขย่า — เกิดฟอง ความแม่นยำลดลง) · Standard IV dilution: 100 units + NSS 100 mL (หรือ 0.45% NaCl) · Solvent compatible: D5W, D5N/2, NSS · เก็บขวดที่ยังไม่เปิด 2-8°C · ขวดเปิดแล้ว: 28 วันที่ตู้เย็น (2-8°C) หรือ ≤30°C room temp · Mixed solution: 24 ชม. ที่ room temp หรือ 4°C · ⚠ ห้ามใช้ถ้าสีเปลี่ยน/ขุ่น/ตกตะกอน/ความหนืดผิดปกติ',monitoring:'Serum glucose (critical) · DTx หลังให้ยาและตามคำสั่ง · Hypoglycemia threshold: ผู้ชาย <50 mg/dL, ผู้หญิง <40 mg/dL (ตาม ห้วยผึ้ง) · ใช้ infusion pump สำหรับ IV continuous infusion · IV order ต้องระบุ units/hour · เฝ้าระวัง hypoglycemia signs: กระวนกระวาย, tremor, เหงื่อออก → ถ้าพบ หยุด insulin + รายงานแพทย์ · ระวังในผู้สูงอายุ, เด็ก, โรคหัวใจ/ไต/ตับ · ยาผ่านรก และขับทาง breast milk · ปัสสาวะควร >600 mL/วัน',alarm:'Hypoglycemia (major risk): กระวนกระวาย, tremor, เหงื่อออก, ใจสั่น, สับสน, ชัก, หมดสติ · Hyperkalemia treatment: RI 1 unit/4-5 g dextrose · ⚠ ห้ามใช้คำย่อ "U" หรือ "IU" — เขียน "unit" เต็ม · Lipodystrophy (injection site) · Do NOT use ถ้าเปลี่ยนสี/ขุ่น/ตกตะกอน',source:'HAD รพ.ห้วยผึ้ง ฉบับปรับปรุง 2567 · หน้า 18, 24',antidote:'50% Glucose 50 mL IV push · Glucagon 1 mg IM ถ้าไม่มี IV'} },
       kcl:       { name:'KCl', short:'KCl', badge:'IV drip/PO', image:'HAD_picture/KCl.png', freq:'ทุก 6 ชม. (K⁺)', mode:'rate', inputUnit:'mL/hr', convUnit:'mEq/hr', weightBased:false, convFn:function(r){return r*0.04}, convFmt:function(v){return v.toFixed(1)}, warnAt:8, maxAt:10, defaultRate:100,
         prepStruct: {
-          form: { type: 'Vial', name: 'KCl injection', short: 'KCl', detail: '20 mEq / 10 mL · 1 amp', detailShort: '20mEq/10mL', subDetail: '2 mEq/mL stock' },
-          diluent: { type: 'Diluent bag', name: 'NSS or D5W', detail: '1000 mL', subDetail: 'Standard dilution' },
-          standardMix: { label: 'KCl 40:1000', recipe: '40 mEq + NSS 1000 mL', result: '40 mEq/L' },
-          steps: [
-            { text: 'ดูดออก 20 mL จาก NSS 1000 mL bag', sub: 'ทิ้งให้เหลือพื้นที่' },
-            { text: 'ดูด KCl 40 mEq (20 mL จาก vial 2 amp) · เติมลงถุง', sub: 'ผ่าน injection port · ห้ามแขวน hanging bag mix' },
-            { text: 'ผสม + ติด label · เริ่มผ่าน infusion pump', sub: 'พลิกถุงเบา ๆ 5-10 ครั้ง · ตรวจสีและตะกอน' }
-          ],
-          solvents: ['NSS', 'D5W'],
+          readyToUse: 'Pre-mixed bag · มาจาก รพ.ห้วยผึ้ง · ไม่ต้องผสมเพิ่ม',
+          standardMix: { label: 'KCl 40:1000', recipe: 'KCl 40 mEq + NSS 1000 mL', result: '40 mEq/L' },
           warnings: [
             { text: 'IV push / IV bolus', reason: 'cardiac arrest' },
-            { text: 'Mix โดยตรงใน hanging bag' },
-            { text: 'Peripheral concentration > 40 mEq/L', reason: 'phlebitis · extravasation' },
-            { text: 'Peripheral rate > 10 mEq/hr' }
+            { text: 'Mix เพิ่ม / เติม KCl ลงถุงเอง', reason: 'รพ.มีถุงสำเร็จแล้ว' },
+            { text: 'Peripheral rate > 10 mEq/hr' },
+            { text: 'ใช้ถ้าถุงรั่ว / ตกตะกอน / สีผิดปกติ' }
           ],
           requirements: [
             'ใช้ infusion pump เท่านั้น',
-            'Peripheral: max 40 mEq/L · max 10 mEq/hr',
-            'Central line: max 80 mEq/L · max 40 mEq/hr (severe) · 50 (very severe K<2)',
+            'Peripheral: max 10 mEq/hr (40 mEq/L มาตรฐานพอดี)',
+            'Central line: max 40 mEq/hr (severe) · 50 (very severe K<2)',
             'Max daily 400 mEq · ทุก 10 mEq เพิ่ม serum K⁺ ~0.1 mEq/L'
           ]
         },
