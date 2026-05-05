@@ -1718,6 +1718,57 @@
         .had-info-item { padding: 6px 10px; background: #f9f8f6; border-radius: 6px; line-height: 1.5; }
         .had-info-item strong { display: block; font-size: 10px; text-transform: uppercase; color: #999; letter-spacing: 0.5px; margin-bottom: 2px; }
 
+        /* ═══ HAD Quick Reference (ready-to-use rate panel) ═══ */
+        .had-quickref { background: linear-gradient(135deg, #fff8e1 0%, #fff3d6 100%); border: 2px solid #f5b91f; border-radius: 14px; padding: 16px 18px 14px; margin-bottom: 14px; position: relative; }
+        .had-quickref::before { content: '⚡ QUICK REF'; position: absolute; top: -11px; left: 14px; background: #f5b91f; color: #fff; font-size: 11px; padding: 3px 12px; border-radius: 99px; font-weight: 700; letter-spacing: 0.5px; box-shadow: 0 2px 6px rgba(245,185,31,0.4); }
+        .had-quickref h4 { font-size: 14px; color: #2e3f58; margin: 4px 0 10px; padding-left: 0; display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+        .had-quickref-conc { display: inline-block; font-size: 11px; font-weight: 700; background: #2e3f58; color: #fff; padding: 3px 10px; border-radius: 99px; letter-spacing: 0.3px; }
+
+        .had-qr-weight-row { display: flex; align-items: center; gap: 10px; padding: 8px 12px; background: #fff; border-radius: 10px; margin-bottom: 10px; border: 1px solid #e8d4a0; flex-wrap: wrap; }
+        .had-qr-weight-row label { font-size: 12px; font-weight: 600; color: #555; }
+        .had-qr-weight-row input { width: 80px; padding: 6px 8px; border: 1.5px solid #d0d0d0; border-radius: 6px; font-size: 15px; font-weight: 700; text-align: center; font-family: inherit; color: #2e3f58; }
+        .had-qr-weight-row input:focus { outline: none; border-color: #2e3f58; background: #f0f7ff; }
+        .had-qr-weight-hint { font-size: 11px; color: #888; margin-left: auto; }
+
+        /* Live converter — three inputs */
+        .had-qr-conv { background: #fff; border-radius: 10px; padding: 12px; margin-bottom: 10px; border: 1px solid #e8d4a0; }
+        .had-qr-conv-title { font-size: 11px; font-weight: 700; color: #999; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 10px; }
+        .had-qr-conv-grid { display: grid; grid-template-columns: 1fr auto 1fr auto 1fr; gap: 8px; align-items: end; }
+        .had-qr-conv-cell { display: flex; flex-direction: column; gap: 4px; }
+        .had-qr-conv-cell label { font-size: 11px; color: #555; font-weight: 600; text-align: center; }
+        .had-qr-conv-cell input { width: 100%; padding: 10px 6px; border: 1.5px solid #d0d0d0; border-radius: 8px; font-size: 16px; font-weight: 700; text-align: center; font-family: inherit; color: #2e3f58; }
+        .had-qr-conv-cell input:focus { outline: none; border-color: #2e3f58; background: #f0f7ff; }
+        .had-qr-conv-cell input.ok { border-color: #43a047; background: #f0fff0; }
+        .had-qr-conv-cell input.warn { border-color: #ffb300; background: #fff8e1; }
+        .had-qr-conv-cell input.bad { border-color: #e53935; background: #fff0f0; }
+        .had-qr-conv-cell.primary input { border-width: 2px; border-color: #2e3f58; background: #fff; box-shadow: 0 2px 6px rgba(46,63,88,0.1); }
+        .had-qr-conv-arrow { font-size: 18px; color: #2e3f58; font-weight: 700; padding: 0 2px; align-self: center; padding-bottom: 8px; }
+        @media (max-width: 720px) { .had-qr-conv-grid { grid-template-columns: 1fr; } .had-qr-conv-arrow { display: none; } }
+
+        /* Pre-computed dose ranges */
+        .had-qr-doses { background: #fff; border-radius: 10px; padding: 10px 12px; margin-bottom: 10px; border: 1px solid #e8d4a0; }
+        .had-qr-doses-title { font-size: 11px; font-weight: 700; color: #999; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 8px; }
+        .had-qr-dose-item { padding: 9px 10px; border-radius: 8px; margin-bottom: 4px; cursor: pointer; transition: background 0.12s; border: 1px solid transparent; }
+        .had-qr-dose-item:hover { background: #fff8e1; border-color: #f5b91f; }
+        .had-qr-dose-item:last-child { margin-bottom: 0; }
+        .had-qr-dose-item .ind { font-size: 12.5px; font-weight: 700; color: #c62828; margin-bottom: 2px; }
+        .had-qr-dose-item .src { font-size: 11px; color: #888; margin-bottom: 4px; }
+        .had-qr-dose-item .out { font-size: 13px; display: flex; align-items: center; flex-wrap: wrap; gap: 6px; }
+        .had-qr-dose-item .pump { background: #2e3f58; color: #fff; padding: 4px 10px; border-radius: 6px; font-family: 'SF Mono', Menlo, Monaco, Consolas, monospace; font-weight: 700; font-size: 13px; letter-spacing: 0.3px; }
+        .had-qr-dose-item .alt { color: #666; font-weight: 600; font-size: 12px; }
+
+        /* Cheat sheet table */
+        .had-qr-cheat { background: #fff; border-radius: 10px; padding: 10px 12px; border: 1px solid #e8d4a0; overflow-x: auto; }
+        .had-qr-cheat-title { font-size: 11px; font-weight: 700; color: #999; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 8px; }
+        .had-qr-cheat table { border-collapse: collapse; width: 100%; font-size: 12px; min-width: 460px; }
+        .had-qr-cheat th, .had-qr-cheat td { padding: 6px 8px; text-align: center; border-bottom: 1px solid #f0eeeb; white-space: nowrap; }
+        .had-qr-cheat th { background: #f6f5f3; color: #555; font-weight: 700; font-size: 11px; }
+        .had-qr-cheat td:first-child, .had-qr-cheat th:first-child { text-align: left; padding-left: 10px; font-weight: 700; color: #2e3f58; background: #f9f8f6; position: sticky; left: 0; font-size: 11px; }
+        .had-qr-cheat td.row-pump { color: #2e3f58; font-weight: 700; cursor: pointer; }
+        .had-qr-cheat td.row-pump:hover { background: #fff8e1; }
+        .had-qr-cheat tr.head th { background: #2e3f58; color: #fff; }
+        .had-qr-cheat tr.head th:first-child { background: #1d2a40; color: #fff; }
+
         /* HAD Card (paperless chart) */
         .had-card { background: #fff; border: 2px solid #c62828; border-radius: 12px; overflow: hidden; margin-bottom: 16px; max-width: 420px; }
         .had-card-header { background: #c62828; color: #fff; padding: 8px 14px; font-weight: 700; font-size: 13px; letter-spacing: 0.5px; display: flex; justify-content: space-between; align-items: center; }
@@ -9457,7 +9508,20 @@
     //  HAD DRUG DATABASE (from HAD Round App)
     // ═══════════════════════════════════════════
     const HAD_DB = {
-      ne:        { name:'Norepinephrine', short:'NE', badge:'IV drip', image:'HAD_picture/norepinephrine.png', freq:'ทุก 2-5 นาที (BP/HR)', mode:'rate', inputUnit:'mL/hr', convUnit:'mcg/kg/min', weightBased:true, convFn:function(r,w){return(r*16)/(w*60)}, convFmt:function(v){return v.toFixed(3)}, warnAt:0.4, maxAt:0.5, defaultRate:8, note:'ℹ ควรให้ทาง central line — peripheral line เสี่ยง extravasation', noteClass:'info', indications:['เพิ่มความดันโลหิต (Vasopressor)','Septic shock','Refractory hypotension','ยกระดับ MAP ≥ 65 mmHg'], labs:[{key:'lactate',label:'Lactate',unit:'mmol/L',ph:'0.5-2.0',min:0.5,max:2.0,freqHr:4}], vitals:['BP / MAP ทุก 2-5 นาที','HR ทุก 2-5 นาที','EKG','IV site ทุก 1 ชม.','Urine output ≥ 0.5 mL/kg/hr'], clinical:['Tachycardia > 120','ปลายมือ/เท้า เย็น ซีด เขียว','ปวด/บวม/ดำรอบ IV site (extravasation)','Urine output ลดลง'], serious:['Tachyarrhythmia','Tissue necrosis (extravasation)','Mesenteric ischemia','Peripheral / Limb ischemia'], info:{doses:[{ind:'Hypotension/Shock (ผู้ใหญ่)', dose:'IV infusion start 8-12 mcg/min, titrate · typical 2-4 mcg/min · target SBP 80-100 mmHg'},{ind:'Post-cardiac arrest (ACLS)', dose:'IV infusion 0.1-0.5 mcg/kg/min, titrate per response'},{ind:'Pediatric hypotension/shock', dose:'IV infusion start 0.05-0.1 mcg/kg/min, titrate · max 2 mcg/kg/min'},{ind:'Infants (IV infusion)', dose:'8-16 mcg/mL concentration'}],prep:'Forms: Norepinephrine 4 mg/4 mL (1 mg/mL) · Standard: NE 4:250 = 4 mg + D5W 250 mL (16 mcg/mL) · วิธีเตรียม: ใช้ D5W 250 mL ดูดออก 4 mL แล้วดูด NE 4 mL เติมลง · ใช้ D5W หรือ D5S 100 mL · ⚠ ไม่แนะนำเจือจางใน NSS เดี่ยว (loss of potency จาก oxidation) · ⚠ ห้ามผสม sodium bicarbonate · ห้ามให้ IV line เดียวกับ blood/plasma · ใช้ infusion pump เท่านั้น · เก็บพ้นแสง 15-30°C · ห้ามใช้ถ้าเปลี่ยนเป็นสีชมพู/น้ำตาล/เหลืองเข้ม หรือตกตะกอน',monitoring:'BP และ HR ทุก 2 นาทีเมื่อเริ่มให้ยา → ทุก 5 นาทีเมื่อ BP คงที่ (SBP ~80-100 mmHg) → ทุก 15 นาที · ตรวจ IV site ทุก 1 ชม. · ให้ทาง central line หรือเส้นเลือดดำใหญ่ · Peripheral line ต้องเฝ้าระวัง extravasation · หยุดยาต้องค่อยๆ ปรับลด (abrupt stop → rebound hypotension) · ติดตามระดับความรู้สึกตัว, ชีพจรส่วนปลาย, ปริมาณปัสสาวะ, อุณหภูมิและสีของผิวหนัง · รายงานแพทย์ทันทีเมื่อ: HR >120 (ผู้ใหญ่), BP >160/100 (ผู้ใหญ่), HR >180 (เด็ก), BP >120/80 (เด็ก), ผิวซีด/เขียวที่ IV site, หลอดเลือดอักเสบ',alarm:'หัวใจเต้นช้า/ผิดจังหวะ · ปวดหัว HT · กระวนกระวาย หายใจลำบาก · Extravasation → tissue necrosis · ยาสูญเสียความแรงใน NSS เดี่ยว · ห้ามผสม NaHCO₃',source:'HAD รพ.ห้วยผึ้ง ฉบับปรับปรุง 2567 · หน้า 14, 21',antidote:'⚠ Extravasation: หยุด IV ทันที + aspirate → ทา 2% Nitroglycerin ointment 1 inch ที่ IV site ทุก 6-8 ชม. · Warm compress + ยกแขนขาสูง · Terbutaline 1 mg + NSS 10 mL แบ่งฉีด 5 เข็ม (2 mL/เข็ม) SC clockwise รอบบริเวณที่เกิด ด้วยเข็ม No.25 · Consult surgery ถ้ารุนแรง'} },
+      ne:        { name:'Norepinephrine', short:'NE', badge:'IV drip', image:'HAD_picture/norepinephrine.png', freq:'ทุก 2-5 นาที (BP/HR)', mode:'rate', inputUnit:'mL/hr', convUnit:'mcg/kg/min', weightBased:true, convFn:function(r,w){return(r*16)/(w*60)}, convFmt:function(v){return v.toFixed(3)}, warnAt:0.4, maxAt:0.5, defaultRate:8,
+        quickRef: {
+          conc: 16,
+          concLabel: 'NE 4:250 = 16 mcg/mL',
+          prepShort: '4 mg + D5W 250 mL · ใช้ infusion pump · central line preferred',
+          doses: [
+            { label: 'Hypotension/Shock — Start (ผู้ใหญ่)', range: [8, 12], unit: 'mcg/min', weightBased: false, hint: 'Target SBP 80-100 mmHg' },
+            { label: 'Hypotension — Maintenance (typical)', range: [2, 4], unit: 'mcg/min', weightBased: false, hint: 'Titrate ทุก 2-5 นาที' },
+            { label: 'Post-cardiac arrest (ACLS)', range: [0.1, 0.5], unit: 'mcg/kg/min', weightBased: true, hint: 'Titrate per response' },
+            { label: 'Pediatric — Start', range: [0.05, 0.1], unit: 'mcg/kg/min', weightBased: true, hint: 'เริ่มต่ำ ค่อยๆ titrate' },
+            { label: 'Pediatric — Max', range: [2, 2], unit: 'mcg/kg/min', weightBased: true, hint: 'ห้ามเกิน' }
+          ],
+          cheatSheet: [2, 4, 6, 8, 10, 12, 16, 20, 24, 30]
+        }, note:'ℹ ควรให้ทาง central line — peripheral line เสี่ยง extravasation', noteClass:'info', indications:['เพิ่มความดันโลหิต (Vasopressor)','Septic shock','Refractory hypotension','ยกระดับ MAP ≥ 65 mmHg'], labs:[{key:'lactate',label:'Lactate',unit:'mmol/L',ph:'0.5-2.0',min:0.5,max:2.0,freqHr:4}], vitals:['BP / MAP ทุก 2-5 นาที','HR ทุก 2-5 นาที','EKG','IV site ทุก 1 ชม.','Urine output ≥ 0.5 mL/kg/hr'], clinical:['Tachycardia > 120','ปลายมือ/เท้า เย็น ซีด เขียว','ปวด/บวม/ดำรอบ IV site (extravasation)','Urine output ลดลง'], serious:['Tachyarrhythmia','Tissue necrosis (extravasation)','Mesenteric ischemia','Peripheral / Limb ischemia'], info:{doses:[{ind:'Hypotension/Shock (ผู้ใหญ่)', dose:'IV infusion start 8-12 mcg/min, titrate · typical 2-4 mcg/min · target SBP 80-100 mmHg'},{ind:'Post-cardiac arrest (ACLS)', dose:'IV infusion 0.1-0.5 mcg/kg/min, titrate per response'},{ind:'Pediatric hypotension/shock', dose:'IV infusion start 0.05-0.1 mcg/kg/min, titrate · max 2 mcg/kg/min'},{ind:'Infants (IV infusion)', dose:'8-16 mcg/mL concentration'}],prep:'Forms: Norepinephrine 4 mg/4 mL (1 mg/mL) · Standard: NE 4:250 = 4 mg + D5W 250 mL (16 mcg/mL) · วิธีเตรียม: ใช้ D5W 250 mL ดูดออก 4 mL แล้วดูด NE 4 mL เติมลง · ใช้ D5W หรือ D5S 100 mL · ⚠ ไม่แนะนำเจือจางใน NSS เดี่ยว (loss of potency จาก oxidation) · ⚠ ห้ามผสม sodium bicarbonate · ห้ามให้ IV line เดียวกับ blood/plasma · ใช้ infusion pump เท่านั้น · เก็บพ้นแสง 15-30°C · ห้ามใช้ถ้าเปลี่ยนเป็นสีชมพู/น้ำตาล/เหลืองเข้ม หรือตกตะกอน',monitoring:'BP และ HR ทุก 2 นาทีเมื่อเริ่มให้ยา → ทุก 5 นาทีเมื่อ BP คงที่ (SBP ~80-100 mmHg) → ทุก 15 นาที · ตรวจ IV site ทุก 1 ชม. · ให้ทาง central line หรือเส้นเลือดดำใหญ่ · Peripheral line ต้องเฝ้าระวัง extravasation · หยุดยาต้องค่อยๆ ปรับลด (abrupt stop → rebound hypotension) · ติดตามระดับความรู้สึกตัว, ชีพจรส่วนปลาย, ปริมาณปัสสาวะ, อุณหภูมิและสีของผิวหนัง · รายงานแพทย์ทันทีเมื่อ: HR >120 (ผู้ใหญ่), BP >160/100 (ผู้ใหญ่), HR >180 (เด็ก), BP >120/80 (เด็ก), ผิวซีด/เขียวที่ IV site, หลอดเลือดอักเสบ',alarm:'หัวใจเต้นช้า/ผิดจังหวะ · ปวดหัว HT · กระวนกระวาย หายใจลำบาก · Extravasation → tissue necrosis · ยาสูญเสียความแรงใน NSS เดี่ยว · ห้ามผสม NaHCO₃',source:'HAD รพ.ห้วยผึ้ง ฉบับปรับปรุง 2567 · หน้า 14, 21',antidote:'⚠ Extravasation: หยุด IV ทันที + aspirate → ทา 2% Nitroglycerin ointment 1 inch ที่ IV site ทุก 6-8 ชม. · Warm compress + ยกแขนขาสูง · Terbutaline 1 mg + NSS 10 mL แบ่งฉีด 5 เข็ม (2 mL/เข็ม) SC clockwise รอบบริเวณที่เกิด ด้วยเข็ม No.25 · Consult surgery ถ้ารุนแรง'} },
       adr:       { name:'Adrenaline', short:'Adr', badge:'IV drip/push/IM/SC', image:'HAD_picture/adrenaline.png', freq:'ทุก 3-5 นาที (BP/HR)', mode:'rate', inputUnit:'mL/hr', convUnit:'mcg/kg/min', weightBased:true, convFn:function(r,w){return(r*4)/(w*60)}, convFmt:function(v){return v.toFixed(3)}, warnAt:0.3, maxAt:1.0, defaultRate:15, note:'ℹ Anaphylaxis: IM ต้นขาด้านข้าง · CPR: IV push · Standard drip: 1 mg + NSS 250 mL (= 4 mcg/mL)', noteClass:'info', indications:['Anaphylactic reaction (first-line)','Cardiac arrest (first-line)','Severe acute bronchospasm (asthma)','ร่วมกับยาชาเฉพาะที่ (ลดการดูดซึม)'], labs:[{key:'lactate',label:'Lactate',unit:'mmol/L',ph:'0.5-2.0',min:0.5,max:2.0,freqHr:4}], vitals:['BP (ทุก 3-5 นาที)','HR','EKG (ตามคำสั่ง)','Urine output','RR (bronchospasm)'], clinical:['ใจสั่น','กระวนกระวาย','หัวใจเต้นเร็ว','หายใจเร็ว','Tremor','ปวดหัว'], serious:['Ventricular fibrillation','Pulmonary edema','Cerebrovascular hemorrhage','Cardiac arrhythmias','Tissue necrosis (extravasation)'], info:{doses:[{ind:'Anaphylaxis (ผู้ใหญ่) IM/SC', dose:'0.3-0.5 mg (0.3-0.5 mL of 1 mg/mL) IM ต้นขาด้านข้าง q5-15 min PRN'},{ind:'Anaphylaxis (เด็ก) IM/SC', dose:'0.01 mg/kg/dose (0.01 mL/kg of 1 mg/mL) q5-15 min · max 0.3 mg (prepubertal), 0.5 mg (adolescent)'},{ind:'Anaphylaxis refractory (IV infusion)', dose:'Standard: 1 mg + NSS 250 mL (= 4 mcg/mL) · start 0.1 mcg/kg/min titrate to effect · ใช้ infusion pump'},{ind:'Cardiac arrest (ผู้ใหญ่) IV/IO', dose:'1 mg (1 mL of 1:1000) IV push q3-5 min'},{ind:'Cardiac arrest (เด็ก) IV/IO', dose:'0.01 mg/kg q3-5 min · max 1 mg/dose'},{ind:'Severe bronchospasm SC', dose:'0.3-0.5 mg SC q20 min-4 hr PRN'}],prep:'Forms: Adrenaline 1 mg/mL (1:1000) 1 mL amp · Standard diluent: 1 mg + NSS 250 mL (= 4 mcg/mL) · Solvent: NSS · ใช้ infusion pump เท่านั้นสำหรับ IV infusion · Route: SC, IM, IV central line หรือเส้นเลือดดำใหญ่ · Stable 24 ชั่วโมง ที่อุณหภูมิห้อง (25°C) หรือตู้เย็น (4°C) หลังเจือจาง · เก็บ <25°C, ป้องกันแสง · ห้ามใช้ถ้าสารละลายเปลี่ยนเป็นสีชมพู/น้ำตาล หรือมีตะกอน · ห้ามผสมกับด่างหรือ antioxidants',monitoring:'BP ทุก 3-5 นาที · HR ต่อเนื่อง · EKG (ตามคำสั่งแพทย์) · Urine output (renal vasoconstriction) · ตรวจ IV site: เฝ้าระวัง extravasation (ซีด/เขียว/เย็น) · หลีกเลี่ยงฉีด intra-arterial และ IM บริเวณสะโพกโดยตรง (หลอดเลือดตีบ → กล้ามเนื้อตาย) · รายงานแพทย์ทันทีเมื่อ tachycardia, palpitation, BP สูง · ระวังในเด็ก, ผู้สูงอายุ, HT, hyperthyroid, โรคหัวใจ, ประวัติแพ้ sympathomimetic amines',alarm:'IV infusion เร็วเกินไป → Cerebrovascular hemorrhage, cardiac arrhythmias · Ventricular fibrillation, pulmonary edema → อันตรายถึงชีวิต · Hypertensive crisis · Extravasation → tissue necrosis · ชื่อคล้าย Adenosine — Double check ก่อนบริหาร · ตรวจสอบ route (IV/IM/SC/NB) ทุกครั้งก่อนให้',source:'HAD รพ.ห้วยผึ้ง ฉบับปรับปรุง 2567 · หน้า 7, 23',antidote:'⚠ Extravasation: หยุด IV + aspirate → ทา 2% Nitroglycerin ointment · Warm compress + ยกแขนขาสูง · Terbutaline 1 mg + NSS 10 mL แบ่งฉีด 5 เข็ม (2 mL/เข็ม) SC clockwise รอบบริเวณที่เกิด ด้วยเข็ม No.25 · Hypertension: Labetalol หรือ Nicardipine IV · Arrhythmia: β-blocker'} },
       morphine:  { name:'Morphine', short:'Mor', badge:'IV/IM/SC/Drip', image:'HAD_picture/morphine.png', freq:'ทุก 1 ชม. (RR/Pain)', mode:'rate', inputUnit:'mL/hr', convUnit:'mg/hr', weightBased:false, convFn:function(r){return r*1}, convFmt:function(v){return v.toFixed(1)}, warnAt:8, maxAt:10, defaultRate:3, note:'ℹ ยาแก้พิษ: Naloxone · เฝ้าระวัง respiratory depression RR < 10', noteClass:'info', indications:['Acute severe pain','Cancer pain','MI / Chest pain','Acute pulmonary edema','Post-op pain'], labs:[{key:'pain',label:'Pain score',unit:'/10',ph:'0-10',min:0,max:10,freqHr:2}], vitals:['BP','HR','RR ≥ 10','SpO₂','Sedation score','Pain score'], clinical:['ซึมลง','RR ช้าลง','Miosis (รูม่านตาหด)','คลื่นไส้ อาเจียน','ท้องผูก','คัน'], serious:['Respiratory depression / Apnea','Hypotension / Bradycardia','Coma','Circulatory collapse'], info:{doses:[{ind:'Moderate to severe pain (IM/SC adult)', dose:'5-20 mg q4h titrate per response · can increase as needed'},{ind:'Severe pain (IV adult opioid-naive)', dose:'2.5-5 mg q3-4h IV slow · may need higher doses if opioid-tolerant'},{ind:'Epidural (one-time)', dose:'2-5 mg · if inadequate in 1h may add 1-2 mg q interval · max 10 mg/24h'},{ind:'Intrathecal (one-time only)', dose:'0.1-1 mg · NOT recommended to repeat'},{ind:'Continuous IV infusion (severe pain)', dose:'เจือจาง 1 mg/mL (range 0.1-1 mg/mL) · titrate per pain/RR'}],prep:'Morphine injection 10 mg/mL (1 mL amp) · IV push: เจือจางด้วย Sterile Water for Injection (SWI) 4-5 mL ให้ช้าๆ >4-5 นาที · IV infusion: เจือจางใน D5W ความเข้มข้น 0.1-1 mg/mL · Solvent: SWI (push), D5W (infusion) · Stable 24 ชม. ที่อุณหภูมิห้องหลังเจือจาง · เก็บพ้นแสงและความชื้น 15-30°C · (ไม่ใช้ oral/extended-release ที่ รพ.)',monitoring:'HR, RR, BP (เฝ้าระวัง hypotension โดยเฉพาะถ้าปริมาตรเลือดต่ำ หรือได้ CNS depressants ร่วม) · Pain score, sedation score · IV push: q5 min x4 → q30 min x2 → per order · Continuous drip: q1h x4 → q4h · SC/IM: q15 min x4 → q30 min x2 · เฝ้าระวัง respiratory depression 24-72 ชม. (โดยเฉพาะผู้สูงอายุ, ผอม, อ่อนเพลีย, COPD, cor pulmonale) · RR <10: รายงานทันที · ให้ก่อนปวดรุนแรงจะได้ผลดีกว่า · เฝ้าระวัง pinpoint pupils (overdose sign) · ระวังในเด็ก, ผู้สูงอายุ, โรคหัวใจ/ไต/ตับ · ปัสสาวะควร >600 mL/วัน · ห้ามใช้ใน asthma, HT, shock, renal failure',alarm:'Respiratory depression (เสี่ยงสูงกับ CNS depressants ร่วม) · Hypotension, bradycardia · Pinpoint pupils (overdose) · Constipation (common, may need laxative) · Tolerance/dependence (continuous >72h) · ยาผ่านรก และขับทาง breast milk',source:'HAD รพ.ห้วยผึ้ง ฉบับปรับปรุง 2567 · หน้า 13, 21',antidote:'Naloxone 0.4-2mg IV ซ้ำได้ทุก 2-3 นาที (max 10 mg) · ระวัง withdrawal ในผู้ป่วย opioid dependent'} },
       pethidine: { name:'Pethidine', short:'Peth', badge:'IV/IM/SC', image:'HAD_picture/pethidine.png', freq:'ทุก 1-2 ชม. (RR/Pain)', mode:'prn', inputUnit:'mg/dose', convUnit:null, weightBased:false, convFn:null, warnAt:50, maxAt:100, defaultRate:50, note:'ℹ ยาแก้พิษ: Naloxone · max 600 mg/24hr · ระวังในผู้สูงอายุ/ไตบกพร่อง (toxic metabolite: normeperidine)', noteClass:'info', indications:['Acute moderate-severe pain','Post-op pain','Obstetric analgesia','Shivering (post-anesthesia)','Pre-anesthesia'], labs:[{key:'pain',label:'Pain score',unit:'/10',ph:'0-10',min:0,max:10,freqHr:2},{key:'crcl',label:'CrCl',unit:'mL/min',ph:'>50',min:50,max:999,freqHr:24}], vitals:['BP','HR','RR','Mental status','Pain score'], clinical:['RR ช้า','Hypotension','Tremor / Myoclonus','Dry mouth','คลื่นไส้','ซึม'], serious:['Seizure (normeperidine toxicity)','Respiratory depression','Serotonin syndrome (ถ้าใช้ร่วม SSRI/MAOI)','Coma'], info:{doses:[{ind:'Moderate-severe pain (IM/SC adult)', dose:'50-150 mg q3-4h as needed'},{ind:'Continuous IV infusion (adult)', dose:'15-35 mg/hr'},{ind:'Moderate-severe pain (IM/SC pediatric)', dose:'0.5-2 mg/kg/dose (max 100 mg/dose) q3-4h'},{ind:'Renal failure adjustment (mod: GFR 10-50)', dose:'Use 75% normal dose, normal interval'},{ind:'Renal failure adjustment (severe: GFR <10)', dose:'Use 50% normal dose, normal interval'}],prep:'Forms: Pethidine 50 mg/mL inj · Direct IV: เจือจางด้วยน้ำกลั่น (SWI) 5 mL ฉีดนานๆ 4-5 นาที · สารละลายหลังเจือจางเก็บที่อุณหภูมิห้องได้ 24 ชม. · เก็บพ้นแสง 15-30°C · (ไม่มี 10 mg/mL NSS PFS ที่ รพ.)',monitoring:'Pain score, RR, BP, HR, mental status, sedation score · หลีกเลี่ยงใน renal failure (norpethidine สะสม) · ไม่ควรใช้ติดต่อกัน >48 ชม. หรือ >600 mg/24 ชม. · HR <60 BPM: รายงาน · ผู้สูงอายุ/MAOIs: ระวังเป็นพิเศษ · ให้ผู้ป่วยนอนระหว่างได้ยา และเปลี่ยนอิริยาบถช้าๆ (ป้องกัน orthostatic hypotension) · สังเกต: ปวดหัว, เกร็งกระตุก, คลื่นไส้, ปัสสาวะลำบาก, กดหายใจ · CrCl 10-50: ใช้ 75% dose · CrCl <10: ใช้ 50% dose',alarm:'Norpethidine toxicity (>600 mg/24h หรือ >48h): CNS stimulation, กล้ามเนื้อกระตุก, ชัก — Naloxone ไม่ reverse ชัก ใช้ Diazepam แทน · Respiratory depression · Hypotension · Serotonin syndrome (ร่วม SSRI/MAOIs) · ง่วงนอน, มึนงง, ท้องผูก, ใจสั่น, หัวใจเต้นผิดจังหวะ',source:'HAD รพ.ห้วยผึ้ง ฉบับปรับปรุง 2567 · หน้า 15',antidote:'Naloxone 2 mg IV · Diazepam สำหรับชัก (ไม่ใช้ Naloxone รักษาชักจาก normeperidine)'} },
@@ -9667,6 +9731,12 @@
                     '</div>';
             }
 
+            // ─── ⚡ HAD QUICK REFERENCE (ready-to-use rate panel) ───
+            // เฉพาะยาที่มี quickRef definition (ตอนนี้มีแค่ NE — ตัว prototype)
+            if (d.quickRef) {
+                _panelBuf += renderHADQuickRef(key);
+            }
+
             // ─── Existing had-block (calculator) ───
             let html = '<div class="had-block">';
             html += '<h4>' + d.name + ' — Dose Calculator <span class="had-badge">' + (d.badge || '') + '</span></h4>';
@@ -9761,6 +9831,12 @@
             if (d && (d.mode === 'rate' || d.mode === 'insulin') && d.convFn) {
                 hadUpdateCalc(key, d.defaultRate);
             }
+            // ⚡ Bootstrap Quick Reference panel (NE prototype)
+            if (d && d.quickRef) {
+                renderQuickRefDoses(key);
+                renderQuickRefCheat(key);
+                hadQuickConv(key, 'mcgmin'); // populate mL/hr & mcg/kg/min from default mcg/min
+            }
         }
         // เติม Trend ย้อนหลังจาก bundle.hadRounds
         renderAllHADTrends();
@@ -9819,6 +9895,235 @@
         }
         html += '</tbody></table>';
         box.innerHTML = html;
+    }
+
+    // ═══════════════════════════════════════════
+    //  HAD QUICK REFERENCE — ready-to-use panel
+    //  รองรับ tri-directional convert: mcg/min ↔ mL/hr ↔ mcg/kg/min
+    //  + Pre-computed dose ranges + cheat sheet
+    // ═══════════════════════════════════════════
+    function renderHADQuickRef(key) {
+        let d = HAD_DB[key];
+        if (!d || !d.quickRef) return '';
+        let qr = d.quickRef;
+        let html = '<div class="had-quickref" id="hadqr-' + key + '">';
+        html += '<h4>' + d.name + ' <span class="had-quickref-conc">' + qr.concLabel + '</span></h4>';
+        if (qr.prepShort) html += '<div style="font-size:11.5px;color:#665;margin:-4px 0 10px;line-height:1.45;">📌 ' + qr.prepShort + '</div>';
+
+        // Weight input
+        html += '<div class="had-qr-weight-row">';
+        html += '<label>น้ำหนักผู้ป่วย</label>';
+        html += '<input type="number" id="hadqr-wt-' + key + '" value="60" step="any" min="1" oninput="hadQuickRecalc(\'' + key + '\')">';
+        html += '<span style="font-size:13px;font-weight:700;color:#555;">kg</span>';
+        html += '<span class="had-qr-weight-hint">ปรับน้ำหนัก → ทุกค่าอัปเดต live</span>';
+        html += '</div>';
+
+        // Live converter
+        html += '<div class="had-qr-conv">';
+        html += '<div class="had-qr-conv-title">🔁 Live Converter — พิมพ์ในช่องไหนก็ได้ อีกสองช่องคำนวณให้</div>';
+        html += '<div class="had-qr-conv-grid">';
+        html += '<div class="had-qr-conv-cell"><label>Order — mcg/min</label><input type="number" id="hadqr-mcgmin-' + key + '" value="8" step="any" oninput="hadQuickConv(\'' + key + '\',\'mcgmin\')"></div>';
+        html += '<div class="had-qr-conv-arrow">↔</div>';
+        html += '<div class="had-qr-conv-cell primary"><label>⭐ Pump — mL/hr</label><input type="number" id="hadqr-mlhr-' + key + '" step="any" oninput="hadQuickConv(\'' + key + '\',\'mlhr\')"></div>';
+        html += '<div class="had-qr-conv-arrow">↔</div>';
+        html += '<div class="had-qr-conv-cell"><label>Weight — mcg/kg/min</label><input type="number" id="hadqr-mcgkgmin-' + key + '" step="any" oninput="hadQuickConv(\'' + key + '\',\'mcgkgmin\')"></div>';
+        html += '</div>';
+        html += '<div id="hadqr-fb-' + key + '" style="margin-top:8px;"></div>';
+        html += '</div>';
+
+        // Pre-computed indication-based doses
+        if (qr.doses && qr.doses.length) {
+            html += '<div class="had-qr-doses">';
+            html += '<div class="had-qr-doses-title">📋 Dose ตาม Indication — แปลง mL/hr ให้แล้ว · คลิกเพื่อ set</div>';
+            html += '<div id="hadqr-doses-' + key + '"></div>';
+            html += '</div>';
+        }
+
+        // Cheat sheet
+        if (qr.cheatSheet && qr.cheatSheet.length) {
+            html += '<div class="had-qr-cheat">';
+            html += '<div class="had-qr-cheat-title">⚡ Quick Rate Cheat Sheet — คลิก mL/hr เพื่อ set converter</div>';
+            html += '<div id="hadqr-cheat-' + key + '"></div>';
+            html += '</div>';
+        }
+
+        html += '</div>';
+        return html;
+    }
+
+    // Tri-directional converter — type one, other two compute
+    function hadQuickConv(key, source) {
+        let d = HAD_DB[key];
+        if (!d || !d.quickRef) return;
+        let conc = d.quickRef.conc; // mcg/mL
+        let wEl = document.getElementById('hadqr-wt-' + key);
+        let w = wEl ? (parseFloat(wEl.value) || 60) : 60;
+        if (w <= 0) w = 60;
+
+        let mcgMinEl = document.getElementById('hadqr-mcgmin-' + key);
+        let mlHrEl   = document.getElementById('hadqr-mlhr-'   + key);
+        let mcgKgEl  = document.getElementById('hadqr-mcgkgmin-' + key);
+        if (!mcgMinEl || !mlHrEl || !mcgKgEl) return;
+
+        let mcgMin = 0, mlHr = 0, mcgKgMin = 0;
+
+        if (source === 'mcgmin') {
+            mcgMin = parseFloat(mcgMinEl.value) || 0;
+            mlHr = mcgMin * 60 / conc;
+            mcgKgMin = mcgMin / w;
+        } else if (source === 'mlhr') {
+            mlHr = parseFloat(mlHrEl.value) || 0;
+            mcgMin = mlHr * conc / 60;
+            mcgKgMin = mcgMin / w;
+        } else { // mcgkgmin
+            mcgKgMin = parseFloat(mcgKgEl.value) || 0;
+            mcgMin = mcgKgMin * w;
+            mlHr = mcgMin * 60 / conc;
+        }
+
+        // update non-source fields (avoid clobbering what user is typing)
+        if (source !== 'mcgmin')   mcgMinEl.value = (mcgMin === 0 ? '' : (mcgMin >= 100 ? mcgMin.toFixed(1) : mcgMin.toFixed(2)));
+        if (source !== 'mlhr')     mlHrEl.value   = (mlHr === 0 ? '' : (mlHr >= 100 ? mlHr.toFixed(0) : mlHr.toFixed(1)));
+        if (source !== 'mcgkgmin') mcgKgEl.value  = (mcgKgMin === 0 ? '' : mcgKgMin.toFixed(3));
+
+        // safety state — based on mcg/kg/min vs warnAt/maxAt
+        let warnAt = d.warnAt || 9999;
+        let maxAt  = d.maxAt  || 9999;
+        let state = mcgKgMin <= 0 ? '' : mcgKgMin >= maxAt ? 'bad' : mcgKgMin >= warnAt ? 'warn' : 'ok';
+
+        [mcgMinEl, mlHrEl, mcgKgEl].forEach(function(el) {
+            el.classList.remove('ok','warn','bad');
+            if (state) el.classList.add(state);
+        });
+
+        let fb = document.getElementById('hadqr-fb-' + key);
+        if (fb) {
+            if (mcgKgMin <= 0) fb.innerHTML = '';
+            else if (state === 'bad')  fb.innerHTML = '<div class="had-fb bad">🚨 ' + mcgKgMin.toFixed(3) + ' mcg/kg/min เกิน max (' + maxAt + ') — แจ้งแพทย์ทันที</div>';
+            else if (state === 'warn') fb.innerHTML = '<div class="had-fb warn">⚠ ' + mcgKgMin.toFixed(3) + ' mcg/kg/min ใกล้ max (' + maxAt + ') — monitor ใกล้ชิด</div>';
+            else                       fb.innerHTML = '<div class="had-fb ok">✓ ' + mcgKgMin.toFixed(3) + ' mcg/kg/min · ' + mcgMin.toFixed(2) + ' mcg/min · ' + mlHr.toFixed(1) + ' mL/hr อยู่ใน range ปกติ</div>';
+        }
+    }
+
+    // Recalc when weight changes — re-render dose ranges & cheat sheet
+    function hadQuickRecalc(key) {
+        let d = HAD_DB[key];
+        if (!d || !d.quickRef) return;
+        // Recompute converter using mcg/min as source (since order is usually fixed in mcg/min)
+        let mcgMinEl = document.getElementById('hadqr-mcgmin-' + key);
+        if (mcgMinEl && mcgMinEl.value) hadQuickConv(key, 'mcgmin');
+        renderQuickRefDoses(key);
+        renderQuickRefCheat(key);
+    }
+
+    function renderQuickRefDoses(key) {
+        let d = HAD_DB[key];
+        if (!d || !d.quickRef || !d.quickRef.doses) return;
+        let qr = d.quickRef;
+        let conc = qr.conc;
+        let wEl = document.getElementById('hadqr-wt-' + key);
+        let w = wEl ? (parseFloat(wEl.value) || 60) : 60;
+        if (w <= 0) w = 60;
+        let box = document.getElementById('hadqr-doses-' + key);
+        if (!box) return;
+
+        let html = '';
+        let fmtRange = function(a, b, dp) {
+            if (Math.abs(a - b) < 1e-9) return (dp > 0 ? a.toFixed(dp) : Math.round(a).toString());
+            let fa = dp > 0 ? a.toFixed(dp) : (a >= 10 ? Math.round(a).toString() : a.toFixed(1));
+            let fb = dp > 0 ? b.toFixed(dp) : (b >= 10 ? Math.round(b).toString() : b.toFixed(1));
+            return fa + '–' + fb;
+        };
+
+        for (let i = 0; i < qr.doses.length; i++) {
+            let it = qr.doses[i];
+            let mcgMin1, mcgMin2, mcgKg1, mcgKg2, src;
+
+            if (it.weightBased) {
+                mcgKg1 = it.range[0]; mcgKg2 = it.range[1];
+                mcgMin1 = mcgKg1 * w; mcgMin2 = mcgKg2 * w;
+                src = fmtRange(mcgKg1, mcgKg2, 2) + ' mcg/kg/min';
+            } else {
+                mcgMin1 = it.range[0]; mcgMin2 = it.range[1];
+                mcgKg1 = mcgMin1 / w; mcgKg2 = mcgMin2 / w;
+                src = fmtRange(mcgMin1, mcgMin2, 0) + ' mcg/min';
+            }
+            let mlHr1 = mcgMin1 * 60 / conc;
+            let mlHr2 = mcgMin2 * 60 / conc;
+
+            // Pre-pick mid-range value for click action
+            let pickMcgMin = (mcgMin1 + mcgMin2) / 2;
+
+            html += '<div class="had-qr-dose-item" onclick="hadQrPick(\'' + key + '\',' + pickMcgMin.toFixed(3) + ')">';
+            html += '<div class="ind">▸ ' + it.label + '</div>';
+            html += '<div class="src">Source: <strong>' + src + '</strong>' + (it.hint ? ' · <span style="color:#5b8def;">' + it.hint + '</span>' : '') + '</div>';
+            html += '<div class="out">';
+            html += '<span class="pump">' + fmtRange(mlHr1, mlHr2, 1) + ' mL/hr</span>';
+            if (it.weightBased) {
+                html += '<span class="alt">≈ ' + fmtRange(mcgMin1, mcgMin2, 1) + ' mcg/min</span>';
+            } else {
+                html += '<span class="alt">≈ ' + fmtRange(mcgKg1, mcgKg2, 3) + ' mcg/kg/min @ ' + w + ' kg</span>';
+            }
+            html += '</div></div>';
+        }
+        box.innerHTML = html;
+    }
+
+    function renderQuickRefCheat(key) {
+        let d = HAD_DB[key];
+        if (!d || !d.quickRef || !d.quickRef.cheatSheet) return;
+        let qr = d.quickRef;
+        let conc = qr.conc;
+        let wEl = document.getElementById('hadqr-wt-' + key);
+        let w = wEl ? (parseFloat(wEl.value) || 60) : 60;
+        if (w <= 0) w = 60;
+        let box = document.getElementById('hadqr-cheat-' + key);
+        if (!box) return;
+
+        let cs = qr.cheatSheet;
+        let warnAt = d.warnAt || 9999;
+        let maxAt  = d.maxAt  || 9999;
+
+        let html = '<table>';
+        html += '<tr class="head"><th>Order</th>';
+        for (let i = 0; i < cs.length; i++) html += '<th>' + cs[i] + ' mcg/min</th>';
+        html += '</tr>';
+
+        // Row: mL/hr (clickable)
+        html += '<tr><td>⭐ mL/hr</td>';
+        for (let i = 0; i < cs.length; i++) {
+            let mlHr = cs[i] * 60 / conc;
+            html += '<td class="row-pump" onclick="hadQrPick(\'' + key + '\',' + cs[i] + ')" title="คลิกเพื่อ set">' + mlHr.toFixed(1) + '</td>';
+        }
+        html += '</tr>';
+
+        // Row: mcg/kg/min (color-coded)
+        html += '<tr><td>mcg/kg/min</td>';
+        for (let i = 0; i < cs.length; i++) {
+            let mkm = cs[i] / w;
+            let style = '';
+            if (mkm >= maxAt)       style = 'color:#c62828;font-weight:700;background:#ffebee;';
+            else if (mkm >= warnAt) style = 'color:#e65100;font-weight:700;background:#fff8e1;';
+            html += '<td style="' + style + '">' + mkm.toFixed(3) + '</td>';
+        }
+        html += '</tr>';
+        html += '</table>';
+        box.innerHTML = html;
+    }
+
+    // Click handler — set mcg/min input and trigger conversion
+    function hadQrPick(key, mcgMin) {
+        let el = document.getElementById('hadqr-mcgmin-' + key);
+        if (!el) return;
+        el.value = (Math.round(mcgMin * 100) / 100);
+        hadQuickConv(key, 'mcgmin');
+        // brief flash to confirm
+        let pumpEl = document.getElementById('hadqr-mlhr-' + key);
+        if (pumpEl) {
+            pumpEl.style.transition = 'transform 0.18s';
+            pumpEl.style.transform = 'scale(1.06)';
+            setTimeout(function() { pumpEl.style.transform = ''; }, 220);
+        }
     }
 
     // ─── HAD: Dose calculator (rate-based) ───
