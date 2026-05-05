@@ -1989,15 +1989,7 @@
         @media (max-width: 700px) { .hb-sb-grid { grid-template-columns: 1fr; } }
 
         /* NE drip rate calculation table */
-        .ne-rate-wrap { margin-top: 14px; background: #fff; border: 1px solid #e8e5e0; border-radius: 10px; padding: 14px; overflow-x: auto; }
-        .ne-rate-wrap h3 { margin: 0 0 6px; color: #c62828; font-size: 13px; text-transform: uppercase; letter-spacing: 0.4px; }
-        .ne-rate-wrap .ne-sub { font-size: 11px; color: #666; margin-bottom: 10px; }
-        .ne-rate-tbl { width: 100%; border-collapse: collapse; font-size: 12px; }
-        .ne-rate-tbl th, .ne-rate-tbl td { padding: 6px 8px; text-align: center; border: 1px solid #e8e5e0; }
-        .ne-rate-tbl thead th { background: #2e3f58; color: #fff; font-weight: 600; }
-        .ne-rate-tbl tbody th { background: #fff9e0; color: #a07000; font-weight: 700; }
-        .ne-rate-tbl tbody tr:nth-child(even) td { background: #fafafa; }
-        .ne-rate-tbl td { color: #333; }
+        /* (.ne-rate-* CSS removed — Quick Ref converter replaces the static drip rate table) */
 
         /* ADR Timeline */
         .adr-tl { position: relative; min-width: 400px; }
@@ -7332,14 +7324,16 @@
         let ind = d.indications || [];
         let alarm = d.clinical || [];
         let serious = d.serious || [];
-        if (ind.length || mon.length || alarm.length || serious.length) {
+        // ถ้ามี monitoringStruct ละเอียดด้านล่างแล้ว → ไม่ต้องโชว์ Monitoring block ในกริด (เหลือ 3 block: Indication / Alarm / Serious)
+        let showMonBlock = mon.length && !d.monitoringStruct;
+        if (ind.length || showMonBlock || alarm.length || serious.length) {
             html += '<div class="hb-sb-grid">';
             if (ind.length) {
                 html += '<div class="hb-sb hb-sb-ind"><h4>💡 Indication</h4><ul>';
                 for (let i = 0; i < ind.length; i++) html += '<li>' + ind[i] + '</li>';
                 html += '</ul></div>';
             }
-            if (mon.length) {
+            if (showMonBlock) {
                 html += '<div class="hb-sb hb-sb-mon"><h4>🔍 Monitoring</h4><ul>';
                 for (let i = 0; i < mon.length; i++) html += '<li>' + mon[i] + '</li>';
                 html += '</ul></div>';
@@ -7373,8 +7367,7 @@
             html += '<div style="margin-top:18px;padding-top:10px;border-top:1px dashed #e0dcd5;font-size:11px;color:#888;">📚 อ้างอิง: ' + d.info.source + '</div>';
         }
 
-        // ─── NE drip rate calculation table ───
-        if (key === 'ne') html += renderNERateTable();
+        // (NE Drip Rate Table removed — Quick Ref converter + cheat sheet covers this interactively)
 
         el.innerHTML = html;
 
@@ -7692,30 +7685,7 @@
         return '';
     }
 
-    // ─── NE drip rate calculation table ───
-    // Formula: rate(mL/hr) = dose(mcg/kg/min) × wt(kg) × 60 / conc(mcg/mL)
-    // Concentration: Levophed 4 mg + D5W 250 mL = 16 mcg/mL
-    function renderNERateTable() {
-        let doses = [0.05, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.8, 1.0];
-        let weights = [40, 45, 50, 55, 60, 65, 70, 75, 80, 85];
-        let conc = 16; // mcg/mL
-        let html = '<div class="ne-rate-wrap">';
-        html += '<h3>📊 NE Drip Rate Table (mL/hr)</h3>';
-        html += '<div class="ne-sub">Concentration: Levophed 4 mg + D5W 250 mL = 16 mcg/mL · Formula: rate = dose × น้ำหนัก × 60 / 16</div>';
-        html += '<table class="ne-rate-tbl"><thead><tr><th>Dose<br>(mcg/kg/min)</th>';
-        for (let j = 0; j < weights.length; j++) html += '<th>' + weights[j] + ' kg</th>';
-        html += '</tr></thead><tbody>';
-        for (let i = 0; i < doses.length; i++) {
-            html += '<tr><th>' + doses[i].toFixed(2) + '</th>';
-            for (let j = 0; j < weights.length; j++) {
-                let rate = doses[i] * weights[j] * 60 / conc;
-                html += '<td>' + rate.toFixed(1) + '</td>';
-            }
-            html += '</tr>';
-        }
-        html += '</tbody></table></div>';
-        return html;
-    }
+    // (renderNERateTable removed — Quick Ref converter handles rate lookups interactively)
 
     // ══════ Dashboard ══════
     var _dashCharts = {};
@@ -9992,7 +9962,6 @@
         quickRef: {
           conc: 16,
           concLabel: 'NE 4:250 = 16 mcg/mL',
-          prepShort: '4 mg + D5W 250 mL · ใช้ infusion pump · central line preferred',
           doses: [
             { label: 'Hypotension/Shock — Start (ผู้ใหญ่)', range: [8, 12], unit: 'mcg/min', weightBased: false, hint: 'Target SBP 80-100 mmHg' },
             { label: 'Hypotension — Maintenance (typical)', range: [2, 4], unit: 'mcg/min', weightBased: false, hint: 'Titrate ทุก 2-5 นาที' },
@@ -10434,7 +10403,7 @@
         let qr = d.quickRef;
         let html = '<div class="had-quickref" id="hadqr-' + key + '">';
         html += '<h4>' + d.name + ' <span class="had-quickref-conc">' + qr.concLabel + '</span></h4>';
-        if (qr.prepShort) html += '<div style="font-size:11.5px;color:#665;margin:-4px 0 10px;line-height:1.45;">📌 ' + qr.prepShort + '</div>';
+        // (prepShort hint removed — Preparation infographic below covers this)
 
         // Weight input
         html += '<div class="had-qr-weight-row">';
