@@ -1734,6 +1734,8 @@
         .had-qr-conv { background: #fff; border-radius: 10px; padding: 12px; margin-bottom: 10px; border: 1px solid #e8d4a0; }
         .had-qr-conv-title { font-size: 11px; font-weight: 700; color: #999; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 10px; }
         .had-qr-conv-grid { display: grid; grid-template-columns: 1fr auto 1fr auto 1fr; gap: 8px; align-items: end; }
+        .had-qr-conv-grid-2 { display: grid; grid-template-columns: 1fr auto 1fr; gap: 8px; align-items: end; }
+        @media (max-width: 720px) { .had-qr-conv-grid-2 { grid-template-columns: 1fr; } }
         .had-qr-conv-cell { display: flex; flex-direction: column; gap: 4px; }
         .had-qr-conv-cell label { font-size: 11px; color: #555; font-weight: 600; text-align: center; }
         .had-qr-conv-cell input { width: 100%; padding: 10px 6px; border: 1.5px solid #d0d0d0; border-radius: 8px; font-size: 16px; font-weight: 700; text-align: center; font-family: inherit; color: #2e3f58; }
@@ -7298,9 +7300,9 @@
         html += '</div></div>';
 
         // ─── ⚡ Quick Reference panel (ready-to-use rate converter) ───
-        // เฉพาะยาที่มี quickRef definition (ตอนนี้มีแค่ NE — ตัว prototype)
+        // Dispatch by quickRef.type: 'simple-rate' (KCl, MgSO4) or default vasopressor (NE, Adr)
         if (d.quickRef) {
-            html += renderHADQuickRef(key);
+            html += (d.quickRef.type === 'simple-rate') ? renderHADQuickRefSimple(key) : renderHADQuickRef(key);
         }
 
         if (d.info) {
@@ -7391,9 +7393,15 @@
 
         // ─── Bootstrap Quick Reference panel after DOM is ready ───
         if (d.quickRef) {
-            renderQuickRefDoses(key);
-            renderQuickRefCheat(key);
-            hadQuickConv(key, 'mcgmin'); // populate mL/hr & mcg/kg/min from default mcg/min
+            if (d.quickRef.type === 'simple-rate') {
+                renderQuickRefDosesSimple(key);
+                renderQuickRefCheatSimple(key);
+                hadQuickConvSimple(key, 'rate');
+            } else {
+                renderQuickRefDoses(key);
+                renderQuickRefCheat(key);
+                hadQuickConv(key, 'mcgmin');
+            }
         }
     }
 
@@ -7447,6 +7455,21 @@
             }
             return m + ' ' + pill(fmt(mlHr1), true);
         });
+
+        // Pattern 3: X-Y mEq/hr or X mEq/hr (simple-rate drugs like KCl)
+        // Only matches if conc unit makes sense for mEq (small number like 0.04)
+        if (d.quickRef.type === 'simple-rate' && d.quickRef.rateUnit === 'mEq/hr') {
+            text = text.replace(/(\d+(?:\.\d+)?)(\s*[-–]\s*(\d+(?:\.\d+)?))?\s*mEq\/hr/gi, function(m, a, _g, b) {
+                let v1 = parseFloat(a);
+                let mlHr1 = v1 / conc;
+                if (b !== undefined && b !== null) {
+                    let v2 = parseFloat(b);
+                    let mlHr2 = v2 / conc;
+                    return m + ' ' + pill(fmt(mlHr1) + '–' + fmt(mlHr2), false);
+                }
+                return m + ' ' + pill(fmt(mlHr1), false);
+            });
+        }
 
         return text;
     }
@@ -10153,6 +10176,23 @@
       pethidine: { name:'Pethidine', short:'Peth', badge:'IV/IM/SC', image:'HAD_picture/pethidine.png', freq:'ทุก 1-2 ชม. (RR/Pain)', mode:'prn', inputUnit:'mg/dose', convUnit:null, weightBased:false, convFn:null, warnAt:50, maxAt:100, defaultRate:50, note:'ℹ ยาแก้พิษ: Naloxone · max 600 mg/24hr · ระวังในผู้สูงอายุ/ไตบกพร่อง (toxic metabolite: normeperidine)', noteClass:'info', indications:['Acute moderate-severe pain','Post-op pain','Obstetric analgesia','Shivering (post-anesthesia)','Pre-anesthesia'], labs:[{key:'pain',label:'Pain score',unit:'/10',ph:'0-10',min:0,max:10,freqHr:2},{key:'crcl',label:'CrCl',unit:'mL/min',ph:'>50',min:50,max:999,freqHr:24}], vitals:['BP','HR','RR','Mental status','Pain score'], clinical:['RR ช้า','Hypotension','Tremor / Myoclonus','Dry mouth','คลื่นไส้','ซึม'], serious:['Seizure (normeperidine toxicity)','Respiratory depression','Serotonin syndrome (ถ้าใช้ร่วม SSRI/MAOI)','Coma'], info:{doses:[{ind:'Moderate-severe pain (IM/SC adult)', dose:'50-150 mg q3-4h as needed'},{ind:'Continuous IV infusion (adult)', dose:'15-35 mg/hr'},{ind:'Moderate-severe pain (IM/SC pediatric)', dose:'0.5-2 mg/kg/dose (max 100 mg/dose) q3-4h'},{ind:'Renal failure adjustment (mod: GFR 10-50)', dose:'Use 75% normal dose, normal interval'},{ind:'Renal failure adjustment (severe: GFR <10)', dose:'Use 50% normal dose, normal interval'}],prep:'Forms: Pethidine 50 mg/mL inj · Direct IV: เจือจางด้วยน้ำกลั่น (SWI) 5 mL ฉีดนานๆ 4-5 นาที · สารละลายหลังเจือจางเก็บที่อุณหภูมิห้องได้ 24 ชม. · เก็บพ้นแสง 15-30°C · (ไม่มี 10 mg/mL NSS PFS ที่ รพ.)',monitoring:'Pain score, RR, BP, HR, mental status, sedation score · หลีกเลี่ยงใน renal failure (norpethidine สะสม) · ไม่ควรใช้ติดต่อกัน >48 ชม. หรือ >600 mg/24 ชม. · HR <60 BPM: รายงาน · ผู้สูงอายุ/MAOIs: ระวังเป็นพิเศษ · ให้ผู้ป่วยนอนระหว่างได้ยา และเปลี่ยนอิริยาบถช้าๆ (ป้องกัน orthostatic hypotension) · สังเกต: ปวดหัว, เกร็งกระตุก, คลื่นไส้, ปัสสาวะลำบาก, กดหายใจ · CrCl 10-50: ใช้ 75% dose · CrCl <10: ใช้ 50% dose',alarm:'Norpethidine toxicity (>600 mg/24h หรือ >48h): CNS stimulation, กล้ามเนื้อกระตุก, ชัก — Naloxone ไม่ reverse ชัก ใช้ Diazepam แทน · Respiratory depression · Hypotension · Serotonin syndrome (ร่วม SSRI/MAOIs) · ง่วงนอน, มึนงง, ท้องผูก, ใจสั่น, หัวใจเต้นผิดจังหวะ',source:'HAD รพ.ห้วยผึ้ง ฉบับปรับปรุง 2567 · หน้า 15',antidote:'Naloxone 2 mg IV · Diazepam สำหรับชัก (ไม่ใช้ Naloxone รักษาชักจาก normeperidine)'} },
       insulin:   { name:'Regular Insulin', short:'RI', badge:'IV/SC/Drip', image:'HAD_picture/regular_insulin.png', freq:'ทุก 1-2 ชม. (DTx)', mode:'insulin', inputUnit:'mL/hr', convUnit:'u/hr', weightBased:false, convFn:function(r){return r*1}, convFmt:function(v){return v.toFixed(1)}, warnAt:10, maxAt:15, defaultRate:5, note:'ℹ เฝ้าระวัง hypoglycemia · DTx ทุก 1-2 ชม. · ยาแก้พิษ: 50% Glucose IV', noteClass:'info', indications:['ลดระดับน้ำตาลในเลือด','DKA / HHS','Hyperkalemia (shift K⁺ เข้าเซลล์)','Stress hyperglycemia (ICU)'], labs:[{key:'dtx',label:'DTx',unit:'mg/dL',ph:'70-180',min:70,max:180,freqHr:2},{key:'k',label:'K⁺',unit:'mEq/L',ph:'3.5-5.0',min:3.5,max:5.0,freqHr:6}], vitals:['Consciousness','HR','POCT glucose','FBS'], clinical:['ใจสั่น เหงื่อออก ตัวเย็น ซีดลง','หิว มือสั่น','สับสน','ผู้ใหญ่: DTx < 70 mg/dL · เด็ก: DTx < 60 mg/dL'], serious:['Hypoglycemic shock','Coma / Brain damage','Hypokalemia','Seizure'], scale:[{min:200,max:250,dose:4},{min:251,max:300,dose:6},{min:301,max:350,dose:8},{min:351,max:400,dose:10},{min:401,max:450,dose:12},{min:451,max:9999,dose:null,alert:true}], info:{doses:[{ind:'Type 1 and Type 2 DM (initiation)', dose:'Initial: 0.2-0.4 units/kg/day divided · Maintenance: 0.5-1 units/kg/day · Adolescents in growth: may exceed 1 unit/kg/day'},{ind:'Regular insulin IV infusion (hyperglycemia)', dose:'Dilute to 0.1-1 IU/mL in NSS · Give via infusion pump · Monitor capillary glucose closely'},{ind:'DKA (pediatric/adult)', dose:'Follow institution protocol · typically 0.1 IU/kg/hr IV infusion titrated'},{ind:'Hyperkalemia (shift K⁺ เข้าเซลล์)', dose:'Dextrose 0.5-1 mL/kg + RI 1 unit ต่อ dextrose 4-5 g'}],prep:'Forms: Regular Insulin (RI) 100 units/mL (10 mL vial) — ใช้ใน รพ.ห้วยผึ้ง · Insulin syringe ที่ unit marking ตรงกับ concentration · หยดขวดเบาๆ กลิ้งให้ผสม (⚠ ห้ามเขย่า — เกิดฟอง ความแม่นยำลดลง) · Standard IV dilution: 100 units + NSS 100 mL (หรือ 0.45% NaCl) · Solvent compatible: D5W, D5N/2, NSS · เก็บขวดที่ยังไม่เปิด 2-8°C · ขวดเปิดแล้ว: 28 วันที่ตู้เย็น (2-8°C) หรือ ≤30°C room temp · Mixed solution: 24 ชม. ที่ room temp หรือ 4°C · ⚠ ห้ามใช้ถ้าสีเปลี่ยน/ขุ่น/ตกตะกอน/ความหนืดผิดปกติ',monitoring:'Serum glucose (critical) · DTx หลังให้ยาและตามคำสั่ง · Hypoglycemia threshold: ผู้ชาย <50 mg/dL, ผู้หญิง <40 mg/dL (ตาม ห้วยผึ้ง) · ใช้ infusion pump สำหรับ IV continuous infusion · IV order ต้องระบุ units/hour · เฝ้าระวัง hypoglycemia signs: กระวนกระวาย, tremor, เหงื่อออก → ถ้าพบ หยุด insulin + รายงานแพทย์ · ระวังในผู้สูงอายุ, เด็ก, โรคหัวใจ/ไต/ตับ · ยาผ่านรก และขับทาง breast milk · ปัสสาวะควร >600 mL/วัน',alarm:'Hypoglycemia (major risk): กระวนกระวาย, tremor, เหงื่อออก, ใจสั่น, สับสน, ชัก, หมดสติ · Hyperkalemia treatment: RI 1 unit/4-5 g dextrose · ⚠ ห้ามใช้คำย่อ "U" หรือ "IU" — เขียน "unit" เต็ม · Lipodystrophy (injection site) · Do NOT use ถ้าเปลี่ยนสี/ขุ่น/ตกตะกอน',source:'HAD รพ.ห้วยผึ้ง ฉบับปรับปรุง 2567 · หน้า 18, 24',antidote:'50% Glucose 50 mL IV push · Glucagon 1 mg IM ถ้าไม่มี IV'} },
       kcl:       { name:'KCl', short:'KCl', badge:'IV drip/PO', image:'HAD_picture/KCl.png', freq:'ทุก 6 ชม. (K⁺)', mode:'rate', inputUnit:'mL/hr', convUnit:'mEq/hr', weightBased:false, convFn:function(r){return r*0.04}, convFmt:function(v){return v.toFixed(1)}, warnAt:8, maxAt:10, defaultRate:100,
+        quickRef: {
+          type: 'simple-rate',
+          conc: 0.04,
+          concLabel: 'KCl 40:1000 = 0.04 mEq/mL',
+          rateUnit: 'mEq/hr',
+          rateLabel: 'Order',
+          defaultRate: 5,
+          warnAt: 8,    // mEq/hr · ใกล้ peripheral max
+          maxAt: 10,    // mEq/hr · peripheral max
+          doses: [
+            { label: 'Standard maintenance', range: [5, 10],  unit: 'mEq/hr', hint: 'Peripheral หรือ central · ทั่วไป' },
+            { label: 'Peripheral max', range: [10, 10], unit: 'mEq/hr', hint: 'อย่าเกิน peripheral line' },
+            { label: 'Central — Severe (K 2.0-2.5)', range: [20, 40], unit: 'mEq/hr', hint: 'ต้อง EKG monitor' },
+            { label: 'Central — Very severe (K<2.0)', range: [40, 50], unit: 'mEq/hr', hint: 'EKG continuous · CCU' }
+          ],
+          cheatSheet: [5, 10, 15, 20, 25, 30, 40, 50]
+        },
         prepStruct: {
           readyToUse: 'Pre-mixed bag · มาจาก รพ.ห้วยผึ้ง · ไม่ต้องผสมเพิ่ม',
           standardMix: { label: 'KCl 40:1000', recipe: 'KCl 40 mEq + NSS 1000 mL', result: '40 mEq/L' },
@@ -10802,6 +10842,181 @@
         el.value = (Math.round(mcgMin * 100) / 100);
         hadQuickConv(key, 'mcgmin');
         // brief flash to confirm
+        let pumpEl = document.getElementById('hadqr-mlhr-' + key);
+        if (pumpEl) {
+            pumpEl.style.transition = 'transform 0.18s';
+            pumpEl.style.transform = 'scale(1.06)';
+            setTimeout(function() { pumpEl.style.transform = ''; }, 220);
+        }
+    }
+
+    // ═══════════════════════════════════════════
+    //  SIMPLE-RATE Quick Ref (KCl, MgSO4, Insulin drip)
+    //  2 inputs: <unit>/hr ↔ mL/hr · no weight
+    // ═══════════════════════════════════════════
+    function renderHADQuickRefSimple(key) {
+        let d = HAD_DB[key];
+        if (!d || !d.quickRef) return '';
+        let qr = d.quickRef;
+        let unit = qr.rateUnit || 'unit/hr';
+        let lbl = qr.rateLabel || 'Order';
+
+        let html = '<div class="had-quickref" id="hadqr-' + key + '">';
+        html += '<h4>' + d.name + ' <span class="had-quickref-conc">' + qr.concLabel + '</span></h4>';
+
+        // Live converter (2 cells)
+        html += '<div class="had-qr-conv">';
+        html += '<div class="had-qr-conv-title">🔁 Live Converter — พิมพ์ในช่องไหนก็ได้ อีกช่องคำนวณให้</div>';
+        html += '<div class="had-qr-conv-grid-2">';
+        html += '<div class="had-qr-conv-cell"><label>' + lbl + ' — ' + unit + '</label>';
+        html += '<input type="number" id="hadqr-rate-' + key + '" value="' + (qr.defaultRate || 5) + '" step="any" oninput="hadQuickConvSimple(\'' + key + '\',\'rate\')"></div>';
+        html += '<div class="had-qr-conv-arrow">↔</div>';
+        html += '<div class="had-qr-conv-cell primary"><label>⭐ Pump — mL/hr</label>';
+        html += '<input type="number" id="hadqr-mlhr-' + key + '" step="any" oninput="hadQuickConvSimple(\'' + key + '\',\'mlhr\')"></div>';
+        html += '</div>';
+        html += '<div id="hadqr-fb-' + key + '" style="margin-top:8px;"></div>';
+        html += '</div>';
+
+        if (qr.doses && qr.doses.length) {
+            html += '<div class="had-qr-doses">';
+            html += '<div class="had-qr-doses-title">📋 Dose ตาม Indication — แปลง mL/hr ให้แล้ว · คลิกเพื่อ set</div>';
+            html += '<div id="hadqr-doses-' + key + '"></div>';
+            html += '</div>';
+        }
+
+        if (qr.cheatSheet && qr.cheatSheet.length) {
+            html += '<div class="had-qr-cheat">';
+            html += '<div class="had-qr-cheat-title">⚡ Quick Rate Cheat Sheet — คลิก mL/hr เพื่อ set</div>';
+            html += '<div id="hadqr-cheat-' + key + '"></div>';
+            html += '</div>';
+        }
+
+        html += '</div>';
+        return html;
+    }
+
+    function hadQuickConvSimple(key, source) {
+        let d = HAD_DB[key];
+        if (!d || !d.quickRef) return;
+        let conc = d.quickRef.conc;
+        let unit = d.quickRef.rateUnit || '';
+
+        let rateEl = document.getElementById('hadqr-rate-' + key);
+        let mlHrEl = document.getElementById('hadqr-mlhr-' + key);
+        if (!rateEl || !mlHrEl) return;
+
+        let rate = 0, mlHr = 0;
+        if (source === 'rate') {
+            rate = parseFloat(rateEl.value) || 0;
+            mlHr = rate / conc;
+        } else {
+            mlHr = parseFloat(mlHrEl.value) || 0;
+            rate = mlHr * conc;
+        }
+
+        let smartNum = function(v) {
+            if (v >= 100) return Math.round(v).toString();
+            if (Math.abs(v - Math.round(v)) < 0.05) return Math.round(v).toString();
+            return parseFloat(v.toFixed(1)).toString();
+        };
+
+        if (source !== 'rate') rateEl.value = (rate === 0 ? '' : smartNum(rate));
+        if (source !== 'mlhr') mlHrEl.value = (mlHr === 0 ? '' : smartNum(mlHr));
+
+        let warnAt = d.quickRef.warnAt || 9999;
+        let maxAt  = d.quickRef.maxAt  || 9999;
+        let state = rate <= 0 ? '' : rate >= maxAt ? 'bad' : rate >= warnAt ? 'warn' : 'ok';
+
+        [rateEl, mlHrEl].forEach(function(el) {
+            el.classList.remove('ok','warn','bad');
+            if (state) el.classList.add(state);
+        });
+
+        let fb = document.getElementById('hadqr-fb-' + key);
+        if (fb) {
+            if (rate <= 0) fb.innerHTML = '';
+            else if (state === 'bad')  fb.innerHTML = '<div class="had-fb bad">🚨 ' + smartNum(rate) + ' ' + unit + ' เกิน peripheral max (' + maxAt + ') — ต้องใช้ central line</div>';
+            else if (state === 'warn') fb.innerHTML = '<div class="had-fb warn">⚠ ' + smartNum(rate) + ' ' + unit + ' ใกล้ peripheral max — monitor IV site ใกล้ชิด</div>';
+            else                       fb.innerHTML = '<div class="had-fb ok">✓ ' + smartNum(rate) + ' ' + unit + ' · ' + smartNum(mlHr) + ' mL/hr · ปลอดภัยทั้ง peripheral / central</div>';
+        }
+    }
+
+    function renderQuickRefDosesSimple(key) {
+        let d = HAD_DB[key];
+        if (!d || !d.quickRef || !d.quickRef.doses) return;
+        let conc = d.quickRef.conc;
+        let unit = d.quickRef.rateUnit || '';
+        let box = document.getElementById('hadqr-doses-' + key);
+        if (!box) return;
+
+        let smartNum = function(v) {
+            if (v >= 100) return Math.round(v).toString();
+            if (Math.abs(v - Math.round(v)) < 0.05) return Math.round(v).toString();
+            return parseFloat(v.toFixed(1)).toString();
+        };
+        let fmtRange = function(a, b) {
+            if (Math.abs(a - b) < 1e-9) return smartNum(a);
+            return smartNum(a) + '–' + smartNum(b);
+        };
+
+        let html = '';
+        for (let i = 0; i < d.quickRef.doses.length; i++) {
+            let it = d.quickRef.doses[i];
+            let r1 = it.range[0], r2 = it.range[1];
+            let mlHr1 = r1 / conc, mlHr2 = r2 / conc;
+            let pickRate = (r1 + r2) / 2;
+
+            html += '<div class="had-qr-dose-item" onclick="hadQrPickSimple(\'' + key + '\',' + pickRate + ')">';
+            html += '<div class="ind">▸ ' + it.label + '</div>';
+            html += '<div class="src">Source: <strong>' + fmtRange(r1, r2) + ' ' + unit + '</strong>' + (it.hint ? ' · <span style="color:#5b8def;">' + it.hint + '</span>' : '') + '</div>';
+            html += '<div class="out">';
+            html += '<span class="pump">' + fmtRange(mlHr1, mlHr2) + '<span class="unit">mL/hr</span></span>';
+            html += '</div></div>';
+        }
+        box.innerHTML = html;
+    }
+
+    function renderQuickRefCheatSimple(key) {
+        let d = HAD_DB[key];
+        if (!d || !d.quickRef || !d.quickRef.cheatSheet) return;
+        let conc = d.quickRef.conc;
+        let unit = d.quickRef.rateUnit || '';
+        let box = document.getElementById('hadqr-cheat-' + key);
+        if (!box) return;
+
+        let cs = d.quickRef.cheatSheet;
+        let warnAt = d.quickRef.warnAt || 9999;
+        let maxAt  = d.quickRef.maxAt  || 9999;
+
+        let smartNum = function(v) {
+            if (v >= 100) return Math.round(v).toString();
+            if (Math.abs(v - Math.round(v)) < 0.05) return Math.round(v).toString();
+            return parseFloat(v.toFixed(1)).toString();
+        };
+
+        let html = '<table>';
+        html += '<tr class="head"><th>Order</th>';
+        for (let i = 0; i < cs.length; i++) html += '<th>' + cs[i] + ' ' + unit + '</th>';
+        html += '</tr>';
+
+        html += '<tr><td>⭐ mL/hr</td>';
+        for (let i = 0; i < cs.length; i++) {
+            let mlHr = cs[i] / conc;
+            let style = '';
+            if (cs[i] >= maxAt)       style = 'color:#c62828;font-weight:500;background:#ffebee;';
+            else if (cs[i] >= warnAt) style = 'color:#e65100;font-weight:500;background:#fff8e1;';
+            html += '<td class="row-pump" onclick="hadQrPickSimple(\'' + key + '\',' + cs[i] + ')" style="' + style + '" title="คลิกเพื่อ set">' + smartNum(mlHr) + '</td>';
+        }
+        html += '</tr>';
+        html += '</table>';
+        box.innerHTML = html;
+    }
+
+    function hadQrPickSimple(key, rate) {
+        let el = document.getElementById('hadqr-rate-' + key);
+        if (!el) return;
+        el.value = rate;
+        hadQuickConvSimple(key, 'rate');
         let pumpEl = document.getElementById('hadqr-mlhr-' + key);
         if (pumpEl) {
             pumpEl.style.transition = 'transform 0.18s';
