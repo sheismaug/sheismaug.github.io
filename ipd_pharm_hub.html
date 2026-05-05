@@ -1754,7 +1754,8 @@
         .had-qr-dose-item .ind { font-size: 12.5px; font-weight: 700; color: #c62828; margin-bottom: 2px; }
         .had-qr-dose-item .src { font-size: 11px; color: #888; margin-bottom: 4px; }
         .had-qr-dose-item .out { font-size: 13px; display: flex; align-items: center; flex-wrap: wrap; gap: 6px; }
-        .had-qr-dose-item .pump { background: #2e3f58; color: #fff; padding: 4px 10px; border-radius: 6px; font-family: 'SF Mono', Menlo, Monaco, Consolas, monospace; font-weight: 700; font-size: 13px; letter-spacing: 0.3px; }
+        .had-qr-dose-item .pump { display: inline-flex; align-items: baseline; gap: 4px; background: #2e3f58; color: #fff; padding: 5px 12px; border-radius: 8px; font-weight: 500; font-size: 15px; letter-spacing: 0; font-feature-settings: "tnum"; font-variant-numeric: tabular-nums; }
+        .had-qr-dose-item .pump .unit { font-size: 11px; font-weight: 500; opacity: 0.75; letter-spacing: 0.3px; }
         .had-qr-dose-item .alt { color: #666; font-weight: 600; font-size: 12px; }
 
         /* Cheat sheet table */
@@ -1833,8 +1834,9 @@
         .hb-dose-ind { font-size: 12px; font-weight: 700; color: #c62828; margin-bottom: 4px; text-transform: uppercase; letter-spacing: 0.3px; }
         .hb-dose-val { font-size: 13px; color: #333; line-height: 1.9; }
         /* Inline mL/hr pill — appears right after each mcg/min or mcg/kg/min in the dose text */
-        .hb-conv-pill { display: inline-block; background: #2e3f58; color: #fff; padding: 1px 8px; border-radius: 99px; font-size: 12px; font-weight: 700; font-family: 'SF Mono', Menlo, Monaco, Consolas, monospace; margin: 0 2px; letter-spacing: 0.2px; vertical-align: baseline; white-space: nowrap; }
-        .hb-conv-pill em { font-style: normal; font-size: 10.5px; opacity: 0.8; font-family: inherit; margin-left: 2px; }
+        .hb-conv-pill { display: inline-flex; align-items: baseline; gap: 4px; background: #2e3f58; color: #fff; padding: 2px 10px; border-radius: 99px; font-size: 13px; font-weight: 500; margin: 0 3px; letter-spacing: 0; font-feature-settings: "tnum"; font-variant-numeric: tabular-nums; vertical-align: baseline; white-space: nowrap; }
+        .hb-conv-pill .unit { font-size: 11px; font-weight: 500; opacity: 0.75; letter-spacing: 0.2px; }
+        .hb-conv-pill em { font-style: normal; font-size: 10.5px; opacity: 0.7; font-family: inherit; margin-left: 1px; font-weight: 500; }
 
         /* Siriraj-style 4-block card */
         .hb-sb-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 14px; }
@@ -7247,8 +7249,18 @@
         let w = wEl ? (parseFloat(wEl.value) || 60) : 60;
         if (w <= 0) w = 60;
 
-        // Helper: format mL/hr
-        let fmt = function(v) { return v >= 100 ? v.toFixed(0) : v.toFixed(1); };
+        // Smart number formatter — drops trailing .0 on whole numbers
+        let fmt = function(v) {
+            if (v >= 100) return Math.round(v).toString();
+            if (Math.abs(v - Math.round(v)) < 0.05) return Math.round(v).toString();
+            return parseFloat(v.toFixed(1)).toString();
+        };
+        let pill = function(numStr, suffix) {
+            return '<span class="hb-conv-pill" title="แปลงด้วย ' + d.quickRef.concLabel + (suffix ? ' @ ' + w + ' kg' : '') + '">'
+                 + numStr + '<span class="unit">mL/hr</span>'
+                 + (suffix ? '<em>@' + w + 'kg</em>' : '')
+                 + '</span>';
+        };
 
         // Pattern 1: X-Y mcg/min or X mcg/min (NOT followed by /kg)
         text = text.replace(/(\d+(?:\.\d+)?)(\s*[-–]\s*(\d+(?:\.\d+)?))?\s*mcg\/min(?!\s*\/\s*kg)/gi, function(m, a, _g, b) {
@@ -7257,9 +7269,9 @@
             if (b !== undefined && b !== null) {
                 let v2 = parseFloat(b);
                 let mlHr2 = v2 * 60 / conc;
-                return m + ' <span class="hb-conv-pill" title="แปลงด้วย ' + d.quickRef.concLabel + '">⭐ ' + fmt(mlHr1) + '–' + fmt(mlHr2) + ' mL/hr</span>';
+                return m + ' ' + pill(fmt(mlHr1) + '–' + fmt(mlHr2), false);
             }
-            return m + ' <span class="hb-conv-pill" title="แปลงด้วย ' + d.quickRef.concLabel + '">⭐ ' + fmt(mlHr1) + ' mL/hr</span>';
+            return m + ' ' + pill(fmt(mlHr1), false);
         });
 
         // Pattern 2: X-Y mcg/kg/min or X mcg/kg/min (weight-based)
@@ -7269,9 +7281,9 @@
             if (b !== undefined && b !== null) {
                 let v2 = parseFloat(b);
                 let mlHr2 = v2 * w * 60 / conc;
-                return m + ' <span class="hb-conv-pill" title="แปลงด้วย ' + d.quickRef.concLabel + ' @ ' + w + ' kg">⭐ ' + fmt(mlHr1) + '–' + fmt(mlHr2) + ' mL/hr <em>@' + w + 'kg</em></span>';
+                return m + ' ' + pill(fmt(mlHr1) + '–' + fmt(mlHr2), true);
             }
-            return m + ' <span class="hb-conv-pill" title="แปลงด้วย ' + d.quickRef.concLabel + ' @ ' + w + ' kg">⭐ ' + fmt(mlHr1) + ' mL/hr <em>@' + w + 'kg</em></span>';
+            return m + ' ' + pill(fmt(mlHr1), true);
         });
 
         return text;
@@ -10095,11 +10107,16 @@
         if (!box) return;
 
         let html = '';
+        // Smart number formatter — drops trailing .0 on whole numbers
+        // dp = max decimal places to keep (1 for mL/hr, 2-3 for mcg/kg/min)
+        let smartNum = function(v, dp) {
+            if (v >= 100) return Math.round(v).toString();
+            if (Math.abs(v - Math.round(v)) < 0.05) return Math.round(v).toString();
+            return parseFloat(v.toFixed(dp || 1)).toString();
+        };
         let fmtRange = function(a, b, dp) {
-            if (Math.abs(a - b) < 1e-9) return (dp > 0 ? a.toFixed(dp) : Math.round(a).toString());
-            let fa = dp > 0 ? a.toFixed(dp) : (a >= 10 ? Math.round(a).toString() : a.toFixed(1));
-            let fb = dp > 0 ? b.toFixed(dp) : (b >= 10 ? Math.round(b).toString() : b.toFixed(1));
-            return fa + '–' + fb;
+            if (Math.abs(a - b) < 1e-9) return smartNum(a, dp);
+            return smartNum(a, dp) + '–' + smartNum(b, dp);
         };
 
         for (let i = 0; i < qr.doses.length; i++) {
@@ -10109,11 +10126,11 @@
             if (it.weightBased) {
                 mcgKg1 = it.range[0]; mcgKg2 = it.range[1];
                 mcgMin1 = mcgKg1 * w; mcgMin2 = mcgKg2 * w;
-                src = fmtRange(mcgKg1, mcgKg2, 2) + ' mcg/kg/min';
+                src = fmtRange(mcgKg1, mcgKg2, 3) + ' mcg/kg/min';
             } else {
                 mcgMin1 = it.range[0]; mcgMin2 = it.range[1];
                 mcgKg1 = mcgMin1 / w; mcgKg2 = mcgMin2 / w;
-                src = fmtRange(mcgMin1, mcgMin2, 0) + ' mcg/min';
+                src = fmtRange(mcgMin1, mcgMin2, 1) + ' mcg/min';
             }
             let mlHr1 = mcgMin1 * 60 / conc;
             let mlHr2 = mcgMin2 * 60 / conc;
@@ -10125,7 +10142,7 @@
             html += '<div class="ind">▸ ' + it.label + '</div>';
             html += '<div class="src">Source: <strong>' + src + '</strong>' + (it.hint ? ' · <span style="color:#5b8def;">' + it.hint + '</span>' : '') + '</div>';
             html += '<div class="out">';
-            html += '<span class="pump">' + fmtRange(mlHr1, mlHr2, 1) + ' mL/hr</span>';
+            html += '<span class="pump">' + fmtRange(mlHr1, mlHr2, 1) + '<span class="unit">mL/hr</span></span>';
             if (it.weightBased) {
                 html += '<span class="alt">≈ ' + fmtRange(mcgMin1, mcgMin2, 1) + ' mcg/min</span>';
             } else {
@@ -10151,6 +10168,13 @@
         let warnAt = d.warnAt || 9999;
         let maxAt  = d.maxAt  || 9999;
 
+        // Smart number formatter — drops trailing .0 on whole numbers
+        let smartNum = function(v, dp) {
+            if (v >= 100) return Math.round(v).toString();
+            if (Math.abs(v - Math.round(v)) < 0.05) return Math.round(v).toString();
+            return parseFloat(v.toFixed(dp || 1)).toString();
+        };
+
         let html = '<table>';
         html += '<tr class="head"><th>Order</th>';
         for (let i = 0; i < cs.length; i++) html += '<th>' + cs[i] + ' mcg/min</th>';
@@ -10160,7 +10184,7 @@
         html += '<tr><td>⭐ mL/hr</td>';
         for (let i = 0; i < cs.length; i++) {
             let mlHr = cs[i] * 60 / conc;
-            html += '<td class="row-pump" onclick="hadQrPick(\'' + key + '\',' + cs[i] + ')" title="คลิกเพื่อ set">' + mlHr.toFixed(1) + '</td>';
+            html += '<td class="row-pump" onclick="hadQrPick(\'' + key + '\',' + cs[i] + ')" title="คลิกเพื่อ set">' + smartNum(mlHr, 1) + '</td>';
         }
         html += '</tr>';
 
@@ -10169,9 +10193,9 @@
         for (let i = 0; i < cs.length; i++) {
             let mkm = cs[i] / w;
             let style = '';
-            if (mkm >= maxAt)       style = 'color:#c62828;font-weight:700;background:#ffebee;';
-            else if (mkm >= warnAt) style = 'color:#e65100;font-weight:700;background:#fff8e1;';
-            html += '<td style="' + style + '">' + mkm.toFixed(3) + '</td>';
+            if (mkm >= maxAt)       style = 'color:#c62828;font-weight:500;background:#ffebee;';
+            else if (mkm >= warnAt) style = 'color:#e65100;font-weight:500;background:#fff8e1;';
+            html += '<td style="' + style + '">' + smartNum(mkm, 3) + '</td>';
         }
         html += '</tr>';
         html += '</table>';
