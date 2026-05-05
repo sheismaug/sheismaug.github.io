@@ -1831,7 +1831,10 @@
         .hb-dose-list { display: flex; flex-direction: column; gap: 8px; margin-top: 4px; }
         .hb-dose-item { background: #f9f8f6; border-left: 3px solid #c62828; border-radius: 6px; padding: 10px 12px; }
         .hb-dose-ind { font-size: 12px; font-weight: 700; color: #c62828; margin-bottom: 4px; text-transform: uppercase; letter-spacing: 0.3px; }
-        .hb-dose-val { font-size: 13px; color: #333; line-height: 1.6; }
+        .hb-dose-val { font-size: 13px; color: #333; line-height: 1.9; }
+        /* Inline mL/hr pill — appears right after each mcg/min or mcg/kg/min in the dose text */
+        .hb-conv-pill { display: inline-block; background: #2e3f58; color: #fff; padding: 1px 8px; border-radius: 99px; font-size: 12px; font-weight: 700; font-family: 'SF Mono', Menlo, Monaco, Consolas, monospace; margin: 0 2px; letter-spacing: 0.2px; vertical-align: baseline; white-space: nowrap; }
+        .hb-conv-pill em { font-style: normal; font-size: 10.5px; opacity: 0.8; font-family: inherit; margin-left: 2px; }
 
         /* Siriraj-style 4-block card */
         .hb-sb-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 14px; }
@@ -7148,12 +7151,23 @@
         html += '<div style="font-size:12px;color:#666;margin-top:8px;">' + (d.note || '') + '</div>';
         html += '</div></div>';
 
+        // ─── ⚡ Quick Reference panel (ready-to-use rate converter) ───
+        // เฉพาะยาที่มี quickRef definition (ตอนนี้มีแค่ NE — ตัว prototype)
+        if (d.quickRef) {
+            html += renderHADQuickRef(key);
+        }
+
         if (d.info) {
             if (d.info.doses && d.info.doses.length) {
+                // Cache original dose strings so we can re-inject conversions when weight changes
+                hbOriginalDoses[key] = [];
                 html += '<div class="hb-section"><h3>💉 Dose ตาม Indication</h3><div class="hb-dose-list">';
                 for (let i = 0; i < d.info.doses.length; i++) {
                     let ds = d.info.doses[i];
-                    html += '<div class="hb-dose-item"><div class="hb-dose-ind">' + ds.ind + '</div><div class="hb-dose-val">' + ds.dose + '</div></div>';
+                    hbOriginalDoses[key][i] = ds.dose;
+                    let valHtml = (d.quickRef ? hbInjectInlineConv(ds.dose, key) : ds.dose);
+                    html += '<div class="hb-dose-item"><div class="hb-dose-ind">' + ds.ind + '</div>'
+                          + '<div class="hb-dose-val" data-drug="' + key + '" data-idx="' + i + '">' + valHtml + '</div></div>';
                 }
                 html += '</div></div>';
             } else if (d.info.dose) {
@@ -7210,6 +7224,69 @@
         if (key === 'ne') html += renderNERateTable();
 
         el.innerHTML = html;
+
+        // ─── Bootstrap Quick Reference panel after DOM is ready ───
+        if (d.quickRef) {
+            renderQuickRefDoses(key);
+            renderQuickRefCheat(key);
+            hadQuickConv(key, 'mcgmin'); // populate mL/hr & mcg/kg/min from default mcg/min
+        }
+    }
+
+    // ═══════════════════════════════════════════
+    //  HB Inline mL/hr conversion (per dose card)
+    // ═══════════════════════════════════════════
+    var hbOriginalDoses = {}; // { drugKey: [origText, ...] }
+
+    // Parse dose string and append "≈ X-Y mL/hr" pill after each dose pattern
+    function hbInjectInlineConv(text, key) {
+        let d = HAD_DB[key];
+        if (!d || !d.quickRef || !text) return text;
+        let conc = d.quickRef.conc;
+        let wEl = document.getElementById('hadqr-wt-' + key);
+        let w = wEl ? (parseFloat(wEl.value) || 60) : 60;
+        if (w <= 0) w = 60;
+
+        // Helper: format mL/hr
+        let fmt = function(v) { return v >= 100 ? v.toFixed(0) : v.toFixed(1); };
+
+        // Pattern 1: X-Y mcg/min or X mcg/min (NOT followed by /kg)
+        text = text.replace(/(\d+(?:\.\d+)?)(\s*[-–]\s*(\d+(?:\.\d+)?))?\s*mcg\/min(?!\s*\/\s*kg)/gi, function(m, a, _g, b) {
+            let v1 = parseFloat(a);
+            let mlHr1 = v1 * 60 / conc;
+            if (b !== undefined && b !== null) {
+                let v2 = parseFloat(b);
+                let mlHr2 = v2 * 60 / conc;
+                return m + ' <span class="hb-conv-pill" title="แปลงด้วย ' + d.quickRef.concLabel + '">⭐ ' + fmt(mlHr1) + '–' + fmt(mlHr2) + ' mL/hr</span>';
+            }
+            return m + ' <span class="hb-conv-pill" title="แปลงด้วย ' + d.quickRef.concLabel + '">⭐ ' + fmt(mlHr1) + ' mL/hr</span>';
+        });
+
+        // Pattern 2: X-Y mcg/kg/min or X mcg/kg/min (weight-based)
+        text = text.replace(/(\d+(?:\.\d+)?)(\s*[-–]\s*(\d+(?:\.\d+)?))?\s*mcg\/kg\/min/gi, function(m, a, _g, b) {
+            let v1 = parseFloat(a);
+            let mlHr1 = v1 * w * 60 / conc;
+            if (b !== undefined && b !== null) {
+                let v2 = parseFloat(b);
+                let mlHr2 = v2 * w * 60 / conc;
+                return m + ' <span class="hb-conv-pill" title="แปลงด้วย ' + d.quickRef.concLabel + ' @ ' + w + ' kg">⭐ ' + fmt(mlHr1) + '–' + fmt(mlHr2) + ' mL/hr <em>@' + w + 'kg</em></span>';
+            }
+            return m + ' <span class="hb-conv-pill" title="แปลงด้วย ' + d.quickRef.concLabel + ' @ ' + w + ' kg">⭐ ' + fmt(mlHr1) + ' mL/hr <em>@' + w + 'kg</em></span>';
+        });
+
+        return text;
+    }
+
+    // Re-render inline conversions after weight change
+    function hbRefreshInlineConvs(key) {
+        let orig = hbOriginalDoses[key] || [];
+        let vals = document.querySelectorAll('.hb-dose-val[data-drug="' + key + '"]');
+        for (let i = 0; i < vals.length; i++) {
+            let idx = parseInt(vals[i].dataset.idx);
+            if (!isNaN(idx) && orig[idx] != null) {
+                vals[i].innerHTML = hbInjectInlineConv(orig[idx], key);
+            }
+        }
     }
 
     // ─── NE drip rate calculation table ───
@@ -9731,12 +9808,6 @@
                     '</div>';
             }
 
-            // ─── ⚡ HAD QUICK REFERENCE (ready-to-use rate panel) ───
-            // เฉพาะยาที่มี quickRef definition (ตอนนี้มีแค่ NE — ตัว prototype)
-            if (d.quickRef) {
-                _panelBuf += renderHADQuickRef(key);
-            }
-
             // ─── Existing had-block (calculator) ───
             let html = '<div class="had-block">';
             html += '<h4>' + d.name + ' — Dose Calculator <span class="had-badge">' + (d.badge || '') + '</span></h4>';
@@ -9830,12 +9901,6 @@
             let d = HAD_DB[key];
             if (d && (d.mode === 'rate' || d.mode === 'insulin') && d.convFn) {
                 hadUpdateCalc(key, d.defaultRate);
-            }
-            // ⚡ Bootstrap Quick Reference panel (NE prototype)
-            if (d && d.quickRef) {
-                renderQuickRefDoses(key);
-                renderQuickRefCheat(key);
-                hadQuickConv(key, 'mcgmin'); // populate mL/hr & mcg/kg/min from default mcg/min
             }
         }
         // เติม Trend ย้อนหลังจาก bundle.hadRounds
@@ -10014,6 +10079,8 @@
         if (mcgMinEl && mcgMinEl.value) hadQuickConv(key, 'mcgmin');
         renderQuickRefDoses(key);
         renderQuickRefCheat(key);
+        // Also refresh inline mL/hr pills in the Handbook dose-list (if rendered there)
+        if (typeof hbRefreshInlineConvs === 'function') hbRefreshInlineConvs(key);
     }
 
     function renderQuickRefDoses(key) {
