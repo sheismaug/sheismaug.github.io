@@ -7456,10 +7456,12 @@
             return m + ' ' + pill(fmt(mlHr1), true);
         });
 
-        // Pattern 3: X-Y mEq/hr or X mEq/hr (simple-rate drugs like KCl)
-        // Only matches if conc unit makes sense for mEq (small number like 0.04)
-        if (d.quickRef.type === 'simple-rate' && d.quickRef.rateUnit === 'mEq/hr') {
-            text = text.replace(/(\d+(?:\.\d+)?)(\s*[-–]\s*(\d+(?:\.\d+)?))?\s*mEq\/hr/gi, function(m, a, _g, b) {
+        // Pattern 3: simple-rate drugs (KCl mEq/hr, Morphine mg/hr, MgSO4 g/hr, Insulin u/hr)
+        // Dynamically build regex from drug's rateUnit
+        if (d.quickRef.type === 'simple-rate' && d.quickRef.rateUnit) {
+            let unitEsc = d.quickRef.rateUnit.replace(/\//g, '\\/');
+            let pattern = new RegExp('(\\d+(?:\\.\\d+)?)(\\s*[-–]\\s*(\\d+(?:\\.\\d+)?))?\\s*' + unitEsc, 'gi');
+            text = text.replace(pattern, function(m, a, _g, b) {
                 let v1 = parseFloat(a);
                 let mlHr1 = v1 / conc;
                 if (b !== undefined && b !== null) {
@@ -10172,7 +10174,93 @@
             { trigger: 'Arrhythmia',          action: 'β-blocker' }
           ]
         }, note:'ℹ Anaphylaxis: IM ต้นขาด้านข้าง · CPR: IV push · Standard drip: 1 mg + NSS 250 mL (= 4 mcg/mL)', noteClass:'info', indications:['Anaphylactic reaction (first-line)','Cardiac arrest (first-line)','Severe acute bronchospasm (asthma)','ร่วมกับยาชาเฉพาะที่ (ลดการดูดซึม)'], labs:[{key:'lactate',label:'Lactate',unit:'mmol/L',ph:'0.5-2.0',min:0.5,max:2.0,freqHr:4}], vitals:['BP (ทุก 3-5 นาที)','HR','EKG (ตามคำสั่ง)','Urine output','RR (bronchospasm)'], clinical:['ใจสั่น','กระวนกระวาย','หัวใจเต้นเร็ว','หายใจเร็ว','Tremor','ปวดหัว'], serious:['Ventricular fibrillation','Pulmonary edema','Cerebrovascular hemorrhage','Cardiac arrhythmias','Tissue necrosis (extravasation)'], info:{doses:[{ind:'Anaphylaxis (ผู้ใหญ่) IM/SC', dose:'0.3-0.5 mg (0.3-0.5 mL of 1 mg/mL) IM ต้นขาด้านข้าง q5-15 min PRN'},{ind:'Anaphylaxis (เด็ก) IM/SC', dose:'0.01 mg/kg/dose (0.01 mL/kg of 1 mg/mL) q5-15 min · max 0.3 mg (prepubertal), 0.5 mg (adolescent)'},{ind:'Anaphylaxis refractory (IV infusion)', dose:'Standard: 1 mg + NSS 250 mL (= 4 mcg/mL) · start 0.1 mcg/kg/min titrate to effect · ใช้ infusion pump'},{ind:'Cardiac arrest (ผู้ใหญ่) IV/IO', dose:'1 mg (1 mL of 1:1000) IV push q3-5 min'},{ind:'Cardiac arrest (เด็ก) IV/IO', dose:'0.01 mg/kg q3-5 min · max 1 mg/dose'},{ind:'Severe bronchospasm SC', dose:'0.3-0.5 mg SC q20 min-4 hr PRN'}],prep:'Forms: Adrenaline 1 mg/mL (1:1000) 1 mL amp · Standard diluent: 1 mg + NSS 250 mL (= 4 mcg/mL) · Solvent: NSS · ใช้ infusion pump เท่านั้นสำหรับ IV infusion · Route: SC, IM, IV central line หรือเส้นเลือดดำใหญ่ · Stable 24 ชั่วโมง ที่อุณหภูมิห้อง (25°C) หรือตู้เย็น (4°C) หลังเจือจาง · เก็บ <25°C, ป้องกันแสง · ห้ามใช้ถ้าสารละลายเปลี่ยนเป็นสีชมพู/น้ำตาล หรือมีตะกอน · ห้ามผสมกับด่างหรือ antioxidants',monitoring:'BP ทุก 3-5 นาที · HR ต่อเนื่อง · EKG (ตามคำสั่งแพทย์) · Urine output (renal vasoconstriction) · ตรวจ IV site: เฝ้าระวัง extravasation (ซีด/เขียว/เย็น) · หลีกเลี่ยงฉีด intra-arterial และ IM บริเวณสะโพกโดยตรง (หลอดเลือดตีบ → กล้ามเนื้อตาย) · รายงานแพทย์ทันทีเมื่อ tachycardia, palpitation, BP สูง · ระวังในเด็ก, ผู้สูงอายุ, HT, hyperthyroid, โรคหัวใจ, ประวัติแพ้ sympathomimetic amines',alarm:'IV infusion เร็วเกินไป → Cerebrovascular hemorrhage, cardiac arrhythmias · Ventricular fibrillation, pulmonary edema → อันตรายถึงชีวิต · Hypertensive crisis · Extravasation → tissue necrosis · ชื่อคล้าย Adenosine — Double check ก่อนบริหาร · ตรวจสอบ route (IV/IM/SC/NB) ทุกครั้งก่อนให้',source:'HAD รพ.ห้วยผึ้ง ฉบับปรับปรุง 2567 · หน้า 7, 23',antidote:'⚠ Extravasation: หยุด IV + aspirate → ทา 2% Nitroglycerin ointment · Warm compress + ยกแขนขาสูง · Terbutaline 1 mg + NSS 10 mL แบ่งฉีด 5 เข็ม (2 mL/เข็ม) SC clockwise รอบบริเวณที่เกิด ด้วยเข็ม No.25 · Hypertension: Labetalol หรือ Nicardipine IV · Arrhythmia: β-blocker'} },
-      morphine:  { name:'Morphine', short:'Mor', badge:'IV/IM/SC/Drip', image:'HAD_picture/morphine.png', freq:'ทุก 1 ชม. (RR/Pain)', mode:'rate', inputUnit:'mL/hr', convUnit:'mg/hr', weightBased:false, convFn:function(r){return r*1}, convFmt:function(v){return v.toFixed(1)}, warnAt:8, maxAt:10, defaultRate:3, note:'ℹ ยาแก้พิษ: Naloxone · เฝ้าระวัง respiratory depression RR < 10', noteClass:'info', indications:['Acute severe pain','Cancer pain','MI / Chest pain','Acute pulmonary edema','Post-op pain'], labs:[{key:'pain',label:'Pain score',unit:'/10',ph:'0-10',min:0,max:10,freqHr:2}], vitals:['BP','HR','RR ≥ 10','SpO₂','Sedation score','Pain score'], clinical:['ซึมลง','RR ช้าลง','Miosis (รูม่านตาหด)','คลื่นไส้ อาเจียน','ท้องผูก','คัน'], serious:['Respiratory depression / Apnea','Hypotension / Bradycardia','Coma','Circulatory collapse'], info:{doses:[{ind:'Moderate to severe pain (IM/SC adult)', dose:'5-20 mg q4h titrate per response · can increase as needed'},{ind:'Severe pain (IV adult opioid-naive)', dose:'2.5-5 mg q3-4h IV slow · may need higher doses if opioid-tolerant'},{ind:'Epidural (one-time)', dose:'2-5 mg · if inadequate in 1h may add 1-2 mg q interval · max 10 mg/24h'},{ind:'Intrathecal (one-time only)', dose:'0.1-1 mg · NOT recommended to repeat'},{ind:'Continuous IV infusion (severe pain)', dose:'เจือจาง 1 mg/mL (range 0.1-1 mg/mL) · titrate per pain/RR'}],prep:'Morphine injection 10 mg/mL (1 mL amp) · IV push: เจือจางด้วย Sterile Water for Injection (SWI) 4-5 mL ให้ช้าๆ >4-5 นาที · IV infusion: เจือจางใน D5W ความเข้มข้น 0.1-1 mg/mL · Solvent: SWI (push), D5W (infusion) · Stable 24 ชม. ที่อุณหภูมิห้องหลังเจือจาง · เก็บพ้นแสงและความชื้น 15-30°C · (ไม่ใช้ oral/extended-release ที่ รพ.)',monitoring:'HR, RR, BP (เฝ้าระวัง hypotension โดยเฉพาะถ้าปริมาตรเลือดต่ำ หรือได้ CNS depressants ร่วม) · Pain score, sedation score · IV push: q5 min x4 → q30 min x2 → per order · Continuous drip: q1h x4 → q4h · SC/IM: q15 min x4 → q30 min x2 · เฝ้าระวัง respiratory depression 24-72 ชม. (โดยเฉพาะผู้สูงอายุ, ผอม, อ่อนเพลีย, COPD, cor pulmonale) · RR <10: รายงานทันที · ให้ก่อนปวดรุนแรงจะได้ผลดีกว่า · เฝ้าระวัง pinpoint pupils (overdose sign) · ระวังในเด็ก, ผู้สูงอายุ, โรคหัวใจ/ไต/ตับ · ปัสสาวะควร >600 mL/วัน · ห้ามใช้ใน asthma, HT, shock, renal failure',alarm:'Respiratory depression (เสี่ยงสูงกับ CNS depressants ร่วม) · Hypotension, bradycardia · Pinpoint pupils (overdose) · Constipation (common, may need laxative) · Tolerance/dependence (continuous >72h) · ยาผ่านรก และขับทาง breast milk',source:'HAD รพ.ห้วยผึ้ง ฉบับปรับปรุง 2567 · หน้า 13, 21',antidote:'Naloxone 0.4-2mg IV ซ้ำได้ทุก 2-3 นาที (max 10 mg) · ระวัง withdrawal ในผู้ป่วย opioid dependent'} },
+      morphine:  { name:'Morphine', short:'Mor', badge:'IV/IM/SC/Drip', image:'HAD_picture/morphine.png', freq:'ทุก 1 ชม. (RR/Pain)', mode:'rate', inputUnit:'mL/hr', convUnit:'mg/hr', weightBased:false, convFn:function(r){return r*1}, convFmt:function(v){return v.toFixed(1)}, warnAt:8, maxAt:10, defaultRate:3,
+        quickRef: {
+          type: 'simple-rate',
+          conc: 1,
+          concLabel: 'Morphine 50:50 = 1 mg/mL',
+          rateUnit: 'mg/hr',
+          rateLabel: 'Order',
+          defaultRate: 3,
+          warnAt: 8,
+          maxAt: 10,
+          doses: [
+            { label: 'Typical drip — Severe pain', range: [1, 5],   unit: 'mg/hr', hint: 'titrate per pain / RR' },
+            { label: 'Higher range — Cancer / Post-op', range: [5, 10], unit: 'mg/hr', hint: 'opioid-tolerant patients' },
+            { label: 'Caution zone', range: [8, 8],   unit: 'mg/hr', hint: 'monitor RR + sedation ใกล้ชิด' },
+            { label: 'Max — ห้ามเกิน', range: [10, 10], unit: 'mg/hr', hint: 'escalation only · ปรึกษาแพทย์' }
+          ],
+          cheatSheet: [1, 2, 3, 5, 8, 10]
+        },
+        prepStruct: {
+          form: { type: 'Ampoule', name: 'Morphine sulfate', short: 'Mor', detail: '10 mg / 1 mL · 1 amp', detailShort: '10mg/mL', subDetail: 'Strong opioid · นับ narcotic ก่อนใช้' },
+          diluent: { type: 'Diluent bag', name: 'D5W', detail: '50 mL', subDetail: 'IV infusion · ห้าม push undiluted' },
+          standardMix: { label: 'Morphine 50:50', recipe: '50 mg + D5W 50 mL', result: '1 mg/mL' },
+          steps: [
+            { text: 'นับ + ลงทะเบียน narcotic ก่อนเปิด', sub: 'ตรวจสอบกับเพื่อนร่วมงาน · เซ็นสมุด narcotic' },
+            { text: 'ดูดออก 5 mL จาก D5W bag', sub: 'ทิ้งให้เหลือพื้นที่' },
+            { text: 'หักคอ Morphine 5 amp · ดูด 5 mL · เติมลงถุง', sub: 'ผ่าน injection port' },
+            { text: 'ผสม + ติด label "Controlled drug"', sub: 'พลิกถุงเบา ๆ · บันทึกการใช้ในสมุด narcotic' }
+          ],
+          solvents: ['D5W', 'SWI (สำหรับ IV push)'],
+          warnings: [
+            { text: 'IV push undiluted', reason: 'apnea · respiratory arrest' },
+            { text: 'IV push เร็ว < 4-5 นาที' },
+            { text: 'ใช้ร่วม CNS depressants (BZD, alcohol)', reason: 'synergistic respiratory depression' },
+            { text: 'ใช้ใน asthma · severe COPD · shock · renal failure' }
+          ],
+          requirements: [
+            'IV drip → ใช้ infusion pump เท่านั้น',
+            'IV push → เจือจาง SWI 4-5 mL · ให้ช้า > 4-5 นาที',
+            'Naloxone พร้อม at bedside ตลอดเวลา',
+            'Narcotic count + log book ทุกครั้ง',
+            'เก็บใน narcotic safe · พ้นแสง 15-30°C'
+          ]
+        },
+        monitoringStruct: {
+          schedule: [
+            { what: 'RR',            when: 'continuous', cond: 'RR < 10 = หยุดยาทันที' },
+            { what: 'SpO₂',          when: 'continuous', cond: 'pulse oximetry' },
+            { what: 'Pain score',    when: 'q 1 hr',     cond: '0-10 scale' },
+            { what: 'Sedation score', when: 'q 1 hr',    cond: 'POSS scale (0-3)' },
+            { what: 'BP & HR',       when: 'q 1 hr',     cond: 'continuous drip' }
+          ],
+          observe: [
+            'Pinpoint pupils (overdose sign)',
+            'ระดับความรู้สึกตัว · ซึม · สับสน',
+            'คลื่นไส้ · อาเจียน · ท้องผูก · คัน',
+            'Urine output > 600 mL/วัน'
+          ],
+          redFlags: [
+            'RR < 10 → หยุดยา + Naloxone',
+            'Sedation score ≥ 3 (very drowsy / unrousable)',
+            'BP drop > 20% baseline',
+            'Pinpoint pupils (overdose)',
+            'SpO₂ < 92% room air'
+          ],
+          protocol: [
+            { text: 'ผู้สูงอายุ · ผอม · COPD · cor pulmonale', tag: 'caution' },
+            { text: 'Asthma · severe HT · shock · renal failure', tag: 'avoid' },
+            { text: 'ให้ก่อนปวดรุนแรง = ผลดีกว่า', tag: 'preferred' },
+            { text: 'Tolerance / dependence', reason: 'continuous > 72 ชม.' }
+          ]
+        },
+        antidoteStruct: {
+          trigger: 'Respiratory depression / Overdose',
+          subtitle: 'Opioid reversal · ทำทันที',
+          steps: [
+            { text: 'หยุด Morphine drip ทันที + เปิด airway', urgent: true },
+            { text: 'Naloxone 0.4-2 mg IV push', detail: 'onset 1-2 นาที · ซ้ำทุก 2-3 นาที · max 10 mg · ⚠ ระวัง withdrawal ใน opioid-dependent' },
+            { text: 'Bag-mask ventilation ถ้า apnea', detail: 'จนกว่า RR กลับมา ≥ 10' },
+            { text: 'Monitor ต่อเนื่อง 24-72 ชม.', detail: 'Naloxone half-life สั้นกว่า morphine → อาจมี re-narcotization' }
+          ],
+          related: [
+            { trigger: 'Hypotension', action: 'IV fluid · vasopressor ถ้าไม่ตอบสนอง' },
+            { trigger: 'Withdrawal symptoms', action: 'Naloxone titrate ช้า ๆ · ไม่ push เต็ม dose' },
+            { trigger: 'Pruritus / Itching', action: 'Diphenhydramine IV · ลด rate ถ้ารุนแรง' },
+            { trigger: 'Constipation (chronic)', action: 'Stool softener + laxative prophylaxis' }
+          ]
+        }, note:'ℹ ยาแก้พิษ: Naloxone · เฝ้าระวัง respiratory depression RR < 10', noteClass:'info', indications:['Acute severe pain','Cancer pain','MI / Chest pain','Acute pulmonary edema','Post-op pain'], labs:[{key:'pain',label:'Pain score',unit:'/10',ph:'0-10',min:0,max:10,freqHr:2}], vitals:['BP','HR','RR ≥ 10','SpO₂','Sedation score','Pain score'], clinical:['ซึมลง','RR ช้าลง','Miosis (รูม่านตาหด)','คลื่นไส้ อาเจียน','ท้องผูก','คัน'], serious:['Respiratory depression / Apnea','Hypotension / Bradycardia','Coma','Circulatory collapse'], info:{doses:[{ind:'Moderate to severe pain (IM/SC adult)', dose:'5-20 mg q4h titrate per response · can increase as needed'},{ind:'Severe pain (IV adult opioid-naive)', dose:'2.5-5 mg q3-4h IV slow · may need higher doses if opioid-tolerant'},{ind:'Epidural (one-time)', dose:'2-5 mg · if inadequate in 1h may add 1-2 mg q interval · max 10 mg/24h'},{ind:'Intrathecal (one-time only)', dose:'0.1-1 mg · NOT recommended to repeat'},{ind:'Continuous IV infusion (severe pain)', dose:'เจือจาง 1 mg/mL (range 0.1-1 mg/mL) · titrate per pain/RR'}],prep:'Morphine injection 10 mg/mL (1 mL amp) · IV push: เจือจางด้วย Sterile Water for Injection (SWI) 4-5 mL ให้ช้าๆ >4-5 นาที · IV infusion: เจือจางใน D5W ความเข้มข้น 0.1-1 mg/mL · Solvent: SWI (push), D5W (infusion) · Stable 24 ชม. ที่อุณหภูมิห้องหลังเจือจาง · เก็บพ้นแสงและความชื้น 15-30°C · (ไม่ใช้ oral/extended-release ที่ รพ.)',monitoring:'HR, RR, BP (เฝ้าระวัง hypotension โดยเฉพาะถ้าปริมาตรเลือดต่ำ หรือได้ CNS depressants ร่วม) · Pain score, sedation score · IV push: q5 min x4 → q30 min x2 → per order · Continuous drip: q1h x4 → q4h · SC/IM: q15 min x4 → q30 min x2 · เฝ้าระวัง respiratory depression 24-72 ชม. (โดยเฉพาะผู้สูงอายุ, ผอม, อ่อนเพลีย, COPD, cor pulmonale) · RR <10: รายงานทันที · ให้ก่อนปวดรุนแรงจะได้ผลดีกว่า · เฝ้าระวัง pinpoint pupils (overdose sign) · ระวังในเด็ก, ผู้สูงอายุ, โรคหัวใจ/ไต/ตับ · ปัสสาวะควร >600 mL/วัน · ห้ามใช้ใน asthma, HT, shock, renal failure',alarm:'Respiratory depression (เสี่ยงสูงกับ CNS depressants ร่วม) · Hypotension, bradycardia · Pinpoint pupils (overdose) · Constipation (common, may need laxative) · Tolerance/dependence (continuous >72h) · ยาผ่านรก และขับทาง breast milk',source:'HAD รพ.ห้วยผึ้ง ฉบับปรับปรุง 2567 · หน้า 13, 21',antidote:'Naloxone 0.4-2mg IV ซ้ำได้ทุก 2-3 นาที (max 10 mg) · ระวัง withdrawal ในผู้ป่วย opioid dependent'} },
       pethidine: { name:'Pethidine', short:'Peth', badge:'IV/IM/SC', image:'HAD_picture/pethidine.png', freq:'ทุก 1-2 ชม. (RR/Pain)', mode:'prn', inputUnit:'mg/dose', convUnit:null, weightBased:false, convFn:null, warnAt:50, maxAt:100, defaultRate:50, note:'ℹ ยาแก้พิษ: Naloxone · max 600 mg/24hr · ระวังในผู้สูงอายุ/ไตบกพร่อง (toxic metabolite: normeperidine)', noteClass:'info', indications:['Acute moderate-severe pain','Post-op pain','Obstetric analgesia','Shivering (post-anesthesia)','Pre-anesthesia'], labs:[{key:'pain',label:'Pain score',unit:'/10',ph:'0-10',min:0,max:10,freqHr:2},{key:'crcl',label:'CrCl',unit:'mL/min',ph:'>50',min:50,max:999,freqHr:24}], vitals:['BP','HR','RR','Mental status','Pain score'], clinical:['RR ช้า','Hypotension','Tremor / Myoclonus','Dry mouth','คลื่นไส้','ซึม'], serious:['Seizure (normeperidine toxicity)','Respiratory depression','Serotonin syndrome (ถ้าใช้ร่วม SSRI/MAOI)','Coma'], info:{doses:[{ind:'Moderate-severe pain (IM/SC adult)', dose:'50-150 mg q3-4h as needed'},{ind:'Continuous IV infusion (adult)', dose:'15-35 mg/hr'},{ind:'Moderate-severe pain (IM/SC pediatric)', dose:'0.5-2 mg/kg/dose (max 100 mg/dose) q3-4h'},{ind:'Renal failure adjustment (mod: GFR 10-50)', dose:'Use 75% normal dose, normal interval'},{ind:'Renal failure adjustment (severe: GFR <10)', dose:'Use 50% normal dose, normal interval'}],prep:'Forms: Pethidine 50 mg/mL inj · Direct IV: เจือจางด้วยน้ำกลั่น (SWI) 5 mL ฉีดนานๆ 4-5 นาที · สารละลายหลังเจือจางเก็บที่อุณหภูมิห้องได้ 24 ชม. · เก็บพ้นแสง 15-30°C · (ไม่มี 10 mg/mL NSS PFS ที่ รพ.)',monitoring:'Pain score, RR, BP, HR, mental status, sedation score · หลีกเลี่ยงใน renal failure (norpethidine สะสม) · ไม่ควรใช้ติดต่อกัน >48 ชม. หรือ >600 mg/24 ชม. · HR <60 BPM: รายงาน · ผู้สูงอายุ/MAOIs: ระวังเป็นพิเศษ · ให้ผู้ป่วยนอนระหว่างได้ยา และเปลี่ยนอิริยาบถช้าๆ (ป้องกัน orthostatic hypotension) · สังเกต: ปวดหัว, เกร็งกระตุก, คลื่นไส้, ปัสสาวะลำบาก, กดหายใจ · CrCl 10-50: ใช้ 75% dose · CrCl <10: ใช้ 50% dose',alarm:'Norpethidine toxicity (>600 mg/24h หรือ >48h): CNS stimulation, กล้ามเนื้อกระตุก, ชัก — Naloxone ไม่ reverse ชัก ใช้ Diazepam แทน · Respiratory depression · Hypotension · Serotonin syndrome (ร่วม SSRI/MAOIs) · ง่วงนอน, มึนงง, ท้องผูก, ใจสั่น, หัวใจเต้นผิดจังหวะ',source:'HAD รพ.ห้วยผึ้ง ฉบับปรับปรุง 2567 · หน้า 15',antidote:'Naloxone 2 mg IV · Diazepam สำหรับชัก (ไม่ใช้ Naloxone รักษาชักจาก normeperidine)'} },
       insulin:   { name:'Regular Insulin', short:'RI', badge:'IV/SC/Drip', image:'HAD_picture/regular_insulin.png', freq:'ทุก 1-2 ชม. (DTx)', mode:'insulin', inputUnit:'mL/hr', convUnit:'u/hr', weightBased:false, convFn:function(r){return r*1}, convFmt:function(v){return v.toFixed(1)}, warnAt:10, maxAt:15, defaultRate:5, note:'ℹ เฝ้าระวัง hypoglycemia · DTx ทุก 1-2 ชม. · ยาแก้พิษ: 50% Glucose IV', noteClass:'info', indications:['ลดระดับน้ำตาลในเลือด','DKA / HHS','Hyperkalemia (shift K⁺ เข้าเซลล์)','Stress hyperglycemia (ICU)'], labs:[{key:'dtx',label:'DTx',unit:'mg/dL',ph:'70-180',min:70,max:180,freqHr:2},{key:'k',label:'K⁺',unit:'mEq/L',ph:'3.5-5.0',min:3.5,max:5.0,freqHr:6}], vitals:['Consciousness','HR','POCT glucose','FBS'], clinical:['ใจสั่น เหงื่อออก ตัวเย็น ซีดลง','หิว มือสั่น','สับสน','ผู้ใหญ่: DTx < 70 mg/dL · เด็ก: DTx < 60 mg/dL'], serious:['Hypoglycemic shock','Coma / Brain damage','Hypokalemia','Seizure'], scale:[{min:200,max:250,dose:4},{min:251,max:300,dose:6},{min:301,max:350,dose:8},{min:351,max:400,dose:10},{min:401,max:450,dose:12},{min:451,max:9999,dose:null,alert:true}], info:{doses:[{ind:'Type 1 and Type 2 DM (initiation)', dose:'Initial: 0.2-0.4 units/kg/day divided · Maintenance: 0.5-1 units/kg/day · Adolescents in growth: may exceed 1 unit/kg/day'},{ind:'Regular insulin IV infusion (hyperglycemia)', dose:'Dilute to 0.1-1 IU/mL in NSS · Give via infusion pump · Monitor capillary glucose closely'},{ind:'DKA (pediatric/adult)', dose:'Follow institution protocol · typically 0.1 IU/kg/hr IV infusion titrated'},{ind:'Hyperkalemia (shift K⁺ เข้าเซลล์)', dose:'Dextrose 0.5-1 mL/kg + RI 1 unit ต่อ dextrose 4-5 g'}],prep:'Forms: Regular Insulin (RI) 100 units/mL (10 mL vial) — ใช้ใน รพ.ห้วยผึ้ง · Insulin syringe ที่ unit marking ตรงกับ concentration · หยดขวดเบาๆ กลิ้งให้ผสม (⚠ ห้ามเขย่า — เกิดฟอง ความแม่นยำลดลง) · Standard IV dilution: 100 units + NSS 100 mL (หรือ 0.45% NaCl) · Solvent compatible: D5W, D5N/2, NSS · เก็บขวดที่ยังไม่เปิด 2-8°C · ขวดเปิดแล้ว: 28 วันที่ตู้เย็น (2-8°C) หรือ ≤30°C room temp · Mixed solution: 24 ชม. ที่ room temp หรือ 4°C · ⚠ ห้ามใช้ถ้าสีเปลี่ยน/ขุ่น/ตกตะกอน/ความหนืดผิดปกติ',monitoring:'Serum glucose (critical) · DTx หลังให้ยาและตามคำสั่ง · Hypoglycemia threshold: ผู้ชาย <50 mg/dL, ผู้หญิง <40 mg/dL (ตาม ห้วยผึ้ง) · ใช้ infusion pump สำหรับ IV continuous infusion · IV order ต้องระบุ units/hour · เฝ้าระวัง hypoglycemia signs: กระวนกระวาย, tremor, เหงื่อออก → ถ้าพบ หยุด insulin + รายงานแพทย์ · ระวังในผู้สูงอายุ, เด็ก, โรคหัวใจ/ไต/ตับ · ยาผ่านรก และขับทาง breast milk · ปัสสาวะควร >600 mL/วัน',alarm:'Hypoglycemia (major risk): กระวนกระวาย, tremor, เหงื่อออก, ใจสั่น, สับสน, ชัก, หมดสติ · Hyperkalemia treatment: RI 1 unit/4-5 g dextrose · ⚠ ห้ามใช้คำย่อ "U" หรือ "IU" — เขียน "unit" เต็ม · Lipodystrophy (injection site) · Do NOT use ถ้าเปลี่ยนสี/ขุ่น/ตกตะกอน',source:'HAD รพ.ห้วยผึ้ง ฉบับปรับปรุง 2567 · หน้า 18, 24',antidote:'50% Glucose 50 mL IV push · Glucagon 1 mg IM ถ้าไม่มี IV'} },
       kcl:       { name:'KCl', short:'KCl', badge:'IV drip/PO', image:'HAD_picture/KCl.png', freq:'ทุก 6 ชม. (K⁺)', mode:'rate', inputUnit:'mL/hr', convUnit:'mEq/hr', weightBased:false, convFn:function(r){return r*0.04}, convFmt:function(v){return v.toFixed(1)}, warnAt:8, maxAt:10, defaultRate:100,
