@@ -1910,6 +1910,15 @@
         .pip-result .conc { font-size: 30px; font-weight: 500; line-height: 1; }
         .pip-result .conc .unit { font-size: 13px; opacity: 0.75; margin-left: 4px; font-weight: 500; }
 
+        /* Alternate prep methods (e.g. Morphine drip + push) */
+        .pip-alt-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 10px; margin-bottom: 18px; }
+        .pip-alt-card { background: #f0f7ff; border: 1px solid #c8dffa; border-radius: 10px; padding: 14px; position: relative; }
+        .pip-alt-card .tag { position: absolute; top: -8px; left: 12px; background: #5b8def; color: #fff; font-size: 10px; padding: 2px 10px; border-radius: 99px; font-weight: 500; letter-spacing: 0.5px; }
+        .pip-alt-card .title { font-size: 12px; font-weight: 500; color: #2e3f58; margin-top: 4px; }
+        .pip-alt-card .recipe { font-size: 13px; color: #2e3f58; margin-top: 4px; line-height: 1.4; }
+        .pip-alt-card .result { display: inline-block; background: #5b8def; color: #fff; padding: 3px 12px; border-radius: 99px; font-size: 13px; font-weight: 500; margin-top: 8px; }
+        .pip-alt-card .note { font-size: 11.5px; color: #555; margin-top: 8px; line-height: 1.5; padding-top: 8px; border-top: 1px dashed #c8dffa; }
+
         .pip-quickref { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; }
         @media (max-width: 700px) { .pip-quickref { grid-template-columns: 1fr; } }
         .pip-qr { border: 1px solid; border-radius: 10px; padding: 10px 12px; }
@@ -7556,10 +7565,26 @@
             let num  = m ? m[1].trim() : p.standardMix.result;
             let unit = m ? m[2] : '';
             html += '<div class="pip-result">'
-                 +  '<div class="meta"><div class="lbl">Final concentration</div>'
+                 +  '<div class="meta"><div class="lbl">Final concentration' + (p.standardMix.purpose ? ' · ' + p.standardMix.purpose : '') + '</div>'
                  +  '<div class="recipe">' + p.standardMix.recipe + '</div></div>'
                  +  '<div class="conc">' + num + (unit ? '<span class="unit">' + unit + '</span>' : '') + '</div>'
                  +  '</div>';
+        }
+
+        // ─ Alternate prep methods ─ (e.g. Morphine drip + push)
+        if (p.altPreps && p.altPreps.length) {
+            html += '<div class="pip-alt-grid">';
+            for (let i = 0; i < p.altPreps.length; i++) {
+                let alt = p.altPreps[i];
+                html += '<div class="pip-alt-card">';
+                if (alt.tag) html += '<div class="tag">' + alt.tag + '</div>';
+                if (alt.title) html += '<div class="title">' + alt.title + '</div>';
+                if (alt.recipe) html += '<div class="recipe">' + alt.recipe + '</div>';
+                if (alt.result) html += '<div class="result">→ ' + alt.result + '</div>';
+                if (alt.note) html += '<div class="note">' + alt.note + '</div>';
+                html += '</div>';
+            }
+            html += '</div>';
         }
 
         // ─ Quick ref grid: ✓ ใช้ได้ · ✕ ห้าม · ! ต้อง ─
@@ -10195,12 +10220,21 @@
         prepStruct: {
           form: { type: 'Ampoule', name: 'Morphine sulfate', short: 'Mor', detail: '10 mg / 1 mL · 1 amp', detailShort: '10mg/mL', subDetail: 'Strong opioid · นับ narcotic ก่อนใช้' },
           diluent: { type: 'Diluent bag', name: 'NSS or D5W', detail: '100 mL', subDetail: 'IV infusion · ห้าม push undiluted' },
-          standardMix: { label: 'Morphine 1:10', recipe: '1 amp (10 mg) + NSS/D5W 99 mL', result: '0.1 mg/mL' },
+          standardMix: { label: 'Morphine 1:10 (drip)', recipe: '1 amp (10 mg) + NSS/D5W 99 mL', result: '0.1 mg/mL', purpose: 'IV continuous infusion' },
           steps: [
             { text: 'นับ + ลงทะเบียน narcotic ก่อนเปิด', sub: 'ตรวจสอบกับเพื่อนร่วมงาน · เซ็นสมุด narcotic' },
             { text: 'ดูดออก 1 mL จาก NSS/D5W 100 mL bag', sub: 'ทิ้งให้เหลือพื้นที่' },
             { text: 'หักคอ Morphine 1 amp · ดูด 1 mL · เติมลงถุง', sub: 'ผ่าน injection port · ตวงรวมเป็น 100 mL' },
             { text: 'ผสม + ติด label "Controlled drug · 0.1 mg/mL"', sub: 'พลิกถุงเบา ๆ · บันทึกการใช้ในสมุด narcotic' }
+          ],
+          altPreps: [
+            {
+              tag: 'IV PUSH',
+              title: 'PRN breakthrough pain',
+              recipe: '1 amp (10 mg) + NSS/D5W 9 mL ใน syringe',
+              result: '1 mg/mL',
+              note: 'IV push ช้า ๆ > 4-5 นาที · ห้ามเร็ว · monitor RR ขณะ push'
+            }
           ],
           solvents: ['D5W', 'SWI (สำหรับ IV push)'],
           warnings: [
