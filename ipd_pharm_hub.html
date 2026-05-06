@@ -10174,11 +10174,11 @@
             { trigger: 'Arrhythmia',          action: 'β-blocker' }
           ]
         }, note:'ℹ Anaphylaxis: IM ต้นขาด้านข้าง · CPR: IV push · Standard drip: 1 mg + NSS 250 mL (= 4 mcg/mL)', noteClass:'info', indications:['Anaphylactic reaction (first-line)','Cardiac arrest (first-line)','Severe acute bronchospasm (asthma)','ร่วมกับยาชาเฉพาะที่ (ลดการดูดซึม)'], labs:[{key:'lactate',label:'Lactate',unit:'mmol/L',ph:'0.5-2.0',min:0.5,max:2.0,freqHr:4}], vitals:['BP (ทุก 3-5 นาที)','HR','EKG (ตามคำสั่ง)','Urine output','RR (bronchospasm)'], clinical:['ใจสั่น','กระวนกระวาย','หัวใจเต้นเร็ว','หายใจเร็ว','Tremor','ปวดหัว'], serious:['Ventricular fibrillation','Pulmonary edema','Cerebrovascular hemorrhage','Cardiac arrhythmias','Tissue necrosis (extravasation)'], info:{doses:[{ind:'Anaphylaxis (ผู้ใหญ่) IM/SC', dose:'0.3-0.5 mg (0.3-0.5 mL of 1 mg/mL) IM ต้นขาด้านข้าง q5-15 min PRN'},{ind:'Anaphylaxis (เด็ก) IM/SC', dose:'0.01 mg/kg/dose (0.01 mL/kg of 1 mg/mL) q5-15 min · max 0.3 mg (prepubertal), 0.5 mg (adolescent)'},{ind:'Anaphylaxis refractory (IV infusion)', dose:'Standard: 1 mg + NSS 250 mL (= 4 mcg/mL) · start 0.1 mcg/kg/min titrate to effect · ใช้ infusion pump'},{ind:'Cardiac arrest (ผู้ใหญ่) IV/IO', dose:'1 mg (1 mL of 1:1000) IV push q3-5 min'},{ind:'Cardiac arrest (เด็ก) IV/IO', dose:'0.01 mg/kg q3-5 min · max 1 mg/dose'},{ind:'Severe bronchospasm SC', dose:'0.3-0.5 mg SC q20 min-4 hr PRN'}],prep:'Forms: Adrenaline 1 mg/mL (1:1000) 1 mL amp · Standard diluent: 1 mg + NSS 250 mL (= 4 mcg/mL) · Solvent: NSS · ใช้ infusion pump เท่านั้นสำหรับ IV infusion · Route: SC, IM, IV central line หรือเส้นเลือดดำใหญ่ · Stable 24 ชั่วโมง ที่อุณหภูมิห้อง (25°C) หรือตู้เย็น (4°C) หลังเจือจาง · เก็บ <25°C, ป้องกันแสง · ห้ามใช้ถ้าสารละลายเปลี่ยนเป็นสีชมพู/น้ำตาล หรือมีตะกอน · ห้ามผสมกับด่างหรือ antioxidants',monitoring:'BP ทุก 3-5 นาที · HR ต่อเนื่อง · EKG (ตามคำสั่งแพทย์) · Urine output (renal vasoconstriction) · ตรวจ IV site: เฝ้าระวัง extravasation (ซีด/เขียว/เย็น) · หลีกเลี่ยงฉีด intra-arterial และ IM บริเวณสะโพกโดยตรง (หลอดเลือดตีบ → กล้ามเนื้อตาย) · รายงานแพทย์ทันทีเมื่อ tachycardia, palpitation, BP สูง · ระวังในเด็ก, ผู้สูงอายุ, HT, hyperthyroid, โรคหัวใจ, ประวัติแพ้ sympathomimetic amines',alarm:'IV infusion เร็วเกินไป → Cerebrovascular hemorrhage, cardiac arrhythmias · Ventricular fibrillation, pulmonary edema → อันตรายถึงชีวิต · Hypertensive crisis · Extravasation → tissue necrosis · ชื่อคล้าย Adenosine — Double check ก่อนบริหาร · ตรวจสอบ route (IV/IM/SC/NB) ทุกครั้งก่อนให้',source:'HAD รพ.ห้วยผึ้ง ฉบับปรับปรุง 2567 · หน้า 7, 23',antidote:'⚠ Extravasation: หยุด IV + aspirate → ทา 2% Nitroglycerin ointment · Warm compress + ยกแขนขาสูง · Terbutaline 1 mg + NSS 10 mL แบ่งฉีด 5 เข็ม (2 mL/เข็ม) SC clockwise รอบบริเวณที่เกิด ด้วยเข็ม No.25 · Hypertension: Labetalol หรือ Nicardipine IV · Arrhythmia: β-blocker'} },
-      morphine:  { name:'Morphine', short:'Mor', badge:'IV/IM/SC/Drip', image:'HAD_picture/morphine.png', freq:'ทุก 1 ชม. (RR/Pain)', mode:'rate', inputUnit:'mL/hr', convUnit:'mg/hr', weightBased:false, convFn:function(r){return r*1}, convFmt:function(v){return v.toFixed(1)}, warnAt:8, maxAt:10, defaultRate:3,
+      morphine:  { name:'Morphine', short:'Mor', badge:'IV/IM/SC/Drip', image:'HAD_picture/morphine.png', freq:'ทุก 1 ชม. (RR/Pain)', mode:'rate', inputUnit:'mL/hr', convUnit:'mg/hr', weightBased:false, convFn:function(r){return r*0.1}, convFmt:function(v){return v.toFixed(1)}, warnAt:8, maxAt:10, defaultRate:30,
         quickRef: {
           type: 'simple-rate',
-          conc: 1,
-          concLabel: 'Morphine 50:50 = 1 mg/mL',
+          conc: 0.1,
+          concLabel: 'Morphine 1:10 = 0.1 mg/mL',
           rateUnit: 'mg/hr',
           rateLabel: 'Order',
           defaultRate: 3,
@@ -10194,13 +10194,13 @@
         },
         prepStruct: {
           form: { type: 'Ampoule', name: 'Morphine sulfate', short: 'Mor', detail: '10 mg / 1 mL · 1 amp', detailShort: '10mg/mL', subDetail: 'Strong opioid · นับ narcotic ก่อนใช้' },
-          diluent: { type: 'Diluent bag', name: 'D5W', detail: '50 mL', subDetail: 'IV infusion · ห้าม push undiluted' },
-          standardMix: { label: 'Morphine 50:50', recipe: '50 mg + D5W 50 mL', result: '1 mg/mL' },
+          diluent: { type: 'Diluent bag', name: 'NSS or D5W', detail: '100 mL', subDetail: 'IV infusion · ห้าม push undiluted' },
+          standardMix: { label: 'Morphine 1:10', recipe: '1 amp (10 mg) + NSS/D5W 99 mL', result: '0.1 mg/mL' },
           steps: [
             { text: 'นับ + ลงทะเบียน narcotic ก่อนเปิด', sub: 'ตรวจสอบกับเพื่อนร่วมงาน · เซ็นสมุด narcotic' },
-            { text: 'ดูดออก 5 mL จาก D5W bag', sub: 'ทิ้งให้เหลือพื้นที่' },
-            { text: 'หักคอ Morphine 5 amp · ดูด 5 mL · เติมลงถุง', sub: 'ผ่าน injection port' },
-            { text: 'ผสม + ติด label "Controlled drug"', sub: 'พลิกถุงเบา ๆ · บันทึกการใช้ในสมุด narcotic' }
+            { text: 'ดูดออก 1 mL จาก NSS/D5W 100 mL bag', sub: 'ทิ้งให้เหลือพื้นที่' },
+            { text: 'หักคอ Morphine 1 amp · ดูด 1 mL · เติมลงถุง', sub: 'ผ่าน injection port · ตวงรวมเป็น 100 mL' },
+            { text: 'ผสม + ติด label "Controlled drug · 0.1 mg/mL"', sub: 'พลิกถุงเบา ๆ · บันทึกการใช้ในสมุด narcotic' }
           ],
           solvents: ['D5W', 'SWI (สำหรับ IV push)'],
           warnings: [
