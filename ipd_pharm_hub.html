@@ -1910,7 +1910,25 @@
         .pip-result .conc { font-size: 30px; font-weight: 500; line-height: 1; }
         .pip-result .conc .unit { font-size: 13px; opacity: 0.75; margin-left: 4px; font-weight: 500; }
 
-        /* Alternate prep methods (e.g. Morphine drip + push) */
+        /* Indication prep sections (different conditions, each with full steps) */
+        .pip-indication { background: #f6f9ff; border: 1px solid #d6e1f4; border-radius: 12px; padding: 14px 16px; margin-bottom: 12px; }
+        .pip-indication-head { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; flex-wrap: wrap; }
+        .pip-indication-tag { background: #5b8def; color: #fff; padding: 3px 12px; border-radius: 99px; font-size: 11px; font-weight: 500; letter-spacing: 0.3px; text-transform: uppercase; flex-shrink: 0; }
+        .pip-indication-title { font-size: 14px; font-weight: 500; color: #2e3f58; }
+        .pip-indication-note { font-size: 12px; color: #5b8def; flex: 1; text-align: right; font-style: italic; }
+        .pip-indication-mix { background: #fff; border-radius: 10px; padding: 10px 14px; margin-bottom: 10px; display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; border: 1px solid #d6e1f4; }
+        .pip-indication-mix .recipe { font-size: 13px; color: #2e3f58; line-height: 1.4; }
+        .pip-indication-mix .recipe .purpose { display: block; font-size: 11px; color: #888; margin-bottom: 2px; text-transform: uppercase; letter-spacing: 0.3px; font-weight: 500; }
+        .pip-indication-mix .conc { font-size: 20px; font-weight: 500; color: #2e3f58; line-height: 1; flex-shrink: 0; }
+        .pip-indication-mix .conc .unit { font-size: 11px; color: #888; margin-left: 4px; font-weight: 500; }
+        .pip-indication-steps { background: #fff; border-radius: 10px; padding: 8px 14px; border: 1px solid #d6e1f4; }
+        .pip-indication-steps ol { margin: 0; padding: 0; list-style: none; counter-reset: ipstep; }
+        .pip-indication-steps ol li { counter-increment: ipstep; padding: 5px 0 5px 30px; position: relative; font-size: 13px; line-height: 1.5; color: #2e3f58; border-bottom: 1px dashed #ebf1fc; }
+        .pip-indication-steps ol li:last-child { border-bottom: none; }
+        .pip-indication-steps ol li::before { content: counter(ipstep); position: absolute; left: 0; top: 6px; width: 22px; height: 22px; background: #5b8def; color: #fff; border-radius: 50%; font-size: 11px; font-weight: 500; display: flex; align-items: center; justify-content: center; }
+        .pip-indication-steps ol li .sub { display: block; font-size: 11.5px; color: #888; margin-top: 3px; line-height: 1.4; }
+
+        /* Alternate prep methods (e.g. Morphine drip + push — same indication) */
         .pip-alt-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 10px; margin-bottom: 18px; }
         .pip-alt-card { background: #f0f7ff; border: 1px solid #c8dffa; border-radius: 10px; padding: 14px; position: relative; }
         .pip-alt-card .tag { position: absolute; top: -8px; left: 12px; background: #5b8def; color: #fff; font-size: 10px; padding: 2px 10px; border-radius: 99px; font-weight: 500; letter-spacing: 0.5px; }
@@ -7571,8 +7589,10 @@
                  +  '</div>';
         }
 
-        // ─ Alternate prep methods ─ (e.g. Morphine drip + push)
+        // ─ Alternate prep methods ─ (compact cards · same indication, different methods · e.g. Morphine drip+push)
         if (p.altPreps && p.altPreps.length) {
+            let altLabel = p.altPrepsLabel || 'Other prep methods';
+            html += '<div class="pip-section-label">— ' + altLabel + ' —</div>';
             html += '<div class="pip-alt-grid">';
             for (let i = 0; i < p.altPreps.length; i++) {
                 let alt = p.altPreps[i];
@@ -7585,6 +7605,47 @@
                 html += '</div>';
             }
             html += '</div>';
+        }
+
+        // ─ Full indication-specific preps ─ (different indications · each with full steps · e.g. MgSO4 hypomag/eclampsia/torsades)
+        if (p.indicationPreps && p.indicationPreps.length) {
+            let ipLabel = p.indicationPrepsLabel || 'สำหรับ indication อื่น · ผสมแยกตาม case';
+            html += '<div class="pip-section-label">— ' + ipLabel + ' —</div>';
+            for (let i = 0; i < p.indicationPreps.length; i++) {
+                let ip = p.indicationPreps[i];
+                html += '<div class="pip-indication">';
+                // Header
+                html += '<div class="pip-indication-head">';
+                if (ip.tag) html += '<span class="pip-indication-tag">' + ip.tag + '</span>';
+                if (ip.indication) html += '<span class="pip-indication-title">' + ip.indication + '</span>';
+                if (ip.note) html += '<span class="pip-indication-note">' + ip.note + '</span>';
+                html += '</div>';
+                // Mix line: recipe → conc
+                if (ip.standardMix) {
+                    let m = ip.standardMix.result.match(/^([\d.\s\-–]+)\s*([a-zA-Z\/]+)$/);
+                    let num  = m ? m[1].trim() : ip.standardMix.result;
+                    let unit = m ? m[2] : '';
+                    html += '<div class="pip-indication-mix">'
+                         +  '<div class="recipe">'
+                         +  (ip.standardMix.purpose ? '<span class="purpose">' + ip.standardMix.purpose + '</span>' : '')
+                         +  ip.standardMix.recipe
+                         +  '</div>'
+                         +  '<div class="conc">' + num + (unit ? '<span class="unit">' + unit + '</span>' : '') + '</div>'
+                         +  '</div>';
+                }
+                // Steps
+                if (ip.steps && ip.steps.length) {
+                    html += '<div class="pip-indication-steps"><ol>';
+                    for (let s = 0; s < ip.steps.length; s++) {
+                        let st = ip.steps[s];
+                        html += '<li>' + (st.text || st);
+                        if (st.sub) html += '<span class="sub">' + st.sub + '</span>';
+                        html += '</li>';
+                    }
+                    html += '</ol></div>';
+                }
+                html += '</div>';
+            }
         }
 
         // ─ Quick ref grid: ✓ ใช้ได้ · ✕ ห้าม · ! ต้อง ─
@@ -10398,9 +10459,41 @@
             { text: 'ดูด MgSO₄ 50% 2 amp (รวม 4 mL = 2 g) · เติมลงถุง', sub: 'double check ก่อนเปิด · ระวังสับสนกับ Morphine' },
             { text: 'ผสม + ติด label "MgSO₄ 20 mg/mL"', sub: 'พลิกถุงเบา ๆ · ห้ามแช่ตู้เย็น' }
           ],
-          altPreps: [
-            { tag: 'LOADING', title: 'Eclampsia loading dose', recipe: '4-6 g + D5W 100 mL', result: '40-60 mg/mL', note: 'ให้ใน 20-30 นาที · ก่อน maintenance drip · ใช้ใน OB' },
-            { tag: 'IV PUSH', title: 'Torsades de Pointes', recipe: '1-2 g + D5W 10 mL', result: '100-200 mg/mL', note: 'IV push > 15 นาที · monitor EKG · ห้ามเร็ว' }
+          indicationPrepsLabel: 'สำหรับ indication อื่น · ผสมแยกตาม case',
+          indicationPreps: [
+            {
+              tag: 'ECLAMPSIA',
+              indication: 'Loading dose',
+              note: 'step 1 · ก่อน maintenance',
+              standardMix: { recipe: '8-12 mL of 50% (4-6 g · 4-6 amp) + D5W 100 mL', result: '40-60 mg/mL', purpose: 'Loading · ให้ใน 20-30 นาที' },
+              steps: [
+                { text: 'ดูดออก 8-12 mL จาก D5W 100 mL bag', sub: 'ทิ้งให้เหลือพื้นที่' },
+                { text: 'ดูด MgSO₄ 50% 4-6 amp (8-12 mL = 4-6 g) · เติมลงถุง', sub: 'ตามขนาด loading ที่แพทย์สั่ง · double check' },
+                { text: 'IV infusion ใน 20-30 นาที · ติด label "Eclampsia loading"', sub: 'ตามด้วย maintenance drip ทันที' }
+              ]
+            },
+            {
+              tag: 'ECLAMPSIA',
+              indication: 'Maintenance dose',
+              note: 'step 2 · ต่อ ≥ 24 ชม. หลังคลอด',
+              standardMix: { recipe: '40 mL of 50% (20 g · 20 amp) + D5W 1000 mL', result: '20 mg/mL', purpose: 'Maintenance · drip 1-2 g/hr (50-100 mL/hr)' },
+              steps: [
+                { text: 'ดูด MgSO₄ 50% 20 amp (40 mL = 20 g) เตรียมไว้', sub: 'double check จำนวน amp · ระวังสับสน Morphine' },
+                { text: 'ฉีดเข้า D5W 1000 mL bag · ผ่าน injection port', sub: 'ผสมให้เข้ากัน · ติด label "Maintenance 20 mg/mL"' },
+                { text: 'IV drip 1-2 g/hr = 50-100 mL/hr ผ่าน infusion pump', sub: 'ต่อ 24 ชม. หลังคลอด · monitor patellar reflex / RR / UO' }
+              ]
+            },
+            {
+              tag: 'TORSADES',
+              indication: 'IV push (cardiac)',
+              note: 'monitor EKG ตลอด',
+              standardMix: { recipe: '2-4 mL of 50% (1-2 g · 1-2 amp) + D5W 10 mL ใน syringe', result: '100-200 mg/mL', purpose: 'IV push · ผสมในเข็ม 10 mL' },
+              steps: [
+                { text: 'ดูด MgSO₄ 50% 1-2 amp (2-4 mL = 1-2 g) ใส่ syringe 10 mL', sub: 'double check ก่อนเปิด' },
+                { text: 'ดูด D5W 6-8 mL เติม · รวมเป็น 10 mL', sub: 'ผสมให้เข้ากัน' },
+                { text: 'IV push ช้า > 15 นาที · monitor EKG ต่อเนื่อง', sub: 'ห้ามเร็ว · ระวัง Mg toxicity' }
+              ]
+            }
           ],
           solvents: ['D5W'],
           warnings: [
