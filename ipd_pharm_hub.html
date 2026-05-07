@@ -10375,15 +10375,15 @@
         quickRef: {
           type: 'simple-rate',
           conc: 0.02,
-          concLabel: 'MgSO₄ 10:500 = 20 mg/mL (0.02 g/mL)',
+          concLabel: 'MgSO₄ 2:100 = 20 mg/mL (0.02 g/mL)',
           rateUnit: 'g/hr',
           rateLabel: 'Order',
           defaultRate: 1,
           warnAt: 1.5,
           maxAt: 2,
           doses: [
-            { label: 'Eclampsia maintenance (typical)', range: [1, 2], unit: 'g/hr', hint: 'หลัง loading · ต่อ 24 ชม. หลังคลอด' },
-            { label: 'Hypomagnesemia drip', range: [0.5, 1], unit: 'g/hr', hint: 'mild-moderate · max 12 g / 12 ชม.' },
+            { label: 'Hypomagnesemia drip (most common)', range: [0.5, 1], unit: 'g/hr', hint: 'มาตรฐาน รพ.ห้วยผึ้ง · 1 bag = 2-4 ชม.' },
+            { label: 'Eclampsia maintenance', range: [1, 2], unit: 'g/hr', hint: 'หลัง loading · ใช้ mix แยก' },
             { label: 'Caution zone', range: [1.5, 1.5], unit: 'g/hr', hint: 'ใกล้ max · monitor ใกล้ชิด' },
             { label: 'Max — ห้ามเกิน', range: [2, 2], unit: 'g/hr', hint: 'patellar reflex · RR · UO' }
           ],
@@ -10391,15 +10391,15 @@
         },
         prepStruct: {
           form: { type: 'Ampoule', name: 'MgSO₄ 50%', short: 'Mg', detail: '1 g / 2 mL · 50% inj', detailShort: '1g/2mL', subDetail: '⚠ คล้าย Morphine sulfate · double check' },
-          diluent: { type: 'Diluent bag', name: 'D5W', detail: '500 mL', subDetail: 'Maintenance dilution' },
-          standardMix: { label: 'MgSO₄ 10:500', recipe: '10 g (20 mL · 10 amp) + D5W 500 mL', result: '20 mg/mL', purpose: 'IV maintenance infusion' },
+          diluent: { type: 'Diluent bag', name: 'D5W', detail: '100 mL', subDetail: 'Hypomagnesemia standard' },
+          standardMix: { label: 'MgSO₄ 2:100', recipe: '4 mL of 50% (2 g · 2 amp) + D5W 100 mL', result: '20 mg/mL', purpose: 'IV drip · hypomagnesemia (most common)' },
           steps: [
-            { text: 'ดูดออก 20 mL จาก D5W 500 mL bag', sub: 'ทิ้งให้เหลือพื้นที่' },
-            { text: 'ดูด MgSO₄ 50% 10 amp (รวม 20 mL = 10 g) · เติมลงถุง', sub: 'double check ก่อนเปิด · ระวังสับสนกับ Morphine' },
+            { text: 'ดูดออก 4 mL จาก D5W 100 mL bag', sub: 'ทิ้งให้เหลือพื้นที่' },
+            { text: 'ดูด MgSO₄ 50% 2 amp (รวม 4 mL = 2 g) · เติมลงถุง', sub: 'double check ก่อนเปิด · ระวังสับสนกับ Morphine' },
             { text: 'ผสม + ติด label "MgSO₄ 20 mg/mL"', sub: 'พลิกถุงเบา ๆ · ห้ามแช่ตู้เย็น' }
           ],
           altPreps: [
-            { tag: 'LOADING', title: 'Eclampsia loading dose', recipe: '4-6 g + D5W 100 mL', result: '40-60 mg/mL', note: 'ให้ใน 20-30 นาที · ก่อน maintenance drip' },
+            { tag: 'LOADING', title: 'Eclampsia loading dose', recipe: '4-6 g + D5W 100 mL', result: '40-60 mg/mL', note: 'ให้ใน 20-30 นาที · ก่อน maintenance drip · ใช้ใน OB' },
             { tag: 'IV PUSH', title: 'Torsades de Pointes', recipe: '1-2 g + D5W 10 mL', result: '100-200 mg/mL', note: 'IV push > 15 นาที · monitor EKG · ห้ามเร็ว' }
           ],
           solvents: ['D5W'],
