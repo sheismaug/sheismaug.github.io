@@ -705,7 +705,23 @@ textarea { resize:vertical; min-height:72px; line-height:1.5; }
   .dot-d.ok   { background:#2D6A4F !important; -webkit-print-color-adjust:exact; }
   .dot-d.miss { background:#FEE2E2 !important; -webkit-print-color-adjust:exact; }
   .dot-d.ft   { background:#F4F2ED !important; -webkit-print-color-adjust:exact; }
-  .dot-d.mile { background:#1B4332 !important; -webkit-print-color-adjust:exact; }
+  .dot-d.mile { background:#3D2E80 !important; -webkit-print-color-adjust:exact; }
+
+  /* ── Force 1 A4 page — ป้องกันการตัดหน้า ── */
+  .dot-sheet { page-break-inside:avoid !important; }
+  .dot-cal,.dot-legend,.dot-appt-box,.dot-drug-box,.dot-warn-box {
+    page-break-inside:avoid !important;
+    break-inside:avoid !important;
+  }
+  /* compact spacing เล็กน้อย */
+  .dot-prog-compact { margin-bottom:4px !important; }
+  .dot-mo-row { margin:4px 0 3px !important; }
+  .dot-cal { margin-bottom:4px !important; }
+  .dot-d { min-height:36px !important; }
+  .dot-legend { margin-top:3px !important; }
+  .dot-drug-box { margin-top:4px !important; padding:5px 9px !important; }
+  .dot-appt-box { margin-top:4px !important; padding:5px 9px !important; }
+  .dot-warn-box { margin-top:4px !important; padding:4px 8px !important; }
 }
 
 /* Scrollbar */
