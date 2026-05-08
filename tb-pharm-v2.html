@@ -4752,7 +4752,7 @@ function printWeeklyDrugReport() {
       <div class="fc-formula">${f.combo}</div>
       <div class="fc-sub">${f.regLabel}</div>
       <div class="fc-bottom">
-        <div><span class="fc-qty">${f.sachets}</span><span class="fc-unit">ซอง</span></div>
+        <div class="fc-left"><span class="fc-qty">${f.sachets}</span><span class="fc-unit">ซอง</span></div>
         <div class="fc-pts"><b>${f.patients.length}</b> คน<br>${ptNames}</div>
       </div>
     </div>`;
@@ -4832,7 +4832,7 @@ body{background:#e5e5e5;font-family:var(--font-th);color:var(--tx);padding:24px 
 .summary{display:flex;gap:6px;margin-bottom:8px;flex-wrap:wrap}
 .sm-chip{background:#F0EEF9;border:1px solid #D4CEEE;border-radius:99px;padding:2px 9px;font-size:7.5pt;color:var(--tx2)}
 .sm-chip b{color:var(--g4);font-family:var(--font-en);font-weight:700;margin-left:3px}
-.formula-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:6px}
+.formula-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:8px;margin-bottom:6px}
 .formula-card{border:1.2px solid var(--g4);border-radius:7px;background:linear-gradient(135deg,#F7F6FF 0%,#EDE9FE 100%);padding:9px 11px;position:relative;overflow:hidden}
 .formula-card.cp{border-color:#0E7A5C;background:linear-gradient(135deg,#F0FBF6 0%,#DFF5EB 100%)}
 .formula-card.mdr{border-color:#B45309;background:linear-gradient(135deg,#FFFBEB 0%,#FEF3C7 100%)}
@@ -4843,7 +4843,8 @@ body{background:#e5e5e5;font-family:var(--font-th);color:var(--tx);padding:24px 
 .formula-card.cp .fc-formula{color:#04342C}
 .formula-card.mdr .fc-formula{color:#78350F}
 .fc-sub{font-size:7pt;color:var(--tx3);margin-top:2px;font-family:var(--font-en)}
-.fc-bottom{display:flex;align-items:baseline;justify-content:space-between;margin-top:6px;padding-top:5px;border-top:0.5px dashed rgba(61,46,128,.3)}
+.fc-bottom{display:flex;align-items:flex-end;justify-content:space-between;gap:8px;margin-top:6px;padding-top:5px;border-top:0.5px dashed rgba(61,46,128,.3)}
+.fc-left{flex-shrink:0;display:flex;align-items:baseline;gap:3px}
 .formula-card.cp .fc-bottom{border-top-color:rgba(4,52,44,.3)}
 .formula-card.mdr .fc-bottom{border-top-color:rgba(120,83,9,.3)}
 .fc-qty{font-family:var(--font-en);font-weight:700;font-size:22pt;color:var(--g4);line-height:0.95}
@@ -4884,8 +4885,14 @@ tbody tr:last-child td{border-bottom:1.5px solid var(--g4)}
 .notes{margin-top:9px;font-size:7.5pt;color:var(--tx2);padding:6px 10px;background:var(--warn1);border-radius:5px;border-left:3px solid var(--warn);line-height:1.45}
 .notes b{color:var(--hldk)}
 .ft{position:absolute;bottom:6mm;left:13mm;right:13mm;display:flex;justify-content:space-between;font-size:7pt;color:var(--tx3);border-top:0.5px solid var(--bd);padding-top:3px;font-family:var(--font-en)}
-@media print{body{background:#fff;padding:0}.toolbar{display:none}.a4{box-shadow:none;margin:0}}
-@page{size:A4;margin:0}
+@media print{
+  body{background:#fff;padding:0}
+  .toolbar{display:none}
+  .a4{box-shadow:none;margin:0;width:auto;min-height:auto;padding:8mm 8mm 6mm}
+  .formula-card,.notes,table,tr{break-inside:avoid;page-break-inside:avoid}
+  *{-webkit-print-color-adjust:exact !important;print-color-adjust:exact !important}
+}
+@page{size:A4 portrait;margin:0}
 </style>
 </head>
 <body>
@@ -4940,7 +4947,14 @@ tbody tr:last-child td{border-bottom:1.5px solid var(--g4)}
   </div>
 </div>
 ${'<scr'+'ipt>'}
-window.addEventListener('load', () => { setTimeout(() => window.print(), 600); });
+window.addEventListener('load', () => {
+  const triggerPrint = () => setTimeout(() => window.print(), 200);
+  if (document.fonts && document.fonts.ready) {
+    document.fonts.ready.then(triggerPrint);
+  } else {
+    setTimeout(triggerPrint, 1500);
+  }
+});
 ${'<\/scr'+'ipt>'}
 </body>
 </html>`;
