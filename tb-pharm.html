@@ -1491,7 +1491,17 @@ function goPage(key, keepContext) {
       renderDispense();
     }
   }
-  if (key === 'dot') { buildDOTMonths(); renderDOT(); }
+  if (key === 'dot') {
+    // Sync regimen & start date from selected patient before rendering DOT
+    if (S.selectedPatient && S.patients?.length) {
+      const sp = S.patients.find(x => x.patient_id === S.selectedPatient);
+      if (sp) {
+        S.reg       = sp.regimen_code || Object.keys(REGS).find(k => REGS[k].label === sp.regimen_label) || S.reg;
+        if (sp.start_date) { S.startDate = sp.start_date; setStartDateDisplay(sp.start_date); }
+      }
+    }
+    buildDOTMonths(); renderDOT();
+  }
   // Pharmacist page syncs happen inside buildPharmPage via setTimeout
 
   // Activate page and nav
@@ -2039,7 +2049,7 @@ function recalcVNDose(wtVal) {
   // Determine phase from current visit
   const idx  = parseInt(document.querySelector('[id^="vn-dose-"]')?.id?.replace('vn-dose-','')) || 0;
   const v    = S.visitSched[idx] || {};
-  const phase = v.phase?.includes('IP') || true ? 'ip' : 'cp';
+  const phase = v.phase?.includes('IP') ? 'ip' : 'cp';
   const drugs = phase === 'ip' ? (reg.ipDrugs||[]) : (reg.cpDrugs||[]);
 
   drugs.forEach(abbr => {
@@ -2489,7 +2499,7 @@ function openVisitNote(idx) {
           ${(() => {
             const overrideReg = n.regOverride || S.reg;
             const visitReg    = overrideReg === 'custom' ? null : REGS[overrideReg] || REGS[S.reg];
-            const phase       = visitReg ? ((v.num <= (visitReg?.ip||2)) ? 'ip' : 'cp') : 'ip';
+            const phase       = visitReg ? (v.phase?.includes('IP') ? 'ip' : 'cp') : 'ip';
             const drugs       = overrideReg === 'custom'
               ? (n.customDrugs || ['H','R','Z','E','B6'])
               : phase === 'ip' ? (visitReg?.ipDrugs||[]) : (visitReg?.cpDrugs||[]);
@@ -2903,8 +2913,8 @@ function renderDOT() {
     if (sp) {
       const nameEl = document.getElementById('dot-name');
       const hnEl   = document.getElementById('dot-hn');
-      if (nameEl && !nameEl.value) nameEl.value = sp.name;
-      if (hnEl   && !hnEl.value)   hnEl.value   = sp.hn;
+      if (nameEl) nameEl.value = sp.name;
+      if (hnEl)   hnEl.value   = sp.hn;
     }
   }
   const ptName  = document.getElementById('dot-name').value || '...';
@@ -3524,9 +3534,12 @@ patients: `
 
 alerts: `
 <div class="card" style="margin-bottom:14px">
-  <div style="padding:12px 14px;border-bottom:1px solid var(--bd);display:flex;align-items:center;justify-content:space-between">
+  <div style="padding:12px 14px;border-bottom:1px solid var(--bd);display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap">
     <div class="ct" style="margin:0"><span class="cd mu"></span>จัดยา DOT</div>
-    <span style="font-size:12px;color:var(--tx3)" id="dot-prep-week-label">7 วันข้างหน้า</span>
+    <div style="display:flex;align-items:center;gap:10px">
+      <span style="font-size:12px;color:var(--tx3)" id="dot-prep-week-label">7 วันข้างหน้า</span>
+      <button class="btn btn-sm btn-out" onclick="printWeeklyDrugReport()" style="font-size:12px;padding:5px 10px">🖨️ พิมพ์รายงาน A4</button>
+    </div>
   </div>
   <div id="dot-prep-table" style="color:var(--tx3);font-size:13px;padding:14px;text-align:center">
     ยังไม่มีข้อมูล
@@ -4355,6 +4368,402 @@ function buildAlertsPage() {
       </table>`;
     }
   }
+}
+
+// ════════════════════════════════════════════════════════════
+// 🖨️ Print Weekly Drug Prep Report (A4)
+// ════════════════════════════════════════════════════════════
+function printWeeklyDrugReport() {
+  const today    = new Date();
+  const _pad     = n => String(n).padStart(2,'0');
+  const todayISO = `${today.getFullYear()}-${_pad(today.getMonth()+1)}-${_pad(today.getDate())}`;
+  const pts      = S.patients.filter(p => p.status === 'active');
+  const _cw      = getClinicWeek();
+  const weekStart = _cw.weekStart, weekEnd = _cw.weekEnd;
+  const DOW_TH2  = ['อา','จ','อ','พ','พฤ','ศ','ส'];
+  const DOW_TH3  = ['อาทิตย์','จันทร์','อังคาร','พุธ','พฤหัสบดี','ศุกร์','เสาร์'];
+
+  // ── ดึง weekAppts (ตรรกะเดียวกับ buildAlertsPage) ──
+  const SCHED_LBLS = {
+    std:   ['เริ่มยา','2 สัปดาห์','1 เดือน','2 เดือน','3 เดือน','5 เดือน','ครบรักษา 6M'],
+    elder: ['เริ่มยา','2 สัปดาห์','1 เดือน','2 เดือน','3 เดือน','5 เดือน','7 เดือน','ครบรักษา 9M'],
+    lfx:   ['เริ่มยา','1 สัปดาห์','2 สัปดาห์','1 เดือน','2 เดือน','3 เดือน','6 เดือน','9 เดือน','12 เดือน','ครบรักษา 18M'],
+    '2hezl':['เริ่มยา','2 สัปดาห์','1 เดือน','2 เดือน','3 เดือน','5 เดือน','8 เดือน','10 เดือน','ครบรักษา 12M'],
+  };
+  const getSchedLbl = (reg, i) => {
+    const code = Object.keys(REGS).find(k => REGS[k] === reg) || 'std';
+    const lbls = SCHED_LBLS[code] || SCHED_LBLS['std'];
+    return lbls[i] || `V${i}`;
+  };
+  const getDispLbl = (schedLbl) => {
+    if (!schedLbl || schedLbl === 'เริ่มยา') return 'เริ่มยา → เติมยาเดือน 1';
+    if (schedLbl.includes('สัปดาห์')) return `ครบ 2 สัปดาห์ → เติมยาเดือน 1`;
+    if (schedLbl.includes('ครบรักษา')) return schedLbl;
+    const m = schedLbl.match(/(\d+(?:\.\d+)?)\s*เดือน/);
+    if (m) {
+      const mo = parseFloat(m[1]);
+      return `ครบ ${mo} เดือน → เติมยาเดือน ${mo + 1}`;
+    }
+    return schedLbl;
+  };
+
+  const weekAppts = [];
+  pts.forEach(p => {
+    if (!p.visit_dates_json) return;
+    try {
+      const dates = JSON.parse(p.visit_dates_json);
+      if (!Array.isArray(dates)) return;
+      const reg  = lookupReg(p);
+      const wt   = parseFloat(p.weight_kg) || null;
+      const band = wt ? getBand(wt) : null;
+      const base = p.start_date ? new Date(p.start_date+'T00:00:00') : null;
+
+      let allDates = [...dates];
+      try {
+        if (p.custom_visits_json) {
+          const customs = JSON.parse(p.custom_visits_json);
+          if (Array.isArray(customs)) customs.forEach(cv => { if (cv.date) allDates.push(cv.date); });
+        }
+      } catch(e) {}
+      allDates = [...new Set(allDates.filter(x => x && x.length >= 8))].sort();
+
+      dates.forEach((d, i) => {
+        if (!d || d < weekStart || d > weekEnd) return;
+        const nextDate = allDates.find(x => x > d) || null;
+        const days = nextDate
+          ? Math.max(1, Math.round((new Date(nextDate+'T00:00:00') - new Date(d+'T00:00:00')) / 86400000))
+          : 28;
+        const moElapsed = base ? (new Date(d+'T00:00:00') - base) / (1000*60*60*24*30) : 0;
+        const isIP = moElapsed <= (reg?.ip || 2);
+        const drugs = (isIP ? (reg?.ipDrugs || []) : (reg?.cpDrugs || [])).filter(x => x !== 'B6');
+        const combo = drugs.map(abbr => {
+          const dose = wt ? getDose(abbr, band, wt) : null;
+          return dose ? `${abbr}${dose}` : null;
+        }).filter(Boolean).join('·');
+        const ipEnd = base ? new Date(base.getTime() + (reg?.ip||2)*30*86400000) : null;
+        const daysToPC = ipEnd ? Math.round((ipEnd - new Date(d+'T00:00:00')) / 86400000) : null;
+        const nearPC = isIP && daysToPC !== null && daysToPC >= 0 && daysToPC <= 14;
+        const schedLbl = getSchedLbl(reg, i);
+        const dispLbl = getDispLbl(schedLbl);
+
+        weekAppts.push({
+          name: p.name, hn: p.hn, ptId: p.patient_id, date: d,
+          regLabel: reg?.label || '—', combo, isIP, days, wt, nearPC, daysToPC,
+          dispLbl, isToday: d === todayISO
+        });
+      });
+
+      // custom visits
+      try {
+        if (p.custom_visits_json) {
+          const customs = JSON.parse(p.custom_visits_json);
+          if (Array.isArray(customs)) {
+            customs.forEach(cv => {
+              const d = cv.date;
+              if (!d || d < weekStart || d > weekEnd) return;
+              if (dates.includes(d)) return;
+              const nextDate2 = allDates.find(x => x > d) || null;
+              const days2 = nextDate2
+                ? Math.max(1, Math.round((new Date(nextDate2+'T00:00:00') - new Date(d+'T00:00:00')) / 86400000))
+                : 28;
+              const moEl2 = base ? (new Date(d+'T00:00:00') - base) / (1000*60*60*24*30) : 0;
+              const isIP2 = moEl2 <= (reg?.ip || 2);
+              const drugs2 = (isIP2 ? (reg?.ipDrugs||[]) : (reg?.cpDrugs||[])).filter(x => x !== 'B6');
+              const combo2 = drugs2.map(abbr => {
+                const dose = wt ? getDose(abbr, band, wt) : null;
+                return dose ? `${abbr}${dose}` : null;
+              }).filter(Boolean).join('·');
+              weekAppts.push({
+                name: p.name, hn: p.hn, ptId: p.patient_id, date: d,
+                regLabel: reg?.label || '—', combo: combo2, isIP: isIP2, days: days2, wt,
+                nearPC: false, daysToPC: null,
+                dispLbl: cv.lbl || 'Visit พิเศษ', isToday: d === todayISO
+              });
+            });
+          }
+        }
+      } catch(e) {}
+    } catch(e) {}
+  });
+
+  weekAppts.sort((a,b) => a.date.localeCompare(b.date));
+
+  if (!weekAppts.length) {
+    if (typeof toast === 'function') toast('ไม่มีนัดสัปดาห์นี้');
+    else alert('ไม่มีนัดสัปดาห์นี้');
+    return;
+  }
+
+  // ── Aggregate by combo+phase สำหรับ summary cards ──
+  const formulaMap = {};
+  weekAppts.forEach(a => {
+    if (!a.combo) return;
+    const key = `${a.combo}__${a.isIP ? 'IP' : 'CP'}`;
+    if (!formulaMap[key]) {
+      formulaMap[key] = {
+        combo: a.combo, phase: a.isIP ? 'IP' : 'CP',
+        regLabel: a.regLabel, sachets: 0, patients: []
+      };
+    }
+    formulaMap[key].sachets += a.days;
+    if (!formulaMap[key].patients.find(x => x.name === a.name)) {
+      formulaMap[key].patients.push({ name: a.name, days: a.days });
+    }
+  });
+  const formulas = Object.values(formulaMap).sort((a,b) => b.sachets - a.sachets);
+
+  // ── Group by day ──
+  const byDay = {};
+  weekAppts.forEach(a => {
+    if (!byDay[a.date]) byDay[a.date] = [];
+    byDay[a.date].push(a);
+  });
+  const sortedDays = Object.keys(byDay).sort();
+
+  // ── Stats ──
+  const totalPts = new Set(weekAppts.map(a => a.ptId)).size;
+  const totalSachets = weekAppts.reduce((s,a) => s + a.days, 0);
+  const ipCount = new Set(weekAppts.filter(a => a.isIP).map(a => a.ptId)).size;
+  const cpCount = new Set(weekAppts.filter(a => !a.isIP).map(a => a.ptId)).size;
+  const nearPCCount = weekAppts.filter(a => a.nearPC).length;
+
+  // ── Format date helpers ──
+  const fmtThaiDate = (iso) => {
+    const d = new Date(iso+'T00:00:00');
+    const months = ['ม.ค.','ก.พ.','มี.ค.','เม.ย.','พ.ค.','มิ.ย.','ก.ค.','ส.ค.','ก.ย.','ต.ค.','พ.ย.','ธ.ค.'];
+    return `${d.getDate()} ${months[d.getMonth()]} ${(d.getFullYear()+543).toString().slice(-2)}`;
+  };
+  const fmtThaiDateLong = (iso) => {
+    const d = new Date(iso+'T00:00:00');
+    const months = ['ม.ค.','ก.พ.','มี.ค.','เม.ย.','พ.ค.','มิ.ย.','ก.ค.','ส.ค.','ก.ย.','ต.ค.','พ.ย.','ธ.ค.'];
+    return `${d.getDate()} ${months[d.getMonth()]} ${d.getFullYear()+543}`;
+  };
+  const printedAt = `${fmtThaiDateLong(todayISO)} ${_pad(today.getHours())}:${_pad(today.getMinutes())}`;
+
+  // ── Phase color picker for cards ──
+  const phaseClass = (phase, idx) => {
+    if (phase === 'IP') return '';
+    if (idx === 0 && phase === 'CP') return ' cp';
+    return ' cp';
+  };
+
+  // ── Build HTML ──
+  const formulasHTML = formulas.map((f, idx) => {
+    const isMDR = (f.regLabel || '').includes('Lfx') || (f.regLabel || '').includes('Am');
+    const cardClass = isMDR ? ' mdr' : (f.phase === 'CP' ? ' cp' : '');
+    const phaseLabel = isMDR ? `MDR-${f.phase}` : f.phase;
+    const ptNames = f.patients.map(p => p.name.replace(/^(นาย|นาง|นางสาว)\s?/,'')).join(', ');
+    return `<div class="formula-card${cardClass}">
+      <span class="fc-phase">${phaseLabel}</span>
+      <div class="fc-formula">${f.combo.replace(/·/g,'·')}</div>
+      <div class="fc-sub">${f.regLabel}</div>
+      <div class="fc-bottom">
+        <div><span class="fc-qty">${f.sachets}</span><span class="fc-unit">ซอง</span></div>
+        <div class="fc-pts"><b>${f.patients.length}</b> คน<br>${ptNames}</div>
+      </div>
+    </div>`;
+  }).join('');
+
+  const tableRowsHTML = sortedDays.map(d => {
+    const dObj = new Date(d+'T00:00:00');
+    const dayName = DOW_TH3[dObj.getDay()];
+    const dayHeader = `<tr class="day-row"><td colspan="5">📅 ${dayName} ${fmtThaiDateLong(d)} <span class="cnt">${byDay[d].length} ราย</span></td></tr>`;
+    const rows = byDay[d].map(a => {
+      const isMDR = (a.regLabel || '').includes('Lfx') || (a.regLabel || '').includes('Am');
+      const phaseBadge = isMDR
+        ? `<span class="badge b-mdr">MDR-${a.isIP?'IP':'CP'}</span>`
+        : a.isIP
+          ? `<span class="badge b-ip">IP</span>`
+          : `<span class="badge b-cp">CP</span>`;
+      const todayBadge = a.isToday ? `<span class="badge b-today">วันนี้</span>` : '';
+      const nearBadge = a.nearPC ? `<span class="badge b-hl">ใกล้เปลี่ยน Phase</span>` : '';
+      const dispParts = a.dispLbl.includes('→')
+        ? a.dispLbl.split('→').map(s => s.trim())
+        : [a.dispLbl];
+      const visitDisplay = dispParts.length === 2
+        ? `${dispParts[0]} → ${dispParts[1]}`
+        : a.dispLbl;
+      return `<tr>
+        <td class="ctr"><span class="check-box"></span></td>
+        <td>
+          <span class="pt-name">${a.name}</span>
+          <span class="pt-hn">HN ${a.hn || '—'}</span>
+        </td>
+        <td>
+          <div class="reg">${a.regLabel}</div>
+          <div class="reg-sub">${a.combo || '—'} · BW ${a.wt || '—'}กก.</div>
+        </td>
+        <td>
+          <div class="visit">${visitDisplay} ${phaseBadge}${todayBadge}${nearBadge}</div>
+          <div class="visit-sub">เติม ${a.days} วัน</div>
+        </td>
+        <td class="num"><span class="sachet">${a.days}</span><span class="sachet-unit">ซอง</span></td>
+      </tr>`;
+    }).join('');
+    return dayHeader + rows;
+  }).join('');
+
+  const notesItems = weekAppts.filter(a => a.nearPC).map(a =>
+    `<b>⚠️ ${a.name}</b> (${fmtThaiDate(a.date)}) — ใกล้ครบ IP +${a.daysToPC} วัน · ตรวจสอบ LFT ก่อนตัดสินใจ extend IP หรือ switch CP`
+  ).join('<br>');
+
+  const reportHTML = `<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<title>เตรียมยา TB · ${fmtThaiDate(weekStart)} – ${fmtThaiDate(weekEnd)}</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Google+Sans:ital,wght@0,400;0,500;0,600;0,700&family=Google+Sans+Text:ital,wght@0,400;0,500;0,600;0,700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --tx:#1a1a1a; --tx2:#444; --tx3:#777; --bd:#d0d0d0; --bd2:#999;
+  --g4:#3D2E80; --warn:#D97706; --warn1:#FEF3C7;
+  --ip:#AFA9EC; --ipdk:#26215C; --cp:#9FE1CB; --cpdk:#04342C;
+  --hl:#FAEEDA; --hldk:#633806; --today:#C0DD97; --todaydk:#173404;
+  --row-alt:#FAFAFC;
+  --font-th:'Google Sans Text','Google Sans',-apple-system,sans-serif;
+  --font-en:'Google Sans','Google Sans Text',-apple-system,sans-serif;
+}
+*{box-sizing:border-box;margin:0;padding:0;font-family:var(--font-th)}
+body{background:#e5e5e5;font-family:var(--font-th);color:var(--tx);padding:24px 0;line-height:1.4}
+.toolbar{max-width:794px;margin:0 auto 16px;padding:10px 14px;background:#fff;border-radius:8px;box-shadow:0 1px 3px rgba(0,0,0,.1);display:flex;align-items:center;justify-content:space-between;gap:12px}
+.toolbar-title{font-size:13px;color:#666}
+.toolbar-title b{color:#3D2E80}
+.btn{padding:8px 16px;background:#3D2E80;color:#fff;border:none;border-radius:6px;cursor:pointer;font-family:inherit;font-size:13px;font-weight:600}
+.btn:hover{background:#241A50}
+.a4{width:210mm;min-height:297mm;background:#fff;margin:0 auto 18px;padding:13mm 13mm 11mm;box-shadow:0 4px 16px rgba(0,0,0,.1);font-size:9pt;color:var(--tx);position:relative}
+.hd{display:flex;justify-content:space-between;align-items:flex-start;border-bottom:1.5px solid var(--g4);padding-bottom:6px;margin-bottom:9px}
+.hd-l h1{font-size:13pt;color:var(--g4);font-weight:700;line-height:1.2}
+.hd-l .sub{font-size:8pt;color:var(--tx2);margin-top:2px}
+.hd-r{text-align:right;font-size:7.5pt;color:var(--tx2)}
+.hd-r .week{font-size:11pt;font-weight:700;color:var(--g4);font-family:var(--font-en)}
+.summary{display:flex;gap:6px;margin-bottom:8px;flex-wrap:wrap}
+.sm-chip{background:#F0EEF9;border:1px solid #D4CEEE;border-radius:99px;padding:2px 9px;font-size:7.5pt;color:var(--tx2)}
+.sm-chip b{color:var(--g4);font-family:var(--font-en);font-weight:700;margin-left:3px}
+.formula-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:6px}
+.formula-card{border:1.2px solid var(--g4);border-radius:7px;background:linear-gradient(135deg,#F7F6FF 0%,#EDE9FE 100%);padding:9px 11px;position:relative;overflow:hidden}
+.formula-card.cp{border-color:#0E7A5C;background:linear-gradient(135deg,#F0FBF6 0%,#DFF5EB 100%)}
+.formula-card.mdr{border-color:#B45309;background:linear-gradient(135deg,#FFFBEB 0%,#FEF3C7 100%)}
+.fc-phase{position:absolute;top:7px;right:9px;font-size:6.5pt;font-weight:700;padding:1px 6px;border-radius:99px;background:var(--ip);color:var(--ipdk)}
+.formula-card.cp .fc-phase{background:var(--cp);color:var(--cpdk)}
+.formula-card.mdr .fc-phase{background:#FBBF24;color:#78350F}
+.fc-formula{font-family:var(--font-en);font-weight:700;font-size:11pt;color:var(--g4);letter-spacing:0.3px;padding-right:48px;line-height:1.15;word-break:break-word}
+.formula-card.cp .fc-formula{color:#04342C}
+.formula-card.mdr .fc-formula{color:#78350F}
+.fc-sub{font-size:7pt;color:var(--tx3);margin-top:2px;font-family:var(--font-en)}
+.fc-bottom{display:flex;align-items:baseline;justify-content:space-between;margin-top:6px;padding-top:5px;border-top:0.5px dashed rgba(61,46,128,.3)}
+.formula-card.cp .fc-bottom{border-top-color:rgba(4,52,44,.3)}
+.formula-card.mdr .fc-bottom{border-top-color:rgba(120,83,9,.3)}
+.fc-qty{font-family:var(--font-en);font-weight:700;font-size:22pt;color:var(--g4);line-height:0.95}
+.formula-card.cp .fc-qty{color:#04342C}
+.formula-card.mdr .fc-qty{color:#78350F}
+.fc-unit{font-size:8.5pt;color:var(--tx2);font-weight:500;margin-left:3px}
+.fc-pts{font-size:7.5pt;color:var(--tx3);text-align:right;line-height:1.3}
+.fc-pts b{color:var(--tx2);font-family:var(--font-en);font-weight:700;font-size:9pt}
+.sec-t{font-size:9.5pt;font-weight:700;color:var(--g4);border-left:3px solid var(--g4);padding-left:7px;display:flex;align-items:center;gap:8px;margin:10px 0 4px}
+.sec-t .cnt{font-size:7.5pt;color:var(--tx3);font-weight:500}
+table{width:100%;border-collapse:collapse;font-size:8.5pt}
+th{background:#3D2E80;color:#fff;font-weight:600;text-align:left;padding:5px 7px;font-size:8pt}
+th.ctr{text-align:center}th.num{text-align:right}
+td{padding:6px 7px;border-bottom:0.5px solid #e5e5e5;vertical-align:middle}
+tbody tr:nth-child(even){background:var(--row-alt)}
+tbody tr:last-child td{border-bottom:1.5px solid var(--g4)}
+.num{text-align:right;font-family:var(--font-en);font-variant-numeric:tabular-nums}
+.ctr{text-align:center}
+.pt-name{font-size:9pt;font-weight:700;color:var(--tx)}
+.pt-hn{font-size:7pt;color:var(--tx3);font-family:var(--font-en);display:block;margin-top:1px}
+.reg{font-family:var(--font-en);font-weight:600;font-size:8.5pt;color:var(--g4);letter-spacing:0.2px}
+.reg-sub{font-size:7pt;color:var(--tx3);margin-top:1px;font-family:var(--font-en)}
+.visit{font-size:8.5pt;font-weight:600;color:var(--tx)}
+.visit-sub{font-size:7pt;color:var(--tx3);margin-top:1px}
+.sachet{font-size:14pt;font-weight:700;color:var(--g4);font-family:var(--font-en);line-height:1}
+.sachet-unit{font-size:7.5pt;color:var(--tx3);margin-left:2px}
+.check-box{width:13px;height:13px;border:1px solid var(--bd2);display:inline-block;vertical-align:middle;border-radius:2px}
+.badge{display:inline-block;font-size:6.5pt;font-weight:600;padding:1px 5px;border-radius:99px;margin-left:3px;vertical-align:middle}
+.b-ip{background:var(--ip);color:var(--ipdk)}
+.b-cp{background:var(--cp);color:var(--cpdk)}
+.b-mdr{background:#FBBF24;color:#78350F}
+.b-hl{background:var(--hl);color:var(--hldk)}
+.b-today{background:var(--today);color:var(--todaydk)}
+.day-row td{background:#EBE6F8;padding:4px 9px;font-weight:600;font-size:8pt;color:var(--g4);border-bottom:none}
+.day-row .cnt{font-weight:400;font-size:7pt;color:var(--tx3);margin-left:6px}
+.total-row td{background:#F0EEF9;font-weight:700;padding:7px;border-top:1.5px solid var(--g4);border-bottom:none;font-size:9pt}
+.total-row .total-num{font-size:12pt;color:var(--g4);font-family:var(--font-en)}
+.notes{margin-top:9px;font-size:7.5pt;color:var(--tx2);padding:6px 10px;background:var(--warn1);border-radius:5px;border-left:3px solid var(--warn);line-height:1.45}
+.notes b{color:var(--hldk)}
+.ft{position:absolute;bottom:6mm;left:13mm;right:13mm;display:flex;justify-content:space-between;font-size:7pt;color:var(--tx3);border-top:0.5px solid var(--bd);padding-top:3px;font-family:var(--font-en)}
+@media print{body{background:#fff;padding:0}.toolbar{display:none}.a4{box-shadow:none;margin:0}}
+@page{size:A4;margin:0}
+</style>
+</head>
+<body>
+<div class="toolbar">
+  <div class="toolbar-title">📄 <b>รายการเตรียมยา TB</b> · ${fmtThaiDate(weekStart)} – ${fmtThaiDate(weekEnd)}</div>
+  <button class="btn" onclick="window.print()">🖨️ พิมพ์ A4</button>
+</div>
+<div class="a4">
+  <div class="hd">
+    <div class="hd-l">
+      <h1>📋 รายการเตรียมยา TB ประจำสัปดาห์</h1>
+      <div class="sub">คลินิกวัณโรค · งานเภสัชกรรม</div>
+    </div>
+    <div class="hd-r">
+      <div class="week">${fmtThaiDate(weekStart)} – ${fmtThaiDate(weekEnd)}</div>
+      <div>(จันทร์ – ศุกร์)</div>
+      <div style="margin-top:4px">พิมพ์: ${printedAt}</div>
+    </div>
+  </div>
+  <div class="summary">
+    <span class="sm-chip">ผู้ป่วยทั้งหมด <b>${totalPts}</b> คน</span>
+    <span class="sm-chip">รวม <b>${totalSachets}</b> ซอง</span>
+    <span class="sm-chip">IP <b>${ipCount}</b> คน</span>
+    <span class="sm-chip">CP <b>${cpCount}</b> คน</span>
+    ${nearPCCount ? `<span class="sm-chip" style="background:var(--hl);border-color:#E8C892">ใกล้เปลี่ยน Phase <b>${nearPCCount}</b></span>` : ''}
+  </div>
+  <div class="sec-t">💊 สรุปสูตรยาที่ต้องเตรียมรวมทั้งสัปดาห์ <span class="cnt">${formulas.length} สูตร · ทุกซองมี B6 50mg เพิ่ม 1 เม็ด/วัน</span></div>
+  <div class="formula-grid">${formulasHTML}</div>
+  <div class="sec-t">📋 รายการเตรียมยา <span class="cnt">เรียงตามวันนัด · จันทร์ → ศุกร์</span></div>
+  <table>
+    <thead>
+      <tr>
+        <th class="ctr" style="width:5%">✓</th>
+        <th style="width:24%">ชื่อผู้ป่วย</th>
+        <th style="width:30%">สูตรยา</th>
+        <th style="width:25%">ชื่อนัด</th>
+        <th class="num" style="width:16%">จำนวนซอง</th>
+      </tr>
+    </thead>
+    <tbody>
+      ${tableRowsHTML}
+      <tr class="total-row">
+        <td colspan="4" style="text-align:right">รวมทั้งสัปดาห์ (${totalPts} ราย)</td>
+        <td class="num"><span class="total-num">${totalSachets}</span> <span class="sachet-unit">ซอง</span></td>
+      </tr>
+    </tbody>
+  </table>
+  ${notesItems ? `<div class="notes"><b>⚠️ หมายเหตุ:</b><br>${notesItems}</div>` : ''}
+  <div class="ft">
+    <span>TB Pharm · NTP ไทย พ.ศ. 2564</span>
+    <span>หน้า 1/1</span>
+  </div>
+</div>
+<script>
+window.addEventListener('load', () => { setTimeout(() => window.print(), 600); });
+</script>
+</body>
+</html>`;
+
+  // ── เปิดหน้าใหม่ + auto print ──
+  const w = window.open('', '_blank');
+  if (!w) {
+    if (typeof toast === 'function') toast('Popup blocked — กรุณาอนุญาต popup');
+    else alert('Popup blocked — กรุณาอนุญาต popup');
+    return;
+  }
+  w.document.open();
+  w.document.write(reportHTML);
+  w.document.close();
 }
 
 function togglePtView() {
