@@ -2210,25 +2210,59 @@ function toggleSkipVisit(idx) {
 
 function rebuildSchedule() {
   if (!S.selectedPatient) return;
-  if (!confirm('Rebuild จะ generate วันนัดใหม่ทั้งหมดจาก start date ปัจจุบัน\nวันที่แก้ไขเองจะถูก reset — ยืนยัน?')) return;
   const hasBackend = APPS_SCRIPT_URL && !APPS_SCRIPT_URL.includes('YOUR_APPS');
+
   const doRebuild = async (p) => {
     if (!p) { toast('ไม่พบข้อมูลผู้ป่วย'); return; }
+
+    // ── เลือกวันฐาน: ถ้ามี restart_date และใหม่กว่า start_date → ถามผู้ใช้ ──
+    const fmtTH = iso => {
+      if (!iso) return '';
+      const a = iso.split('-');
+      return a.length === 3 ? `${a[2]}/${a[1]}/${parseInt(a[0])+543}` : iso;
+    };
+    let baseDate = p.start_date;
+    if (p.restart_date && p.restart_date > p.start_date) {
+      const useRestart = confirm(
+        `ผู้ป่วยรายนี้มี Restart IP เมื่อ ${fmtTH(p.restart_date)}\n\n` +
+        `เลือกจุดเริ่มต้นในการสร้างตารางนัดใหม่:\n\n` +
+        `  ✅ OK = ใช้ Restart IP (${fmtTH(p.restart_date)}) เป็น Day 1 ใหม่\n` +
+        `  ❌ Cancel = ใช้ Start Date เดิม (${fmtTH(p.start_date)})\n\n` +
+        `⚠️ Rebuild จะ generate วันนัดใหม่ทั้งหมด · วันที่แก้ไขเองจะถูก reset`
+      );
+      if (useRestart) {
+        baseDate = p.restart_date;
+      } else {
+        // confirm ปกติ
+        if (!confirm(`ยืนยัน Rebuild จาก Start Date เดิม (${fmtTH(p.start_date)})?`)) return;
+      }
+    } else {
+      if (!confirm(`Rebuild จะ generate วันนัดใหม่ทั้งหมดจาก ${fmtTH(p.start_date)}\nวันที่แก้ไขเองจะถูก reset — ยืนยัน?`)) return;
+    }
+
     delete REGS[p.regimen_code]; // ล้าง cache เก่า
     ensureCustomReg(p);
     S.visitSched = [];
     S.visitDates = [];
     S._savedVisitDates = []; // clear saved dates ไม่ให้ overlay วันเดิม
+
+    // ── Set start-date input ตาม baseDate ที่เลือก แล้ว build ──
+    const sdInput = document.getElementById('start-date');
+    if (sdInput) sdInput.value = baseDate;
+    S.startDate = baseDate;
+    if (typeof setStartDateDisplay === 'function') setStartDateDisplay(baseDate);
+
     buildSchedule();
-    toast('Rebuild เรียบร้อย — กำลังโหลดหน้าใหม่...');
+    toast(`✅ Rebuild จาก ${fmtTH(baseDate)} เรียบร้อย`);
     // ถ้าอยู่หน้า ptcard ให้ rebuild card ด้วย
     if (S.page === 'ptcard' || S.page === 'schedule') {
       goPage('ptcard', 'keepContext');
       await buildPatientCard(p.patient_id);
     }
   };
+
   if (hasBackend) {
-    // โหลด patient ใหม่จาก Sheets เพื่อให้ได้ regimen_ip_months/cp_month ล่าสุด
+    // โหลด patient ใหม่จาก Sheets เพื่อให้ได้ restart_date / regimen ล่าสุด
     api('getPatients', {}).then(d => {
       if (d?.length) S.patients = d;
       const p = S.patients.find(pt => pt.patient_id === S.selectedPatient);
