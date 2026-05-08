@@ -4189,7 +4189,7 @@ function buildAlertsPage() {
           ? Math.max(1, Math.round((new Date(nextDate+'T00:00:00') - new Date(d+'T00:00:00')) / 86400000))
           : 28; // ถ้าไม่มีนัดถัดไป ใช้ 28 วัน default
 
-        const moElapsed = base ? (new Date(d+'T00:00:00') - base) / (1000*60*60*24*30) : 0;
+        const moElapsed = base ? (new Date(d+'T00:00:00') - base) / (1000*60*60*24*28) : 0;
         const isIP  = moElapsed <= (reg?.ip || 2);
         const drugs = isIP ? (reg?.ipDrugs || []) : (reg?.cpDrugs || []);
         const drugList = drugs.map(abbr => {
@@ -4203,7 +4203,7 @@ function buildAlertsPage() {
           return { abbr, dose, str, strLabel, tabs, days, tabsPerDose, drugFullName };
         }).filter(Boolean);
 
-        const ipEnd = base ? new Date(base.getTime() + (reg?.ip||2)*30*86400000) : null;
+        const ipEnd = base ? new Date(base.getTime() + (reg?.ip||2)*28*86400000) : null;
         const daysToPC = ipEnd ? Math.round((ipEnd - new Date(d+'T00:00:00')) / 86400000) : null;
         const nearPC = isIP && daysToPC !== null && daysToPC >= 0 && daysToPC <= 14;
 
@@ -4229,7 +4229,7 @@ function buildAlertsPage() {
               const days2 = nextDate2
                 ? Math.max(1, Math.round((new Date(nextDate2+'T00:00:00') - new Date(d+'T00:00:00')) / 86400000))
                 : 28;
-              const moEl2 = base ? (new Date(d+'T00:00:00') - base) / (1000*60*60*24*30) : 0;
+              const moEl2 = base ? (new Date(d+'T00:00:00') - base) / (1000*60*60*24*28) : 0;
               const isIP2 = moEl2 <= (reg?.ip || 2);
               const drugs2 = isIP2 ? (reg?.ipDrugs || []) : (reg?.cpDrugs || []);
               const drugList2 = drugs2.map(abbr => {
@@ -4454,34 +4454,36 @@ function buildAlertsPage() {
         const dates = JSON.parse(p.visit_dates_json);
         if (!Array.isArray(dates)) return;
 
-        // sort วันทั้งหมดที่มีค่าจริง แล้วหาวันศุกร์และวันนัดถัดไป
-        const validDates = dates.filter(d => d && d.length >= 8).sort();
-        // หา visit ทุกอันที่อยู่ในสัปดาห์ Mon-Fri นี้
-        const weekVisits = validDates
-          .map((d, i) => ({ d, i }))
-          .filter(x => x.d >= dotWeekStart && x.d <= dotWeekEnd);
-        if (!weekVisits.length) return;
-        const fridayPos = weekVisits[0].i; // ใช้ visit แรกของสัปดาห์
-        const visitDate = weekVisits[0].d; // วันนัดจริง
+        // ── ใช้ logic เดียวกับ Alert detail: รวม custom_visits + ไม่ cap ──
+        let allDatesD = [...dates];
+        try {
+          if (p.custom_visits_json) {
+            const customs = JSON.parse(p.custom_visits_json);
+            if (Array.isArray(customs)) customs.forEach(cv => { if (cv.date) allDatesD.push(cv.date); });
+          }
+        } catch(e) {}
+        allDatesD = [...new Set(allDatesD.filter(x => x && x.length >= 8))].sort();
+
+        // หา visit ทุกอันที่อยู่ในสัปดาห์ Mon-Fri นี้ (จาก allDates)
+        const weekVisitsD = allDatesD.filter(x => x >= dotWeekStart && x <= dotWeekEnd);
+        if (!weekVisitsD.length) return;
+        const visitDate = weekVisitsD[0]; // วันนัดแรกของสัปดาห์
 
         const reg  = lookupReg(p);
         const wt   = parseFloat(p.weight_kg) || null;
         const band = wt ? getBand(wt) : null;
         const base = p.start_date ? new Date(p.start_date+'T00:00:00') : null;
 
-        // จำนวนวัน = วันนัดถัดจากศุกร์นี้ - ศุกร์นี้ (sorted)
-        const nextNextDate = validDates[fridayPos + 1] || null;
+        // จำนวนวัน = วันนัดถัดไป - วันนัดนี้ (จาก allDates ที่รวม custom + ไม่ cap)
+        const nextNextDate = allDatesD.find(x => x > visitDate) || null;
         const days = nextNextDate
-          ? (() => {
-              const d = Math.max(1, Math.round((new Date(nextNextDate+'T00:00:00') - new Date(visitDate+'T00:00:00')) / 86400000));
-              return Math.min(d, 112); // cap ที่ 112 วัน (เกณฑ์ NTIP)
-            })()
-          : 112; // fallback
+          ? Math.max(1, Math.round((new Date(nextNextDate+'T00:00:00') - new Date(visitDate+'T00:00:00')) / 86400000))
+          : 28; // ถ้าไม่มีนัดถัดไป default 28 วัน (เท่ากับ Alert detail)
 
         // phase ของ visit ศุกร์นี้
-        const moElapsed = base ? (new Date(visitDate+'T00:00:00') - base) / (1000*60*60*24*30) : 0;
+        const moElapsed = base ? (new Date(visitDate+'T00:00:00') - base) / (1000*60*60*24*28) : 0;
         const isIP     = moElapsed <= (reg?.ip || 2);
-        const ipEnd    = base ? new Date(base.getTime() + (reg?.ip||2)*30*86400000) : null;
+        const ipEnd    = base ? new Date(base.getTime() + (reg?.ip||2)*28*86400000) : null;
         const daysToPC = ipEnd ? Math.round((ipEnd - new Date(visitDate+'T00:00:00')) / 86400000) : null;
         const nearPC   = isIP && daysToPC !== null && daysToPC >= 0 && daysToPC <= 14;
 
@@ -4528,7 +4530,7 @@ function buildAlertsPage() {
           const cvDays = nextD
             ? Math.min(112, Math.max(1, Math.round((new Date(nextD+'T00:00:00') - new Date(d+'T00:00:00')) / 86400000)))
             : 28;
-          const moEl = base ? (new Date(d+'T00:00:00') - base) / (1000*60*60*24*30) : 0;
+          const moEl = base ? (new Date(d+'T00:00:00') - base) / (1000*60*60*24*28) : 0;
           const isIP = moEl <= (reg?.ip || 2);
           const drugs = isIP ? (reg?.ipDrugs||[]) : (reg?.cpDrugs||[]);
           const makeCombo2 = (dl) => dl.map(abbr => {
@@ -4638,14 +4640,14 @@ function printWeeklyDrugReport() {
         const days = nextDate
           ? Math.max(1, Math.round((new Date(nextDate+'T00:00:00') - new Date(d+'T00:00:00')) / 86400000))
           : 28;
-        const moElapsed = base ? (new Date(d+'T00:00:00') - base) / (1000*60*60*24*30) : 0;
+        const moElapsed = base ? (new Date(d+'T00:00:00') - base) / (1000*60*60*24*28) : 0;
         const isIP = moElapsed <= (reg?.ip || 2);
         const drugs = (isIP ? (reg?.ipDrugs || []) : (reg?.cpDrugs || [])).filter(x => x !== 'B6');
         const combo = drugs.map(abbr => {
           const dose = wt ? getDose(abbr, band, wt) : null;
           return dose ? `${abbr}${dose}` : null;
         }).filter(Boolean).join('·');
-        const ipEnd = base ? new Date(base.getTime() + (reg?.ip||2)*30*86400000) : null;
+        const ipEnd = base ? new Date(base.getTime() + (reg?.ip||2)*28*86400000) : null;
         const daysToPC = ipEnd ? Math.round((ipEnd - new Date(d+'T00:00:00')) / 86400000) : null;
         const nearPC = isIP && daysToPC !== null && daysToPC >= 0 && daysToPC <= 14;
         const schedLbl = getSchedLbl(reg, i);
@@ -4670,7 +4672,7 @@ function printWeeklyDrugReport() {
               const days2 = nextDate2
                 ? Math.max(1, Math.round((new Date(nextDate2+'T00:00:00') - new Date(d+'T00:00:00')) / 86400000))
                 : 28;
-              const moEl2 = base ? (new Date(d+'T00:00:00') - base) / (1000*60*60*24*30) : 0;
+              const moEl2 = base ? (new Date(d+'T00:00:00') - base) / (1000*60*60*24*28) : 0;
               const isIP2 = moEl2 <= (reg?.ip || 2);
               const drugs2 = (isIP2 ? (reg?.ipDrugs||[]) : (reg?.cpDrugs||[])).filter(x => x !== 'B6');
               const combo2 = drugs2.map(abbr => {
@@ -5174,7 +5176,7 @@ function ensureCustomReg(p) {
 
 function guessPhaseFromDate(dateISO) {
   if (!dateISO || !S.startDate) return 'CP';
-  const mo = (new Date(dateISO) - new Date(S.startDate + 'T00:00:00')) / (1000*60*60*24*30);
+  const mo = (new Date(dateISO) - new Date(S.startDate + 'T00:00:00')) / (1000*60*60*24*28);
   return mo <= (REGS[S.reg]?.ip || 2) ? 'IP' : 'CP';
 }
 
@@ -5726,14 +5728,28 @@ async function submitAddPt() {
   const start    = parseDateTH(startRaw);
   if (!name || !hn || !start) { toast('กรอกชื่อ HN และวันเริ่มยา (dd/mm/yyyy)'); return; }
 
-  const dupHN = S.patients.find(p => p.hn === hn && p.status !== 'completed' && p.status !== 'died');
-  if (dupHN) {
-    const statusTH = { active:'กำลังรักษา', hold:'Hold', ltfu:'ขาดนัด' };
+  // ── ห้ามลงทะเบียนซ้ำถ้า HN ยัง active/hold/ltfu (เคสยังเปิดอยู่) ──
+  const dupActive = S.patients.find(p => p.hn === hn && (p.status === 'active' || p.status === 'hold' || p.status === 'ltfu'));
+  if (dupActive) {
+    const statusTH = { active:'กำลังรักษา', hold:'Hold ยา', ltfu:'ขาดนัด' };
+    window.alert(
+      '❌ ไม่สามารถลงทะเบียนซ้ำ\n\n' +
+      'HN ' + hn + ' มีในระบบแล้ว และเคสยังเปิดอยู่\n' +
+      '   ชื่อ: ' + dupActive.name + '\n' +
+      '   สถานะ: ' + (statusTH[dupActive.status] || dupActive.status) + '\n\n' +
+      'หากต้องการลงทะเบียนใหม่ ให้ปิดเคสเดิม (D/C) ก่อน'
+    );
+    return;
+  }
+  // อนุญาตให้ลงทะเบียนซ้ำได้ ถ้าเคสเดิม completed/died (ผู้ป่วยกลับมารักษาใหม่)
+  const dupClosed = S.patients.find(p => p.hn === hn && (p.status === 'completed' || p.status === 'died'));
+  if (dupClosed) {
+    const statusTH = { completed:'รักษาครบ', died:'เสียชีวิต' };
     const ok = window.confirm(
-      'HN ' + hn + ' มีในระบบแล้ว\n' +
-      'ชื่อ: ' + dupHN.name + '\n' +
-      'สถานะ: ' + (statusTH[dupHN.status] || dupHN.status) + '\n\n' +
-      'กด OK เพื่อลงทะเบียนซ้ำ หรือ Cancel เพื่อยกเลิก'
+      'ℹ️ HN ' + hn + ' เคยมีในระบบ (เคสปิดแล้ว)\n' +
+      '   ชื่อเดิม: ' + dupClosed.name + '\n' +
+      '   สถานะเดิม: ' + (statusTH[dupClosed.status] || dupClosed.status) + '\n\n' +
+      'ต้องการลงทะเบียนใหม่ (รักษารอบใหม่) หรือไม่?'
     );
     if (!ok) return;
   }
@@ -5799,7 +5815,7 @@ function updateDashboardStats() {
     if (!p.start_date) return true;
     const reg = lookupReg(p);
     const ipMo = reg?.ip || 2;
-    const moEl = (today - new Date(p.start_date+'T00:00:00')) / (1000*60*60*24*30);
+    const moEl = (today - new Date(p.start_date+'T00:00:00')) / (1000*60*60*24*28);
     return moEl <= ipMo;
   });
   const cpCount = active.length - ipList.length;
@@ -5964,7 +5980,7 @@ function updateDashboardStats() {
       const lblMap = ['เริ่มยา','2สัปดาห์','1เดือน','2เดือน','3เดือน','4เดือน','5เดือน','6เดือน','8เดือน','9เดือน','10เดือน','12เดือน'];
       dates.forEach((d, i) => {
         if (!d || d<weekStart || d>weekEnd) return;
-        const moEl = base ? (new Date(d+'T00:00:00')-base)/(1000*60*60*24*30) : 0;
+        const moEl = base ? (new Date(d+'T00:00:00')-base)/(1000*60*60*24*28) : 0;
         const isIP = moEl <= (reg?.ip||2);
         const phase = isIP ? 'IP' : 'CP';
         const isPC  = Math.abs(moEl - (reg?.ip||2)) < 0.3;
@@ -8358,25 +8374,4 @@ async function submitEditPatient(patientId) {
   // update local
   Object.assign(p, updates);
 
-  const btn = document.querySelector('#modal-content .btn-g:last-child');
-  if (btn) { btn.textContent = '⏳ กำลังบันทึก...'; btn.disabled = true; }
-
-  try {
-    if (APPS_SCRIPT_URL && !APPS_SCRIPT_URL.includes('YOUR_APPS')) {
-      await api('savePatient', updates);
-      toast('✅ บันทึกข้อมูลแล้ว');
-    } else {
-      toast('💾 บันทึกแล้ว (local)');
-    }
-    closeModal();
-    await buildPatientCard(patientId);
-  } catch(e) {
-    toast('❌ บันทึกไม่สำเร็จ: ' + e.message);
-    if (btn) { btn.textContent = 'บันทึก'; btn.disabled = false; }
-  }
-}
-</script>
-
-  }
-}
-</script>
+  const btn = document.querySelec
