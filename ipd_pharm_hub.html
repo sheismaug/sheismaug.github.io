@@ -1237,13 +1237,21 @@
         .pl-atb-chip {
             display: inline-flex; align-items: center; gap: 4px;
             background: #fff; border: 1px solid #d8d5d0;
-            padding: 2px 6px 2px 8px; border-radius: 9999px;
+            padding: 2px 6px 2px 5px; border-radius: 9999px;
             font-size: 10.5px; font-weight: 500; color: #555;
             white-space: nowrap;
+        }
+        .pl-atb-chip .route-ic {
+            font-size: 11px; line-height: 1; filter: saturate(0.85);
         }
         .pl-atb-chip .day {
             font-weight: 700; font-variant-numeric: tabular-nums;
             margin-left: 3px; padding: 0 5px; border-radius: 4px; line-height: 1.4;
+        }
+        .pl-atb-more {
+            display: inline-flex; align-items: center;
+            font-size: 10.5px; font-weight: 600; color: #888;
+            padding: 0 6px; border-radius: 9999px; background: #f0eeea;
         }
         .pl-atb-chip .day.early   { background: #e8f5e8; color: #1e6b28; }
         .pl-atb-chip .day.mid     { background: #fff8e0; color: #8a5e10; }
@@ -7075,19 +7083,30 @@
             row.tabIndex = 0;
             row.setAttribute('data-hn', p.hn || '');
             // Build ATB chips for "ยาเด่น" column
+            //   - แต่ละ chip มี emoji ตาม route: 💊 (PO) · 💉 (IV/IM/อื่นๆ)
+            //   - cap ที่ 6 chips · เกินกว่านั้นแสดง "+N"
             var drugsHtml = '';
             var atbList = (p.atbActive && p.atbActive.length) ? p.atbActive : [];
             if (atbList.length) {
-                drugsHtml = '<span class="icon">💉</span>';
-                for (var ai = 0; ai < atbList.length && ai < 3; ai++) {
+                var MAX_CHIPS = 6;
+                var shown = Math.min(atbList.length, MAX_CHIPS);
+                for (var ai = 0; ai < shown; ai++) {
                     var ab = atbList[ai];
                     var info = _atbDayInfo(ab);
-                    var tooltip = ab.frequency
-                        ? (ab.frequency + (info.endLabel ? ' · ครบ ' + info.endLabel : '')
-                           + (info.totalDoses ? ' · ' + info.dosesGiven + '/' + info.totalDoses + ' doses' : ''))
-                        : '';
-                    drugsHtml += '<span class="pl-atb-chip" title="' + _esc(tooltip) + '">' + _esc(ab.drug || '—')
-                              + '<span class="day ' + info.colorClass + '">' + info.label + '</span></span>';
+                    var routeUp = String(ab.route || '').toUpperCase();
+                    var routeIcon = (routeUp === 'PO' || routeUp === 'ORAL') ? '💊' : '💉';
+                    var tooltip = (ab.route ? ab.route + ' · ' : '')
+                        + (ab.frequency || '')
+                        + (info.endLabel ? ' · ครบ ' + info.endLabel : '')
+                        + (info.totalDoses ? ' · ' + info.dosesGiven + '/' + info.totalDoses + ' doses' : '');
+                    drugsHtml += '<span class="pl-atb-chip" title="' + _esc(tooltip.trim()) + '">'
+                              +    '<span class="route-ic">' + routeIcon + '</span>'
+                              +    _esc(ab.drug || '—')
+                              +    '<span class="day ' + info.colorClass + '">' + info.label + '</span>'
+                              + '</span>';
+                }
+                if (atbList.length > MAX_CHIPS) {
+                    drugsHtml += '<span class="pl-atb-more">+' + (atbList.length - MAX_CHIPS) + '</span>';
                 }
             } else {
                 drugsHtml = '<span class="plv2-drugs-empty">—</span>';
