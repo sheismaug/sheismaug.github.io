@@ -2165,6 +2165,42 @@ function setVisitDate(idx, input) {
   }
 }
 
+// ════════════════════════════════════════════════════════════
+// ⊘ Skip Visit — ข้ามนัด (เช่น หมอข้ามนัด 1 เดือน → 2 เดือนเลย)
+// ════════════════════════════════════════════════════════════
+function toggleSkipVisit(idx) {
+  if (!S.visitSched || !S.visitSched[idx]) return;
+  if (S.visitSched[idx].isCustom) { toast('Visit พิเศษ ใช้ปุ่ม ✕ เพื่อลบ'); return; }
+  if (S.visitNotes && S.visitNotes[idx]) { toast('Visit นี้มีบันทึกแล้ว ไม่สามารถ Skip ได้'); return; }
+  if (!S._skippedDates) S._skippedDates = {};
+
+  const isSkipped = !S.visitDates[idx];
+  if (isSkipped) {
+    // Unskip — restore original date from backup หรือคำนวณใหม่
+    const origDate = S._skippedDates[idx];
+    if (origDate) {
+      S.visitDates[idx] = origDate;
+      delete S._skippedDates[idx];
+    } else {
+      toast('ไม่มีวันที่เดิม — กรุณากรอกวันด้วยตนเอง');
+      return;
+    }
+  } else {
+    // Skip — backup current date แล้วล้าง
+    if (!confirm(`ข้ามนัด "${S.visitSched[idx].lbl}" ?\n\nวันนัดเดิม: ${S.visitDates[idx]}\nหลังจาก skip จะไม่ไปแสดงในปฏิทิน DOT และรายงานเตรียมยา`)) return;
+    S._skippedDates[idx] = S.visitDates[idx];
+    S.visitDates[idx] = '';
+  }
+  if (!S._savedVisitDates) S._savedVisitDates = [...S.visitDates];
+  S._savedVisitDates[idx] = S.visitDates[idx];
+  renderVisitList();
+  renderDispense();
+  renderTimeline();
+  renderIPAlert();
+  if (S.selectedPatient) debounce('saveVD', () => saveDatesOnlyToSheets(), 800);
+  toast(isSkipped ? '✓ คืนวันนัดแล้ว' : '⊘ Skip นัดแล้ว');
+}
+
 function rebuildSchedule() {
   if (!S.selectedPatient) return;
   if (!confirm('Rebuild จะ generate วันนัดใหม่ทั้งหมดจาก start date ปัจจุบัน\nวันที่แก้ไขเองจะถูก reset — ยืนยัน?')) return;
@@ -2350,9 +2386,16 @@ function renderVisitList() {
       : (hasNote
         ? `<span style="display:inline-flex;align-items:center;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:600;background:var(--g1);color:var(--g4);border:1px solid var(--g2)">✓ บันทึกแล้ว</span>`
         : '');
-    const deletable = v.isCustom
-      ? `<button class="btn btn-sm" style="padding:4px 8px;font-size:11px;background:var(--red1);color:var(--red);border:1px solid var(--red2)" onclick="removeCustomVisit(${i})">✕</button>`
-      : '';
+    const isSkipped = !v.isCustom && !S.visitDates[i] && v.num !== 0;
+    const hasNoteI = S.visitNotes && S.visitNotes[i];
+    // Action button: ✕ ลบ (custom) | ⊘ Skip / ↶ คืน (regular)
+    const actionBtn = v.isCustom
+      ? `<button class="btn btn-sm" style="padding:4px 8px;font-size:11px;background:var(--red1);color:var(--red);border:1px solid var(--red2)" onclick="removeCustomVisit(${i})" title="ลบ Visit พิเศษ">✕</button>`
+      : (v.num === 0 || hasNoteI)
+        ? '' // visit เริ่มยา หรือ มีบันทึกแล้ว — ห้าม skip
+        : isSkipped
+          ? `<button class="btn btn-sm" style="padding:4px 8px;font-size:11px;background:var(--g1);color:var(--g4);border:1px solid var(--g2)" onclick="toggleSkipVisit(${i})" title="คืนวันนัด">↶</button>`
+          : `<button class="btn btn-sm" style="padding:4px 8px;font-size:11px;background:var(--sf2);color:var(--tx2);border:1px solid var(--bd)" onclick="toggleSkipVisit(${i})" title="ข้ามนัด (Skip)">⊘</button>`;
     // Convert ISO date to dd/mm/พ.ศ. for display
     const isoToTH = iso => {
       if (!iso) return '';
@@ -2361,28 +2404,31 @@ function renderVisitList() {
       return p[2]+'/'+p[1]+'/'+(parseInt(p[0])+543);
     };
     const displayDate = isoToTH(S.visitDates[i]||'');
-    return `<div class="vr">
-      <div class="vr-num" style="${v.isEnd?'color:var(--g3)':''}">${v.num===0?'เริ่มยา':v.isCustom?'พิเศษ':'V'+v.num}</div>
+    const skipStyle = isSkipped ? 'opacity:0.5;background:var(--sf2)' : '';
+    const skipBadge = isSkipped ? `<span class="pill" style="font-size:10px;padding:2px 7px;background:var(--sf3);color:var(--tx3);border:1px dashed var(--bd2)">⊘ ข้ามนัดนี้</span>` : '';
+    return `<div class="vr" style="${skipStyle}">
+      <div class="vr-num" style="${v.isEnd?'color:var(--g3)':''}${isSkipped?';text-decoration:line-through':''}">${v.num===0?'เริ่มยา':v.isCustom?'พิเศษ':'V'+v.num}</div>
       <div class="vr-label">
-        <div class="vr-title" style="${v.isEnd?'color:var(--g4)':v.isPC?'color:var(--warn)':v.isCustom?'color:var(--blue)':''}">${v.lbl}</div>
-        <div class="vr-sub" style="display:flex;align-items:center;gap:5px;flex-wrap:wrap">${v.phase} ${monTags} ${noteTag}</div>
+        <div class="vr-title" style="${v.isEnd?'color:var(--g4)':v.isPC?'color:var(--warn)':v.isCustom?'color:var(--blue)':''}${isSkipped?';text-decoration:line-through':''}">${v.lbl}</div>
+        <div class="vr-sub" style="display:flex;align-items:center;gap:5px;flex-wrap:wrap">${v.phase} ${monTags} ${noteTag} ${skipBadge}</div>
       </div>
       <div class="vr-date" style="display:flex;gap:5px;align-items:center">
         <input type="text" value="${displayDate}"
-          placeholder="dd/mm/yyyy" maxlength="10"
-          style="font-family:var(--font-en);font-size:13px;width:104px;text-align:center"
+          placeholder="${isSkipped?'⊘ ข้าม':'dd/mm/yyyy'}" maxlength="10"
+          style="font-family:var(--font-en);font-size:13px;width:104px;text-align:center;${isSkipped?'background:var(--sf2);color:var(--tx3)':''}"
           oninput="setVisitDate(${i},this)"
           onchange="setVisitDate(${i},this)"
-          id="vr-date-${i}">
+          id="vr-date-${i}"
+          ${isSkipped?'disabled':''}>
         <button type="button"
           onclick="(function(){var p=document.getElementById('vr-picker-${i}');try{p.showPicker()}catch(e){p.click()}})()"
-          style="cursor:pointer;width:34px;height:40px;background:var(--sf2);border:1px solid var(--bd);border-radius:var(--r-xs);flex-shrink:0;font-size:15px;padding:0;display:flex;align-items:center;justify-content:center">📅</button>
+          style="cursor:pointer;width:34px;height:40px;background:var(--sf2);border:1px solid var(--bd);border-radius:var(--r-xs);flex-shrink:0;font-size:15px;padding:0;display:flex;align-items:center;justify-content:center;${isSkipped?'opacity:0.4;pointer-events:none':''}">📅</button>
         <input type="date" id="vr-picker-${i}"
           value="${S.visitDates[i]||''}"
           style="position:fixed;opacity:0;pointer-events:none;width:1px;height:1px"
           onchange="vrDateFromPicker(${i},this.value)">
       </div>
-      <div style="display:flex;gap:4px;align-items:center;flex-shrink:0">${deletable}</div>
+      <div style="display:flex;gap:4px;align-items:center;flex-shrink:0">${actionBtn}</div>
     </div>`;
   }).join('');
 }
@@ -3146,7 +3192,7 @@ function renderDOT() {
       <div class="dot-leg"><div class="dot-leg-sq" style="background:#2D6A4F"></div>กินยาแล้ว (✓)</div>
       <div class="dot-leg"><div class="dot-leg-sq" style="background:var(--red1);border:1.5px solid var(--red2)"></div>ขาดยา (✗)</div>
       <div class="dot-leg"><div class="dot-leg-sq" style="background:var(--bg2);border:1px solid var(--bd)"></div>วันข้างหน้า</div>
-      <div class="dot-leg"><div class="dot-leg-sq" style="background:#1B4332"></div>⚡ เปลี่ยน Phase</div>
+      <div class="dot-leg"><div class="dot-leg-sq" style="background:var(--g4)"></div>⚡ เปลี่ยน Phase</div>
       <div class="dot-leg">
         <div class="dot-leg-sq" style="background:var(--g3);position:relative">
           <div style="position:absolute;bottom:2px;left:50%;transform:translateX(-50%);width:4px;height:4px;border-radius:50%;background:rgba(255,255,255,.6)"></div>
@@ -8256,8 +8302,7 @@ function openEditPatientModal(patientId) {
 
   const TB_SITES = [
     { val:'pulm',      lbl:'ปอด (Pulmonary)' },
-    { val:'extrapulm', lbl:'นอกปอด (Extra-pulmonary)' },
-    { val:'tbm',       lbl:'TBM (Tuberculous meningitis)' },
+    { val:'extrapulm', lbl:'นอกปอด (Extra-pulmonary)' },    { val:'tbm',       lbl:'TBM (Tuberculous meningitis)' },
     { val:'colitis',   lbl:'TB Colitis' },
     { val:'peritoneal',lbl:'TB Peritoneal' },
     { val:'lymph',     lbl:'TB Lymph node' },
@@ -8374,4 +8419,21 @@ async function submitEditPatient(patientId) {
   // update local
   Object.assign(p, updates);
 
-  const btn = document.querySelec
+  const btn = document.querySelector('#modal-content .btn-g:last-child');
+  if (btn) { btn.textContent = '⏳ กำลังบันทึก...'; btn.disabled = true; }
+
+  try {
+    if (APPS_SCRIPT_URL && !APPS_SCRIPT_URL.includes('YOUR_APPS')) {
+      await api('savePatient', updates);
+      toast('✅ บันทึกข้อมูลแล้ว');
+    } else {
+      toast('💾 บันทึกแล้ว (local)');
+    }
+    closeModal();
+    await buildPatientCard(patientId);
+  } catch(e) {
+    toast('❌ บันทึกไม่สำเร็จ: ' + e.message);
+    if (btn) { btn.textContent = 'บันทึก'; btn.disabled = false; }
+  }
+}
+</script>
