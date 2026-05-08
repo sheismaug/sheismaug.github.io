@@ -2175,15 +2175,30 @@ function setVisitDate(idx, input) {
 // ════════════════════════════════════════════════════════════
 // ⊘ Skip Visit — ข้ามนัด (เช่น หมอข้ามนัด 1 เดือน → 2 เดือนเลย)
 // ════════════════════════════════════════════════════════════
+// Helper: เช็คว่า visitNote มีข้อมูลจริงไหม (ไม่ใช่ empty object)
+function hasRealVisitNote(note) {
+  if (!note || typeof note !== 'object') return false;
+  return !!(note.dispensed || note.actualDate || note.actual_date ||
+            (note.wt && String(note.wt).trim() !== '') ||
+            (note.bw && String(note.bw).trim() !== '') ||
+            (note.note && String(note.note).trim() !== '') ||
+            (note.missed && parseInt(note.missed) > 0) ||
+            (note.adr && note.adr.length) ||
+            (note.doseOverride && Object.keys(note.doseOverride).length));
+}
+
 function toggleSkipVisit(idx) {
-  if (!S.visitSched || !S.visitSched[idx]) return;
+  if (!S.visitSched || !S.visitSched[idx]) { toast('ไม่พบ visit'); return; }
   if (S.visitSched[idx].isCustom) { toast('Visit พิเศษ ใช้ปุ่ม ✕ เพื่อลบ'); return; }
-  if (S.visitNotes && S.visitNotes[idx]) { toast('Visit นี้มีบันทึกแล้ว ไม่สามารถ Skip ได้'); return; }
+  if (S.visitSched[idx].num === 0) { toast('Skip "เริ่มยา" ไม่ได้'); return; }
+
+  const note = S.visitNotes && S.visitNotes[idx];
+  const hasReal = hasRealVisitNote(note);
   if (!S._skippedDates) S._skippedDates = {};
 
   const isSkipped = !S.visitDates[idx];
   if (isSkipped) {
-    // Unskip — restore original date from backup หรือคำนวณใหม่
+    // Unskip — restore original date from backup
     const origDate = S._skippedDates[idx];
     if (origDate) {
       S.visitDates[idx] = origDate;
@@ -2193,17 +2208,23 @@ function toggleSkipVisit(idx) {
       return;
     }
   } else {
-    // Skip — backup current date แล้วล้าง
-    if (!confirm(`ข้ามนัด "${S.visitSched[idx].lbl}" ?\n\nวันนัดเดิม: ${S.visitDates[idx]}\nหลังจาก skip จะไม่ไปแสดงในปฏิทิน DOT และรายงานเตรียมยา`)) return;
+    // Skip — ถ้ามีบันทึกจริง ให้เตือน แต่ยังให้ skip ได้
+    let msg = `ข้ามนัด "${S.visitSched[idx].lbl}" ?\n\nวันนัดเดิม: ${S.visitDates[idx]}`;
+    if (hasReal) {
+      msg += `\n\n⚠️ Visit นี้มีบันทึกอยู่ (BW/dose/note) — บันทึกจะยังคงเก็บไว้ แต่จะไม่แสดงในปฏิทิน DOT และรายงานเตรียมยา`;
+    } else {
+      msg += `\n\nหลังจาก skip จะไม่แสดงในปฏิทิน DOT และรายงานเตรียมยา`;
+    }
+    if (!confirm(msg)) return;
     S._skippedDates[idx] = S.visitDates[idx];
     S.visitDates[idx] = '';
   }
   if (!S._savedVisitDates) S._savedVisitDates = [...S.visitDates];
   S._savedVisitDates[idx] = S.visitDates[idx];
   renderVisitList();
-  renderDispense();
-  renderTimeline();
-  renderIPAlert();
+  if (typeof renderDispense === 'function') renderDispense();
+  if (typeof renderTimeline === 'function') renderTimeline();
+  if (typeof renderIPAlert === 'function') renderIPAlert();
   if (S.selectedPatient) debounce('saveVD', () => saveDatesOnlyToSheets(), 800);
   toast(isSkipped ? '✓ คืนวันนัดแล้ว' : '⊘ Skip นัดแล้ว');
 }
@@ -2428,12 +2449,12 @@ function renderVisitList() {
         ? `<span style="display:inline-flex;align-items:center;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:600;background:var(--g1);color:var(--g4);border:1px solid var(--g2)">✓ บันทึกแล้ว</span>`
         : '');
     const isSkipped = !v.isCustom && !S.visitDates[i] && v.num !== 0;
-    const hasNoteI = S.visitNotes && S.visitNotes[i];
     // Action button: ✕ ลบ (custom) | ⊘ Skip / ↶ คืน (regular)
+    // Note: Skip allowed even if มีบันทึก — แค่เตือนใน confirm dialog
     const actionBtn = v.isCustom
       ? `<button class="btn btn-sm" style="padding:4px 8px;font-size:11px;background:var(--red1);color:var(--red);border:1px solid var(--red2)" onclick="removeCustomVisit(${i})" title="ลบ Visit พิเศษ">✕</button>`
-      : (v.num === 0 || hasNoteI)
-        ? '' // visit เริ่มยา หรือ มีบันทึกแล้ว — ห้าม skip
+      : v.num === 0
+        ? '' // visit เริ่มยา — skip ไม่ได้
         : isSkipped
           ? `<button class="btn btn-sm" style="padding:4px 8px;font-size:11px;background:var(--g1);color:var(--g4);border:1px solid var(--g2)" onclick="toggleSkipVisit(${i})" title="คืนวันนัด">↶</button>`
           : `<button class="btn btn-sm" style="padding:4px 8px;font-size:11px;background:var(--sf2);color:var(--tx2);border:1px solid var(--bd)" onclick="toggleSkipVisit(${i})" title="ข้ามนัด (Skip)">⊘</button>`;
