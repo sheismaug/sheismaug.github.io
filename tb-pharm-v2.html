@@ -628,7 +628,7 @@ textarea { resize:vertical; min-height:72px; line-height:1.5; }
 
 /* Print */
 @media print {
-  @page { size:A4 portrait; margin:10mm; }
+  @page { size:A4 portrait; margin:6mm; }
 
   .btab,.topbar,.prog-track,.bsheet,.bsheet-overlay,
   .drawer-overlay,.pw-overlay,.toast,
@@ -643,61 +643,61 @@ textarea { resize:vertical; min-height:72px; line-height:1.5; }
   .page:not(#page-dot) { display:none !important; }
   #page-dot { display:block !important; }
 
-  /* DOT sheet — A4 fit (1 page) */
-  @page { size:A4 portrait; margin:8mm; }
+  /* DOT sheet — A4 fit (1 page) — รองรับเดือน 6 แถว */
   #page-dot { padding:0 !important; }
   .dot-sheet {
     width:100% !important;
-    max-width:194mm !important;
+    max-width:198mm !important;
     border:none !important;
     border-radius:0 !important;
-    padding:1mm 2mm !important;
+    padding:0 1mm !important;
     box-shadow:none !important;
-    font-size:8.5pt !important;
+    font-size:7.5pt !important;
   }
-  /* Header */
-  .dot-hdr { padding-bottom:6px !important; margin-bottom:8px !important; }
-  .dot-hosp { font-size:8pt !important; }
-  .dot-title { font-size:13pt !important; line-height:1.2 !important; }
-  .dot-ptname { font-size:11pt !important; }
-  .dot-ptsub { font-size:8pt !important; }
-  .dot-hdr-logo { width:42px !important; height:42px !important; }
+  /* Header — ลดขนาด */
+  .dot-hdr { padding-bottom:3px !important; margin-bottom:4px !important; }
+  .dot-hosp { font-size:7pt !important; }
+  .dot-title { font-size:11pt !important; line-height:1.15 !important; }
+  .dot-ptname { font-size:10pt !important; }
+  .dot-ptsub { font-size:7pt !important; }
+  .dot-hdr-logo { width:32px !important; height:32px !important; }
   /* Progress compact row */
-  .dot-prog-compact { margin-bottom:6px !important; }
-  .dot-prog-compact-row { font-size:8pt !important; padding:3px 7px !important; }
-  .dot-prog-compact-day { font-size:10pt !important; }
-  .dot-prog-compact-day strong { font-size:13pt !important; }
+  .dot-prog-compact { margin-bottom:3px !important; }
+  .dot-prog-compact-row { font-size:7pt !important; padding:2px 6px !important; }
+  .dot-prog-compact-day { font-size:9pt !important; }
+  .dot-prog-compact-day strong { font-size:11pt !important; }
   /* Month title */
-  .dot-mo-row { margin:6px 0 4px !important; }
-  .dot-mo-title { font-size:11pt !important; }
-  .dot-mo-badge { font-size:8pt !important; padding:2px 7px !important; }
-  /* Calendar cells — tighter */
-  .dot-cal { gap:2px !important; margin-bottom:6px !important; }
-  .dot-cal-hd { font-size:8pt !important; padding:2px 0 !important; }
-  .dot-d { border-radius:5px !important; min-height:40px !important; }
-  .dot-dn { font-size:11pt !important; }
-  .dot-td { font-size:6.5pt !important; top:2px !important; right:2px !important; }
+  .dot-mo-row { margin:3px 0 2px !important; }
+  .dot-mo-title { font-size:10pt !important; }
+  .dot-mo-badge { font-size:7pt !important; padding:1px 6px !important; }
+  /* Calendar cells — เล็กลงเพื่อรองรับ 6 แถว */
+  .dot-cal { gap:1.5px !important; margin-bottom:3px !important; }
+  .dot-cal-hd { font-size:7pt !important; padding:1px 0 !important; }
+  .dot-d { border-radius:4px !important; min-height:28px !important; }
+  .dot-dn { font-size:9.5pt !important; }
+  .dot-td { font-size:6pt !important; top:1px !important; right:2px !important; }
   /* Legend */
-  .dot-legend { margin-top:5px !important; gap:8px !important; }
-  .dot-leg { font-size:8pt !important; }
-  .dot-leg-sq { width:12px !important; height:12px !important; }
+  .dot-legend { margin-top:2px !important; gap:6px !important; }
+  .dot-leg { font-size:7pt !important; }
+  .dot-leg-sq { width:10px !important; height:10px !important; }
   /* Drug section */
-  .dot-drug-box { margin-top:6px !important; padding:6px 10px !important; }
-  .dot-drug-body { font-size:8.5pt !important; line-height:1.4 !important; }
+  .dot-drug-box { margin-top:3px !important; padding:4px 8px !important; }
+  .dot-drug-title { font-size:7.5pt !important; margin-bottom:1px !important; }
+  .dot-drug-body { font-size:8pt !important; line-height:1.35 !important; }
   /* Next appt */
-  .dot-appt-box { padding:6px 10px !important; margin-top:5px !important; }
-  .dot-appt-date { font-size:12pt !important; }
-  .dot-appt-sub,.dot-appt-phase { font-size:8pt !important; }
+  .dot-appt-box,.dot-appt { padding:4px 8px !important; margin-top:3px !important; }
+  .dot-appt-date { font-size:11pt !important; }
+  .dot-appt-sub,.dot-appt-phase,.dot-appt-day { font-size:7.5pt !important; }
   /* Warning box */
-  .dot-warn-box { padding:5px 8px !important; margin-top:5px !important; }
-  .dot-warn-title { font-size:9pt !important; margin-bottom:4px !important; }
-  .dot-warn-item { font-size:8pt !important; }
-  .dot-warn-grid { gap:2px 8px !important; }
-  .dot-warn-foot { font-size:8pt !important; margin-top:5px !important; }
+  .dot-warn-box { padding:4px 7px !important; margin-top:3px !important; }
+  .dot-warn-title { font-size:8.5pt !important; margin-bottom:3px !important; }
+  .dot-warn-item { font-size:7.5pt !important; line-height:1.3 !important; }
+  .dot-warn-grid { gap:1px 8px !important; }
+  .dot-warn-foot { font-size:7.5pt !important; margin-top:3px !important; }
   /* Progress bar */
-  .dot-track { height:6px !important; margin-bottom:4px !important; }
-  .dot-marks { font-size:7.5pt !important; margin-top:14px !important; }
-  .dot-cursor-lbl { font-size:7pt !important; }
+  .dot-track { height:5px !important; margin-bottom:3px !important; }
+  .dot-marks { font-size:7pt !important; margin-top:10px !important; }
+  .dot-cursor-lbl { font-size:6.5pt !important; }
 
   body { background:white !important; -webkit-print-color-adjust:exact; print-color-adjust:exact; }
 
@@ -707,21 +707,12 @@ textarea { resize:vertical; min-height:72px; line-height:1.5; }
   .dot-d.ft   { background:#F4F2ED !important; -webkit-print-color-adjust:exact; }
   .dot-d.mile { background:#3D2E80 !important; -webkit-print-color-adjust:exact; }
 
-  /* ── Force 1 A4 page — ป้องกันการตัดหน้า ── */
-  .dot-sheet { page-break-inside:avoid !important; }
-  .dot-cal,.dot-legend,.dot-appt-box,.dot-drug-box,.dot-warn-box {
+  /* ── Force 1 A4 page — ห้ามตัดหน้าใน element หลัก ── */
+  .dot-sheet { page-break-inside:avoid !important; break-inside:avoid !important; }
+  .dot-cal,.dot-legend,.dot-appt-box,.dot-drug-box,.dot-warn-box,.dot-appt {
     page-break-inside:avoid !important;
     break-inside:avoid !important;
   }
-  /* compact spacing เล็กน้อย */
-  .dot-prog-compact { margin-bottom:4px !important; }
-  .dot-mo-row { margin:4px 0 3px !important; }
-  .dot-cal { margin-bottom:4px !important; }
-  .dot-d { min-height:36px !important; }
-  .dot-legend { margin-top:3px !important; }
-  .dot-drug-box { margin-top:4px !important; padding:5px 9px !important; }
-  .dot-appt-box { margin-top:4px !important; padding:5px 9px !important; }
-  .dot-warn-box { margin-top:4px !important; padding:4px 8px !important; }
 }
 
 /* Scrollbar */
