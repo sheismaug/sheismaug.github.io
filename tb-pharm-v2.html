@@ -5269,17 +5269,39 @@ function renderLabLog(labs) {
     return `<span style="color:var(--tx)">${n}</span>`;
   };
 
+  // Detect duplicate lab_date (เพื่อ highlight + เตือน)
+  const dateCount = {};
+  sorted.forEach(l => {
+    const k = l.lab_date || '';
+    dateCount[k] = (dateCount[k] || 0) + 1;
+  });
+
   const thead = `<tr>
     <th style="min-width:90px">วันที่</th>
     <th>Visit</th>
     ${activeCols.map(c => `<th style="text-align:right">${COL_LABELS[c]||c}</th>`).join('')}
+    <th style="width:36px;text-align:center">🗑</th>
   </tr>`;
 
-  const tbody = sorted.map(l => `<tr style="cursor:pointer" onclick="expandLabRow(this,'${l.lab_id||''}')">
-    <td>${fmtD(l.lab_date)}</td>
-    <td style="color:var(--tx3);font-size:12px">${l.visit_label||'—'}</td>
-    ${activeCols.map(c => `<td style="text-align:right;font-size:13px">${flag(c, l[c])}</td>`).join('')}
-  </tr>`).join('');
+  const tbody = sorted.map(l => {
+    const isDup = (dateCount[l.lab_date] || 0) > 1;
+    const dupBadge = isDup
+      ? `<span class="pill" style="background:var(--warn1);color:#78350F;font-size:9px;padding:1px 5px;margin-left:4px;border:1px solid var(--warn2)">ซ้ำ</span>`
+      : '';
+    const labId = String(l.lab_id || '').replace(/'/g,"\\'");
+    const labDate = String(l.lab_date || '').replace(/'/g,"\\'");
+    const delBtn = labId
+      ? `<button onclick="event.stopPropagation();deleteLab('${labId}','${labDate}')"
+           title="ลบรายการ Lab นี้"
+           style="background:var(--red1);color:var(--red);border:1px solid var(--red2);border-radius:5px;padding:3px 7px;font-size:13px;cursor:pointer;line-height:1">🗑</button>`
+      : `<span style="color:var(--tx3);font-size:11px" title="ไม่มี lab_id ลบไม่ได้">—</span>`;
+    return `<tr style="cursor:pointer${isDup?';background:var(--warn1)':''}" onclick="expandLabRow(this,'${labId}')">
+      <td>${fmtD(l.lab_date)}${dupBadge}</td>
+      <td style="color:var(--tx3);font-size:12px">${l.visit_label||'—'}</td>
+      ${activeCols.map(c => `<td style="text-align:right;font-size:13px">${flag(c, l[c])}</td>`).join('')}
+      <td style="text-align:center">${delBtn}</td>
+    </tr>`;
+  }).join('');
 
   el.innerHTML = `<table class="tbl" style="font-size:13px;min-width:400px">
     <thead>${thead}</thead>
@@ -5290,6 +5312,36 @@ function renderLabLog(labs) {
 function expandLabRow(tr, labId) {
   // toggle highlight เพื่อดูรายละเอียด
   tr.style.background = tr.style.background ? '' : 'var(--g0)';
+}
+
+// ════════════════════════════════════════════════════════════
+// 🗑 Delete Lab — ลบรายการ Lab ที่ลงซ้ำ
+// ════════════════════════════════════════════════════════════
+async function deleteLab(labId, labDate) {
+  if (!labId) { toast('❌ ไม่มี lab_id ลบไม่ได้'); return; }
+  const dateDisplay = labDate ? fmtD(labDate) : '';
+  if (!confirm(`ยืนยันลบรายการ Lab\n\nวันที่: ${dateDisplay}\nLab ID: ${labId}\n\nการลบไม่สามารถย้อนคืนได้`)) return;
+
+  try {
+    if (APPS_SCRIPT_URL && !APPS_SCRIPT_URL.includes('YOUR_APPS')) {
+      await api('deleteLabResult', { lab_id: labId });
+      toast(`✅ ลบ Lab วันที่ ${dateDisplay} แล้ว`);
+    } else {
+      toast(`💾 ลบ (local) — backend ยังไม่พร้อม`);
+    }
+    // Refresh from local cache (lab_id ที่ลบ)
+    if (Array.isArray(window._labHistory)) {
+      window._labHistory = window._labHistory.filter(l => String(l.lab_id) !== String(labId));
+      renderLabLog(window._labHistory);
+      renderLabTrend(window._labHistory);
+    }
+    // โหลด lab ใหม่จาก backend (ให้ sync)
+    if (APPS_SCRIPT_URL && !APPS_SCRIPT_URL.includes('YOUR_APPS')) {
+      setTimeout(() => loadLatestLab(), 600);
+    }
+  } catch(e) {
+    toast('❌ ลบไม่สำเร็จ: ' + (e.message || 'offline'));
+  }
 }
 
 function renderLabTrend(labs) {
@@ -6285,6 +6337,60 @@ function diliToday() {
   return new Date().toISOString().slice(0,10);
 }
 
+// ════════════════════════════════════════════════════════════
+// 📅 DILI Action Modal — ใส่วันที่ + เหตุผล (รองรับการลงข้อมูลย้อนหลัง)
+// ════════════════════════════════════════════════════════════
+function diliActionModal(opts) {
+  // opts: { title, action, defaultReason, defaultDate, dateLabel, btnClass, btnLabel, onConfirm }
+  return new Promise(resolve => {
+    const today = diliToday();
+    const todayTH = isoToTH(today);
+    const defaultDate = opts.defaultDate || today;
+    const defaultDateTH = isoToTH(defaultDate);
+    openModal(`
+      <div class="modal-handle"></div>
+      <div class="modal-title">${opts.title}</div>
+      <div class="modal-sub" style="margin-bottom:14px">${opts.action}</div>
+
+      <div class="fg">
+        <label>📅 วันที่ ${opts.dateLabel || ''} <span style="color:var(--tx3);font-weight:400;font-size:11px">(แก้ได้ถ้าลงย้อนหลัง)</span></label>
+        <div style="display:flex;gap:6px;align-items:center">
+          <input type="text" id="dili-action-date" value="${defaultDateTH}"
+            placeholder="dd/mm/yyyy" maxlength="10"
+            oninput="autoDateFormat(this)"
+            style="font-family:var(--font-en);flex:1;padding:9px 12px;border:1.5px solid var(--bd);border-radius:var(--r-sm);font-size:14px;color:var(--tx);background:var(--sf)">
+          <button type="button"
+            onclick="(function(){var p=document.getElementById('dili-action-picker');try{p.showPicker()}catch(e){p.click()}})()"
+            style="cursor:pointer;width:42px;height:40px;background:var(--sf2);border:1.5px solid var(--bd);border-radius:var(--r-sm);flex-shrink:0;font-size:18px;padding:0">📅</button>
+          <input type="date" id="dili-action-picker" value="${defaultDate}" max="${today}"
+            style="position:fixed;opacity:0;pointer-events:none;width:1px;height:1px"
+            onchange="(function(v){var p=v.split('-');if(p.length===3){document.getElementById('dili-action-date').value=p[2]+'/'+p[1]+'/'+(parseInt(p[0])+543)}})(this.value)">
+        </div>
+        <div style="font-size:11px;color:var(--tx3);margin-top:4px">วันนี้: ${todayTH}</div>
+      </div>
+
+      <div class="fg">
+        <label>📝 หมายเหตุ</label>
+        <textarea id="dili-action-reason" rows="2"
+          style="width:100%;padding:9px 12px;border:1.5px solid var(--bd);border-radius:var(--r-sm);font-size:14px;color:var(--tx);background:var(--sf);font-family:var(--font-th);resize:vertical">${opts.defaultReason || ''}</textarea>
+      </div>
+
+      <div class="row mt16" style="gap:8px">
+        <button class="btn btn-out" style="flex:1" onclick="closeModal();window._diliActionResolve&&window._diliActionResolve(null)">ยกเลิก</button>
+        <button class="btn ${opts.btnClass || 'btn-g'}" style="flex:1" onclick="(function(){
+          var dateTH=document.getElementById('dili-action-date').value.trim();
+          var iso=parseDateTH(dateTH);
+          if(!iso){toast('❌ วันที่ไม่ถูกต้อง (dd/mm/yyyy)');return;}
+          var reason=document.getElementById('dili-action-reason').value.trim();
+          closeModal();
+          window._diliActionResolve&&window._diliActionResolve({date:iso,reason:reason});
+        })()">${opts.btnLabel || 'ยืนยัน'}</button>
+      </div>
+    `);
+    window._diliActionResolve = resolve;
+  });
+}
+
 // หายาปัจจุบันของผู้ป่วย (ตาม regimen + phase IP/CP) — exclude B6 เพราะไม่ใช่ยา TB หลัก
 function diliGetCurrentDrugs(ptId) {
   const p = (S.patients || []).find(x => x.patient_id === ptId);
@@ -6330,33 +6436,38 @@ async function diliHoldAll() {
   const alt  = document.getElementById('d-alt')?.value  || '';
   const bili = document.getElementById('d-bili')?.value || '';
 
-  const reason = prompt(`เหตุผลที่ hold ทั้งหมด (สูตร ${regLabel} · ช่วง ${phase}):`, 'แพทย์สั่ง hold ยาทั้งหมด');
-  if (reason === null) return; // cancel
-
-  if (!confirm(`ยืนยัน Hold ยาทั้งหมด (${drugs.join('+')}) ตามสูตรปัจจุบัน ${regLabel} [${phase}] โดยไม่ bridge?`)) return;
+  const result = await diliActionModal({
+    title: '🛑 Hold ยาทั้งหมด (ไม่ bridge)',
+    action: `สูตร ${regLabel} · ช่วง ${phase} · ยาที่ Hold: ${drugs.join('+')}`,
+    dateLabel: 'ที่เริ่ม Hold',
+    defaultReason: 'แพทย์สั่ง hold ยาทั้งหมด',
+    btnClass: 'btn-rd',
+    btnLabel: '🛑 ยืนยัน Hold',
+  });
+  if (!result) return;
 
   const payload = {
     patient_id:   ptId,
     visit_id:     '',
-    event_date:   diliToday(),
+    event_date:   result.date,
     event_type:   'HOLD',
     drug_suspect: drugs.join(','),
     symptoms:     '',
     severity:     'hold_all',
     action_taken: `Hold ยาทั้งหมด (${drugs.join('+')}) ไม่ bridge`,
-    hold_start:   diliToday(),
+    hold_start:   result.date,
     hold_end:     '',
     hold_days:    0,
     restart_type: '',
     follow_date:  '',
     resolved:     false,
-    notes:        `${reason} | สูตร ${regLabel} [${phase}]` + (ast?` | AST ${ast}`:'') + (alt?` ALT ${alt}`:'') + (bili?` Bili ${bili}`:''),
+    notes:        `${result.reason} | สูตร ${regLabel} [${phase}]` + (ast?` | AST ${ast}`:'') + (alt?` ALT ${alt}`:'') + (bili?` Bili ${bili}`:''),
   };
 
   try {
     await api('saveAdrEvent', payload);
     // backend จะ auto-set patient.status='hold' + hold_date (เมื่อ event_type='HOLD')
-    toast('🛑 บันทึก Hold ทั้งหมดลง Sheet แล้ว — ผู้ป่วยอยู่สถานะ hold');
+    toast(`🛑 บันทึก Hold วันที่ ${isoToTH(result.date)} — ผู้ป่วยอยู่สถานะ hold`);
     renderHoldTimeline(ptId);
   } catch (e) {
     toast('💾 บันทึกไม่สำเร็จ: ' + (e.message || 'offline'));
@@ -6407,28 +6518,32 @@ async function diliRestartIP() {
   const ptId = diliGetSelectedPt();
   if (!ptId) return;
 
-  const reason = prompt('หมายเหตุ Restart IP (เช่น "LFT ลดลง <2× ULN", "ครบ 14 วัน เริ่มใหม่"):', 'Restart IP หลัง hold');
-  if (reason === null) return;
+  const result = await diliActionModal({
+    title: '✅ Restart IP',
+    action: 'เริ่มยา IP ใหม่ — set status = active + restart_date',
+    dateLabel: 'ที่เริ่มยา IP ใหม่',
+    defaultReason: 'Restart IP หลัง hold (LFT ลดลง <2× ULN)',
+    btnClass: 'btn-g',
+    btnLabel: '✅ ยืนยัน Restart IP',
+  });
+  if (!result) return;
 
-  if (!confirm('ยืนยัน Restart IP? (จะ set patient status = active และตั้ง restart_date = วันนี้)')) return;
-
-  const today = diliToday();
   const payload = {
     patient_id:   ptId,
     visit_id:     '',
-    event_date:   today,
+    event_date:   result.date,
     event_type:   'RESTART_IP',
     drug_suspect: '',
     symptoms:     '',
     severity:     '',
     action_taken: 'Restart IP',
     hold_start:   '',
-    hold_end:     today,
+    hold_end:     result.date,
     hold_days:    0,
     restart_type: 'IP',
     follow_date:  '',
     resolved:     true,
-    notes:        reason,
+    notes:        result.reason,
   };
 
   try {
@@ -6437,9 +6552,9 @@ async function diliRestartIP() {
     await api('savePatient', {
       patient_id:   ptId,
       status:       'active',
-      restart_date: today,
+      restart_date: result.date,
     });
-    toast('✅ บันทึก Restart IP — ผู้ป่วยกลับสถานะ active');
+    toast(`✅ Restart IP วันที่ ${isoToTH(result.date)} — ผู้ป่วยกลับสถานะ active`);
     renderHoldTimeline(ptId);
   } catch (e) {
     toast('💾 บันทึกไม่สำเร็จ: ' + (e.message || 'offline'));
@@ -6451,32 +6566,37 @@ async function diliBridge() {
   const ptId = diliGetSelectedPt();
   if (!ptId) return;
 
-  const reason = prompt('หมายเหตุ Bridge (เช่น "ALT >5× ULN bridge E+Lfx+Am รอ LFT"):', 'Bridge E+Lfx+Am รอ LFT <2× ULN');
-  if (reason === null) return;
-
-  if (!confirm('ยืนยันบันทึก Bridge E+Lfx+Am?')) return;
+  const result = await diliActionModal({
+    title: '💊 Bridge E+Lfx+Am',
+    action: 'Bridge ระหว่างรอ LFT กลับ — Hold H,R,Z + ใช้ E+Lfx+Am แทน',
+    dateLabel: 'ที่เริ่ม Bridge',
+    defaultReason: 'Bridge E+Lfx+Am รอ LFT <2× ULN',
+    btnClass: 'btn-out',
+    btnLabel: '💊 ยืนยัน Bridge',
+  });
+  if (!result) return;
 
   const payload = {
     patient_id:   ptId,
     visit_id:     '',
-    event_date:   diliToday(),
+    event_date:   result.date,
     event_type:   'BRIDGE',
     drug_suspect: 'H,R,Z',
     symptoms:     '',
     severity:     '',
     action_taken: 'Bridge E+Lfx+Am',
-    hold_start:   diliToday(),
+    hold_start:   result.date,
     hold_end:     '',
     hold_days:    0,
     restart_type: '',
     follow_date:  '',
     resolved:     false,
-    notes:        reason,
+    notes:        result.reason,
   };
 
   try {
     await api('saveAdrEvent', payload);
-    toast('💊 บันทึก Bridge E+Lfx+Am แล้ว');
+    toast(`💊 บันทึก Bridge วันที่ ${isoToTH(result.date)} แล้ว`);
     renderHoldTimeline(ptId);
   } catch (e) {
     toast('💾 บันทึกไม่สำเร็จ: ' + (e.message || 'offline'));
