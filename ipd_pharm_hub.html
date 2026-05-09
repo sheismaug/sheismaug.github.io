@@ -8955,11 +8955,31 @@
             if (row.timeCriteria === 'fail') {
                 var ad = row.admitShift, md = row.mrDoneShift;
                 if (ad === 'ดึก' && md && md !== 'ดึก') return 'admit ดึก หมุนข้ามเวร';
-                if (row.hospital && row.hospital.indexOf('ห้วยผึ้ง') < 0) return 'รพ.อื่น เกิน 24h';
-                return 'เกินเกณฑ์';
+                if (row.hospital && row.hospital.indexOf('ห้วยผึ้ง') < 0) return 'รพ.อื่น เกิน 24 ชม.';
+                return 'เกินเกณฑ์อื่น ๆ';
             }
             return '—';
         }
+
+        // Group failures by cause for Pareto
+        var causeMap = {};
+        failures.forEach(function(r) {
+            var c = inferCause(r);
+            causeMap[c] = (causeMap[c] || 0) + 1;
+        });
+        var causeEntries = Object.keys(causeMap).map(function(k) {
+            return { cause: k, count: causeMap[k] };
+        }).sort(function(a, b) { return b.count - a.count; });
+        var maxCauseCount = causeEntries.length > 0 ? causeEntries[0].count : 0;
+        var causeRowsHtml = causeEntries.map(function(c) {
+            var pct = failedCount > 0 ? Math.round(c.count / failedCount * 100) : 0;
+            var barPct = maxCauseCount > 0 ? (c.count / maxCauseCount * 100) : 0;
+            return '<div class="cause-row">'
+                + '<div class="cause-label">' + esc(c.cause) + '</div>'
+                + '<div class="cause-bar-wrap"><div class="cause-bar-fill" style="width:' + barPct.toFixed(1) + '%"></div></div>'
+                + '<div class="cause-count">' + c.count + ' <span class="cause-pct">(' + pct + '%)</span></div>'
+                + '</div>';
+        }).join('');
 
         var totalCases   = mr.total || 0;
         var onTimeTotal  = mr.within24h || 0;
@@ -8978,22 +8998,6 @@
             var pct = maxN > 0 ? (n / maxN * 100) : 0;
             return { label: k + ' shift', count: n, pct: pct };
         });
-
-        // Failure rows (limit 20 ใน 1 หน้า)
-        var failRowsHtml = failures.slice(0, 20).map(function(r) {
-            return '<tr>'
-                + '<td>' + esc(r.hn) + '</td>'
-                + '<td>' + esc(r.name || '—') + '</td>'
-                + '<td>' + esc(r.hospital || '—') + '</td>'
-                + '<td>' + esc(r.pharmacist || '—') + '</td>'
-                + '<td>' + esc(r.admitDate || '') + ' <span class="muted">' + esc(r.admitShift || '') + '</span></td>'
-                + '<td>' + esc(r.mrDoneShift || '—') + '</td>'
-                + '<td class="cause">' + esc(inferCause(r)) + '</td>'
-                + '</tr>';
-        }).join('');
-        var failOverflow = failures.length > 20
-            ? '<div class="overflow-note">…และอีก ' + (failures.length - 20) + ' case (แสดงเฉพาะ 20 อันดับแรก)</div>'
-            : '';
 
         // MD distribution rows
         var mdRowsHtml = mdRows.map(function(r) {
@@ -9015,12 +9019,12 @@
             + '* { box-sizing: border-box; margin: 0; padding: 0; -webkit-print-color-adjust: exact; print-color-adjust: exact; }\n'
             + 'html, body { font-family: "Google Sans", "Noto Sans Thai", "Apple Color Emoji", "Segoe UI Emoji", sans-serif; color: #2c2c2a; background: #fff; font-size: 10.5pt; line-height: 1.4; }\n'
             + '.page { width: 182mm; margin: 0 auto; padding: 0; }\n'
-            // ── HEADER ── ฟ้า (Trust)
-            + '.report-head { background: #5BA0CF; color: #fff; padding: 7mm 8mm; border-radius: 12px; margin-bottom: 6mm; display: flex; justify-content: space-between; align-items: flex-end; box-shadow: 0 2mm 4mm rgba(91,160,207,0.22); }\n'
-            + '.report-head h1 { font-size: 17pt; font-weight: 700; line-height: 1.15; letter-spacing: -0.3px; display: flex; align-items: center; gap: 3mm; }\n'
-            + '.report-head .sub { font-size: 9.5pt; opacity: 0.92; margin-top: 1.5mm; }\n'
-            + '.report-head .meta { text-align: right; font-size: 9pt; opacity: 0.95; line-height: 1.6; }\n'
-            + '.report-head .meta .badge { display: inline-block; background: rgba(255,255,255,0.22); padding: 1.5mm 3.5mm; border-radius: 999px; font-weight: 600; }\n'
+            // ── HEADER ── ตัวอักษรล้วน + เส้นสี accent
+            + '.report-head { padding: 0 0 5mm; margin-bottom: 6mm; display: flex; justify-content: space-between; align-items: flex-end; border-bottom: 0.8mm solid; border-image: linear-gradient(90deg, #5BA0CF 0%, #23A580 35%, #E89034 70%, #9359AC 100%) 1; }\n'
+            + '.report-head h1 { font-size: 17pt; font-weight: 700; line-height: 1.15; letter-spacing: -0.3px; display: flex; align-items: center; gap: 3mm; color: #2c2c2a; }\n'
+            + '.report-head .sub { font-size: 9.5pt; color: #888780; margin-top: 1.5mm; }\n'
+            + '.report-head .meta { text-align: right; font-size: 9pt; color: #888780; line-height: 1.6; }\n'
+            + '.report-head .meta .badge { display: inline-block; background: #eaf3fa; color: #1a4868; padding: 1.5mm 3.5mm; border-radius: 999px; font-weight: 600; }\n'
             // ── HERO (overall %) ── เขียว Health, Growth
             + '.hero { background: #23A580; color: #fff; padding: 7mm 9mm; border-radius: 12px; margin-bottom: 6mm; box-shadow: 0 2mm 5mm rgba(35,165,128,0.25); }\n'
             + '.hero-eyebrow { font-size: 10pt; font-weight: 600; opacity: 0.95; letter-spacing: 0.3px; display: flex; align-items: center; gap: 2mm; }\n'
@@ -9070,12 +9074,18 @@
             + '.bar-fill { background: #9359AC; height: 100%; border-radius: 3px; }\n'
             + '.md-summary { margin-top: 4mm; padding: 3.5mm 4mm; background: #f6effa; border-radius: 8px; font-size: 9.5pt; color: #5d2e7a; display: flex; align-items: center; gap: 2mm; }\n'
             + '.md-summary strong { color: #4b1f66; font-weight: 700; }\n'
-            // ── Failure table — แดง Boldness/Action
-            + '.s-fail th { text-align: left; font-weight: 600; color: #9b1f25; padding: 2.5mm 3mm; background: #fdebec; border-bottom: 1.5px solid #D7373F; font-size: 9pt; }\n'
-            + '.s-fail td { padding: 2.5mm 3mm; border-bottom: 1px solid #f7dde0; vertical-align: top; font-size: 9.5pt; }\n'
-            + '.muted { color: #9a9a9a; font-size: 9pt; }\n'
-            + '.cause { color: #9b1f25; font-size: 9pt; font-weight: 600; }\n'
-            + '.overflow-note { padding: 2.5mm 3mm; font-size: 9pt; color: #9a9a9a; font-style: italic; }\n'
+            // ── Failure Pareto — แดง Boldness/Action
+            + '.fail-stat { display: flex; align-items: baseline; gap: 4mm; padding: 4mm 5mm; background: #fdebec; border-radius: 12px; margin-bottom: 4mm; }\n'
+            + '.fail-stat .num { font-size: 24pt; font-weight: 700; color: #9b1f25; line-height: 1; letter-spacing: -1px; }\n'
+            + '.fail-stat .meta { font-size: 10pt; color: #6a1418; }\n'
+            + '.fail-stat .meta strong { color: #9b1f25; }\n'
+            + '.cause-row { display: grid; grid-template-columns: 60mm 1fr 18mm; gap: 4mm; align-items: center; margin-bottom: 2.5mm; }\n'
+            + '.cause-row:last-child { margin-bottom: 0; }\n'
+            + '.cause-label { font-size: 10pt; color: #2c2c2a; }\n'
+            + '.cause-bar-wrap { background: #fbe5e6; height: 6mm; border-radius: 999px; overflow: hidden; position: relative; }\n'
+            + '.cause-bar-fill { height: 100%; background: #D7373F; border-radius: 999px; }\n'
+            + '.cause-count { font-size: 10pt; font-weight: 700; color: #9b1f25; text-align: right; font-variant-numeric: tabular-nums; }\n'
+            + '.cause-pct { font-size: 9pt; color: #9a9a9a; font-weight: 400; }\n'
             + '.empty { padding: 7mm 4mm; text-align: center; color: #1a8060; font-size: 11pt; font-weight: 700; background: #ecf7f2; border-radius: 12px; }\n'
             // ── Footer — เทา Calm
             + '.report-foot { margin-top: 8mm; padding-top: 4mm; border-top: 1px solid #e0ddd6; font-size: 8.5pt; color: #888780; display: flex; justify-content: space-between; align-items: center; }\n'
@@ -9144,22 +9154,15 @@
             + '</span>\n    </div>\n'
             + '  </div>\n'
             + '  <div class="section s-fail">\n'
-            + '    <h2><span class="h-bar"></span> ⚠️ Case ที่ MR ไม่ทันเวลา <span style="font-size:9pt; color:#9a9a9a; font-weight:400; margin-left:auto;">ต้องทบทวนกับทีม</span></h2>\n'
+            + '    <h2><span class="h-bar"></span> ⚠️ Case ที่ MR ไม่ทันเวลา <span style="font-size:9pt; color:#9a9a9a; font-weight:400; margin-left:auto;">วิเคราะห์สาเหตุ</span></h2>\n'
             + (failedCount === 0
                 ? '    <div class="empty">🎉 ไม่มี case ที่ตกเกณฑ์ในช่วงเวลานี้</div>'
-                : '    <table>\n'
-                  + '      <thead><tr>\n'
-                  + '        <th style="width:10%;">HN</th>\n'
-                  + '        <th style="width:21%;">ชื่อ-สกุล</th>\n'
-                  + '        <th style="width:13%;">รพ.</th>\n'
-                  + '        <th style="width:14%;">เภสัช</th>\n'
-                  + '        <th style="width:14%;">Admit</th>\n'
-                  + '        <th style="width:9%;">MR เสร็จ</th>\n'
-                  + '        <th>สาเหตุ</th>\n'
-                  + '      </tr></thead>\n'
-                  + '      <tbody>' + failRowsHtml + '</tbody>\n'
-                  + '    </table>\n'
-                  + '    ' + failOverflow)
+                : '    <div class="fail-stat">\n'
+                  + '      <div class="num">' + failedCount + '</div>\n'
+                  + '      <div class="meta">case ที่ไม่ผ่านเกณฑ์เวลา · จากทั้งหมด <strong>' + totalCases + '</strong> ราย</div>\n'
+                  + '    </div>\n'
+                  + '    <div style="font-size:9.5pt; color:#888780; margin-bottom:3mm;">📊 แยกตามสาเหตุ</div>\n'
+                  + '    <div>' + causeRowsHtml + '</div>')
             + '\n  </div>\n'
             + '  <div class="report-foot">\n'
             + '    <span>✍️ เภสัชกรผู้จัดทำ: ____________________________</span>\n'
