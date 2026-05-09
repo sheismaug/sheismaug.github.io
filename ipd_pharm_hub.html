@@ -8961,7 +8961,8 @@
             return '—';
         }
 
-        // Group failures by cause for Pareto
+        // Group failures by cause for donut
+        var totalFails = failures.length;
         var causeMap = {};
         failures.forEach(function(r) {
             var c = inferCause(r);
@@ -8970,16 +8971,38 @@
         var causeEntries = Object.keys(causeMap).map(function(k) {
             return { cause: k, count: causeMap[k] };
         }).sort(function(a, b) { return b.count - a.count; });
-        var maxCauseCount = causeEntries.length > 0 ? causeEntries[0].count : 0;
-        var causeRowsHtml = causeEntries.map(function(c) {
-            var pct = failedCount > 0 ? Math.round(c.count / failedCount * 100) : 0;
-            var barPct = maxCauseCount > 0 ? (c.count / maxCauseCount * 100) : 0;
-            return '<div class="cause-row">'
-                + '<div class="cause-label">' + esc(c.cause) + '</div>'
-                + '<div class="cause-bar-wrap"><div class="cause-bar-fill" style="width:' + barPct.toFixed(1) + '%"></div></div>'
-                + '<div class="cause-count">' + c.count + ' <span class="cause-pct">(' + pct + '%)</span></div>'
+
+        // Build donut SVG + legend
+        var causeColors = ['#D7373F', '#E89034', '#EAA0BD', '#9359AC', '#5BA0CF']; // red → orange → pink → purple → blue
+        var donutR = 40;
+        var donutCircum = 2 * Math.PI * donutR; // ≈ 251.33
+        var donutSegs = '';
+        var donutLegend = '';
+        var cumOffset = 0;
+        causeEntries.forEach(function(c, i) {
+            var pct = totalFails > 0 ? c.count / totalFails : 0;
+            var pctRounded = Math.round(pct * 100);
+            var segLen = pct * donutCircum;
+            var color = causeColors[i % causeColors.length];
+            donutSegs += '<circle cx="50" cy="50" r="40" fill="none" '
+                + 'stroke="' + color + '" stroke-width="14" '
+                + 'stroke-dasharray="' + segLen.toFixed(2) + ' ' + donutCircum.toFixed(2) + '" '
+                + 'stroke-dashoffset="' + (-cumOffset).toFixed(2) + '" '
+                + 'transform="rotate(-90 50 50)" />';
+            cumOffset += segLen;
+
+            donutLegend += '<div class="cause-row">'
+                + '<span class="cause-dot" style="background:' + color + ';"></span>'
+                + '<span class="cause-label">' + esc(c.cause) + '</span>'
+                + '<span class="cause-count">' + c.count + '<span class="cause-pct">(' + pctRounded + '%)</span></span>'
                 + '</div>';
-        }).join('');
+        });
+        var donutSvg = '<svg viewBox="0 0 100 100" width="38mm" height="38mm">'
+            + '<circle cx="50" cy="50" r="40" fill="none" stroke="#fbe5e6" stroke-width="14" />'
+            + donutSegs
+            + '<text x="50" y="51" text-anchor="middle" font-size="22" font-weight="700" fill="#9b1f25" font-family="Google Sans,sans-serif">' + totalFails + '</text>'
+            + '<text x="50" y="62" text-anchor="middle" font-size="6.5" fill="#9b1f25" font-family="Google Sans,sans-serif">case ที่ตก</text>'
+            + '</svg>';
 
         var totalCases   = mr.total || 0;
         var onTimeTotal  = mr.within24h || 0;
@@ -9074,18 +9097,16 @@
             + '.bar-fill { background: #9359AC; height: 100%; border-radius: 3px; }\n'
             + '.md-summary { margin-top: 4mm; padding: 3.5mm 4mm; background: #f6effa; border-radius: 8px; font-size: 9.5pt; color: #5d2e7a; display: flex; align-items: center; gap: 2mm; }\n'
             + '.md-summary strong { color: #4b1f66; font-weight: 700; }\n'
-            // ── Failure Pareto — แดง Boldness/Action
-            + '.fail-stat { display: flex; align-items: baseline; gap: 4mm; padding: 4mm 5mm; background: #fdebec; border-radius: 12px; margin-bottom: 4mm; }\n'
-            + '.fail-stat .num { font-size: 24pt; font-weight: 700; color: #9b1f25; line-height: 1; letter-spacing: -1px; }\n'
-            + '.fail-stat .meta { font-size: 10pt; color: #6a1418; }\n'
-            + '.fail-stat .meta strong { color: #9b1f25; }\n'
-            + '.cause-row { display: grid; grid-template-columns: 60mm 1fr 18mm; gap: 4mm; align-items: center; margin-bottom: 2.5mm; }\n'
-            + '.cause-row:last-child { margin-bottom: 0; }\n'
-            + '.cause-label { font-size: 10pt; color: #2c2c2a; }\n'
-            + '.cause-bar-wrap { background: #fbe5e6; height: 6mm; border-radius: 999px; overflow: hidden; position: relative; }\n'
-            + '.cause-bar-fill { height: 100%; background: #D7373F; border-radius: 999px; }\n'
-            + '.cause-count { font-size: 10pt; font-weight: 700; color: #9b1f25; text-align: right; font-variant-numeric: tabular-nums; }\n'
-            + '.cause-pct { font-size: 9pt; color: #9a9a9a; font-weight: 400; }\n'
+            // ── Failure donut — แดง Boldness/Action
+            + '.cause-wrap { display: flex; align-items: center; gap: 7mm; padding: 5mm 6mm; background: #fdf6f6; border: 1px solid #f8e0e2; border-radius: 12px; }\n'
+            + '.cause-donut { flex-shrink: 0; }\n'
+            + '.cause-legend { flex: 1; display: flex; flex-direction: column; gap: 2.5mm; }\n'
+            + '.cause-row { display: grid; grid-template-columns: 4mm 1fr auto; gap: 3mm; align-items: center; font-size: 10pt; }\n'
+            + '.cause-dot { width: 3.5mm; height: 3.5mm; border-radius: 50%; display: inline-block; }\n'
+            + '.cause-label { color: #2c2c2a; }\n'
+            + '.cause-count { font-weight: 700; color: #9b1f25; font-variant-numeric: tabular-nums; white-space: nowrap; }\n'
+            + '.cause-pct { font-size: 9pt; color: #9a9a9a; font-weight: 400; margin-left: 2mm; }\n'
+            + '.cause-foot { margin-top: 3mm; font-size: 9pt; color: #888780; text-align: center; }\n'
             + '.empty { padding: 7mm 4mm; text-align: center; color: #1a8060; font-size: 11pt; font-weight: 700; background: #ecf7f2; border-radius: 12px; }\n'
             // ── Footer — เทา Calm
             + '.report-foot { margin-top: 8mm; padding-top: 4mm; border-top: 1px solid #e0ddd6; font-size: 8.5pt; color: #888780; display: flex; justify-content: space-between; align-items: center; }\n'
@@ -9157,12 +9178,11 @@
             + '    <h2><span class="h-bar"></span> ⚠️ Case ที่ MR ไม่ทันเวลา <span style="font-size:9pt; color:#9a9a9a; font-weight:400; margin-left:auto;">วิเคราะห์สาเหตุ</span></h2>\n'
             + (failedCount === 0
                 ? '    <div class="empty">🎉 ไม่มี case ที่ตกเกณฑ์ในช่วงเวลานี้</div>'
-                : '    <div class="fail-stat">\n'
-                  + '      <div class="num">' + failedCount + '</div>\n'
-                  + '      <div class="meta">case ที่ไม่ผ่านเกณฑ์เวลา · จากทั้งหมด <strong>' + totalCases + '</strong> ราย</div>\n'
+                : '    <div class="cause-wrap">\n'
+                  + '      <div class="cause-donut">' + donutSvg + '</div>\n'
+                  + '      <div class="cause-legend">' + donutLegend + '</div>\n'
                   + '    </div>\n'
-                  + '    <div style="font-size:9.5pt; color:#888780; margin-bottom:3mm;">📊 แยกตามสาเหตุ</div>\n'
-                  + '    <div>' + causeRowsHtml + '</div>')
+                  + '    <div class="cause-foot">จาก MR ทั้งหมด ' + totalCases + ' ราย · คิดเป็น ' + (totalCases > 0 ? Math.round(failedCount/totalCases*100) : 0) + '% ของช่วงเวลานี้</div>')
             + '\n  </div>\n'
             + '  <div class="report-foot">\n'
             + '    <span>✍️ เภสัชกรผู้จัดทำ: ____________________________</span>\n'
