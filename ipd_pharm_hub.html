@@ -4599,15 +4599,11 @@
 
                 <!-- ════ MD Review Speed ════ -->
                 <div class="mrq-md">
-                    <div class="mrq-md-eyebrow">⚡ หมอ review ยา MR เร็วแค่ไหน?</div>
-                    <div class="mrq-md-grid">
+                    <div class="mrq-md-eyebrow">⚡ หมอ review ยา MR เร็วแค่ไหน? <span style="font-size:10px; color:#999; font-weight:400;">นับจาก case ที่ MD ตอบแล้ว · <span id="qcMDDenom">0</span> case</span></div>
+                    <div class="mrq-md-grid" style="grid-template-columns: 1fr 1fr;">
                         <div class="mrq-md-stat mrq-clickable" onclick="showMDShiftCases('0')" title="คลิกดู case">
                             <div class="mrq-md-num" id="qcMDSameShift">0%</div>
                             <div class="mrq-md-label">เวรเดียวกัน</div>
-                        </div>
-                        <div class="mrq-md-stat mrq-clickable" onclick="showMDShiftCases('1')" title="คลิกดู case +1 เวร">
-                            <div class="mrq-md-num" id="qcMD1Shift">0%</div>
-                            <div class="mrq-md-label">≤ 1 เวร</div>
                         </div>
                         <div class="mrq-md-stat mrq-clickable" id="qcMDOverWrap" onclick="showMDShiftCases('3+')" title="คลิกดู case ค้าง">
                             <div class="mrq-md-num" id="qcMDOver">0</div>
@@ -8965,19 +8961,19 @@
             return '—';
         }
 
-        var sameShiftPct = mr.mdReview1ShiftPct || 0;
-        var within1Pct   = mr.mdReview2ShiftPct || 0;
         var totalCases   = mr.total || 0;
         var onTimeTotal  = mr.within24h || 0;
         var overallPct   = mr.within24hPct || 0;
         var failedCount  = failures.length;
         var pendingMD    = (d.mrTotal && d.mrTotal.pendingMD) || 0;
 
-        // MD distribution table
+        // MD distribution — คำนวณ % จาก histogram ตรงๆ (ไม่ใช้ field จาก backend ที่ตัวหารผิด)
         var mdLabels = ['0', '1', '2', '3', '4+'];
+        var histTotalPrint = mdLabels.reduce(function(s,k){ return s + (hist[k]||0); }, 0);
+        var sameShiftPct = histTotalPrint > 0 ? Math.round((hist['0']||0) / histTotalPrint * 100) : 0;
+        var overShiftCount = (hist['3']||0) + (hist['4+']||0);
         var mdRows = mdLabels.map(function(k) {
             var n = hist[k] || 0;
-            var bar = '';
             var maxN = Math.max.apply(null, mdLabels.map(function(x){ return hist[x] || 0; }));
             var pct = maxN > 0 ? (n / maxN * 100) : 0;
             return { label: k + ' shift', count: n, pct: pct };
@@ -9107,7 +9103,7 @@
             + '      <tbody>' + mdRowsHtml + '</tbody>\n'
             + '    </table>\n'
             + '    <div style="margin-top:3mm; font-size:9.5pt; color:#444;">\n'
-            + '      หมอ review เวรเดียวกันกับที่ MR เสร็จ <strong>' + sameShiftPct + '%</strong> · ภายใน ≤ 1 เวร <strong>' + within1Pct + '%</strong>'
+            + '      หมอ review เวรเดียวกันกับที่ MR เสร็จ <strong>' + sameShiftPct + '%</strong> (' + (hist['0']||0) + '/' + histTotalPrint + ') · case ค้าง > 2 เวร <strong>' + overShiftCount + '</strong>'
             + (pendingMD > 0 ? ' · รอ MD review <strong>' + pendingMD + '</strong> case' : '')
             + '\n    </div>\n'
             + '  </div>\n'
@@ -9227,14 +9223,15 @@
         _setText('heroMRDoneFoot', mrDone);
         _setText('heroMRPendingFoot', mrPendingMD);
 
-        // MD Speed grid
-        var sameShift = (mr.mdReview1ShiftPct) || 0;
-        var within1 = (mr.mdReview2ShiftPct) || 0;
+        // MD Speed grid — คำนวณใหม่จาก histogram ตรงๆ เพื่อให้ตัวเลขตรงกัน
+        // (backend mdReview1ShiftPct ใช้ตัวหาร = total MR ซึ่งรวม pending → ทำให้ % ดูต่ำกว่าจริง)
+        var hist = d.mdResponseHistogram || {};
+        var histTotal = (hist['0']||0) + (hist['1']||0) + (hist['2']||0) + (hist['3']||0) + (hist['4+']||0);
+        var sameShift = histTotal > 0 ? Math.round((hist['0']||0) / histTotal * 100) : 0;
         _setText('qcMDSameShift', sameShift + '%');
-        _setText('qcMD1Shift', within1 + '%');
+        _setText('qcMDDenom', histTotal);
 
         // > 2 shift cases (จาก mdResponseHistogram bucket "3" + "4+")
-        var hist = d.mdResponseHistogram || {};
         var over = (hist['3'] || 0) + (hist['4+'] || 0);
         _setText('qcMDOver', over);
         var overWrap = document.getElementById('qcMDOverWrap');
