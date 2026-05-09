@@ -1833,6 +1833,51 @@ function getDose(abbr, band, wt) {
   const r = rates[abbr]; if (!r) return null;
   return Math.min(Math.ceil(wt * r[0] / 100) * 100, r[2]);
 }
+// คืน dose override ของ patient จาก visit note ล่าสุด (ถ้ามี) — ถ้าไม่มี return {}
+// ใช้ใน DOT prep / renderDispense ให้ขนาดยาตรงกับที่หมอสั่งจริง (ไม่ใช่ weight-band default)
+function getPtDoseOverride(patientId) {
+  if (!patientId) return {};
+  const pid = String(patientId).trim();
+  const candidates = [];
+  // 1) current patient: ดู S.visitNotes ก่อน (อาจมีข้อมูลใหม่ที่ยังไม่ sync เข้า S.allVisits)
+  if (S.selectedPatient && String(S.selectedPatient).trim() === pid) {
+    Object.entries(S.visitNotes || {}).forEach(([idx, n]) => {
+      if (!n || !n.doseOverride) return;
+      const o = n.doseOverride;
+      if (!Object.keys(o).length) return;
+      const date = (S.visitDates?.[idx]) || n.actualDate || '';
+      candidates.push({ date, override: o });
+    });
+  }
+  // 2) ทุกคน: ดู S.allVisits
+  (S.allVisits || []).forEach(v => {
+    if (!v || !v.drugs_json) return;
+    if (String(v.patient_id||'').trim() !== pid) return;
+    try {
+      const o = JSON.parse(v.drugs_json || '{}');
+      if (!o || !Object.keys(o).length) return;
+      const date = v.actual_date || v.planned_date || '';
+      candidates.push({ date, override: o });
+    } catch(e) {}
+  });
+  // เลือก visit ล่าสุดที่มี override จริง
+  candidates.sort((a, b) => (b.date || '').localeCompare(a.date || ''));
+  for (const c of candidates) {
+    const filtered = {};
+    Object.entries(c.override).forEach(([k, val]) => {
+      const num = parseFloat(val);
+      if (num > 0) filtered[k] = num;
+    });
+    if (Object.keys(filtered).length) return filtered;
+  }
+  return {};
+}
+// คืน dose ที่ effective ของยา abbr — ใช้ override ถ้ามี ไม่งั้น fallback weight band
+function getEffectiveDose(patientId, abbr, wt, band) {
+  const ovr = getPtDoseOverride(patientId);
+  if (ovr[abbr]) return ovr[abbr];
+  return wt ? getDose(abbr, band, wt) : null;
+}
 function autoBand() {
   const wt = parseFloat(document.getElementById('dose-wt').value);
   if (!wt) return;
@@ -2956,7 +3001,7 @@ function renderDispense() {
 
   const rows = drugs.map(abbr => {
     const info     = DRUG_INFO[abbr];
-    const dose     = getDose(abbr, band, wt);
+    const dose     = getEffectiveDose(S.selectedPatient, abbr, wt, band);
     const isAdj    = isCKD && (abbr==='E'||abbr==='Z');
     const daysUsed = isAdj ? Math.floor(days/7)*3 : days;
 
@@ -3144,7 +3189,7 @@ function renderDOT() {
   const wt    = parseFloat(document.getElementById('pt-wt').value) || null;
   const band  = wt ? getBand(wt) : null;
   const drugStr = (drugs.length ? drugs : reg.cpDrugs).map(abbr => {
-    const d = getDose(abbr, band, wt);
+    const d = getEffectiveDose(S.selectedPatient, abbr, wt, band);
     return d ? `${abbr} ${d} mg` : abbr;
   }).join(' + ');
 
@@ -4302,7 +4347,7 @@ function buildAlertsPage() {
         const isIP  = moElapsed <= (reg?.ip || 2);
         const drugs = isIP ? (reg?.ipDrugs || []) : (reg?.cpDrugs || []);
         const drugList = drugs.map(abbr => {
-          const dose = wt ? getDose(abbr, band, wt) : null;
+          const dose = getEffectiveDose(p.patient_id, abbr, wt, band);
           if (!dose) return null;
           const str  = getStrengthPerTablet(abbr, dose);
           const tabsPerDose = dose / str;
@@ -4342,7 +4387,7 @@ function buildAlertsPage() {
               const isIP2 = moEl2 <= (reg?.ip || 2);
               const drugs2 = isIP2 ? (reg?.ipDrugs || []) : (reg?.cpDrugs || []);
               const drugList2 = drugs2.map(abbr => {
-                const dose = wt ? getDose(abbr, band, wt) : null;
+                const dose = getEffectiveDose(p.patient_id, abbr, wt, band);
                 if (!dose) return null;
                 const str = getStrengthPerTablet(abbr, dose);
                 const tabs = Math.ceil((dose/str) * days2);
@@ -4597,7 +4642,7 @@ function buildAlertsPage() {
         const nearPC   = isIP && daysToPC !== null && daysToPC >= 0 && daysToPC <= 14;
 
         const makeCombo = (drugList) => drugList.map(abbr => {
-          const dose = wt ? getDose(abbr, band, wt) : null;
+          const dose = getEffectiveDose(p.patient_id, abbr, wt, band);
           return dose ? `${abbr}${dose}` : null;
         }).filter(Boolean).join('·');
 
@@ -4643,7 +4688,7 @@ function buildAlertsPage() {
           const isIP = moEl <= (reg?.ip || 2);
           const drugs = isIP ? (reg?.ipDrugs||[]) : (reg?.cpDrugs||[]);
           const makeCombo2 = (dl) => dl.map(abbr => {
-            const dose = wt ? getDose(abbr, band, wt) : null;
+            const dose = getEffectiveDose(p.patient_id, abbr, wt, band);
             return dose ? `${abbr}${dose}` : null;
           }).filter(Boolean).join('·');
           const combo2 = makeCombo2(drugs);
@@ -4753,7 +4798,7 @@ function printWeeklyDrugReport() {
         const isIP = moElapsed <= (reg?.ip || 2);
         const drugs = (isIP ? (reg?.ipDrugs || []) : (reg?.cpDrugs || [])).filter(x => x !== 'B6');
         const combo = drugs.map(abbr => {
-          const dose = wt ? getDose(abbr, band, wt) : null;
+          const dose = getEffectiveDose(p.patient_id, abbr, wt, band);
           return dose ? `${abbr}${dose}` : null;
         }).filter(Boolean).join('·');
         const ipEnd = base ? new Date(base.getTime() + (reg?.ip||2)*28*86400000) : null;
@@ -4785,7 +4830,7 @@ function printWeeklyDrugReport() {
               const isIP2 = moEl2 <= (reg?.ip || 2);
               const drugs2 = (isIP2 ? (reg?.ipDrugs||[]) : (reg?.cpDrugs||[])).filter(x => x !== 'B6');
               const combo2 = drugs2.map(abbr => {
-                const dose = wt ? getDose(abbr, band, wt) : null;
+                const dose = getEffectiveDose(p.patient_id, abbr, wt, band);
                 return dose ? `${abbr}${dose}` : null;
               }).filter(Boolean).join('·');
               weekAppts.push({
@@ -8612,7 +8657,6 @@ async function submitEditPatient(patientId) {
 
   try {
     if (APPS_SCRIPT_URL && !APPS_SCRIPT_URL.includes('YOUR_APPS')) {
-      await api('savePatient', updates);
       await api('savePatient', updates);
       toast('✅ บันทึกข้อมูลแล้ว');
     } else {
