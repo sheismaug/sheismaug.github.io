@@ -2580,6 +2580,201 @@
         }
         .kpi-v2.safety .k-rate { color: #a04040; background: #fff5f5; }
 
+        /* ═══════════════════════════════════════════════
+           DASHBOARD V2 — MR Quality Focus
+           ═══════════════════════════════════════════════ */
+        .mrq-hero {
+            background: linear-gradient(135deg, #1b5e20 0%, #2e7d32 100%);
+            border-radius: 16px;
+            padding: 24px 28px;
+            color: #fff;
+            box-shadow: 0 4px 16px rgba(27, 94, 32, 0.18);
+            margin-bottom: 20px;
+        }
+        .mrq-hero-eyebrow {
+            font-size: 13px;
+            font-weight: 600;
+            opacity: 0.92;
+            margin-bottom: 4px;
+            letter-spacing: 0.2px;
+        }
+        .mrq-hero-stat {
+            display: flex;
+            align-items: baseline;
+            gap: 16px;
+            flex-wrap: wrap;
+            margin: 8px 0 14px;
+        }
+        .mrq-hero-pct {
+            font-size: 56px;
+            font-weight: 700;
+            line-height: 1;
+            letter-spacing: -1.5px;
+        }
+        .mrq-hero-meta {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+            font-size: 12px;
+            opacity: 0.92;
+        }
+        .mrq-hero-trend { font-weight: 600; }
+        .mrq-hero-trend.up { color: #c8e6c9; }
+        .mrq-hero-trend.down { color: #ffcdd2; }
+        .mrq-hero-trend.flat { color: #fff; opacity: 0.8; }
+        .mrq-hero-target { opacity: 0.78; }
+        .mrq-hero-rule {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+            margin-top: 12px;
+            padding-top: 12px;
+            border-top: 1px solid rgba(255,255,255,0.18);
+        }
+        .mrq-hero-rule-item {
+            background: rgba(255,255,255,0.12);
+            border-radius: 8px;
+            padding: 8px 12px;
+            font-size: 12px;
+        }
+        .mrq-hero-rule-label { font-size: 10px; opacity: 0.78; margin-bottom: 2px; }
+        .mrq-hero-rule-pct { font-size: 18px; font-weight: 700; }
+        .mrq-hero-foot {
+            margin-top: 12px;
+            font-size: 11px;
+            opacity: 0.82;
+        }
+        .mrq-hero-foot strong { color: #fff; font-weight: 700; }
+
+        /* MD Response card */
+        .mrq-md {
+            background: #fff;
+            border: 1px solid #e8e5e0;
+            border-radius: 14px;
+            padding: 18px 20px;
+            margin-bottom: 16px;
+        }
+        .mrq-md-eyebrow { font-size: 13px; font-weight: 600; color: #2e3f58; margin-bottom: 12px; }
+        .mrq-md-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 12px;
+            margin-bottom: 14px;
+        }
+        .mrq-md-stat {
+            background: #fafdf9;
+            border-radius: 10px;
+            padding: 10px 12px;
+            border-left: 3px solid #1b5e20;
+        }
+        .mrq-md-stat.warn { border-left-color: #c62828; background: #fdf6f6; }
+        .mrq-md-num { font-size: 22px; font-weight: 700; color: #1b5e20; line-height: 1.1; }
+        .mrq-md-stat.warn .mrq-md-num { color: #c62828; }
+        .mrq-md-label { font-size: 11px; color: #666; margin-top: 2px; }
+
+        /* Action Center */
+        .mrq-action {
+            background: #fff;
+            border: 1px solid #e8e5e0;
+            border-radius: 14px;
+            padding: 18px 20px;
+            margin-bottom: 16px;
+        }
+        .mrq-action-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 12px;
+        }
+        .mrq-action-eyebrow { font-size: 13px; font-weight: 600; color: #2e3f58; }
+        .mrq-action-count {
+            background: #fde8e6;
+            color: #a02b20;
+            padding: 3px 10px;
+            border-radius: 10px;
+            font-size: 12px;
+            font-weight: 700;
+        }
+        .mrq-action-count.zero { background: #e8f5e9; color: #1b5e20; }
+        .mrq-action-list { display: flex; flex-direction: column; gap: 6px; }
+        .mrq-action-item {
+            display: grid;
+            grid-template-columns: 1fr auto auto;
+            gap: 10px;
+            align-items: center;
+            padding: 8px 12px;
+            background: #fafaf7;
+            border-radius: 8px;
+            font-size: 13px;
+            border-left: 3px solid #ddd;
+            cursor: pointer;
+            transition: background 0.15s;
+        }
+        .mrq-action-item:hover { background: #f0f0ed; }
+        .mrq-action-item.urgent { border-left-color: #c62828; }
+        .mrq-action-item.soon { border-left-color: #f0a04b; }
+        .mrq-action-name { font-weight: 600; color: #2e3f58; }
+        .mrq-action-name .hn { color: #888; font-weight: 400; font-size: 11px; margin-left: 6px; }
+        .mrq-action-wait {
+            font-size: 11px;
+            font-weight: 600;
+            padding: 2px 8px;
+            border-radius: 8px;
+            background: #fff;
+            color: #666;
+        }
+        .mrq-action-wait.urgent { background: #fde8e6; color: #a02b20; }
+        .mrq-action-wait.soon { background: #fff2e0; color: #9a5e20; }
+        .mrq-action-cta { font-size: 11px; color: #2e3f58; opacity: 0.6; }
+        .mrq-action-empty {
+            padding: 20px;
+            text-align: center;
+            color: #888;
+            font-size: 13px;
+            background: #fafaf7;
+            border-radius: 10px;
+        }
+
+        /* More metrics collapsible */
+        .mrq-more {
+            background: #fafaf7;
+            border: 1px solid #ece9e2;
+            border-radius: 12px;
+            margin-top: 20px;
+            overflow: hidden;
+        }
+        .mrq-more > summary {
+            padding: 14px 18px;
+            cursor: pointer;
+            font-weight: 600;
+            color: #2e3f58;
+            font-size: 13px;
+            list-style: none;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            user-select: none;
+        }
+        .mrq-more > summary::-webkit-details-marker { display: none; }
+        .mrq-more > summary::after {
+            content: '▼';
+            font-size: 10px;
+            opacity: 0.5;
+            transition: transform 0.2s;
+        }
+        .mrq-more[open] > summary::after { transform: rotate(180deg); }
+        .mrq-more-body { padding: 4px 18px 18px; }
+        .mrq-more-hint { font-size: 11px; color: #999; font-weight: 400; margin-left: 6px; }
+
+        @media (max-width: 768px) {
+            .mrq-hero { padding: 18px 20px; }
+            .mrq-hero-pct { font-size: 44px; }
+            .mrq-hero-rule { grid-template-columns: 1fr; }
+            .mrq-md-grid { grid-template-columns: 1fr 1fr; }
+            .mrq-action-item { grid-template-columns: 1fr auto; gap: 6px; }
+            .mrq-action-cta { display: none; }
+        }
+
         /* Responsive */
         @media (max-width: 768px) {
             .grid-2, .grid-4 { grid-template-columns: 1fr; }
@@ -4226,8 +4421,74 @@
                     <button class="btn-export-xlsx" id="btnExportXlsx" onclick="exportDashboardExcel()">📊 Export Excel</button>
                 </div>
 
-                <!-- ── Featured Trend (ย้ายขึ้นบนสุด) ── -->
-                <div class="card trend-featured">
+                <!-- ════ HERO: MR ทันเวลา ════ -->
+                <div class="mrq-hero">
+                    <div class="mrq-hero-eyebrow">⏱️ MR เสร็จทันเวลาไหม?</div>
+                    <div class="mrq-hero-stat">
+                        <div class="mrq-hero-pct" id="heroMRTimely">0%</div>
+                        <div class="mrq-hero-meta">
+                            <div class="mrq-hero-trend" id="heroMRTimelyTrend">—</div>
+                            <div class="mrq-hero-target">เป้าหมาย: ≥ 95%</div>
+                        </div>
+                    </div>
+                    <div class="mrq-hero-rule">
+                        <div class="mrq-hero-rule-item">
+                            <div class="mrq-hero-rule-label">รพ.ห้วยผึ้ง · เสร็จในเวร admit</div>
+                            <div class="mrq-hero-rule-pct" id="heroRuleHuai">—</div>
+                        </div>
+                        <div class="mrq-hero-rule-item">
+                            <div class="mrq-hero-rule-label">รพ.อื่น · เสร็จใน 24 ชม.</div>
+                            <div class="mrq-hero-rule-pct" id="heroRuleOther">—</div>
+                        </div>
+                    </div>
+                    <div class="mrq-hero-foot">
+                        จาก MR ทั้งหมด <strong id="heroMRTotalFoot">0</strong> รายการ · เสร็จ <strong id="heroMRDoneFoot">0</strong> · รอ MD review <strong id="heroMRPendingFoot">0</strong>
+                    </div>
+                </div>
+
+                <!-- ════ MD Review Speed ════ -->
+                <div class="mrq-md">
+                    <div class="mrq-md-eyebrow">⚡ หมอ review ยา MR เร็วแค่ไหน?</div>
+                    <div class="mrq-md-grid">
+                        <div class="mrq-md-stat">
+                            <div class="mrq-md-num" id="qcMDSameShift">0%</div>
+                            <div class="mrq-md-label">เวรเดียวกัน</div>
+                        </div>
+                        <div class="mrq-md-stat">
+                            <div class="mrq-md-num" id="qcMD1Shift">0%</div>
+                            <div class="mrq-md-label">≤ 1 เวร</div>
+                        </div>
+                        <div class="mrq-md-stat" id="qcMDOverWrap">
+                            <div class="mrq-md-num" id="qcMDOver">0</div>
+                            <div class="mrq-md-label">case ค้าง > 2 เวร</div>
+                        </div>
+                    </div>
+                    <div class="chart-container" style="height: 180px;"><canvas id="mdHistChart"></canvas></div>
+                </div>
+
+                <!-- ════ Action Center — Case ค้าง MD review ════ -->
+                <div class="mrq-action">
+                    <div class="mrq-action-header">
+                        <div class="mrq-action-eyebrow">🚨 ต้องตามต่อ — case ค้าง MD review</div>
+                        <div class="mrq-action-count zero" id="acPendingCount">0 case</div>
+                    </div>
+                    <div class="mrq-action-list" id="acPendingList"></div>
+                    <div class="mrq-action-empty" id="acPendingEmpty" style="display:none;">
+                        ✅ ไม่มี case ค้าง MD review
+                    </div>
+                </div>
+
+                <!-- ════ Pharmacist Performance ════ -->
+                <div class="card">
+                    <div class="chart-header">
+                        <h3 class="card-title">👥 MR per Pharmacist <span style="font-size:11px; color:#888; font-weight:400;">เดือนนี้</span></h3>
+                        <button class="chart-png-btn" onclick="exportChartPNG('pharmacistChart','MR_per_Pharmacist')" title="Export PNG">📷</button>
+                    </div>
+                    <div class="chart-container"><canvas id="pharmacistChart"></canvas></div>
+                </div>
+
+                <!-- ── Trend (6 month) ── -->
+                <div class="card trend-featured" style="margin-top:16px;">
                     <div class="chart-header">
                         <h3 class="card-title">📈 6-Month Trend — ภาพรวม <span style="font-size:11px; color:#888; font-weight:400;">MR · Med Error · HAD</span></h3>
                         <button class="chart-png-btn" onclick="exportChartPNG('trendChart','6_Month_Trend')" title="Export PNG">📷</button>
@@ -4236,6 +4497,11 @@
                     <div class="chart-container" style="height: 240px;"><canvas id="trendChart"></canvas></div>
                     <div class="trend-summary" id="trendSummary"></div>
                 </div>
+
+                <!-- ════ More metrics (collapsed) ════ -->
+                <details class="mrq-more">
+                    <summary>📊 ตัวชี้วัดอื่น<span class="mrq-more-hint">Safety · Activity · DRP · Coverage</span></summary>
+                    <div class="mrq-more-body">
 
                 <!-- ══ SAFETY ══ -->
                 <div class="dash-section safety">
@@ -4323,48 +4589,28 @@
                             <span class="k-trend" id="dashDCTrend"></span>
                         </div>
                     </div>
-                    <div class="dashboard-grid">
-                        <div class="card">
-                            <div class="chart-header">
-                                <h3 class="card-title">MR per Pharmacist</h3>
-                                <button class="chart-png-btn" onclick="exportChartPNG('pharmacistChart','MR_per_Pharmacist')" title="Export PNG">📷</button>
-                            </div>
-                            <div class="chart-container"><canvas id="pharmacistChart"></canvas></div>
+                    <div class="card">
+                        <div class="chart-header">
+                            <h3 class="card-title">Counseling Activities</h3>
+                            <button class="chart-png-btn" onclick="exportChartPNG('counChart','Counseling')" title="Export PNG">📷</button>
                         </div>
-                        <div class="card">
-                            <div class="chart-header">
-                                <h3 class="card-title">Counseling Activities</h3>
-                                <button class="chart-png-btn" onclick="exportChartPNG('counChart','Counseling')" title="Export PNG">📷</button>
-                            </div>
-                            <div class="chart-container"><canvas id="counChart"></canvas></div>
-                        </div>
+                        <div class="chart-container"><canvas id="counChart"></canvas></div>
                     </div>
                 </div>
 
-                <!-- ══ QUALITY ══ -->
+                <!-- ══ QUALITY (DRP / Coverage) ══ -->
                 <div class="dash-section quality">
                     <div class="dash-section-header">
                         <span class="section-icon">✅</span>
-                        <h2>Quality</h2>
-                        <span class="section-count">ตัวชี้วัดคุณภาพ</span>
+                        <h2>Quality — รายละเอียด</h2>
+                        <span class="section-count">DRP · Coverage</span>
                         <span class="dash-section-divider"></span>
                     </div>
-                    <div class="dash-subgrid">
+                    <div class="dash-subgrid cols-3">
                         <div class="kpi-v2 quality">
                             <div class="k-label"><span class="k-icon">📊</span> MR Coverage</div>
                             <div class="k-value" id="dashMRCov">0%</div>
                             <span class="k-trend" id="dashMRCovTrend"></span>
-                        </div>
-                        <div class="kpi-v2 quality">
-                            <div class="k-label"><span class="k-icon">⏱️</span> MR ทันเวลา</div>
-                            <div class="k-value" id="mr24h">0%</div>
-                            <span class="k-trend" id="mr24hTrend"></span>
-                        </div>
-                        <div class="kpi-v2 quality">
-                            <div class="k-label"><span class="k-icon">⚡</span> MD ตอบ ≤1 เวร</div>
-                            <div class="k-value" id="mrShift2">0%</div>
-                            <div class="k-sub">เวรเดียวกัน: <span id="mrShift1">0%</span></div>
-                            <span class="k-trend" id="mrShift2Trend"></span>
                         </div>
                         <div class="kpi-v2 quality">
                             <div class="k-label"><span class="k-icon">🎯</span> DRP Rate</div>
@@ -4372,24 +4618,28 @@
                             <div class="k-sub">จาก MR ที่ review</div>
                             <span class="k-trend" id="dashDRPTrend"></span>
                         </div>
+                        <div class="kpi-v2 quality" style="opacity:0; pointer-events:none;">
+                            <!-- spacer -->
+                        </div>
                     </div>
-                    <div class="dashboard-grid">
-                        <div class="card">
-                            <div class="chart-header">
-                                <h3 class="card-title">MD Response — จำนวน shift ที่ใช้ตอบ</h3>
-                                <button class="chart-png-btn" onclick="exportChartPNG('mdHistChart','MD_Response')" title="Export PNG">📷</button>
-                            </div>
-                            <div class="chart-container"><canvas id="mdHistChart"></canvas></div>
+                    <div class="card">
+                        <div class="chart-header">
+                            <h3 class="card-title">DRP Types (Top 5)</h3>
+                            <button class="chart-png-btn" onclick="exportChartPNG('drpChart','DRP_Types')" title="Export PNG">📷</button>
                         </div>
-                        <div class="card">
-                            <div class="chart-header">
-                                <h3 class="card-title">DRP Types (Top 5)</h3>
-                                <button class="chart-png-btn" onclick="exportChartPNG('drpChart','DRP_Types')" title="Export PNG">📷</button>
-                            </div>
-                            <div class="chart-container"><canvas id="drpChart"></canvas></div>
-                        </div>
+                        <div class="chart-container"><canvas id="drpChart"></canvas></div>
                     </div>
                 </div>
+
+                <!-- hidden legacy IDs ที่ JS ยังต้องอ้างอิง (Hero card ใช้ค่าตรงๆ ไม่ผ่านพวกนี้แล้ว) -->
+                <span style="display:none;" id="mr24h">0%</span>
+                <span style="display:none;" id="mr24hTrend"></span>
+                <span style="display:none;" id="mrShift1">0%</span>
+                <span style="display:none;" id="mrShift2">0%</span>
+                <span style="display:none;" id="mrShift2Trend"></span>
+
+                    </div>
+                </details>
             </div>
 
             <!-- TAB 3: Workload -->
@@ -5405,6 +5655,7 @@
         initDateInputs();
         switchMainTab('patient-list');
         setInterval(updateDate, 60000);
+        startAutoRefresh();   // ★ เริ่ม poll patients + todos ทุก 25s
     });
 
     function loadSettings() {
@@ -5835,6 +6086,11 @@
             }
             console.log('[gasPost] ' + action + ' →', resp);
             if (callback) callback(resp);
+            // ★ AUTO-REFRESH: ถ้า save สำเร็จ → schedule soft refresh (debounced)
+            //   ครอบคลุม save/update/delete/complete/discharge/mark/record/etc.
+            if (resp && resp.ok !== false && _isWriteAction(action)) {
+                scheduleSoftRefresh(1500);
+            }
         })
         .catch(function(err) {
             if (done) return;
@@ -5844,6 +6100,68 @@
             if (callback) callback({ ok: false, error: 'fetch: ' + (err && err.message || String(err)) });
         });
     }
+
+    // =============================================================
+    //  AUTO-REFRESH — poll patient list + to-do อัตโนมัติ
+    //   - Poll ทุก 25 วินาที เมื่อแท็บ visible
+    //   - หลัง gasPost write สำเร็จ → soft refresh (1.5s debounced)
+    //   - ข้ามถ้า MR form dirty หรือ edit identity modal เปิด
+    //   - resume ทันทีเมื่อแท็บกลับมา visible
+    // =============================================================
+    var _autoRefreshTimer  = null;
+    var _autoRefreshMs     = 25000;
+    var _pendingSoftTimer  = null;
+    var _autoRefreshBusy   = false;
+
+    function _isWriteAction(action) {
+        if (!action) return false;
+        var prefixes = ['save', 'update', 'delete', 'mark', 'record', 'set', 'undo', 'complete', 'discharge', 'upload', 'seed'];
+        for (var i = 0; i < prefixes.length; i++) {
+            if (action.indexOf(prefixes[i]) === 0) return true;
+        }
+        return false;
+    }
+
+    function _shouldSkipAutoRefresh() {
+        if (document.hidden) return true;
+        // กัน overwrite ฟอร์ม MR ที่ user ติ๊ก/แก้แล้วยังไม่ save
+        if (typeof _mrFormDirty !== 'undefined' && _mrFormDirty) return true;
+        // ถ้ากำลัง edit ชื่อ/HN อยู่ → ข้าม
+        var ei = document.getElementById('editIdentityModal');
+        if (ei && ei.classList.contains('active')) return true;
+        return false;
+    }
+
+    function _doAutoRefresh() {
+        if (_shouldSkipAutoRefresh()) return;
+        if (_autoRefreshBusy) return;
+        _autoRefreshBusy = true;
+        try { loadPatients(); } catch(e) { console.warn('autorefresh loadPatients failed', e); }
+        try { loadTodos();    } catch(e) { console.warn('autorefresh loadTodos failed', e); }
+        // unlock เร็วกว่า poll interval — กัน lock ค้างถ้า fetch ช้า
+        setTimeout(function(){ _autoRefreshBusy = false; }, 3000);
+    }
+
+    function startAutoRefresh() {
+        if (_autoRefreshTimer) clearInterval(_autoRefreshTimer);
+        _autoRefreshTimer = setInterval(_doAutoRefresh, _autoRefreshMs);
+    }
+
+    // Trigger เร็วหลัง save (debounced) — ไม่ต้องรอ poll ถัดไป
+    function scheduleSoftRefresh(delayMs) {
+        if (_pendingSoftTimer) clearTimeout(_pendingSoftTimer);
+        _pendingSoftTimer = setTimeout(function() {
+            _pendingSoftTimer = null;
+            _doAutoRefresh();
+        }, delayMs || 1200);
+    }
+
+    document.addEventListener('visibilitychange', function() {
+        if (!document.hidden) {
+            // กลับมาที่แท็บ → refresh ทันที
+            scheduleSoftRefresh(200);
+        }
+    });
 
     // Patient List
     function loadPatients() {
@@ -5857,6 +6175,7 @@
                     updatePatientTable();
                     updateKPIs();
                     if (typeof updateTodoBadge === 'function') updateTodoBadge();
+                    if (typeof _renderActionCenter === 'function') { try { _renderActionCenter(); } catch(e){} }
                 }
             }
         } catch(e) { console.warn('load cache failed', e); }
@@ -5875,6 +6194,7 @@
                 updatePatientTable();
                 updateKPIs();
                 if (typeof updateTodoBadge === 'function') updateTodoBadge();
+                if (typeof _renderActionCenter === 'function') { try { _renderActionCenter(); } catch(e){} }
                 if (allPatients.length === 0) {
                     showToast('ยังไม่มีคนไข้ในระบบ', { type: 'info' });
                 }
@@ -7919,6 +8239,7 @@
     // ══════ Dashboard ══════
     var _dashCharts = {};
     var _dashStats  = null;
+    window._dashCharts = _dashCharts; // expose สำหรับ resize trigger เมื่อเปิด collapsible
 
     function _dashPeriodRange(period) {
         var today = new Date();
@@ -8282,6 +8603,185 @@
         _setTrend('mr24hTrend',         cur.mr24h,    pv ? pv.mr24h    : null, 'up-good');
         _setTrend('mrShift2Trend',      cur.mrShift2, pv ? pv.mrShift2 : null, 'up-good');
         _setTrend('dashDRPTrend',       cur.drpRate,  pv ? pv.drpRate  : null, 'up-bad');
+
+        // ── Hero MR Quality + Action Center ──
+        _renderMRQHero(d, prev);
+        _renderActionCenter();
+    }
+
+    // ── Trigger chart resize เมื่อเปิด <details class="mrq-more"> ──
+    // (charts ใน collapsed section จะวาดด้วย width=0 ถ้าไม่ resize)
+    document.addEventListener('DOMContentLoaded', function() {
+        var more = document.querySelector('.mrq-more');
+        if (more) {
+            more.addEventListener('toggle', function() {
+                if (more.open && window._dashCharts) {
+                    Object.keys(window._dashCharts || {}).forEach(function(k) {
+                        var c = window._dashCharts[k];
+                        try { if (c && c.resize) c.resize(); } catch(e) {}
+                    });
+                }
+            });
+        }
+    });
+
+    // ═══════════════════════════════════════════════
+    //  Hero card — MR ทันเวลา %
+    //  (ใช้ stats ที่ backend ส่งมาแล้ว — ไม่คำนวณซ้ำ)
+    // ═══════════════════════════════════════════════
+    function _renderMRQHero(d, prev) {
+        var mr = (d && d.mr) || {};
+        var pmr = (prev && prev.mr) || {};
+        var pct = mr.within24hPct || 0;
+        var prevPct = pmr.within24hPct || 0;
+
+        // Hero %
+        var heroEl = document.getElementById('heroMRTimely');
+        if (heroEl) heroEl.textContent = pct + '%';
+
+        // Trend
+        var trEl = document.getElementById('heroMRTimelyTrend');
+        if (trEl) {
+            if (prev && prevPct != null) {
+                var delta = pct - prevPct;
+                if (delta > 0) {
+                    trEl.textContent = '↑ +' + delta + '% จากเดือนก่อน';
+                    trEl.className = 'mrq-hero-trend up';
+                } else if (delta < 0) {
+                    trEl.textContent = '↓ ' + delta + '% จากเดือนก่อน';
+                    trEl.className = 'mrq-hero-trend down';
+                } else {
+                    trEl.textContent = '— เท่าเดือนก่อน';
+                    trEl.className = 'mrq-hero-trend flat';
+                }
+            } else {
+                trEl.textContent = '— ไม่มีข้อมูลเดือนก่อนเทียบ';
+                trEl.className = 'mrq-hero-trend flat';
+            }
+        }
+
+        // Per-hospital breakdown — backend อาจยังไม่ส่ง field นี้
+        // ใช้ตัวเลขจาก d.mr.byHospital ถ้ามี ถ้าไม่มีโชว์ "—"
+        var byH = mr.byHospital || mr.timelinessByHospital || {};
+        function _hpct(obj, keys) {
+            if (!obj) return null;
+            for (var i = 0; i < keys.length; i++) {
+                var v = obj[keys[i]];
+                if (v && v.timelyPct != null) return v.timelyPct;
+                if (typeof v === 'number') return v;
+            }
+            return null;
+        }
+        var huaiPct  = _hpct(byH, ['huaiphung', 'รพ.ห้วยผึ้ง', 'huai']);
+        var otherPct = _hpct(byH, ['other', 'อื่น']);
+        var hh = document.getElementById('heroRuleHuai');
+        var ho = document.getElementById('heroRuleOther');
+        if (hh) hh.textContent = (huaiPct != null) ? huaiPct + '%' : '—';
+        if (ho) ho.textContent = (otherPct != null) ? otherPct + '%' : '—';
+
+        // Foot — totals
+        var ptTotal = (d.patients && d.patients.total) || 0;
+        var mrDone = (d.mrTotal && d.mrTotal.done) || mr.total || 0;
+        var mrPendingMD = (d.mrTotal && d.mrTotal.pendingMD) || 0;
+        _setText('heroMRTotalFoot', ptTotal);
+        _setText('heroMRDoneFoot', mrDone);
+        _setText('heroMRPendingFoot', mrPendingMD);
+
+        // MD Speed grid
+        var sameShift = (mr.mdReview1ShiftPct) || 0;
+        var within1 = (mr.mdReview2ShiftPct) || 0;
+        _setText('qcMDSameShift', sameShift + '%');
+        _setText('qcMD1Shift', within1 + '%');
+
+        // > 2 shift cases (จาก mdResponseHistogram bucket "3" + "4+")
+        var hist = d.mdResponseHistogram || {};
+        var over = (hist['3'] || 0) + (hist['4+'] || 0);
+        _setText('qcMDOver', over);
+        var overWrap = document.getElementById('qcMDOverWrap');
+        if (overWrap) {
+            if (over > 0) overWrap.classList.add('warn');
+            else overWrap.classList.remove('warn');
+        }
+    }
+
+    // ═══════════════════════════════════════════════
+    //  Action Center — case ค้าง MD review
+    //  (ดึงจาก allPatients ตรง ๆ — ไม่ต้อง fetch ใหม่)
+    // ═══════════════════════════════════════════════
+    function _renderActionCenter() {
+        var listEl = document.getElementById('acPendingList');
+        var emptyEl = document.getElementById('acPendingEmpty');
+        var countEl = document.getElementById('acPendingCount');
+        if (!listEl) return;
+
+        var src = (typeof allPatients !== 'undefined' && allPatients) ? allPatients : [];
+        var pending = src.filter(function(p) {
+            if (p.status === 'discharged') return false;
+            return p.mrStatus === 'done' && !p.mdReviewedAt;
+        });
+
+        // Sort by mrDoneAt asc (เก่าที่สุด = ค้างนานที่สุด ขึ้นบน)
+        pending.sort(function(a, b) {
+            var ta = a.mrDoneAt || a.mrDate || '';
+            var tb = b.mrDoneAt || b.mrDate || '';
+            return ta < tb ? -1 : (ta > tb ? 1 : 0);
+        });
+
+        var n = pending.length;
+        if (countEl) {
+            countEl.textContent = n + ' case';
+            countEl.className = 'mrq-action-count' + (n === 0 ? ' zero' : '');
+        }
+
+        if (n === 0) {
+            listEl.innerHTML = '';
+            listEl.style.display = 'none';
+            if (emptyEl) emptyEl.style.display = 'block';
+            return;
+        }
+
+        listEl.style.display = 'flex';
+        if (emptyEl) emptyEl.style.display = 'none';
+
+        // Compute "shifts waiting" — approximate by date diff
+        function shiftsSince(mrDoneAt) {
+            if (!mrDoneAt) return 0;
+            var s = String(mrDoneAt);
+            // try ISO first
+            var d = null;
+            if (s.indexOf('-') > -1) {
+                d = new Date(s.replace(' ', 'T'));
+            } else if (s.indexOf('/') > -1) {
+                var p = s.split('/');
+                if (p.length === 3) {
+                    var dd = +p[0], mm = +p[1] - 1, yy = +p[2];
+                    if (yy > 2400) yy -= 543;
+                    d = new Date(yy, mm, dd);
+                }
+            }
+            if (!d || isNaN(d.getTime())) return 0;
+            var diffMs = Date.now() - d.getTime();
+            return Math.max(0, Math.floor(diffMs / (8 * 60 * 60 * 1000))); // 8h per shift
+        }
+
+        // Show top 8 by waiting time, with overflow indicator
+        var top = pending.slice(0, 8);
+        var html = top.map(function(p) {
+            var sh = shiftsSince(p.mrDoneAt || p.mrDate);
+            var cls = sh >= 6 ? 'urgent' : (sh >= 3 ? 'soon' : '');
+            var waitCls = sh >= 6 ? 'urgent' : (sh >= 3 ? 'soon' : '');
+            var waitText = sh > 0 ? ('ค้าง ' + sh + ' เวร') : 'เพิ่งเสร็จ';
+            return '<div class="mrq-action-item ' + cls + '" onclick="openPatientByHN(\'' + p.hn + '\')">'
+                + '<div class="mrq-action-name">' + (p.name || '(ไม่มีชื่อ)') + '<span class="hn">HN ' + p.hn + '</span></div>'
+                + '<div class="mrq-action-wait ' + waitCls + '">' + waitText + '</div>'
+                + '<div class="mrq-action-cta">เปิด ›</div>'
+                + '</div>';
+        }).join('');
+        if (n > top.length) {
+            html += '<div class="mrq-action-cta" style="text-align:center; padding:8px; font-size:11px; color:#999;">'
+                  + 'และอีก ' + (n - top.length) + ' case · ดูทั้งหมดใน Tab "รายการที่ต้องทำ"</div>';
+        }
+        listEl.innerHTML = html;
     }
 
     function _setText(id, val) { var el = document.getElementById(id); if (el) el.textContent = val; }
