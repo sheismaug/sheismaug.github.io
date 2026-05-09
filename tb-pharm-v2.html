@@ -7794,7 +7794,12 @@ async function buildPatientCard(patientId) {
         actualDate: sv.actual_date || '',
         pt: patientId,
       };
-      if (sv.actual_date && idx < S.visitDates.length) {
+      // ⚠️ ถ้า user explicitly skip visit นี้ (saved as empty in visit_dates_json)
+      //    → ไม่ overlay actual_date ทับ
+      const isSkippedByUser = S._savedVisitDates &&
+                              S._savedVisitDates.length > idx &&
+                              S._savedVisitDates[idx] === '';
+      if (sv.actual_date && idx < S.visitDates.length && !isSkippedByUser) {
         S.visitDates[idx] = sv.actual_date;
       }
     });
@@ -8606,6 +8611,7 @@ async function submitEditPatient(patientId) {
 
   try {
     if (APPS_SCRIPT_URL && !APPS_SCRIPT_URL.includes('YOUR_APPS')) {
+      await api('savePatient', updates);
       await api('savePatient', updates);
       toast('✅ บันทึกข้อมูลแล้ว');
     } else {
