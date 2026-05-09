@@ -4559,7 +4559,10 @@
                         <input type="text" class="form-input date-input" id="dashFromDate" placeholder="จาก" style="max-width: 120px;">
                         <input type="text" class="form-input date-input" id="dashToDate" placeholder="ถึง" style="max-width: 120px;">
                     </div>
-                    <button class="btn-export-xlsx" id="btnExportXlsx" onclick="exportDashboardExcel()">📊 Export Excel</button>
+                    <div style="display:flex; gap:8px;">
+                        <button class="btn-export-xlsx" id="btnPrintMRQ" onclick="printMRQReport()" style="background:#2e3f58; color:#fff;">🖨 พิมพ์รายงาน MR</button>
+                        <button class="btn-export-xlsx" id="btnExportXlsx" onclick="exportDashboardExcel()">📊 Export Excel</button>
+                    </div>
                 </div>
 
                 <!-- ════ HERO: MR ทันเวลา ════ -->
@@ -8915,6 +8918,233 @@
             rows: rows,
             showMDShift: false,
         });
+    }
+
+    // ═══════════════════════════════════════════════
+    //  PRINT REPORT — A4 MR Quality
+    // ═══════════════════════════════════════════════
+    function printMRQReport() {
+        if (!_mrqLastStats) {
+            showToast('ยังโหลด dashboard ไม่เสร็จ ลองอีกครั้ง', { type:'info' });
+            return;
+        }
+        var d = _mrqLastStats;
+        var mr = d.mr || {};
+        var byH = mr.byHospital || {};
+        var huaiB = byH.huaiphung || { total: 0, onTime: 0, timelyPct: 0 };
+        var otherB = byH.other || { total: 0, onTime: 0, timelyPct: 0 };
+        var hist = d.mdResponseHistogram || {};
+        var failures = mr.failureList || [];
+
+        // Period label
+        var fr = (d.dateRange && d.dateRange.from) || '';
+        var to = (d.dateRange && d.dateRange.to) || '';
+        function isoToBE(iso) {
+            if (!iso) return '';
+            var p = String(iso).split('-');
+            if (p.length !== 3) return iso;
+            var y = parseInt(p[0],10) + 543;
+            return p[2] + '/' + p[1] + '/' + y;
+        }
+        var periodLabel = isoToBE(fr) + ' — ' + isoToBE(to);
+        var nowDate = new Date();
+        var nowLabel = nowDate.getDate() + '/' + (nowDate.getMonth()+1) + '/' + (nowDate.getFullYear()+543);
+
+        function esc(s) {
+            return String(s == null ? '' : s)
+                .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+        }
+
+        function inferCause(row) {
+            if (row.timeCriteria === 'fail') {
+                var ad = row.admitShift, md = row.mrDoneShift;
+                if (ad === 'ดึก' && md && md !== 'ดึก') return 'admit ดึก หมุนข้ามเวร';
+                if (row.hospital && row.hospital.indexOf('ห้วยผึ้ง') < 0) return 'รพ.อื่น เกิน 24h';
+                return 'เกินเกณฑ์';
+            }
+            return '—';
+        }
+
+        var sameShiftPct = mr.mdReview1ShiftPct || 0;
+        var within1Pct   = mr.mdReview2ShiftPct || 0;
+        var totalCases   = mr.total || 0;
+        var onTimeTotal  = mr.within24h || 0;
+        var overallPct   = mr.within24hPct || 0;
+        var failedCount  = failures.length;
+        var pendingMD    = (d.mrTotal && d.mrTotal.pendingMD) || 0;
+
+        // MD distribution table
+        var mdLabels = ['0', '1', '2', '3', '4+'];
+        var mdRows = mdLabels.map(function(k) {
+            var n = hist[k] || 0;
+            var bar = '';
+            var maxN = Math.max.apply(null, mdLabels.map(function(x){ return hist[x] || 0; }));
+            var pct = maxN > 0 ? (n / maxN * 100) : 0;
+            return { label: k + ' shift', count: n, pct: pct };
+        });
+
+        // Failure rows (limit 20 ใน 1 หน้า)
+        var failRowsHtml = failures.slice(0, 20).map(function(r) {
+            return '<tr>'
+                + '<td>' + esc(r.hn) + '</td>'
+                + '<td>' + esc(r.name || '—') + '</td>'
+                + '<td>' + esc(r.hospital || '—') + '</td>'
+                + '<td>' + esc(r.pharmacist || '—') + '</td>'
+                + '<td>' + esc(r.admitDate || '') + ' <span class="muted">' + esc(r.admitShift || '') + '</span></td>'
+                + '<td>' + esc(r.mrDoneShift || '—') + '</td>'
+                + '<td class="cause">' + esc(inferCause(r)) + '</td>'
+                + '</tr>';
+        }).join('');
+        var failOverflow = failures.length > 20
+            ? '<div class="overflow-note">…และอีก ' + (failures.length - 20) + ' case (แสดงเฉพาะ 20 อันดับแรก)</div>'
+            : '';
+
+        // MD distribution rows
+        var mdRowsHtml = mdRows.map(function(r) {
+            return '<tr>'
+                + '<td>' + esc(r.label) + '</td>'
+                + '<td class="num">' + r.count + '</td>'
+                + '<td class="bar-cell"><div class="bar"><div class="bar-fill" style="width:' + r.pct.toFixed(1) + '%"></div></div></td>'
+                + '</tr>';
+        }).join('');
+
+        var html = ''
+            + '<!doctype html>\n'
+            + '<html lang="th">\n'
+            + '<head>\n'
+            + '<meta charset="utf-8">\n'
+            + '<title>รายงาน MR Quality · ' + esc(periodLabel) + '</title>\n'
+            + '<style>\n'
+            + '@page { size: A4; margin: 15mm; }\n'
+            + '* { box-sizing: border-box; margin: 0; padding: 0; }\n'
+            + 'html, body { font-family: "Google Sans", "Noto Sans Thai", sans-serif; color: #1a1a1a; background: #fff; font-size: 11pt; line-height: 1.4; }\n'
+            + '.page { width: 180mm; margin: 0 auto; padding: 0; }\n'
+            + '.report-head { display: flex; justify-content: space-between; align-items: flex-end; padding-bottom: 10mm; border-bottom: 2px solid #1b5e20; margin-bottom: 8mm; }\n'
+            + '.report-head h1 { font-size: 18pt; font-weight: 700; color: #1b5e20; line-height: 1.1; }\n'
+            + '.report-head .sub { font-size: 10pt; color: #555; margin-top: 2mm; }\n'
+            + '.report-head .meta { text-align: right; font-size: 9pt; color: #777; line-height: 1.5; }\n'
+            + '.hero { background: #f1f8f2; border-left: 5px solid #1b5e20; padding: 6mm 7mm; border-radius: 4px; margin-bottom: 6mm; }\n'
+            + '.hero-row { display: flex; align-items: baseline; gap: 8mm; margin-bottom: 3mm; }\n'
+            + '.hero-pct { font-size: 36pt; font-weight: 700; color: #1b5e20; line-height: 1; letter-spacing: -1px; }\n'
+            + '.hero-meta { font-size: 9.5pt; color: #555; }\n'
+            + '.hero-meta strong { color: #1b5e20; }\n'
+            + '.hero-foot { font-size: 9.5pt; color: #444; padding-top: 3mm; border-top: 1px solid #c8dcc9; }\n'
+            + '.section { margin-bottom: 6mm; page-break-inside: avoid; }\n'
+            + '.section h2 { font-size: 12pt; color: #1b5e20; margin-bottom: 3mm; padding-bottom: 1.5mm; border-bottom: 1px solid #c8dcc9; font-weight: 700; }\n'
+            + '.grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 5mm; }\n'
+            + '.card { border: 1px solid #d8d5cf; border-radius: 4px; padding: 4mm 5mm; background: #fafaf7; page-break-inside: avoid; }\n'
+            + '.card .label { font-size: 9pt; color: #666; margin-bottom: 1mm; }\n'
+            + '.card .pct { font-size: 22pt; font-weight: 700; color: #1b5e20; line-height: 1.1; }\n'
+            + '.card .denom { font-size: 9pt; color: #666; }\n'
+            + '.card .rule { font-size: 8.5pt; color: #888; margin-top: 1.5mm; font-style: italic; }\n'
+            + 'table { width: 100%; border-collapse: collapse; font-size: 9.5pt; }\n'
+            + 'th { text-align: left; font-weight: 600; color: #444; padding: 2mm 3mm; background: #f1f8f2; border-bottom: 1.5px solid #1b5e20; font-size: 9pt; }\n'
+            + 'td { padding: 2mm 3mm; border-bottom: 1px solid #e8e5dc; vertical-align: top; }\n'
+            + 'td.num { text-align: right; font-variant-numeric: tabular-nums; font-weight: 600; }\n'
+            + 'td.bar-cell { width: 50%; }\n'
+            + '.bar { background: #ece9e2; height: 5mm; border-radius: 2px; overflow: hidden; }\n'
+            + '.bar-fill { background: #4a7c59; height: 100%; }\n'
+            + '.muted { color: #888; font-size: 9pt; }\n'
+            + '.cause { color: #a04020; font-size: 9pt; }\n'
+            + '.overflow-note { padding: 2mm 3mm; font-size: 9pt; color: #888; font-style: italic; }\n'
+            + '.report-foot { margin-top: 8mm; padding-top: 4mm; border-top: 1px solid #d8d5cf; font-size: 9pt; color: #777; display: flex; justify-content: space-between; }\n'
+            + '.empty { padding: 4mm; text-align: center; color: #888; font-size: 10pt; font-style: italic; background: #fafaf7; border-radius: 4px; }\n'
+            + '.print-bar { position: fixed; top: 0; left: 0; right: 0; padding: 8px 16px; background: #2e3f58; color: #fff; display: flex; justify-content: space-between; align-items: center; z-index: 999; }\n'
+            + '.print-bar button { background: #fff; color: #2e3f58; border: none; padding: 6px 14px; border-radius: 4px; font-weight: 600; cursor: pointer; font-family: inherit; }\n'
+            + '@media print { .print-bar { display: none; } body { padding-top: 0; } }\n'
+            + '@media screen { body { padding-top: 50px; background: #ddd; } .page { background: #fff; padding: 15mm; box-shadow: 0 2px 8px rgba(0,0,0,0.15); margin: 20px auto; } }\n'
+            + '</style>\n'
+            + '</head>\n'
+            + '<body>\n'
+            + '<div class="print-bar">\n'
+            + '<span>กด <strong>Print</strong> เพื่อ Save as PDF (Chrome → Destination: Save as PDF) — ปรับ Margins: Default</span>\n'
+            + '<button onclick="window.print()">🖨 Print</button>\n'
+            + '</div>\n'
+            + '<div class="page">\n'
+            + '  <div class="report-head">\n'
+            + '    <div>\n'
+            + '      <h1>รายงานคุณภาพ Medication Reconciliation</h1>\n'
+            + '      <div class="sub">โรงพยาบาลห้วยผึ้ง · IPD Pharm Hub</div>\n'
+            + '    </div>\n'
+            + '    <div class="meta">\n'
+            + '      <div>ช่วงเวลา: <strong>' + esc(periodLabel) + '</strong></div>\n'
+            + '      <div>วันที่ออกรายงาน: ' + esc(nowLabel) + '</div>\n'
+            + '    </div>\n'
+            + '  </div>\n'
+            + '  <div class="hero">\n'
+            + '    <div class="hero-row">\n'
+            + '      <div class="hero-pct">' + overallPct + '%</div>\n'
+            + '      <div class="hero-meta">\n'
+            + '        <div><strong>MR ทันเวลา</strong> · เป้าหมาย ≥ 95%</div>\n'
+            + '        <div>' + onTimeTotal + ' จาก ' + totalCases + ' ราย ผ่านเกณฑ์</div>\n'
+            + '      </div>\n'
+            + '    </div>\n'
+            + '    <div class="hero-foot">\n'
+            + '      <strong>เกณฑ์เวลา:</strong> รพ.ห้วยผึ้ง — MR เสร็จภายในเวร admit · รพ.อื่น — MR เสร็จภายใน 24 ชม.\n'
+            + '    </div>\n'
+            + '  </div>\n'
+            + '  <div class="section">\n'
+            + '    <h2>แยกตามแหล่งรับยา</h2>\n'
+            + '    <div class="grid-2">\n'
+            + '      <div class="card">\n'
+            + '        <div class="label">รพ.ห้วยผึ้ง</div>\n'
+            + '        <div class="pct">' + huaiB.timelyPct + '%</div>\n'
+            + '        <div class="denom">' + huaiB.onTime + ' / ' + huaiB.total + ' ราย</div>\n'
+            + '        <div class="rule">เกณฑ์: เสร็จในเวร admit</div>\n'
+            + '      </div>\n'
+            + '      <div class="card">\n'
+            + '        <div class="label">รพ.อื่น (refer)</div>\n'
+            + '        <div class="pct">' + otherB.timelyPct + '%</div>\n'
+            + '        <div class="denom">' + otherB.onTime + ' / ' + otherB.total + ' ราย</div>\n'
+            + '        <div class="rule">เกณฑ์: เสร็จภายใน 24 ชม.</div>\n'
+            + '      </div>\n'
+            + '    </div>\n'
+            + '  </div>\n'
+            + '  <div class="section">\n'
+            + '    <h2>ระยะเวลาที่แพทย์ใช้ในการ review</h2>\n'
+            + '    <table>\n'
+            + '      <thead><tr><th style="width:25%;">จำนวนเวรห่างจาก MR เสร็จ</th><th class="num" style="width:15%;">จำนวน case</th><th>สัดส่วน</th></tr></thead>\n'
+            + '      <tbody>' + mdRowsHtml + '</tbody>\n'
+            + '    </table>\n'
+            + '    <div style="margin-top:3mm; font-size:9.5pt; color:#444;">\n'
+            + '      หมอ review เวรเดียวกันกับที่ MR เสร็จ <strong>' + sameShiftPct + '%</strong> · ภายใน ≤ 1 เวร <strong>' + within1Pct + '%</strong>'
+            + (pendingMD > 0 ? ' · รอ MD review <strong>' + pendingMD + '</strong> case' : '')
+            + '\n    </div>\n'
+            + '  </div>\n'
+            + '  <div class="section">\n'
+            + '    <h2>Case ที่ MR ไม่ทันเวลา (ต้องทบทวน)</h2>\n'
+            + (failedCount === 0
+                ? '    <div class="empty">✓ ไม่มี case ที่ตกเกณฑ์ในช่วงเวลานี้</div>'
+                : '    <table>\n'
+                  + '      <thead><tr>\n'
+                  + '        <th style="width:11%;">HN</th>\n'
+                  + '        <th style="width:21%;">ชื่อ-สกุล</th>\n'
+                  + '        <th style="width:13%;">รพ.</th>\n'
+                  + '        <th style="width:14%;">เภสัช</th>\n'
+                  + '        <th style="width:14%;">Admit</th>\n'
+                  + '        <th style="width:9%;">MR เสร็จ</th>\n'
+                  + '        <th>สาเหตุ</th>\n'
+                  + '      </tr></thead>\n'
+                  + '      <tbody>' + failRowsHtml + '</tbody>\n'
+                  + '    </table>\n'
+                  + '    ' + failOverflow)
+            + '\n  </div>\n'
+            + '  <div class="report-foot">\n'
+            + '    <span>เภสัชกรผู้จัดทำ: ____________________________</span>\n'
+            + '    <span>หน้า 1/1 · IPD Pharm Hub</span>\n'
+            + '  </div>\n'
+            + '</div>\n'
+            + '</body>\n'
+            + '</html>';
+
+        var w = window.open('', '_blank');
+        if (!w) {
+            showToast('โปรดอนุญาต popup เพื่อเปิดรายงาน', { type:'error' });
+            return;
+        }
+        w.document.open();
+        w.document.write(html);
+        w.document.close();
     }
 
     // ── Trigger chart resize เมื่อเปิด <details class="mrq-more"> ──
