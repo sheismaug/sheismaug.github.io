@@ -4435,10 +4435,12 @@
                         <div class="mrq-hero-rule-item">
                             <div class="mrq-hero-rule-label">รพ.ห้วยผึ้ง · เสร็จในเวร admit</div>
                             <div class="mrq-hero-rule-pct" id="heroRuleHuai">—</div>
+                            <div class="mrq-hero-rule-label" id="heroRuleHuaiSub" style="margin-top:2px;">—</div>
                         </div>
                         <div class="mrq-hero-rule-item">
                             <div class="mrq-hero-rule-label">รพ.อื่น · เสร็จใน 24 ชม.</div>
                             <div class="mrq-hero-rule-pct" id="heroRuleOther">—</div>
+                            <div class="mrq-hero-rule-label" id="heroRuleOtherSub" style="margin-top:2px;">—</div>
                         </div>
                     </div>
                     <div class="mrq-hero-foot">
@@ -8660,24 +8662,26 @@
             }
         }
 
-        // Per-hospital breakdown — backend อาจยังไม่ส่ง field นี้
-        // ใช้ตัวเลขจาก d.mr.byHospital ถ้ามี ถ้าไม่มีโชว์ "—"
+        // Per-hospital breakdown — backend ส่ง mr.byHospital
         var byH = mr.byHospital || mr.timelinessByHospital || {};
-        function _hpct(obj, keys) {
+        function _hbucket(obj, keys) {
             if (!obj) return null;
             for (var i = 0; i < keys.length; i++) {
                 var v = obj[keys[i]];
-                if (v && v.timelyPct != null) return v.timelyPct;
-                if (typeof v === 'number') return v;
+                if (v && typeof v === 'object') return v;
             }
             return null;
         }
-        var huaiPct  = _hpct(byH, ['huaiphung', 'รพ.ห้วยผึ้ง', 'huai']);
-        var otherPct = _hpct(byH, ['other', 'อื่น']);
+        var huaiB  = _hbucket(byH, ['huaiphung', 'รพ.ห้วยผึ้ง', 'huai']);
+        var otherB = _hbucket(byH, ['other', 'อื่น']);
         var hh = document.getElementById('heroRuleHuai');
         var ho = document.getElementById('heroRuleOther');
-        if (hh) hh.textContent = (huaiPct != null) ? huaiPct + '%' : '—';
-        if (ho) ho.textContent = (otherPct != null) ? otherPct + '%' : '—';
+        var hhs = document.getElementById('heroRuleHuaiSub');
+        var hos = document.getElementById('heroRuleOtherSub');
+        if (hh) hh.textContent = (huaiB && huaiB.timelyPct != null) ? huaiB.timelyPct + '%' : '—';
+        if (ho) ho.textContent = (otherB && otherB.timelyPct != null) ? otherB.timelyPct + '%' : '—';
+        if (hhs) hhs.textContent = huaiB ? (huaiB.onTime + ' / ' + huaiB.total + ' ราย') : '—';
+        if (hos) hos.textContent = otherB ? (otherB.onTime + ' / ' + otherB.total + ' ราย') : '—';
 
         // Foot — totals
         var ptTotal = (d.patients && d.patients.total) || 0;
