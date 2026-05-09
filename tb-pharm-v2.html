@@ -2327,9 +2327,10 @@ function buildSchedule() {
   S.visitDates  = [...stdDates, ...customDates];
 
   // Overlay saved dates from Sheets (user-edited dates persist over calculated ones)
+  // ⚠️ d === '' = user explicitly skipped this visit — must preserve, ห้าม fallback กลับเป็นวันคำนวณ
   if (S._savedVisitDates?.length) {
     S._savedVisitDates.forEach((d, i) => {
-      if (d && i < S.visitDates.length) S.visitDates[i] = d;
+      if (i < S.visitDates.length && typeof d === 'string') S.visitDates[i] = d;
     });
   }
 
