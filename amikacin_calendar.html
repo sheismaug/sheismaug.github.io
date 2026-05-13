@@ -1,0 +1,845 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ปฏิทินจัดยา · amikacin</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Google+Sans:wght@400;500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@2.40.0/tabler-icons.min.css">
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  font-family: 'Google Sans', 'Product Sans', system-ui, sans-serif;
+  background: #F5F4F0;
+  color: #36008D;
+  padding: 24px;
+  min-height: 100vh;
+}
+.page-wrap { max-width: 920px; margin: 0 auto; }
+
+/* CONTROLS PANEL */
+.controls {
+  background: white;
+  border-radius: 12px;
+  padding: 18px 22px;
+  margin-bottom: 18px;
+  border: 1px solid #F0EFF2;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 14px 22px;
+  align-items: flex-end;
+}
+.controls h2 {
+  width: 100%;
+  font-size: 12px;
+  color: #00A89A;
+  letter-spacing: 2.5px;
+  font-weight: 500;
+  margin-bottom: 4px;
+}
+.field { display: flex; flex-direction: column; gap: 4px; }
+.field label {
+  font-size: 10px;
+  color: #8C8A93;
+  letter-spacing: 1.2px;
+  font-weight: 500;
+}
+.field input, .field select {
+  font-family: inherit;
+  font-size: 14px;
+  font-weight: 500;
+  color: #36008D;
+  padding: 6px 10px;
+  border: 1px solid #E5E3EA;
+  border-radius: 6px;
+  background: white;
+  width: 120px;
+}
+.field input:focus, .field select:focus {
+  outline: none;
+  border-color: #FCD200;
+}
+.field.wide input { width: 160px; }
+.field.narrow input { width: 80px; }
+.field-radio { display: flex; gap: 8px; }
+.field-radio label {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  padding: 6px 10px;
+  border: 1px solid #E5E3EA;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 13px;
+  color: #6B6770;
+  letter-spacing: 0;
+}
+.field-radio input { display: none; }
+.field-radio label.active {
+  background: #FFF8DC;
+  border-color: #FCD200;
+  color: #8B1E2A;
+  font-weight: 500;
+}
+.btn-print {
+  margin-left: auto;
+  font-family: inherit;
+  background: #36008D;
+  color: white;
+  border: none;
+  padding: 9px 18px;
+  border-radius: 6px;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.btn-print:hover { background: #2A006B; }
+
+/* CARD */
+.card {
+  background: white;
+  border-radius: 12px;
+  overflow: hidden;
+  border: 1px solid #F0EFF2;
+}
+.top-stripe { display: flex; height: 12px; }
+.top-stripe > div:nth-child(1) { flex: 2; background: #FCD200; }
+.top-stripe > div:nth-child(2) { flex: 1; background: #00C9B8; }
+.top-stripe > div:nth-child(3) { flex: 1; background: #FFB3C1; }
+.top-stripe > div:nth-child(4) { flex: 0.5; background: #FE5E54; }
+.top-stripe > div:nth-child(5) { flex: 0.5; background: #36008D; }
+
+.body { padding: 36px 44px 32px; }
+
+/* HEADER */
+.header { display: flex; gap: 28px; align-items: flex-end; margin-bottom: 24px; }
+.header-text { flex: 1; }
+.eyebrow {
+  font-size: 11px;
+  color: #00A89A;
+  letter-spacing: 3px;
+  font-weight: 500;
+  margin-bottom: 8px;
+}
+.title {
+  font-size: 52px;
+  font-weight: 500;
+  color: #36008D;
+  letter-spacing: -1.8px;
+  line-height: 0.92;
+}
+.subtitle {
+  font-size: 13px;
+  color: #6B6770;
+  margin-top: 12px;
+  letter-spacing: 0.2px;
+}
+.divider {
+  height: 0;
+  border-top: 1px solid #F0EFF2;
+  margin-bottom: 24px;
+}
+.divider-strong {
+  height: 0;
+  border-top: 3px solid #FCD200;
+  margin: 12px 0 22px;
+}
+.section-label {
+  font-size: 12px;
+  color: #00A89A;
+  letter-spacing: 2.5px;
+  font-weight: 500;
+  margin-bottom: 14px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.section-label::before {
+  content: '';
+  display: inline-block;
+  width: 4px;
+  height: 14px;
+  background: #00C9B8;
+  border-radius: 1px;
+}
+
+/* STATS */
+.stats {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 28px;
+  margin-bottom: 32px;
+}
+.stat { display: flex; gap: 12px; align-items: flex-start; }
+.stat i { font-size: 18px; margin-top: 6px; }
+.stat-val {
+  color: #36008D;
+  font-weight: 500;
+  font-size: 24px;
+  letter-spacing: -0.4px;
+  line-height: 1;
+}
+.stat-val .alt {
+  font-size: 15px;
+  color: #B5B3BC;
+  font-weight: 400;
+  letter-spacing: 0;
+}
+.stat-val.danger { color: #FE5E54; }
+.stat-sub {
+  color: #B5B3BC;
+  font-size: 11px;
+  margin-top: 4px;
+}
+.stat-label {
+  font-size: 10px;
+  color: #8C8A93;
+  letter-spacing: 1.4px;
+  font-weight: 500;
+  margin-top: 8px;
+}
+
+/* CALENDAR */
+.month-label {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  margin-bottom: 14px;
+}
+.month-label .m {
+  font-size: 24px;
+  font-weight: 500;
+  color: #36008D;
+  letter-spacing: -0.4px;
+}
+.month-label .m .y {
+  font-size: 16px;
+  color: #B5B3BC;
+  font-weight: 400;
+  letter-spacing: 0;
+}
+.calendar-pad {
+  background: #FFFBEB;
+  padding: 18px 18px 20px;
+  border-radius: 10px;
+  margin-bottom: 22px;
+}
+.dow-row {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 6px;
+  margin-bottom: 6px;
+}
+.dow {
+  text-align: center;
+  font-size: 10px;
+  color: #B5B3BC;
+  font-weight: 500;
+  letter-spacing: 1px;
+  padding: 6px 0;
+}
+.cal-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 6px;
+}
+.day {
+  display: flex;
+  flex-direction: column;
+  border-radius: 6px;
+  padding: 8px;
+  min-height: 100px;
+  background: white;
+  border: 1px solid #F0EFF2;
+}
+.day .d {
+  font-size: 13px;
+  font-weight: 500;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.day .v {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  margin-top: 2px;
+}
+.day.n .d { color: #36008D; }
+.day.r { background: #FFF3F5; border-color: #FFD7DD; }
+.day.r .d { color: #B83246; }
+.day.s { background: #FFF8DC; border: 1.5px solid #FCD200; }
+.day.s .d { color: #8B1E2A; }
+.day.l { background: white; border: 1px dashed #00C9B8; }
+.day.l .d { color: #00A89A; }
+.day.e { background: transparent; border-color: rgba(0, 0, 0, 0.04); }
+.day.e .d { color: #C2B996; }
+.day .last-marker {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+}
+.day .last-marker i { font-size: 26px; color: #00C9B8; }
+.day .last-marker span {
+  font-size: 9px;
+  color: #00A89A;
+  font-weight: 500;
+  letter-spacing: 0.8px;
+}
+.tag {
+  font-size: 8px;
+  background: #36008D;
+  color: #FCD200;
+  padding: 2px 6px;
+  border-radius: 3px;
+  font-weight: 500;
+  letter-spacing: 0.8px;
+}
+
+/* REFILL NOTE */
+.refill-note {
+  margin-top: 22px;
+  padding: 12px 18px;
+  background: #FFF3F5;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 13px;
+}
+.refill-note .icon-circle {
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  background: #FE5E54;
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+.refill-note .icon-circle i { font-size: 14px; }
+.refill-note strong { color: #36008D; font-weight: 500; }
+.refill-note .dates { color: #B83246; }
+
+/* LEGEND */
+.legend {
+  margin-top: 18px;
+  padding-top: 16px;
+  border-top: 1px solid #F0EFF2;
+  display: flex;
+  gap: 20px;
+  flex-wrap: wrap;
+  font-size: 10px;
+  color: #B5B3BC;
+  align-items: center;
+  letter-spacing: 0.3px;
+}
+.legend .item { display: flex; align-items: center; gap: 6px; }
+.legend .swatch { width: 10px; height: 10px; border-radius: 2px; box-sizing: border-box; }
+.legend .meta { margin-left: auto; color: #C8C6CD; }
+
+/* PRINT */
+@media print {
+  @page { size: A4 portrait; margin: 10mm; }
+  html, body {
+    background: white !important;
+    padding: 0;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+  * {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+  .controls { display: none !important; }
+  .card {
+    border: none;
+    border-radius: 0;
+    box-shadow: none;
+  }
+  .body { padding: 18px 16px; }
+  .top-stripe { height: 10px !important; }
+  .title { font-size: 42px; }
+  .day { min-height: 80px; }
+  .stat-val { font-size: 20px; }
+  .divider-strong { height: 4px !important; margin: 8px 0 18px; }
+  .refill-note { padding: 10px 14px; }
+  /* Prevent page break inside calendar */
+  .cal-grid { page-break-inside: avoid; }
+}
+
+/* Force colored backgrounds even on screen (cross-browser safety) */
+html, body {
+  -webkit-print-color-adjust: exact;
+  print-color-adjust: exact;
+}
+</style>
+</head>
+<body>
+
+<!-- SVG defs -->
+<svg width="0" height="0" style="position:absolute;" aria-hidden="true">
+  <defs>
+    <symbol id="v" viewBox="0 0 24 32">
+      <rect x="7" y="1" width="10" height="3.5" rx="1.5" fill="#36008D"/>
+      <rect x="3" y="5.5" width="18" height="25" rx="4" fill="white" stroke="#00C9B8" stroke-width="2"/>
+      <rect x="5.5" y="14" width="13" height="14.5" rx="2.5" fill="#00C9B8"/>
+      <rect x="6" y="15" width="1.6" height="11" rx="0.5" fill="white" opacity="0.7"/>
+      <circle cx="16" cy="20" r="1" fill="white" opacity="0.6"/>
+    </symbol>
+    <symbol id="vh" viewBox="0 0 60 88">
+      <rect x="20" y="2" width="20" height="8" rx="3" fill="#36008D"/>
+      <rect x="22" y="10" width="16" height="3" fill="#8C73C5"/>
+      <rect x="9" y="14" width="42" height="70" rx="10" fill="white" stroke="#00C9B8" stroke-width="3"/>
+      <rect x="15" y="38" width="30" height="40" rx="6" fill="#00C9B8"/>
+      <rect x="17" y="42" width="3" height="30" rx="1" fill="white" opacity="0.65"/>
+      <circle cx="40" cy="52" r="2.5" fill="white" opacity="0.55"/>
+      <circle cx="35" cy="64" r="1.5" fill="white" opacity="0.4"/>
+      <text x="30" y="34" text-anchor="middle" font-family="Google Sans, system-ui" font-size="6" font-weight="500" fill="#36008D" letter-spacing="0.5">amk</text>
+    </symbol>
+  </defs>
+</svg>
+
+<div class="page-wrap">
+
+  <!-- CONTROLS -->
+  <div class="controls">
+    <h2>ปรับค่ายา</h2>
+    <div class="field"><label>ชื่อยา</label><input type="text" id="drugName" value="amikacin"></div>
+    <div class="field narrow"><label>ขนาด (mL/วัน)</label><input type="number" id="dose" value="2.7" step="0.1" min="0.1"></div>
+    <div class="field narrow"><label>ขวด (mL)</label><input type="number" id="vialSize" value="2" step="0.1" min="0.1"></div>
+    <div class="field"><label>วันเริ่ม</label><input type="date" id="startDate"></div>
+    <div class="field narrow"><label>จำนวนวัน</label><input type="number" id="days" value="14" min="1" max="60"></div>
+    <div class="field">
+      <label>เวลาสั่ง</label>
+      <div class="field-radio">
+        <label class="active"><input type="radio" name="ordertime" value="before" checked> ก่อน 14:00</label>
+        <label><input type="radio" name="ordertime" value="after"> หลัง 14:00</label>
+      </div>
+    </div>
+    <button class="btn-print" onclick="window.print()"><i class="ti ti-printer"></i> พิมพ์ A4</button>
+  </div>
+
+  <!-- CARD -->
+  <div class="card">
+    <div class="top-stripe"><div></div><div></div><div></div><div></div><div></div></div>
+
+    <div class="body">
+
+      <div class="header">
+        <div class="header-text">
+          <div class="eyebrow">ปฏิทินจัดยา</div>
+          <h1 class="title" id="titleEl">amikacin</h1>
+          <div class="subtitle" id="subtitleEl">2.7 mL/วัน  ·  ขวด 2 mL  ·  ฉีด 14:00 น.  ·  รถยา 15:00</div>
+        </div>
+        <div style="flex-shrink: 0;">
+          <svg width="78" height="114"><use href="#vh"/></svg>
+        </div>
+      </div>
+
+      <div class="divider"></div>
+
+      <div class="section-label">สรุป</div>
+
+      <div class="stats">
+        <div class="stat">
+          <i class="ti ti-flag-3" style="color: #00C9B8;"></i>
+          <div>
+            <div class="stat-val" id="startVal">12 พ.ค. <span class="alt">2569</span></div>
+            <div class="stat-label">เริ่มรักษา</div>
+          </div>
+        </div>
+        <div class="stat">
+          <i class="ti ti-bolt" style="color: #FE5E54;"></i>
+          <div>
+            <div class="stat-val danger" id="todayVal">3 ขวด</div>
+            <div class="stat-sub" id="todaySub">STAT 2 + รถ 1</div>
+            <div class="stat-label">วันนี้ต้องจ่าย</div>
+          </div>
+        </div>
+        <div class="stat">
+          <i class="ti ti-stack-2" style="color: #36008D;"></i>
+          <div>
+            <div class="stat-val" id="totalVal">19 ขวด <span class="alt">· 14 วัน</span></div>
+            <div class="stat-label">รวมตลอด</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="divider-strong"></div>
+
+      <div class="section-label">ปฏิทิน</div>
+
+      <div class="month-label">
+        <div class="m" id="monthLabel">พฤษภาคม <span class="y">2569</span></div>
+      </div>
+
+      <div class="calendar-pad">
+        <div class="dow-row">
+          <div class="dow">จ</div><div class="dow">อ</div><div class="dow">พ</div><div class="dow">พฤ</div><div class="dow">ศ</div><div class="dow">ส</div><div class="dow">อา</div>
+        </div>
+
+        <div class="cal-grid" id="calGrid"></div>
+      </div>
+
+      <div class="refill-note">
+        <div class="icon-circle"><i class="ti ti-bell-ringing"></i></div>
+        <div>
+          <strong>วันต้องเติม</strong>
+          <span class="dates" id="refillDates">—</span>
+        </div>
+      </div>
+
+      <div class="legend">
+        <div class="item"><span class="swatch" style="background: white; border: 1px solid #F0EFF2;"></span> 1 ขวด</div>
+        <div class="item"><span class="swatch" style="background: #FFF3F5; border: 1px solid #FFD7DD;"></span> 2 ขวด</div>
+        <div class="item"><span class="swatch" style="background: #FFF8DC; border: 1.5px solid #FCD200;"></span> STAT</div>
+        <div class="item"><span class="swatch" style="background: white; border: 1px dashed #00C9B8;"></span> วันสุดท้าย</div>
+        <div class="meta" id="metaTag">amk · 14d · 19v</div>
+      </div>
+
+    </div>
+  </div>
+
+</div>
+
+<script>
+const THAI_MONTHS = ['มกราคม','กุมภาพันธ์','มีนาคม','เมษายน','พฤษภาคม','มิถุนายน','กรกฎาคม','สิงหาคม','กันยายน','ตุลาคม','พฤศจิกายน','ธันวาคม'];
+const THAI_MONTHS_SHORT = ['ม.ค.','ก.พ.','มี.ค.','เม.ย.','พ.ค.','มิ.ย.','ก.ค.','ส.ค.','ก.ย.','ต.ค.','พ.ย.','ธ.ค.'];
+
+function toBE(year) { return year + 543; }
+
+function formatThaiDateShort(d) {
+  return `${d.getDate()} ${THAI_MONTHS_SHORT[d.getMonth()]} ${toBE(d.getFullYear())}`;
+}
+
+function formatThaiMonthLabel(d) {
+  return `${THAI_MONTHS[d.getMonth()]} <span class="y">${toBE(d.getFullYear())}</span>`;
+}
+
+function addDays(date, days) {
+  const d = new Date(date);
+  d.setDate(d.getDate() + days);
+  return d;
+}
+
+function isoDateKey(d) {
+  return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+}
+
+// Build the dispense schedule
+// Inputs: startDate (Date of Day 1), days (number of doses), dose (mL), vialSize (mL), orderTime ('before'|'after')
+// Returns: array of {date, type, vials, sub} for each day in the regimen + dispensing
+function buildSchedule(startDate, days, dose, vialSize, orderTime) {
+  // Each dose day: dose at 14:00. Cart at 15:00 sends vials for NEXT day's dose.
+  // First dose day (Day 1):
+  //   - if before 14:00: STAT today for today's dose + cart today for tomorrow
+  //   - if after 14:00: today is "Day 0" (no patient activity), cart today for tomorrow (which is Day 1)
+
+  // For simplicity, let's treat startDate as the first DOSE day.
+  // If orderTime='before' → first dispense day = startDate (STAT + cart for next day's dose)
+  // If orderTime='after' → first dispense day = day BEFORE startDate (just cart for startDate's dose)
+
+  // Schedule will include: dispense events with dates.
+  // Output: map of date -> {vials, type, sub}
+
+  const events = []; // array of {date, type: 'stat'|'cart'|'last', vials, sub}
+  let leftover = 0;
+
+  if (orderTime === 'before') {
+    // Day 1 (startDate): STAT for today's dose + cart for tomorrow
+    // STAT: ceil(dose / vialSize) vials
+    const statVials = Math.ceil(dose / vialSize);
+    leftover = statVials * vialSize - dose;
+
+    // Cart on Day 1 for Day 2 (only if there are more doses)
+    if (days > 1) {
+      const needed = Math.max(0, dose - leftover);
+      const cartVials = Math.ceil(needed / vialSize);
+      const totalToday = statVials + cartVials;
+      events.push({
+        date: new Date(startDate),
+        type: 'stat',
+        vials: totalToday,
+        statVials: statVials,
+        cartVials: cartVials,
+        sub: `STAT ${statVials} + รถ ${cartVials}`
+      });
+      // Update leftover after Day 2's dose
+      leftover = leftover + cartVials * vialSize - dose;
+    } else {
+      // Only 1 dose total, just STAT
+      events.push({
+        date: new Date(startDate),
+        type: 'stat',
+        vials: statVials,
+        statVials: statVials,
+        cartVials: 0,
+        sub: `STAT ${statVials}`
+      });
+    }
+
+    // Days 2 to days-1: cart for next day's dose. Last cart on day (days-1) for day (days)'s dose.
+    for (let i = 1; i < days - 1; i++) {
+      const dispDate = addDays(startDate, i);
+      const needed = Math.max(0, dose - leftover);
+      const cartVials = Math.ceil(needed / vialSize);
+      events.push({
+        date: dispDate,
+        type: cartVials >= 2 ? 'refill' : 'normal',
+        vials: cartVials,
+        sub: null
+      });
+      leftover = leftover + cartVials * vialSize - dose;
+    }
+
+    // Last dose day (days): no dispense
+    if (days > 1) {
+      events.push({
+        date: addDays(startDate, days - 1),
+        type: 'last',
+        vials: 0,
+        sub: 'dose สุดท้าย'
+      });
+    }
+  } else {
+    // orderTime === 'after'
+    // Day 0 (startDate - 1, or treat startDate as "day before first dose"):
+    // No, let's interpret: startDate is the first DOSE day.
+    // After 14:00 → no STAT, just cart starting (startDate - 1)... but that's awkward.
+    // Better: after 14:00 means the cart on startDate evening will be the cart for startDate+1's dose, and there's no dose at startDate (the patient missed today's dose).
+    //
+    // Cleanest interpretation: startDate is "วันสั่งยา". If before 14:00, first dose is today. If after 14:00, first dose is tomorrow.
+    // So for 'after': first dose date = startDate + 1, last dose = startDate + days
+    // Dispensing on startDate (day of order) = cart for tomorrow's first dose
+    // Dispensing on startDate+1 = cart for startDate+2's dose, etc.
+    // Last dispense = day (days-1) of regimen, for last dose day.
+    // Last dose day = no dispense.
+
+    leftover = 0;
+
+    // Day 0 (order day): cart for first dose
+    const needed0 = dose; // no leftover
+    const cart0 = Math.ceil(needed0 / vialSize);
+    events.push({
+      date: new Date(startDate),
+      type: cart0 >= 2 ? 'refill' : 'normal',
+      vials: cart0,
+      sub: null
+    });
+    leftover = cart0 * vialSize - dose;
+
+    // Subsequent dispense days
+    for (let i = 1; i < days; i++) {
+      const dispDate = addDays(startDate, i);
+      const needed = Math.max(0, dose - leftover);
+      const cartVials = Math.ceil(needed / vialSize);
+      events.push({
+        date: dispDate,
+        type: cartVials >= 2 ? 'refill' : 'normal',
+        vials: cartVials,
+        sub: null
+      });
+      leftover = leftover + cartVials * vialSize - dose;
+    }
+
+    // Last dose day = startDate + days
+    events.push({
+      date: addDays(startDate, days),
+      type: 'last',
+      vials: 0,
+      sub: 'dose สุดท้าย'
+    });
+  }
+
+  return events;
+}
+
+// Render the calendar grid showing ONLY weeks that contain regimen days
+function renderCalendar(events, startDate) {
+  const grid = document.getElementById('calGrid');
+  grid.innerHTML = '';
+
+  // Find date range of events
+  const eventTimes = events.map(e => e.date.getTime());
+  const minDate = new Date(Math.min(...eventTimes));
+  const maxDate = new Date(Math.max(...eventTimes));
+
+  // Get start of week (Monday) containing minDate
+  const startCell = new Date(minDate);
+  startCell.setHours(0, 0, 0, 0);
+  const startDow = (startCell.getDay() + 6) % 7;
+  startCell.setDate(startCell.getDate() - startDow);
+
+  // Get end of week (Sunday) containing maxDate
+  const endCell = new Date(maxDate);
+  endCell.setHours(0, 0, 0, 0);
+  const endDow = (endCell.getDay() + 6) % 7;
+  endCell.setDate(endCell.getDate() + (6 - endDow));
+
+  // Build event map
+  const eventMap = {};
+  events.forEach(e => {
+    eventMap[isoDateKey(e.date)] = e;
+  });
+
+  // Iterate days from startCell to endCell
+  const totalDays = Math.round((endCell.getTime() - startCell.getTime()) / 86400000) + 1;
+
+  for (let i = 0; i < totalDays; i++) {
+    const cellDate = new Date(startCell);
+    cellDate.setDate(startCell.getDate() + i);
+
+    const cell = document.createElement('div');
+    cell.className = 'day';
+    const key = isoDateKey(cellDate);
+    const evt = eventMap[key];
+
+    if (!evt) {
+      cell.classList.add('e');
+      cell.innerHTML = `<div class="d"><span>${cellDate.getDate()}</span></div>`;
+      grid.appendChild(cell);
+      continue;
+    }
+
+    let cls = 'n';
+    let tagHTML = '';
+    let body = '';
+
+    if (evt.type === 'stat') {
+      cls = 's';
+      tagHTML = '<span class="tag">STAT</span>';
+      const vialCount = evt.vials;
+      let vialsSvg = '';
+      for (let k = 0; k < vialCount; k++) {
+        vialsSvg += '<svg width="20" height="26"><use href="#v"/></svg>';
+      }
+      body = `<div class="v">${vialsSvg}</div>`;
+    } else if (evt.type === 'refill') {
+      cls = 'r';
+      body = `<div class="v"><svg width="22" height="29"><use href="#v"/></svg><svg width="22" height="29"><use href="#v"/></svg></div>`;
+    } else if (evt.type === 'last') {
+      cls = 'l';
+      body = `<div class="v"><div class="last-marker"><i class="ti ti-circle-check-filled"></i><span>วันสุดท้าย</span></div></div>`;
+    } else {
+      cls = 'n';
+      body = `<div class="v"><svg width="26" height="34"><use href="#v"/></svg></div>`;
+    }
+
+    cell.classList.add(cls);
+    cell.innerHTML = `<div class="d"><span>${cellDate.getDate()}</span>${tagHTML}</div>${body}`;
+    grid.appendChild(cell);
+  }
+
+  // Return range for month label
+  return { startCell, endCell };
+}
+
+function updateSummary(events, drugName, dose, vialSize, startDate, days, orderTime, range) {
+  // Total vials
+  const totalVials = events.reduce((s, e) => s + (e.vials || 0), 0);
+  // Refill days (excl. STAT and last)
+  const refillEvents = events.filter(e => e.type === 'refill');
+  const refillDates = refillEvents.map(e => `${e.date.getDate()}`).join(', ');
+  const monthShort = THAI_MONTHS_SHORT[startDate.getMonth()];
+
+  // Today (= first dispensing event, which is the order day for both modes)
+  const todayEvt = events[0];
+
+  // Title
+  document.getElementById('titleEl').textContent = drugName;
+  document.getElementById('subtitleEl').textContent = `${dose} mL/วัน  ·  ขวด ${vialSize} mL  ·  ฉีด 14:00 น.  ·  รถยา 15:00`;
+
+  // Start date stat
+  const startEl = document.getElementById('startVal');
+  const sd = startDate;
+  startEl.innerHTML = `${sd.getDate()} ${THAI_MONTHS_SHORT[sd.getMonth()]} <span class="alt">${toBE(sd.getFullYear())}</span>`;
+
+  // Today's dispense
+  document.getElementById('todayVal').textContent = `${todayEvt.vials} ขวด`;
+  document.getElementById('todaySub').textContent = todayEvt.sub || 'รถยา';
+
+  // Total
+  document.getElementById('totalVal').innerHTML = `${totalVials} ขวด <span class="alt">· ${days} วัน</span>`;
+
+  // Month label - handle multi-month range
+  const rangeStart = range ? range.startCell : sd;
+  const rangeEnd = range ? range.endCell : sd;
+  let monthLabelHTML;
+  if (rangeStart.getMonth() === rangeEnd.getMonth() && rangeStart.getFullYear() === rangeEnd.getFullYear()) {
+    monthLabelHTML = `${THAI_MONTHS[rangeStart.getMonth()]} <span class="y">${toBE(rangeStart.getFullYear())}</span>`;
+  } else if (rangeStart.getFullYear() === rangeEnd.getFullYear()) {
+    monthLabelHTML = `${THAI_MONTHS[rangeStart.getMonth()]} – ${THAI_MONTHS[rangeEnd.getMonth()]} <span class="y">${toBE(rangeStart.getFullYear())}</span>`;
+  } else {
+    monthLabelHTML = `${THAI_MONTHS[rangeStart.getMonth()]} ${toBE(rangeStart.getFullYear())} – ${THAI_MONTHS[rangeEnd.getMonth()]} ${toBE(rangeEnd.getFullYear())}`;
+  }
+  document.getElementById('monthLabel').innerHTML = monthLabelHTML;
+
+  // Refill dates
+  if (refillDates) {
+    document.getElementById('refillDates').textContent = `${refillDates} ${monthShort} · ${refillEvents.length} วัน`;
+  } else {
+    document.getElementById('refillDates').textContent = 'ไม่มี';
+  }
+
+  // Meta tag
+  document.getElementById('metaTag').textContent = `${drugName.substring(0,3).toLowerCase()} · ${days}d · ${totalVials}v`;
+}
+
+function recalc() {
+  const drugName = document.getElementById('drugName').value || 'amikacin';
+  const dose = parseFloat(document.getElementById('dose').value) || 2.7;
+  const vialSize = parseFloat(document.getElementById('vialSize').value) || 2;
+  const days = parseInt(document.getElementById('days').value) || 14;
+  const startStr = document.getElementById('startDate').value;
+  const orderTime = document.querySelector('input[name="ordertime"]:checked').value;
+
+  let startDate;
+  if (startStr) {
+    const [y, m, d] = startStr.split('-').map(Number);
+    startDate = new Date(y, m - 1, d);
+  } else {
+    startDate = new Date();
+  }
+
+  const events = buildSchedule(startDate, days, dose, vialSize, orderTime);
+  const range = renderCalendar(events, startDate);
+  updateSummary(events, drugName, dose, vialSize, startDate, days, orderTime, range);
+}
+
+// Setup radio button active state
+document.querySelectorAll('.field-radio input').forEach(input => {
+  input.addEventListener('change', () => {
+    document.querySelectorAll('.field-radio label').forEach(l => l.classList.remove('active'));
+    input.parentElement.classList.add('active');
+    recalc();
+  });
+});
+
+// Setup field listeners
+['drugName', 'dose', 'vialSize', 'startDate', 'days'].forEach(id => {
+  document.getElementById(id).addEventListener('input', recalc);
+});
+
+// Initialize default start date to today, then recalc
+(function init() {
+  const today = new Date();
+  const yyyy = today.getFullYear();
+  const mm = String(today.getMonth() + 1).padStart(2, '0');
+  const dd = String(today.getDate()).padStart(2, '0');
+  document.getElementById('startDate').value = `${yyyy}-${mm}-${dd}`;
+  recalc();
+})();
+</script>
+
+</body>
+</html>
