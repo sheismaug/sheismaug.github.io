@@ -376,8 +376,8 @@ body{
       <div class="hero-name">pharmacy<br>tools</div>
     </div>
     <div class="hero-stats">
-      <div class="stat accent"><div class="stat-n">9</div><div class="stat-l">Live Apps</div></div>
-      <div class="stat"><div class="stat-n">4</div><div class="stat-l">Open Access</div></div>
+      <div class="stat accent"><div class="stat-n">10</div><div class="stat-l">Live Apps</div></div>
+      <div class="stat"><div class="stat-n">5</div><div class="stat-l">Open Access</div></div>
       <div class="stat"><div class="stat-n" id="clk" style="font-family:'Google Sans',sans-serif;">--:--</div><div class="stat-l">เวลาปัจจุบัน</div></div>
     </div>
   </div>
@@ -429,8 +429,16 @@ body{
       <div class="cdesc">พิมพ์ฉลากยาขนาดใหญ่ A5 สำหรับผู้ป่วยสายตาไม่ดี พร้อม syringe guide อินซูลิน และโหมดสัญลักษณ์</div>
       <div class="cfoot"><span class="cclicks"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg><span id="v-largeprint">—</span> views</span><div class="carr"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg></div></div>
     </a>
-    <a class="card" href="shift-swap-excel-diff.html" data-cat="open">
+    <a class="card" href="amikacin_calendar.html" data-cat="open clinical nursing">
       <div class="cnum">04</div>
+      <div class="cico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/><circle cx="12" cy="15" r="2" fill="currentColor"/></svg></div>
+      <span class="ctag">Pharmacy · IV Antibiotic</span>
+      <div class="cname">Amikacin Calendar</div>
+      <div class="cdesc">ปฏิทินจัดยา amikacin คำนวณ STAT + รถยา 15:00 อัตโนมัติ ใช้ยาเหลือต่อได้ พิมพ์ A4 แปะ ward</div>
+      <div class="cfoot"><span class="cclicks"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg><span id="v-amikacin">—</span> views</span><div class="carr"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg></div></div>
+    </a>
+    <a class="card" href="shift-swap-excel-diff.html" data-cat="open">
+      <div class="cnum">05</div>
       <div class="cico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M7 16V4m0 0L3 8m4-4l4 4"/><path d="M17 8v12m0 0l4-4m-4 4l-4-4"/></svg></div>
       <span class="ctag">Pharmacy · Scheduling</span>
       <div class="cname">Shift Swap Form</div>
@@ -564,7 +572,7 @@ const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxTtFx4xqqYE-qUULiIo
 
 function showClicks(d){
   if(d.ok){
-    const ids=['iv','narcotic','mederr','emergency','ermedcart','tbpharm','shiftswap','largeprint','medrecon'];
+    const ids=['iv','narcotic','mederr','emergency','ermedcart','tbpharm','shiftswap','largeprint','medrecon','amikacin'];
     ids.forEach(app=>{
       const el=document.getElementById('v-'+app);
       if(el) el.textContent=(d[app]||0).toLocaleString();
@@ -592,6 +600,7 @@ document.querySelector('[href="shift-swap-excel-diff.html"]')?.addEventListener(
 document.querySelector('[href="large-print-label.html"]')?.addEventListener('click',()=>recordClick('largeprint'));
 document.querySelector('[href="med_reconciliation.html"]')?.addEventListener('click',()=>recordClick('medrecon'));
 document.querySelector('[href="had_round_app.html"]')?.addEventListener('click',()=>recordClick('hadround'));
+document.querySelector('[href="amikacin_calendar.html"]')?.addEventListener('click',()=>recordClick('amikacin'));
 
 loadClicks();
 
