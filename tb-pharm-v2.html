@@ -4487,10 +4487,11 @@ function buildAlertsPage() {
         candidateMissed.push({ date: dateStr, idx: i });
       });
 
-      // กรอง: เอาเฉพาะนัดที่ไม่มี visit หลังจากนั้น (ผู้ป่วยไม่ได้มาหลังจากนี้เลย)
-      // ถ้ามีนัดหลังจากนี้ที่บันทึกแล้ว → ผู้ป่วยยังมาอยู่ → ข้ามนัดนี้ไป
+      // กรอง: เอาเฉพาะนัดที่ไม่มี visit ในวันเดียวกันหรือหลังจากนั้น
+      // ใช้ <= เพื่อรองรับกรณีที่ผู้ป่วยมาตรงวันนัด แต่ primary checks (n:/d:/p:) ไม่ match
+      // (เช่น visit_num shift หลังเปลี่ยนสูตร, หรือ actual_date format ต่าง)
       candidateMissed.forEach(cm => {
-        if (latestRecordedDate && cm.date < latestRecordedDate) return; // มีนัดหลังจากนี้ที่มาแล้ว
+        if (latestRecordedDate && cm.date <= latestRecordedDate) return; // มีบันทึก visit ในวันเดียวกัน/หลังจากนี้
         const daysMissed = Math.round((new Date(todayISO+'T00:00:00') - new Date(cm.date+'T00:00:00')) / 86400000);
         if (daysMissed < 2) return; // grace period: ไม่นับขาดนัดถ้าเพิ่งผ่านไป < 2 วัน
         missedList.push({ name: p.name, ptId: p.patient_id, date: cm.date, daysMissed, visitIdx: cm.idx });
