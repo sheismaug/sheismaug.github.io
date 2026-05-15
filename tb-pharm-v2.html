@@ -2069,6 +2069,32 @@ function getVisDefs(reg) {
   return defs;
 }
 
+// แปลงชื่อ visit สั้นๆ → ชื่อเต็มแบบ "ครบ X เดือน → เติมยาเดือน X+1"
+// ใช้ทั่วทั้งระบบเพื่อให้ชื่อนัดสื่อความหมายว่า refill ไปถึงเดือนไหน
+function getVisitDispLbl(v) {
+  if (!v) return '';
+  const lbl = v.lbl || '';
+  // visit จบการรักษา → คงเดิม
+  if (v.isEnd || lbl.includes('ครบรักษา')) return lbl;
+  // visit เริ่มยา → เติมยาเดือน 1
+  if (v.num === 0 || lbl === 'เริ่มยา') return 'เริ่มยา → เติมยาเดือน 1';
+  // visit แบบสัปดาห์ → เติมยาเดือน 1
+  const wm = lbl.match(/(\d+(?:\.\d+)?)\s*สัปดาห์/);
+  if (wm) {
+    const wk = parseFloat(wm[1]);
+    return `ครบ ${wk} สัปดาห์ → เติมยาเดือน 1`;
+  }
+  // visit แบบเดือน → เติมยาเดือน X+1 (preserve ⚡ ถ้ามี)
+  const mm = lbl.match(/(\d+(?:\.\d+)?)\s*เดือน/);
+  if (mm) {
+    const mo = parseFloat(mm[1]);
+    const pcIcon = lbl.includes('⚡') ? ' ⚡' : '';
+    return `ครบ ${mo} เดือน${pcIcon} → เติมยาเดือน ${mo + 1}`;
+  }
+  // visit พิเศษที่ไม่ match pattern (เช่น "ตรวจตับ", "นัดฉุกเฉิน") → คงเดิม
+  return lbl;
+}
+
 /* ─── SCHEDULE ────────────────────────────── */
 function toggleCustomDrugs(regVal) {
   const panel = document.getElementById('custom-drug-selector');
@@ -2471,7 +2497,7 @@ function renderVisitList() {
     return `<div class="vr" style="${skipStyle}">
       <div class="vr-num" style="${v.isEnd?'color:var(--g3)':''}${isSkipped?';text-decoration:line-through':''}">${v.num===0?'เริ่มยา':v.isCustom?'พิเศษ':'V'+v.num}</div>
       <div class="vr-label">
-        <div class="vr-title" style="${v.isEnd?'color:var(--g4)':v.isPC?'color:var(--warn)':v.isCustom?'color:var(--blue)':''}${isSkipped?';text-decoration:line-through':''}">${v.lbl}</div>
+        <div class="vr-title" style="${v.isEnd?'color:var(--g4)':v.isPC?'color:var(--warn)':v.isCustom?'color:var(--blue)':''}${isSkipped?';text-decoration:line-through':''}">${getVisitDispLbl(v)}</div>
         <div class="vr-sub" style="display:flex;align-items:center;gap:5px;flex-wrap:wrap">${v.phase} ${monTags} ${noteTag} ${skipBadge}</div>
       </div>
       <div class="vr-date" style="display:flex;gap:5px;align-items:center">
