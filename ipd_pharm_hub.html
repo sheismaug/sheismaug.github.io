@@ -9156,7 +9156,23 @@
         if (_cd) _cd.value = formatDate(new Date());
 
         // Home med list (MR table) — โหลดรายการยาเดิมที่เคยบันทึกไว้มาแสดง
-        renderMRTableFromHomeMeds(bundle.homeMeds || []);
+        // ★ FIX RE-ADMIT (2026-05): filter เฉพาะ admission ปัจจุบัน
+        //   bundle.homeMeds จาก server รวมทุก admission ของ HN นี้
+        //   เคส re-admit (HN เดิม discharged แล้วกลับมา) จะเห็น home med ของ visit เก่า leak
+        //   → เก็บเฉพาะแถวที่ m.admitDate ตรงกับ patient.admitDate
+        //   → ถ้าแถวไม่มี admitDate (legacy data ก่อน schema นี้) → ใส่ทิ้ง เพื่อไม่ทำลายข้อมูลเก่า
+        var _allHomeMeds = (bundle && bundle.homeMeds) ? bundle.homeMeds : [];
+        var _curHomeMeds = _allHomeMeds;
+        if (ptAdmit) {
+            _curHomeMeds = [];
+            for (var _hm = 0; _hm < _allHomeMeds.length; _hm++) {
+                var _hmRec = _allHomeMeds[_hm];
+                var _hmAdmit = _hmRec && _hmRec.admitDate ? formatDate(_hmRec.admitDate) : '';
+                if (_hmAdmit && _hmAdmit !== ptAdmit) continue;   // คนละ visit → skip
+                _curHomeMeds.push(_hmRec);
+            }
+        }
+        renderMRTableFromHomeMeds(_curHomeMeds);
 
         // DRP / Round Log — แสดงประวัติที่เคยบันทึก
         renderRoundLog(bundle.medErrors || []);
