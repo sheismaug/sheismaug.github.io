@@ -492,7 +492,38 @@ body.light .iv-drug-badge-lasa{background:#FFFBEB;color:#D97706;}
   table{min-width:560px;}
   td,th{padding:8px 10px;font-size:11px;}
 }
+
+/* ─── Image Upload UI (Supabase) ─── */
+.img-upload-wrap{margin-top:10px;padding:14px;border:1.5px dashed var(--border2);border-radius:var(--r);background:#1a1a1a;}
+body.light .img-upload-wrap{background:#FAFAFA;border-color:#D0D0D0;}
+.img-upload-label{display:flex;align-items:center;gap:8px;font-size:13px;color:var(--gray);cursor:pointer;}
+.img-upload-label:hover{color:var(--orange);}
+.img-upload-input{display:none;}
+.img-preview-row{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px;}
+.img-thumb{position:relative;width:80px;height:80px;border-radius:8px;overflow:hidden;border:1.5px solid var(--border2);background:#222;}
+.img-thumb img{width:100%;height:100%;object-fit:cover;}
+.img-thumb .img-thumb-del{position:absolute;top:2px;right:2px;width:20px;height:20px;border-radius:50%;background:rgba(220,38,38,0.9);color:white;border:none;font-size:11px;cursor:pointer;display:flex;align-items:center;justify-content:center;line-height:1;}
+.img-thumb-prog{position:absolute;left:0;bottom:0;height:3px;background:var(--orange);width:0%;transition:width .2s;}
+.img-thumb-uploading{opacity:0.6;}
+
+/* ─── Image lightbox / detail viewer ─── */
+.img-detail-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.85);display:none;align-items:center;justify-content:center;z-index:99999;padding:20px;}
+.img-detail-overlay.show{display:flex;}
+.img-detail-wrap{position:relative;max-width:95vw;max-height:95vh;}
+.img-detail-wrap img{max-width:95vw;max-height:90vh;border-radius:8px;}
+.img-detail-close{position:absolute;top:-40px;right:0;background:none;border:none;color:#fff;font-size:28px;cursor:pointer;}
+.img-detail-nav{position:absolute;top:50%;transform:translateY(-50%);background:rgba(255,255,255,0.15);border:none;color:#fff;font-size:24px;width:42px;height:42px;border-radius:50%;cursor:pointer;}
+.img-detail-prev{left:-60px;}
+.img-detail-next{right:-60px;}
+@media(max-width:640px){
+  .img-detail-prev{left:5px;}
+  .img-detail-next{right:5px;}
+}
+.log-img-icon{display:inline-flex;align-items:center;gap:3px;font-size:10px;padding:2px 6px;border-radius:99px;background:#1B2D4F22;color:#3B82F6;border:1px solid #3B82F644;margin-left:4px;}
 </style>
+
+<!-- Supabase JS SDK -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body>
 
@@ -674,6 +705,19 @@ body.light .iv-drug-badge-lasa{background:#FFFBEB;color:#D97706;}
     <div class="field">
       <label for="f-detail">รายละเอียดเหตุการณ์<span class="req">*</span></label>
       <textarea id="f-detail" placeholder="อธิบายเหตุการณ์ที่เกิดขึ้น เช่น ยาที่เกี่ยวข้อง ผู้ป่วย HN สิ่งที่พบ และการแก้ไข..."></textarea>
+    </div>
+
+    <!-- รูปประกอบ (Supabase Storage) -->
+    <div class="field">
+      <label>รูปประกอบ <span style="font-size:11px;font-weight:400;color:var(--gray);">(ไม่บังคับ — เลือกได้หลายรูป เช่น รูปฉลาก / ใบสั่งยา)</span></label>
+      <div class="img-upload-wrap">
+        <label for="f-images" class="img-upload-label">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+          <span id="img-upload-text">คลิกเพื่อเลือกรูป หรือลากรูปมาวาง</span>
+        </label>
+        <input type="file" id="f-images" class="img-upload-input" accept="image/*" multiple onchange="onImagePick(event)">
+        <div class="img-preview-row" id="img-preview-row"></div>
+      </div>
     </div>
 
     <!-- Error Source Picker (Feature 4) -->
@@ -1185,10 +1229,192 @@ body.light .iv-drug-badge-lasa{background:#FFFBEB;color:#D97706;}
 </div><!-- /main -->
 
 <script>
-const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzcwXxn-j48UBXudSW1ROyMdzYZ8qYYRrluhExpBJd_wvyhDcrVYg1Bqq6kCI1129E/exec';
+// ════════════════════════════════════════════════════════════════
+//  Supabase Configuration
+//  --------------------------------------------------------------
+//  1) สร้าง project ที่ https://supabase.com (Free tier ใช้ได้)
+//  2) Project Settings → API → copy "Project URL" และ "anon public" key
+//  3) วางลงในตัวแปร 2 ตัวด้านล่าง
+//  4) รัน supabase_schema.sql ใน Dashboard → SQL Editor
+//  5) ตั้ง password ด้วย:
+//       update system_config set value='YOUR_PW' where key='system_password';
+// ════════════════════════════════════════════════════════════════
+const SUPABASE_URL = 'https://qvtlekphxsubuklyirlz.supabase.co';
+const SUPABASE_ANON_KEY = 'sb_publishable_dPhW0DORMGlSTc1hzvT4Cw_9ChOlZ0H';
+const SUPABASE_BUCKET = 'med-error-images';
+
+// สร้าง client (รองรับกรณียังไม่ตั้งค่า — ระบบจะแจ้ง error)
+const supabase = (window.supabase && SUPABASE_URL !== 'YOUR_SUPABASE_PROJECT_URL')
+  ? window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY)
+  : null;
+
+// ── Helper: แปลง row จาก DB (snake_case) → object เดิม (camelCase) ──
+function rowToEntry(r){
+  return {
+    id:              Number(r.id),
+    date:            r.date,
+    time:            r.time,
+    floor:           r.floor,
+    category:        r.category,
+    subtypeCode:     r.subtype_code,
+    subtypeLabel:    r.subtype_label,
+    severity:        r.severity,
+    detail:          r.detail || '',
+    reporter:        r.reporter,
+    drugGroup:       r.drug_group || '',
+    drugName:        r.drug_name  || '',
+    errorSource:     r.error_source || '',
+    errorSourceName: r.error_source_name || '',
+    images:          Array.isArray(r.images) ? r.images : (r.images || []),
+  };
+}
+
+// ── Helper: log + แสดง error ใน console ────────────────────────
+function _supaErr(label, err){
+  console.error('[Supabase] ' + label + ':', err);
+  return { ok: false, error: (err && err.message) ? err.message : String(err) };
+}
+
+// ── Helper: ตรวจว่ามี supabase client พร้อมใช้ ──
+function _checkSupa(){
+  if (!supabase){
+    showStatus('❌ ยังไม่ได้ตั้งค่า Supabase — โปรดแก้ SUPABASE_URL และ KEY','error');
+    return false;
+  }
+  return true;
+}
+
 let logs = [];
 const HISTORICAL_DATA = [];
 let selectedSev = '';
+
+// ════════════════════════════════════════════════════════════════
+//  Image Upload — Supabase Storage
+// ════════════════════════════════════════════════════════════════
+// pendingImages: รายการรูปที่เลือกใน form แต่ยังไม่ได้อัปโหลด
+//   { file, dataUrl, name, size, status: 'pending'|'uploading'|'done'|'error' }
+let pendingImages = [];
+
+function onImagePick(ev){
+  const files = Array.from(ev.target.files || []);
+  for (const f of files){
+    if (!f.type.startsWith('image/')) continue;
+    // จำกัด 10 MB ต่อรูป
+    if (f.size > 10 * 1024 * 1024){
+      alert(`รูป "${f.name}" ใหญ่เกิน 10 MB`);
+      continue;
+    }
+    const reader = new FileReader();
+    reader.onload = e => {
+      pendingImages.push({
+        file: f,
+        dataUrl: e.target.result,
+        name: f.name,
+        size: f.size,
+        status: 'pending'
+      });
+      renderImgPreview();
+    };
+    reader.readAsDataURL(f);
+  }
+  // reset input เพื่อให้เลือกไฟล์ซ้ำได้
+  ev.target.value = '';
+}
+
+function removeImg(idx){
+  pendingImages.splice(idx,1);
+  renderImgPreview();
+}
+
+function renderImgPreview(){
+  const wrap = document.getElementById('img-preview-row');
+  if (!wrap) return;
+  if (!pendingImages.length){
+    wrap.innerHTML = '';
+    const t = document.getElementById('img-upload-text');
+    if (t) t.textContent = 'คลิกเพื่อเลือกรูป หรือลากรูปมาวาง';
+    return;
+  }
+  wrap.innerHTML = pendingImages.map((im,idx)=>`
+    <div class="img-thumb ${im.status==='uploading'?'img-thumb-uploading':''}">
+      <img src="${im.dataUrl}" alt="${im.name}">
+      <button class="img-thumb-del" onclick="removeImg(${idx})" title="ลบ">✕</button>
+      ${im.status==='uploading'?`<div class="img-thumb-prog" style="width:${im.progress||50}%"></div>`:''}
+    </div>
+  `).join('');
+  const t = document.getElementById('img-upload-text');
+  if (t) t.textContent = `เลือกรูปแล้ว ${pendingImages.length} รูป — คลิกเพื่อเพิ่มอีก`;
+}
+
+// ── อัปโหลดรูปทั้งหมดไป Supabase Storage แล้วคืน array [{url, path, name, size}] ──
+async function uploadPendingImages(entryId){
+  if (!supabase) throw new Error('Supabase not configured');
+  const results = [];
+  for (let i = 0; i < pendingImages.length; i++){
+    const im = pendingImages[i];
+    im.status = 'uploading';
+    renderImgPreview();
+    // path: <entryId>/<timestamp>_<safe-filename>
+    const safeName = im.name.replace(/[^a-zA-Z0-9._-]/g,'_');
+    const path = `${entryId}/${Date.now()}_${i}_${safeName}`;
+    const { data, error } = await supabase.storage
+      .from(SUPABASE_BUCKET)
+      .upload(path, im.file, {
+        cacheControl: '3600',
+        upsert: false,
+        contentType: im.file.type
+      });
+    if (error){
+      im.status = 'error';
+      renderImgPreview();
+      throw new Error(`อัปโหลดรูป "${im.name}" ไม่สำเร็จ: ${error.message}`);
+    }
+    // ขอ public URL
+    const { data: pub } = supabase.storage.from(SUPABASE_BUCKET).getPublicUrl(data.path);
+    results.push({
+      url:  pub.publicUrl,
+      path: data.path,
+      name: im.name,
+      size: im.size
+    });
+    im.status = 'done';
+    renderImgPreview();
+  }
+  return results;
+}
+
+// ────────── Lightbox / Image Viewer ──────────
+let _viewerImgs = [];
+let _viewerIdx  = 0;
+
+function openImgViewer(images, startIdx){
+  _viewerImgs = images || [];
+  _viewerIdx  = startIdx || 0;
+  _updateViewer();
+  document.getElementById('img-detail-overlay').classList.add('show');
+}
+function closeImgViewer(){
+  document.getElementById('img-detail-overlay').classList.remove('show');
+}
+function _updateViewer(){
+  const im = _viewerImgs[_viewerIdx];
+  if (!im) return;
+  document.getElementById('img-detail-img').src = im.url || im.dataUrl || '';
+  const counter = document.getElementById('img-detail-counter');
+  if (counter) counter.textContent = `${_viewerIdx+1} / ${_viewerImgs.length}`;
+}
+function nextImg(){ _viewerIdx = (_viewerIdx+1) % _viewerImgs.length; _updateViewer(); }
+function prevImg(){ _viewerIdx = (_viewerIdx-1+_viewerImgs.length) % _viewerImgs.length; _updateViewer(); }
+
+function viewEntryImages(entryId){
+  const e = logs.find(r=>r.id===Number(entryId)||r.id===entryId);
+  if (!e || !Array.isArray(e.images) || !e.images.length){
+    alert('ไม่มีรูปสำหรับรายการนี้');
+    return;
+  }
+  openImgViewer(e.images, 0);
+}
+
 
 // ─── Drug data (Feature 2 & 3) ───
 const HAD_DRUGS = ['Adrenaline inj','Adenosine inj','Amiodarone inj','Digoxin inj','MgSO4 inj','Morphine inj','Norepinephrine (Levophed) inj','Pethidine inj','KCl inj','Regular Insulin','Streptokinase inj','Warfarin tab'];
@@ -1628,16 +1854,13 @@ async function doLogin(){
   const errorEl = document.getElementById('login-error');
   const pw = input.value.trim();
   if(!pw){ errorEl.textContent='กรุณากรอก Password'; return; }
+  if(!supabase){ errorEl.textContent='ยังไม่ได้ตั้งค่า Supabase'; return; }
   const btn = document.querySelector('.login-btn');
   btn.textContent='กำลังตรวจสอบ...'; btn.disabled=true;
   try{
-    const r = await fetch(SCRIPT_URL, {
-      method: 'POST',
-      body: JSON.stringify({ action: 'checkPassword', pw }),
-      headers: { 'Content-Type': 'text/plain' }
-    });
-    const d = await r.json();
-    if(d.ok){
+    const { data, error } = await supabase.rpc('verify_password', { pw });
+    if(error) throw error;
+    if(data === true){
       isAuthenticated = true;
       sessionPw = pw;
       document.getElementById('login-overlay').style.display='none';
@@ -1651,7 +1874,10 @@ async function doLogin(){
       setTimeout(()=>input.classList.remove('error'),400);
       input.value=''; input.focus();
     }
-  }catch(e){ errorEl.textContent='เชื่อมต่อไม่ได้ — ตรวจสอบ internet'; }
+  }catch(e){
+    console.error('doLogin error:', e);
+    errorEl.textContent='เชื่อมต่อไม่ได้ — ตรวจสอบ internet / config';
+  }
   btn.textContent='เข้าสู่ระบบ'; btn.disabled=false;
 }
 
@@ -1824,24 +2050,22 @@ function showStatus(msg,type){
 }
 
 async function loadData(){
-  if(SCRIPT_URL==='YOUR_GOOGLE_APPS_SCRIPT_URL_HERE') return;
+  if(!supabase) return;
   showStatus('⏳ กำลังโหลดข้อมูล...','loading');
   try{
-    const r=await fetch(SCRIPT_URL);
-    const d=await r.json();
-    if(d.ok){
-      logs = (d.entries||[]).map(e=>({
-        ...e,
-        date: normalizeDate(e.date),
-        time: normalizeTime(e.time),
-        drugGroup: e.drugGroup||'',
-        drugName: e.drugName||'',
-        errorSource: e.errorSource||'',
-        errorSourceName: e.errorSourceName||''
-      }));
-      renderLog(); renderDashboard(); updateBadge();
-      showStatus('','');
-    }
+    const { data, error } = await supabase
+      .from('med_error_log')
+      .select('*')
+      .order('created_at', { ascending: false })
+      .limit(5000);
+    if(error) throw error;
+    logs = (data||[]).map(rowToEntry).map(e=>({
+      ...e,
+      date: normalizeDate(e.date),
+      time: normalizeTime(e.time),
+    }));
+    renderLog(); renderDashboard(); updateBadge();
+    showStatus('','');
   }catch(e){
     console.error('loadData error:', e);
     showStatus('❌ โหลดข้อมูลไม่สำเร็จ — กด Refresh เพื่อลองใหม่','error');
@@ -1852,35 +2076,29 @@ async function debugLoadData(){
   const box = document.getElementById('debug-box');
   box.style.display='block';
   box.textContent='กำลังโหลด...';
+  if(!supabase){ box.textContent='Supabase ยังไม่ได้ตั้งค่า'; return; }
   try{
-    const r = await fetch(SCRIPT_URL);
-    const text = await r.text();
-    let parsed;
-    try { parsed = JSON.parse(text); } catch(e){ box.textContent='JSON parse error: '+e; return; }
+    const { data, error } = await supabase
+      .from('med_error_log')
+      .select('*')
+      .order('created_at', { ascending: false })
+      .limit(5000);
+    if(error){ box.textContent='Supabase error: ' + error.message; return; }
 
-    box.textContent = `entries count: ${(parsed.entries||[]).length}\n\nFirst entry raw:\n${JSON.stringify(parsed.entries?.[0],null,2)}\n\n`;
+    box.textContent = `entries count: ${(data||[]).length}\n\nFirst row raw:\n${JSON.stringify(data?.[0],null,2)}\n\n`;
 
-    // ทดสอบ map ทีละ entry เพื่อหา error
-    const entries = parsed.entries || [];
     let mapErrors = [];
     let mapped = [];
-    entries.forEach((e,i)=>{
+    (data||[]).forEach((r,i)=>{
       try{
-        const m = {
-          ...e,
-          date: normalizeDate(e.date),
-          time: normalizeTime(e.time),
-          drugGroup: e.drugGroup||'',
-          drugName: e.drugName||'',
-          errorSource: e.errorSource||'',
-          errorSourceName: e.errorSourceName||''
-        };
-        mapped.push(m);
+        const e = rowToEntry(r);
+        e.date = normalizeDate(e.date);
+        e.time = normalizeTime(e.time);
+        mapped.push(e);
       }catch(err){
-        mapErrors.push(`entry[${i}] id=${e.id}: ${err}`);
+        mapErrors.push(`row[${i}] id=${r.id}: ${err}`);
       }
     });
-
     logs = mapped;
     box.textContent += `map success: ${mapped.length}\nmap errors: ${mapErrors.length}\n`;
     if(mapErrors.length) box.textContent += mapErrors.slice(0,5).join('\n');
@@ -1888,7 +2106,6 @@ async function debugLoadData(){
       box.textContent += `\nFirst mapped:\n${JSON.stringify(mapped[0],null,2)}`;
     }
     renderLog(); renderDashboard(); updateBadge();
-
   }catch(e){
     box.textContent = 'FETCH ERROR: ' + e.toString();
   }
@@ -1907,13 +2124,16 @@ async function submitForm(){
   if(!date||!time||!floor||!reporter||!cat||!sub.value||!detail||!selectedSev){
     alert('กรุณากรอกข้อมูลให้ครบทุกช่อง (*)'); return;
   }
+  if(!_checkSupa()) return;
 
   const subLabel = sub.options[sub.selectedIndex].textContent;
   const errorSourceName = selectedErrorSource === 'nurse'
     ? (document.getElementById('f-error-source-text').value.trim())
     : (document.getElementById('f-error-source-select').value.trim());
+
+  const entryId = Date.now();
   const entry={
-    id:Date.now(), date, time, floor,
+    id: entryId, date, time, floor,
     category: CAT_NAMES[parseInt(cat)],
     subtypeCode: sub.value,
     subtypeLabel: subLabel,
@@ -1922,7 +2142,8 @@ async function submitForm(){
     drugGroup: selectedDrugGroup === 'none' ? '' : selectedDrugGroup.toUpperCase(),
     drugName: selectedDrugName,
     errorSource: selectedErrorSource === 'none' ? '' : selectedErrorSource,
-    errorSourceName
+    errorSourceName,
+    images: []
   };
 
   const btn=document.querySelector('.btn-submit');
@@ -1930,24 +2151,37 @@ async function submitForm(){
   showStatus('⏳ กำลังบันทึก...','loading');
 
   try{
-    const ctrl = new AbortController();
-    const t = setTimeout(()=>ctrl.abort(), 25000);
-    const r=await fetch(SCRIPT_URL,{method:'POST',body:JSON.stringify({action:'add',entry,pw:sessionPw}),headers:{'Content-Type':'text/plain'},signal:ctrl.signal});
-    clearTimeout(t);
-    const d=await r.json();
-    if(d.ok){
+    // ── 1) อัปโหลดรูปก่อน (ถ้ามี) ──
+    if (pendingImages.length){
+      showStatus(`⏳ อัปโหลดรูป (${pendingImages.length})...`,'loading');
+      const uploaded = await uploadPendingImages(entryId);
+      entry.images = uploaded;
+    }
+
+    // ── 2) เรียก RPC add_med_error ──
+    const { data, error } = await supabase.rpc('add_med_error', {
+      pw: sessionPw,
+      entry: entry   // ส่งเป็น JSON ทั้งก้อน
+    });
+    if(error) throw error;
+    if(!data || data.ok !== true){
+      const errMsg = (data && data.error) ? data.error : 'บันทึกไม่สำเร็จ';
+      showStatus('❌ ' + errMsg,'error');
+    } else {
       logs.unshift(entry);
+      pendingImages = [];
+      renderImgPreview();
       renderLog(); renderDashboard(); updateBadge();
       showStatus('✓ บันทึกเรียบร้อย','success');
-      // แสดง Success Screen
       showSuccessScreen(entry);
-    } else showStatus('❌ บันทึกไม่สำเร็จ','error');
+    }
   }catch(e){
-    if(e.name==='AbortError') showStatus('⏳ Server ตอบช้า แต่อาจบันทึกสำเร็จแล้ว — กด Refresh เพื่อตรวจสอบ','error');
-    else showStatus('❌ เชื่อมต่อไม่ได้','error');
+    console.error('submitForm error:', e);
+    showStatus('❌ บันทึกไม่สำเร็จ: ' + (e.message||e),'error');
   }
 
   btn.disabled=false;
+  btn.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v14a2 2 0 01-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg> บันทึก Med Error';
 }
 
 // ─── Success Screen ───
@@ -1981,6 +2215,9 @@ function startNewEntry(){
   document.getElementById('f-category').value='';
   document.getElementById('f-subtype').innerHTML='<option value="">— เลือกหมวดก่อน —</option>';
   document.getElementById('f-detail').value='';
+  // เคลียร์รูปที่เลือก
+  pendingImages = [];
+  renderImgPreview();
   selectedSev='';
   document.querySelectorAll('.sev-btn').forEach(b=>b.classList.remove('selected'));
   document.querySelectorAll('.merp-stack-row').forEach(b=>b.classList.remove('selected'));
@@ -2128,7 +2365,7 @@ function renderLog(){
       <td><span style="background:${FLOOR_COLORS[r.floor]||'#6B7280'}20;color:${FLOOR_COLORS[r.floor]||'#6B7280'};padding:3px 8px;border-radius:6px;font-size:11px;font-weight:600;">${r.floor}</span></td>
       <td><span class="cat-badge" style="background:${cc}20;color:${cc};">${CAT_NAMES[n]||r.category}</span></td>
       <td><span class="sev-badge" style="background:${sc};color:white;">${r.severity}</span></td>
-      <td style="max-width:200px;font-size:12px;"><div style="font-weight:500;">${getSubLabel(r)}${r.drugGroup?` <span style="font-size:9px;padding:1px 5px;border-radius:99px;background:${r.drugGroup==='HAD'?'#EF444422':'#F59E0B22'};color:${r.drugGroup==='HAD'?'#FCA5A5':'#FCD34D'};border:1px solid ${r.drugGroup==='HAD'?'#EF444444':'#F59E0B44'}">${r.drugGroup}${r.drugName?' · '+r.drugName:''}</span>`:''}</div><div style="color:var(--gray-400);margin-top:2px;">${r.detail.slice(0,60)}${r.detail.length>60?'...':''}${r.errorSourceName?` <span style="color:var(--gray2);">· ${r.errorSourceName}</span>`:''}</div></td>
+      <td style="max-width:200px;font-size:12px;"><div style="font-weight:500;">${getSubLabel(r)}${r.drugGroup?` <span style="font-size:9px;padding:1px 5px;border-radius:99px;background:${r.drugGroup==='HAD'?'#EF444422':'#F59E0B22'};color:${r.drugGroup==='HAD'?'#FCA5A5':'#FCD34D'};border:1px solid ${r.drugGroup==='HAD'?'#EF444444':'#F59E0B44'}">${r.drugGroup}${r.drugName?' · '+r.drugName:''}</span>`:''}${(Array.isArray(r.images)&&r.images.length)?`<span class="log-img-icon" onclick="event.stopPropagation();viewEntryImages(${r.id})" style="cursor:pointer;" title="ดูรูป ${r.images.length} รูป"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>${r.images.length}</span>`:''}</div><div style="color:var(--gray-400);margin-top:2px;">${r.detail.slice(0,60)}${r.detail.length>60?'...':''}${r.errorSourceName?` <span style="color:var(--gray2);">· ${r.errorSourceName}</span>`:''}</div></td>
       <td style="font-size:12px;font-weight:500;">${r.reporter}</td>
       <td><button class="btn-del" onclick="deleteEntry(${r.id})">✕</button></td>
     </tr>`;
@@ -2138,13 +2375,34 @@ function renderLog(){
 async function deleteEntry(id){
   if(!isAuthenticated){ alert('กรุณา login ก่อนลบรายการ'); return; }
   if(!confirm('ลบรายการนี้?')) return;
+  if(!_checkSupa()) return;
   showStatus('⏳ กำลังลบ...','loading');
   try{
-    const r=await fetch(SCRIPT_URL,{method:'POST',body:JSON.stringify({action:'delete',id,pw:sessionPw}),headers:{'Content-Type':'text/plain'}});
-    const d=await r.json();
-    if(d.ok){ logs=logs.filter(r=>r.id!==id); showStatus('✓ ลบแล้ว','success'); renderLog(); renderDashboard(); }
-    else showStatus('❌ ลบไม่สำเร็จ','error');
-  }catch(e){showStatus('❌ เชื่อมต่อไม่ได้','error');}
+    // ลบรูปใน Storage ก่อน (ถ้ามี)
+    const target = logs.find(r=>r.id===id);
+    if(target && Array.isArray(target.images) && target.images.length){
+      const paths = target.images.map(im=>im.path).filter(Boolean);
+      if(paths.length){
+        const { error: serr } = await supabase.storage.from(SUPABASE_BUCKET).remove(paths);
+        if(serr) console.warn('storage remove warning:', serr);
+      }
+    }
+    const { data, error } = await supabase.rpc('delete_med_error', {
+      pw: sessionPw,
+      entry_id: id
+    });
+    if(error) throw error;
+    if(data && data.ok){
+      logs = logs.filter(r=>r.id!==id);
+      showStatus('✓ ลบแล้ว','success');
+      renderLog(); renderDashboard();
+    } else {
+      showStatus('❌ ' + ((data && data.error) || 'ลบไม่สำเร็จ'),'error');
+    }
+  }catch(e){
+    console.error('deleteEntry error:', e);
+    showStatus('❌ เชื่อมต่อไม่ได้','error');
+  }
 }
 
 function exportCSV(){
@@ -2674,218 +2932,134 @@ function getCompareData(){
       }
     });
   }
-  const before=logs.filter(r=>{ const d=new Date(r.date); return d>=beforeStart&&d<ivDate&&match(r); });
-  const after =logs.filter(r=>{ const d=new Date(r.date); return d>=ivDate&&d<=afterEnd&&match(r); });
-  return { iv, ivDate, before, after, untaggedBefore, untaggedAfter };
-}
 
-let cmpChart=null;
-function renderCompare(){
-  const data=getCompareData();
-  const summary   =document.getElementById('cmp-summary');
-  const tableWrap =document.getElementById('cmp-table-wrap');
-  const canvasWrap=document.getElementById('cmp-canvas-wrap');
-
-  if(!data){
-    summary.innerHTML='<div style="color:var(--gray);font-size:14px;padding:8px 0;">เลือก Intervention แล้วกด 🔍 ดูผล</div>';
-    tableWrap.innerHTML='';
-    if(canvasWrap) canvasWrap.style.display='none';
-    if(cmpChart){cmpChart.destroy();cmpChart=null;}
-    return;
-  }
-
-  const {iv,before,after,untaggedBefore,untaggedAfter}=data;
-  const bCount=before.length, aCount=after.length, diff=aCount-bCount;
-  // % คำนวณทั้ง 2 ทิศทาง
-  const pctVal = bCount>0 ? ((diff/bCount)*100).toFixed(1)
-               : aCount>0 ? '+∞' : '—';
-  const pctStr = pctVal==='—'||pctVal==='+∞' ? pctVal : (diff>=0?'+':'')+pctVal+'%';
-  const arrow=diff<0?'▼':diff>0?'▲':'─';
-  const color=diff<0?'#4caf50':diff>0?'#f44336':'#888';
-
-  summary.innerHTML=`
-    <div style="background:var(--bg3);border:1px solid var(--border);border-radius:12px;padding:16px;text-align:center;">
-      <div style="font-size:13px;color:var(--gray);margin-bottom:6px;">ก่อน Intervention</div>
-      <div style="font-size:32px;font-weight:700;color:var(--white);">${bCount}</div>
-      <div style="font-size:13px;color:var(--gray);">ครั้ง</div>
-    </div>
-    <div style="background:var(--bg3);border:1px solid var(--border);border-radius:12px;padding:16px;text-align:center;">
-      <div style="font-size:13px;color:var(--gray);margin-bottom:6px;">หลัง Intervention</div>
-      <div style="font-size:32px;font-weight:700;color:var(--white);">${aCount}</div>
-      <div style="font-size:13px;color:var(--gray);">ครั้ง</div>
-    </div>
-    <div style="background:var(--bg3);border:1px solid var(--border);border-radius:12px;padding:16px;text-align:center;">
-      <div style="font-size:13px;color:var(--gray);margin-bottom:6px;">เปลี่ยนแปลง</div>
-      <div style="font-size:32px;font-weight:700;color:${color};">${arrow} ${Math.abs(diff)}</div>
-      <div style="font-size:14px;font-weight:700;color:${color};margin-top:2px;">${pctStr}</div>
-    </div>
-    <div style="background:var(--bg3);border:1px solid var(--orange);border-radius:12px;padding:16px;text-align:center;">
-      <div style="font-size:13px;color:var(--gray);margin-bottom:6px;">Intervention</div>
-      <div style="font-size:13px;font-weight:700;color:var(--orange);">${iv.label}</div>
-      <div style="font-size:13px;color:var(--gray);margin-top:4px;">${iv.date.split('-').reverse().join('/')}</div>
-      ${iv.drugGroup && iv.drugGroup!=='all'
-        ? `<div style="margin-top:8px;font-size:10px;font-weight:700;padding:2px 8px;border-radius:99px;display:inline-block;background:${iv.drugGroup==='HAD'?'#EF444422':'#F59E0B22'};color:${iv.drugGroup==='HAD'?'#FCA5A5':'#FCD34D'};border:1px solid ${iv.drugGroup==='HAD'?'#EF444444':'#F59E0B44'};">${iv.drugGroup}${iv.drugName?' · '+iv.drugName:''}</div>
-         <div style="font-size:10px;color:var(--gray);margin-top:4px;">นับเฉพาะ entry ที่ระบุกลุ่มยา</div>`
-        : ''}
-    </div>
-    ${iv.drugGroup && iv.drugGroup!=='all' && (untaggedBefore+untaggedAfter) > 0
-      ? `<div style="grid-column:1/-1;padding:8px 12px;background:#F59E0B18;border:1px solid #F59E0B44;border-radius:8px;font-size:11px;color:#FCD34D;display:flex;align-items:flex-start;gap:8px;">
-          <span style="font-size:14px;flex-shrink:0;">⚠️</span>
-          <span>พบรายการที่ <strong>ยังไม่ระบุกลุ่มยา</strong> ในช่วงเวลานี้อีก <strong>${untaggedBefore+untaggedAfter} รายการ</strong> (ก่อน ${untaggedBefore} / หลัง ${untaggedAfter}) — รายการเหล่านี้บันทึกก่อนมีระบบ tag จึงไม่ถูกนับ ตัวเลขอาจต่ำกว่าความเป็นจริง</span>
-         </div>`
-      : ''}`;
-
-  const mBefore={}, mAfter={};
-  before.forEach(r=>{ const m=String(r.date).slice(0,7); mBefore[m]=(mBefore[m]||0)+1; });
-  after.forEach(r=>{  const m=String(r.date).slice(0,7); mAfter[m] =(mAfter[m] ||0)+1; });
-  const allM=[...new Set([...Object.keys(mBefore),...Object.keys(mAfter)])].sort();
-  const ivYYMM=iv.date.slice(0,7);
-
-  if(cmpChart){cmpChart.destroy();cmpChart=null;}
-  if(canvasWrap){
-    canvasWrap.style.display='block';
-    canvasWrap.innerHTML='<canvas id="cmp-canvas" style="width:100%;height:100%;"></canvas>';
-  }
-
-  const isDark=!document.body.classList.contains('light');
-  const gc=isDark?'rgba(255,255,255,0.06)':'rgba(0,0,0,0.06)';
-  const tc=isDark?'#888':'#666';
-
-  const ivPlugin={id:'ivLine',afterDraw(chart){
-    const {ctx,chartArea,scales}=chart;
-    const labels = allM; // YYYY-MM format
-    let x;
-    const exactIdx = labels.indexOf(ivYYMM);
-    if(exactIdx >= 0){
-      // IV ตรงกับเดือนใน label — วาดที่ขอบซ้ายของ bar นั้น
-      const xCenter = scales.x.getPixelForValue(exactIdx);
-      const barWidth = exactIdx > 0
-        ? xCenter - scales.x.getPixelForValue(exactIdx-1)
-        : (labels.length > 1 ? scales.x.getPixelForValue(1) - xCenter : 30);
-      x = xCenter - barWidth/2;
-    } else {
-      // IV อยู่ระหว่าง 2 เดือนใน label
-      const beforeLabels = labels.filter(m=>m<ivYYMM);
-      const afterLabels  = labels.filter(m=>m>ivYYMM);
-      if(beforeLabels.length===0 && afterLabels.length===0) return;
-      if(beforeLabels.length===0){
-        // IV ก่อนเดือนแรกสุด — วาดซ้ายของ bar แรก
-        const xFirst = scales.x.getPixelForValue(0);
-        const barW = labels.length>1 ? scales.x.getPixelForValue(1)-xFirst : 30;
-        x = xFirst - barW/2;
-      } else if(afterLabels.length===0){
-        // IV หลังเดือนสุดท้าย — วาดขวาของ bar สุดท้าย
-        const lastIdx = labels.length-1;
-        const xLast = scales.x.getPixelForValue(lastIdx);
-        const barW = lastIdx>0 ? xLast-scales.x.getPixelForValue(lastIdx-1) : 30;
-        x = xLast + barW/2;
-      } else {
-        // วาดที่ขอบขวาของ bar ก่อน IV (= จุดแบ่งก่อน/หลังที่แม่นยำที่สุด)
-        const bIdx = labels.indexOf(beforeLabels[beforeLabels.length-1]);
-        const aIdx = labels.indexOf(afterLabels[0]);
-        const xBefore = scales.x.getPixelForValue(bIdx);
-        const xAfter  = scales.x.getPixelForValue(aIdx);
-        const barW = xAfter - xBefore;
-        // วางเส้นกึ่งกลางระหว่าง bar ก่อน IV และ bar หลัง IV
-        x = xBefore + barW/2;
-      }
-    }
-    ctx.save();
-    ctx.beginPath();ctx.setLineDash([6,3]);
-    ctx.strokeStyle='#FF6B00';ctx.lineWidth=2;
-    ctx.moveTo(x,chartArea.top);ctx.lineTo(x,chartArea.bottom);ctx.stroke();
-    ctx.setLineDash([]);
-    const lbl='📌 '+iv.label.slice(0,16);
-    ctx.font='bold 10px sans-serif';
-    const tw=ctx.measureText(lbl).width+10;
-    const lx = (x+2+tw > chartArea.right) ? x-tw-4 : x+2;
-    ctx.fillStyle='rgba(255,107,0,0.9)';
-    ctx.fillRect(lx,chartArea.top,tw,18);
-    ctx.fillStyle='#fff';ctx.textBaseline='middle';
-    ctx.fillText(lbl,lx+5,chartArea.top+9);
-    ctx.restore();
-  }};
-
-  // รวมเป็น dataset เดียว — สีส้ม=ก่อน, สีเขียว=หลัง
-  cmpChart=new Chart(document.getElementById('cmp-canvas'),{
-    type:'bar',
-    data:{
-      labels:allM.map(m=>{ const[y,mo]=m.split('-'); return `${mo}/${y.slice(2)}`; }),
-      datasets:[{
-        label:'จำนวน Med Error',
-        data:allM.map(m=>(mBefore[m]||0)+(mAfter[m]||0)),
-        backgroundColor:allM.map(m=>m<ivYYMM?'rgba(255,107,0,0.75)':'rgba(76,175,80,0.75)'),
-        borderRadius:4
-      }]
-    },
-    options:{
-      responsive:true,maintainAspectRatio:false,
-      plugins:{
-        legend:{display:false},
-        tooltip:{callbacks:{
-          label: ctx => ` ${ctx.parsed.y} ครั้ง`,
-          title: ctx => {
-            const m = allM[ctx[0].dataIndex];
-            return m ? (m < ivYYMM ? `ก่อน Intervention (${ctx[0].label})` : `หลัง Intervention (${ctx[0].label})`) : ctx[0].label;
-          }
-        }}
-      },
-      scales:{x:{ticks:{color:tc},grid:{color:gc}},y:{beginAtZero:true,ticks:{color:tc,maxTicksLimit:6},grid:{color:gc}}}
-    },
-    plugins:[ivPlugin]
+  const before = [];
+  const after  = [];
+  logs.forEach(r=>{
+    const d = new Date(r.date);
+    if(!match(r)) return;
+    if(d>=beforeStart && d<ivDate) before.push(r);
+    else if(d>=ivDate && d<=afterEnd) after.push(r);
   });
 
-  // color legend ใต้กราฟ — ลบเก่าก่อนเสมอ
-  document.getElementById('cmp-legend')?.remove();
-  if(canvasWrap){
-    canvasWrap.insertAdjacentHTML('afterend',`
-      <div id="cmp-legend" style="display:flex;gap:16px;margin-top:8px;font-size:12px;color:var(--gray);">
-        <span><span style="display:inline-block;width:12px;height:12px;background:rgba(255,107,0,0.75);border-radius:2px;margin-right:4px;vertical-align:middle;"></span>ก่อน Intervention</span>
-        <span><span style="display:inline-block;width:12px;height:12px;background:rgba(76,175,80,0.75);border-radius:2px;margin-right:4px;vertical-align:middle;"></span>หลัง Intervention</span>
-        <span style="color:#FF6B00;">--- เส้น Intervention</span>
-      </div>`);
+  return { iv, before, after, untaggedBefore, untaggedAfter, beforeStart, afterEnd };
+}
+
+function renderCompare(){
+  const data = getCompareData();
+  const sumEl = document.getElementById('cmp-summary');
+  const tblEl = document.getElementById('cmp-table-wrap');
+  if(!data){
+    if(sumEl) sumEl.innerHTML = '<div style="grid-column:1/-1;padding:14px;background:#1a1a1a;border-radius:8px;color:var(--gray);text-align:center;">กรุณาเลือก Intervention</div>';
+    if(tblEl) tblEl.innerHTML = '';
+    return;
+  }
+  const { iv, before, after, untaggedBefore, untaggedAfter } = data;
+  const diff = after.length - before.length;
+  const pct  = before.length>0 ? ((diff/before.length)*100).toFixed(1) : '—';
+  const diffColor = diff < 0 ? '#16A34A' : (diff > 0 ? '#DC2626' : '#94A3B8');
+  const sign = diff > 0 ? '+' : (diff < 0 ? '' : '±');
+
+  if(sumEl){
+    sumEl.innerHTML = `
+      <div style="padding:14px;background:#1a1a1a;border:1px solid var(--border2);border-radius:10px;">
+        <div style="font-size:11px;color:var(--gray);margin-bottom:6px;">ก่อน Intervention</div>
+        <div style="font-size:28px;font-weight:800;color:#3B82F6;">${before.length}</div>
+        <div style="font-size:10px;color:var(--gray);">รายการ</div>
+      </div>
+      <div style="padding:14px;background:#1a1a1a;border:1px solid var(--border2);border-radius:10px;">
+        <div style="font-size:11px;color:var(--gray);margin-bottom:6px;">หลัง Intervention</div>
+        <div style="font-size:28px;font-weight:800;color:#FF6B00;">${after.length}</div>
+        <div style="font-size:10px;color:var(--gray);">รายการ</div>
+      </div>
+      <div style="padding:14px;background:#1a1a1a;border:1px solid ${diffColor};border-radius:10px;">
+        <div style="font-size:11px;color:var(--gray);margin-bottom:6px;">เปลี่ยนแปลง</div>
+        <div style="font-size:24px;font-weight:800;color:${diffColor};">${sign}${diff} ${pct!=='—'?`(${sign}${pct}%)`:''}</div>
+        <div style="font-size:10px;color:var(--gray);">${diff<0?'ลดลง — ดี':(diff>0?'เพิ่มขึ้น':'ไม่เปลี่ยน')}</div>
+      </div>
+    `;
   }
 
-  const cats=['Prescribing','Transcribing','Pre-Dispensing','Dispensing','Administration'];
-  const rows=cats.map(c=>({cat:c,before:before.filter(r=>r.category===c).length,after:after.filter(r=>r.category===c).length})).filter(r=>r.before>0||r.after>0);
-  tableWrap.innerHTML=rows.length?`
-    <div style="font-size:13px;font-weight:700;margin-bottom:8px;color:var(--gray);">รายละเอียดแยกตามหมวด</div>
-    <div class="table-wrap"><table>
-      <thead><tr><th style="text-align:left">หมวด</th><th>ก่อน</th><th>หลัง</th><th>เปลี่ยนแปลง</th></tr></thead>
-      <tbody>${rows.map(r=>{const d=r.after-r.before;const c=d<0?'#4caf50':d>0?'#f44336':'#888';
-        return `<tr><td>${r.cat}</td><td style="text-align:center">${r.before}</td><td style="text-align:center">${r.after}</td>
-          <td style="text-align:center;color:${c};font-weight:700">${d>0?'+':''}${d}</td></tr>`;
-      }).join('')}</tbody>
-    </table></div>`:'';
+  const noteHtml = (untaggedBefore || untaggedAfter)
+    ? `<div style="margin-bottom:10px;padding:10px;background:#FACC1522;border-left:3px solid #FACC15;border-radius:6px;font-size:12px;color:var(--off-white);">
+        <b>หมายเหตุ:</b> มีรายการที่ไม่ได้ระบุกลุ่มยาในช่วงเดียวกัน — ก่อน: ${untaggedBefore}, หลัง: ${untaggedAfter}
+       </div>`
+    : '';
+
+  const buildRow = (r, period) => {
+    const dateStr = String(r.date).split('-').reverse().join('/');
+    const sc = (typeof SEV_COLORS!=='undefined' && SEV_COLORS[r.severity]) || '#94A3B8';
+    return `<tr>
+      <td><span style="font-size:11px;padding:2px 8px;border-radius:99px;background:${period==='ก่อน'?'#3B82F622':'#FF6B0022'};color:${period==='ก่อน'?'#3B82F6':'#FF6B00'};font-weight:600;">${period}</span></td>
+      <td style="font-size:11px;">${dateStr}</td>
+      <td style="font-size:11px;">${r.floor||''}</td>
+      <td style="font-size:11px;">${r.category||''}</td>
+      <td style="font-size:11px;"><span style="background:${sc};color:white;padding:1px 6px;border-radius:99px;">${r.severity||''}</span></td>
+      <td style="font-size:11px;max-width:220px;">${getSubLabel(r)}</td>
+      <td style="font-size:11px;">${r.reporter||''}</td>
+    </tr>`;
+  };
+  const tableHtml = `
+    ${noteHtml}
+    <div style="display:flex;align-items:center;justify-content:space-between;margin:10px 0;gap:8px;flex-wrap:wrap;">
+      <div style="font-size:13px;color:var(--off-white);font-weight:600;">รายการ — ${before.length+after.length} รายการ</div>
+      <button onclick="exportCompareExcel()" style="height:32px;padding:0 14px;background:#16A34A;color:white;border:none;border-radius:6px;font-size:12px;font-weight:600;cursor:pointer;">📥 Export Excel</button>
+    </div>
+    <div style="overflow-x:auto;border:1px solid var(--border2);border-radius:10px;">
+      <table style="width:100%;border-collapse:collapse;">
+        <thead style="background:#1B2D4F;color:white;">
+          <tr>
+            <th style="padding:8px;text-align:left;font-size:11px;">ช่วง</th>
+            <th style="padding:8px;text-align:left;font-size:11px;">วันที่</th>
+            <th style="padding:8px;text-align:left;font-size:11px;">Floor</th>
+            <th style="padding:8px;text-align:left;font-size:11px;">หมวด</th>
+            <th style="padding:8px;text-align:left;font-size:11px;">ระดับ</th>
+            <th style="padding:8px;text-align:left;font-size:11px;">Subtype</th>
+            <th style="padding:8px;text-align:left;font-size:11px;">ผู้บันทึก</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${before.map(r=>buildRow(r,'ก่อน')).join('')}
+          ${after.map(r=>buildRow(r,'หลัง')).join('')}
+        </tbody>
+      </table>
+    </div>
+  `;
+  if(tblEl) tblEl.innerHTML = tableHtml;
 }
 
 function exportCompareExcel(){
-  const data=getCompareData();
-  if(!data){alert('กรุณาเลือก Intervention และกด ดูผล ก่อน');return;}
-  const {iv,before,after}=data;
-  const allRows=[
-    ...before.map(r=>({...r,period:'ก่อน',intervention:iv.label,iv_date:iv.date})),
-    ...after.map(r=> ({...r,period:'หลัง', intervention:iv.label,iv_date:iv.date})),
+  const data = getCompareData();
+  if(!data){ alert('กรุณาเลือก Intervention และกด ดูผล ก่อน'); return; }
+  const { iv, before, after } = data;
+  const allRows = [
+    ...before.map(r=>({...r, period:'ก่อน', intervention: iv.label, iv_date: iv.date})),
+    ...after.map(r=> ({...r, period:'หลัง', intervention: iv.label, iv_date: iv.date})),
   ];
-  const wsData=[['ช่วง','Intervention','วันที่ IV','วันที่','เวลา','Floor','หมวด','รหัส','Subtype','ระดับ','รายละเอียด','ผู้รายงาน'],
-    ...allRows.map(r=>[r.period,r.intervention,r.iv_date,r.date,r.time||'',r.floor||'',r.category||'',r.subtypeCode||'',getSubLabel(r),r.severity||'',r.detail||'',r.reporter||''])
+  const wsData = [
+    ['ช่วง','Intervention','วันที่ IV','วันที่','เวลา','Floor','หมวด','รหัส','Subtype','ระดับ','รายละเอียด','ผู้รายงาน'],
+    ...allRows.map(r=>[r.period, r.intervention, r.iv_date, r.date, r.time||'', r.floor||'', r.category||'', r.subtypeCode||'', getSubLabel(r), r.severity||'', r.detail||'', r.reporter||''])
   ];
-  const wb=XLSX.utils.book_new();
-  const ws=XLSX.utils.aoa_to_sheet(wsData);
-  ws['!cols']=[6,18,10,9,8,12,16,10,30,8,40,14].map(w=>({wch:w}));
-  XLSX.utils.book_append_sheet(wb,ws,'Compare');
-  XLSX.writeFile(wb,`compare_${iv.label.slice(0,15)}_${iv.date}.xlsx`);
+  const wb = XLSX.utils.book_new();
+  const ws = XLSX.utils.aoa_to_sheet(wsData);
+  ws['!cols'] = [6,18,10,9,8,12,16,10,30,8,40,14].map(w=>({wch:w}));
+  XLSX.utils.book_append_sheet(wb, ws, 'Compare');
+  XLSX.writeFile(wb, `compare_${iv.label.slice(0,15)}_${iv.date}.xlsx`);
 }
 
-
-// ─── Click tracking (Narcotic Script) ───
-const NARCOTIC_URL = 'https://script.google.com/macros/s/AKfycbxTtFx4xqqYE-qUULiIoZL7QXOtn92zv6fx_um6ZMsPZKlva5ot-wgm7VRiC5DDR28J/exec';
-(function(){
-  const s = document.createElement('script');
-  s.src = NARCOTIC_URL + '?action=addClick&app=mederr&callback=_mc&t=' + Date.now();
-  document.head.appendChild(s);
-})();
 function _mc(){}
 </script>
+
+<!-- ═══ Image Viewer Overlay ═══ -->
+<div class="img-detail-overlay" id="img-detail-overlay" onclick="if(event.target.id==='img-detail-overlay')closeImgViewer()">
+  <div class="img-detail-wrap">
+    <button class="img-detail-close" onclick="closeImgViewer()">✕</button>
+    <button class="img-detail-nav img-detail-prev" onclick="prevImg()">‹</button>
+    <img id="img-detail-img" src="" alt="">
+    <button class="img-detail-nav img-detail-next" onclick="nextImg()">›</button>
+    <div style="text-align:center;color:#ccc;font-size:13px;margin-top:8px;" id="img-detail-counter"></div>
+  </div>
+</div>
+
 </body>
 </html>
