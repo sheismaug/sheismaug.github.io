@@ -7202,7 +7202,8 @@
             //   - แต่ละ chip มี emoji ตาม route: 💊 (PO) · 💉 (IV/IM/อื่นๆ)
             //   - cap ที่ 6 chips · เกินกว่านั้นแสดง "+N"
             var drugsHtml = '';
-            var atbList = (p.atbActive && p.atbActive.length) ? p.atbActive : [];
+            // ★ FIX RE-ADMIT: กัน ATB ของ admission เก่า leak มาแสดง (เผื่อ backend ยังไม่ได้ stop)
+            var atbList = (p.atbActive && p.atbActive.length) ? _filterATBByAdmit(p.atbActive, p.admitDate) : [];
             if (atbList.length) {
                 var MAX_CHIPS = 6;
                 var shown = Math.min(atbList.length, MAX_CHIPS);
@@ -7278,10 +7279,13 @@
     //   เกินแล้ว = now > endDateTime
     function _hasATBDueToday(p) {
         if (!p || !p.atbActive || !p.atbActive.length) return false;
+        // ★ FIX RE-ADMIT: ใช้เฉพาะ ATB ของ admission ปัจจุบัน
+        var atbList = _filterATBByAdmit(p.atbActive, p.admitDate);
+        if (!atbList.length) return false;
         var now = new Date();
         var todayMid = new Date(now); todayMid.setHours(0,0,0,0);
-        for (var i = 0; i < p.atbActive.length; i++) {
-            var ab = p.atbActive[i];
+        for (var i = 0; i < atbList.length; i++) {
+            var ab = atbList[i];
             if (ab.ongoing) continue;
             if (!ab.planDays || ab.planDays < 1) continue;
             var info = _atbDayInfo(ab);
@@ -9746,6 +9750,26 @@
         return dd + '/' + mm + '/' + String(yy).padStart(2, '0') + ' ' + hh + ':' + mn;
     }
 
+    // ★ FIX RE-ADMIT (2026-05): กรอง ATB ให้เหลือเฉพาะของ admission ปัจจุบัน
+    //   เคส HN เดิมที่เคย discharged แล้วกลับมา admit ใหม่ — ATB จาก visit ก่อนหน้า
+    //   จะถูก backend ตัดออก (auto-stop ตอน d/c) แต่กัน legacy data หรือเคสที่
+    //   discharge ไม่ผ่าน flow ปกติ ก็กรองที่ frontend อีกชั้นด้วย
+    //   เงื่อนไข: item.startDate < admitDate → ถือว่าเป็นของ admission เก่า → ตัดทิ้ง
+    //   ถ้าไม่ส่ง admitDate หรือ parse ไม่ได้ → ไม่กรอง (defensive)
+    function _filterATBByAdmit(atbList, admitDate) {
+        if (!Array.isArray(atbList) || !atbList.length) return [];
+        if (!admitDate) return atbList;
+        var ptAdmit = parseDate(admitDate);
+        if (!ptAdmit) return atbList;
+        var ptAdmitT = ptAdmit.getTime();
+        return atbList.filter(function(item) {
+            if (!item || !item.startDate) return true;
+            var sd = parseDate(item.startDate);
+            if (!sd) return true;
+            return sd.getTime() >= ptAdmitT;
+        });
+    }
+
     // คำนวณข้อมูล ATB — รับ item object เต็ม
     //   item: { startDate, startTime, frequency, planDays, ongoing, status }
     //   return: { dayNum, planDays, totalDoses, dosesGiven, endDateTime, endLabel,
@@ -9814,7 +9838,17 @@
         if (!hn) return;
         gasGet('getATBPlan', { hn: hn }, function(resp) {
             if (resp && resp.ok && resp.atbPlan) {
-                _atbCurrentList = resp.atbPlan;
+                // ★ FIX RE-ADMIT (2026-05): กรองเฉพาะ ATB ของ admission ปัจจุบัน
+                //   getATBPlan คืนทุกแถวที่ตรง HN รวม admission เก่า ทำให้ Day counter
+                //   วิ่งต่อจาก visit ที่แล้วเมื่อ re-admit HN เดิม → ต้องตัดของเก่าออก
+                var ptAdmit = '';
+                for (var _pi = 0; _pi < (allPatients || []).length; _pi++) {
+                    if (String(allPatients[_pi].hn) === String(hn)) {
+                        ptAdmit = allPatients[_pi].admitDate || '';
+                        break;
+                    }
+                }
+                _atbCurrentList = _filterATBByAdmit(resp.atbPlan, ptAdmit);
                 renderATBTable();
             } else {
                 _atbCurrentList = [];
