@@ -934,6 +934,10 @@ body.light .img-upload-wrap{background:#FAFAFA;border-color:#D0D0D0;}
       style="height:34px;padding:0 14px;background:#22c55e;color:white;border:none;border-radius:var(--r);font-size:12px;font-weight:700;font-family:'Google Sans',sans-serif;cursor:pointer;white-space:nowrap;">
       📊 Export Excel
     </button>
+    <button onclick="exportDashboardExcelWithImages()" id="btn-export-img"
+      style="height:34px;padding:0 14px;background:#0EA5E9;color:white;border:none;border-radius:var(--r);font-size:12px;font-weight:700;font-family:'Google Sans',sans-serif;cursor:pointer;white-space:nowrap;">
+      🖼️ Export + รูป
+    </button>
     <span style="font-size:11px;color:var(--gray);margin-left:auto;" id="filter-count"></span>
   </div>
 
@@ -1835,6 +1839,140 @@ function exportDashboardExcel(){
   XLSX.writeFile(wb, `med_error_${from}_${to}.xlsx`);
 }
 
+// ─── Export Excel พร้อมรูปภาพ (ฝัง thumbnail ใน cell) ───
+//   ใช้ ExcelJS — ดึงรูปจาก Supabase URL → resize เป็น ~150px → ฝังลง xlsx
+async function exportDashboardExcelWithImages(){
+  if (typeof ExcelJS === 'undefined') {
+    alert('ExcelJS library ยังไม่โหลด ลองรีเฟรชหน้าเว็บแล้วลองใหม่');
+    return;
+  }
+  const filtered = getFilteredLogs();
+  if(!filtered.length){ alert('ไม่มีข้อมูลในช่วงที่เลือก'); return; }
+
+  const btn = document.getElementById('btn-export-img');
+  const oldText = btn ? btn.innerHTML : '';
+  if (btn) { btn.disabled = true; btn.innerHTML = '⏳ กำลังโหลดรูป...'; }
+
+  try {
+    const wb = new ExcelJS.Workbook();
+    const ws = wb.addWorksheet('Med Error');
+
+    // หัวตาราง
+    const headers = ['วันที่','เวลา','Floor/Ward','หมวด','รหัส Subtype','Subtype','ระดับ NCC MERP','รายละเอียด','ผู้รายงาน','รูปภาพ'];
+    ws.addRow(headers);
+    ws.getRow(1).font = { bold: true, color: { argb: 'FFFFFFFF' } };
+    ws.getRow(1).fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF1B2D4F' } };
+    ws.getRow(1).alignment = { vertical: 'middle', horizontal: 'center' };
+    ws.getRow(1).height = 24;
+
+    // ความกว้าง column (หน่วย char-width ของ Excel)
+    ws.columns = [
+      { width: 11 },  // วันที่
+      { width: 8 },   // เวลา
+      { width: 14 },  // floor
+      { width: 18 },  // หมวด
+      { width: 13 },  // รหัส subtype
+      { width: 32 },  // subtype
+      { width: 14 },  // ระดับ
+      { width: 42 },  // รายละเอียด
+      { width: 16 },  // ผู้รายงาน
+      { width: 28 },  // รูปภาพ (กว้างพอใส่ thumbnail)
+    ];
+
+    const THUMB_SIZE = 140;  // px — ขนาดรูปย่อ
+    const ROW_HEIGHT = 108;  // points — ความสูงแถวให้รับ thumbnail ได้
+
+    // helper: ดึง URL → resize ด้วย canvas → คืน {buffer, ext}
+    async function fetchAndResize(url){
+      try {
+        const resp = await fetch(url);
+        if (!resp.ok) throw new Error('HTTP ' + resp.status);
+        const blob = await resp.blob();
+        const bmp = await createImageBitmap(blob);
+        const scale = Math.min(THUMB_SIZE / bmp.width, THUMB_SIZE / bmp.height, 1);
+        const w = Math.max(1, Math.round(bmp.width * scale));
+        const h = Math.max(1, Math.round(bmp.height * scale));
+        const canvas = document.createElement('canvas');
+        canvas.width = w; canvas.height = h;
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(bmp, 0, 0, w, h);
+        const dataUrl = canvas.toDataURL('image/jpeg', 0.78);
+        const base64 = dataUrl.split(',')[1];
+        const bin = atob(base64);
+        const buf = new Uint8Array(bin.length);
+        for (let i = 0; i < bin.length; i++) buf[i] = bin.charCodeAt(i);
+        return { buffer: buf.buffer, ext: 'jpeg', w, h };
+      } catch (e) {
+        console.warn('Image fetch failed:', url, e);
+        return null;
+      }
+    }
+
+    // เติมข้อมูล + ฝังรูป
+    for (let i = 0; i < filtered.length; i++) {
+      const r = filtered[i];
+      const rowIdx = i + 2;  // row 1 = header
+      ws.addRow([
+        String(r.date).split('-').reverse().join('/'),
+        r.time || '',
+        r.floor || '',
+        r.category || '',
+        r.subtypeCode || '',
+        getSubLabel(r),
+        r.severity || '',
+        r.detail || '',
+        r.reporter || '',
+        ''  // คอลัมน์รูป — ใส่ภายหลัง
+      ]);
+      ws.getRow(rowIdx).alignment = { vertical: 'middle', wrapText: true };
+      ws.getRow(rowIdx).height = ROW_HEIGHT;
+
+      // ใส่รูป (รูปแรก) ลงคอลัมน์ J (index 9, 0-based)
+      const imgs = Array.isArray(r.images) ? r.images : [];
+      if (imgs.length > 0) {
+        const first = imgs[0];
+        const url = (typeof first === 'string') ? first : (first.url || first.path || '');
+        if (url) {
+          if (btn) btn.innerHTML = `⏳ กำลังโหลดรูป ${i+1}/${filtered.length}...`;
+          const img = await fetchAndResize(url);
+          if (img) {
+            const imageId = wb.addImage({ buffer: img.buffer, extension: img.ext });
+            ws.addImage(imageId, {
+              tl: { col: 9.05, row: rowIdx - 1 + 0.05 },  // 0-based, .05 = ขยับเข้าใน cell
+              ext: { width: img.w, height: img.h }
+            });
+          }
+          // ถ้ามีหลายรูป ใส่ note "+N รูป"
+          if (imgs.length > 1) {
+            ws.getCell(rowIdx, 10).value = { text: `+${imgs.length - 1} รูป`, hyperlink: url };
+            ws.getCell(rowIdx, 10).font = { color: { argb: 'FF0EA5E9' }, size: 10 };
+            ws.getCell(rowIdx, 10).alignment = { vertical: 'bottom', horizontal: 'right' };
+          }
+        }
+      }
+    }
+
+    // Freeze header
+    ws.views = [{ state: 'frozen', ySplit: 1 }];
+
+    // เขียนไฟล์
+    const buf = await wb.xlsx.writeBuffer();
+    const blob = new Blob([buf], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+    const from = document.getElementById('filter-from').value || 'all';
+    const to   = document.getElementById('filter-to').value   || 'all';
+    const link = document.createElement('a');
+    link.href = URL.createObjectURL(blob);
+    link.download = `med_error_with_images_${from}_${to}.xlsx`;
+    link.click();
+    URL.revokeObjectURL(link.href);
+  } catch (e) {
+    console.error('Export error:', e);
+    alert('Export ผิดพลาด: ' + e.message);
+  } finally {
+    if (btn) { btn.disabled = false; btn.innerHTML = oldText; }
+  }
+}
+
 // ─── Auth ───
 let isAuthenticated = false;
 let sessionPw = '';
@@ -2494,6 +2632,7 @@ function renderDashboard(){
 </script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/exceljs@4.4.0/dist/exceljs.min.js"></script>
 <script>
 // ─── Interventions ───
 let interventions = [];
