@@ -5374,7 +5374,11 @@
 
 <script>
     // CONSTANTS
-    const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwPezNJsaS81vw9oE3H_-NNKLXDWjt9vyASkMFZ6qhavtYYajGov3XZHO3w1rBgGfkv/exec';
+    // ── Supabase Edge Function (ย้ายมาจาก GAS — Phase 3 cutover 22/5/2569) ──
+    const SCRIPT_URL = 'https://qvtlekphxsubuklyirlz.supabase.co/functions/v1/ipd-hub';
+    const SUPABASE_ANON_KEY = 'sb_publishable_dPhW0DORMGlSTc1hzvT4Cw_9ChOlZ0H';
+    // ── Legacy GAS URL (เก็บไว้เผื่อ rollback) ──
+    // const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwPezNJsaS81vw9oE3H_-NNKLXDWjt9vyASkMFZ6qhavtYYajGov3XZHO3w1rBgGfkv/exec';
     const PIN_CORRECT = '8624';
 
     // Global State
@@ -5766,43 +5770,47 @@
         }
     }
 
-    // API Calls
+    // API Calls — Supabase Edge Function (Phase 3)
+    // ใช้ fetch + Authorization header แทน JSONP เพราะ Edge Function รองรับ CORS
     function gasGet(action, params, callback) {
-        let s = document.createElement('script');
-        let cbName = 'cb_' + Date.now() + '_' + Math.random().toString(36).substr(2, 5);
         let done = false;
         let timer = setTimeout(function() {
             if (done) return;
             done = true;
-            console.warn('[gasGet] TIMEOUT action=' + action + ' (15s). SCRIPT_URL อาจไม่ได้ deploy หรือ network error');
-            try { delete window[cbName]; } catch(e) {}
-            try { s.remove(); } catch(e) {}
+            console.warn('[gasGet] TIMEOUT action=' + action + ' (15s)');
             callback({ ok: false, error: 'timeout: ' + action });
         }, 15000);
-        window[cbName] = function(data) {
+        let url = SCRIPT_URL + '?action=' + action;
+        for (let k in params) {
+            if (params[k] !== undefined && params[k] !== null && params[k] !== '') {
+                url += '&' + k + '=' + encodeURIComponent(params[k]);
+            }
+        }
+        fetch(url, {
+            method: 'GET',
+            headers: {
+                'Authorization': 'Bearer ' + SUPABASE_ANON_KEY,
+                'apikey': SUPABASE_ANON_KEY
+            }
+        })
+        .then(function(r) {
+            if (!r.ok) throw new Error('HTTP ' + r.status);
+            return r.json();
+        })
+        .then(function(data) {
             if (done) return;
             done = true;
             clearTimeout(timer);
             console.log('[gasGet] ' + action + ' →', data);
             try { callback(data); } catch(e) { console.error(e); }
-            try { delete window[cbName]; } catch(e) {}
-            try { s.remove(); } catch(e) {}
-        };
-        s.onerror = function() {
+        })
+        .catch(function(err) {
             if (done) return;
             done = true;
             clearTimeout(timer);
-            console.error('[gasGet] script load error for action=' + action + ' url=' + s.src);
-            try { delete window[cbName]; } catch(e) {}
-            try { s.remove(); } catch(e) {}
-            callback({ ok: false, error: 'script load error' });
-        };
-        let url = SCRIPT_URL + '?callback=' + cbName + '&action=' + action;
-        for (let k in params) {
-            url += '&' + k + '=' + encodeURIComponent(params[k]);
-        }
-        s.src = url;
-        document.head.appendChild(s);
+            console.error('[gasGet] fetch error', action, err);
+            callback({ ok: false, error: 'fetch: ' + (err && err.message || String(err)) });
+        });
     }
 
     // STEP 5: Toast indicator — แสดงสถานะ save ทันที (Optimistic UI)
@@ -5843,8 +5851,11 @@
         fetch(SCRIPT_URL, {
             method: 'POST',
             mode: 'cors',
-            redirect: 'follow',
-            headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+            headers: {
+                'Content-Type':  'application/json',
+                'Authorization': 'Bearer ' + SUPABASE_ANON_KEY,
+                'apikey':        SUPABASE_ANON_KEY
+            },
             body: body
         })
         .then(function(r) {
