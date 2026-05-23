@@ -9241,16 +9241,27 @@
                     });
                 }
             }
-            if (!dcMeds.length) {
-                let mrRows = document.querySelectorAll('#mrTable tr');
-                for (let i = 0; i < mrRows.length; i++) {
-                    let inputs = mrRows[i].querySelectorAll('input');
-                    let name = inputs[0] ? inputs[0].value : '';
-                    let sig  = inputs[1] ? inputs[1].value : '';
-                    let qty  = inputs[2] ? inputs[2].value : '';
-                    if (!name.trim()) continue;
-                    dcMeds.push({ name: name, sig: sig, origSig: sig, qty: qty, status: 'continue', reason: '' });
+            // ★ Merge home meds — เติมยาใน mrTable ที่ยังไม่อยู่ใน dcMeds
+            //   (use case: เคย save D/C ไว้แล้ว ภายหลังเพิ่มยาใหม่ใน MR → ต้องเห็นใน D/C ด้วย)
+            //   เดิม fall back เฉพาะเมื่อ dcMeds ว่าง → ทำให้ยาใหม่หาย
+            let mrRows = document.querySelectorAll('#mrTable tr');
+            for (let i = 0; i < mrRows.length; i++) {
+                let inputs = mrRows[i].querySelectorAll('input');
+                let name = inputs[0] ? inputs[0].value : '';
+                let sig  = inputs[1] ? inputs[1].value : '';
+                let qty  = inputs[2] ? inputs[2].value : '';
+                let nameTrim = name.trim();
+                if (!nameTrim) continue;
+                // เช็คว่ามีอยู่แล้วใน dcMeds มั้ย (เทียบชื่อแบบ trim, case-insensitive)
+                let nameLow = nameTrim.toLowerCase();
+                let exists = false;
+                for (let j = 0; j < dcMeds.length; j++) {
+                    if (String(dcMeds[j].name || '').trim().toLowerCase() === nameLow) {
+                        exists = true; break;
+                    }
                 }
+                if (exists) continue;
+                dcMeds.push({ name: name, sig: sig, origSig: sig, qty: qty, status: 'continue', reason: '' });
             }
         }
 
