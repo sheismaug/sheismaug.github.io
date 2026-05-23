@@ -7165,10 +7165,25 @@
         }
 
         // Sort: เคสด่วน (MR ต้องทำ / ADR pending) ขึ้นบนสุด
+        //   secondary: admit_date desc (ใหม่สุดก่อน) — รองรับทั้ง ISO + DD/MM/YYYY (BE)
+        var _parseAdmit = function(s) {
+            if (!s) return 0;
+            var m = String(s).match(/^(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{4})$/);
+            if (m) {
+                var d = parseInt(m[1], 10), mo = parseInt(m[2], 10) - 1, y = parseInt(m[3], 10);
+                if (y > 2400) y -= 543;
+                var t = new Date(y, mo, d).getTime();
+                return isNaN(t) ? 0 : t;
+            }
+            var t2 = new Date(s).getTime();
+            return isNaN(t2) ? 0 : t2;
+        };
         filtered.sort(function(a, b) {
             var aPri = ((a.mrStatus || 'todo') !== 'done') || (a.adrStatus === 'pending') ? 0 : 1;
             var bPri = ((b.mrStatus || 'todo') !== 'done') || (b.adrStatus === 'pending') ? 0 : 1;
-            return aPri - bPri;
+            if (aPri !== bPri) return aPri - bPri;
+            // เท่ากัน → ใหม่สุดก่อน (admit_date desc)
+            return _parseAdmit(b.admitDate) - _parseAdmit(a.admitDate);
         });
 
         let body = document.getElementById('patientBody');
@@ -9503,7 +9518,8 @@
         try { localStorage.removeItem('ipd_bundle_' + hn); } catch(e) {}
 
         // ─── OPTIMISTIC UI UPDATE ───
-        allPatients.push(newPatient);
+        // ★ unshift (ไม่ใช่ push) — คนใหม่ขึ้นบนทันที (ตรงกับ backend ที่ sort admit_date desc)
+        allPatients.unshift(newPatient);
         localStorage.setItem('ipd_patients', JSON.stringify(allPatients));
         updatePatientTable();
         updateKPIs();
