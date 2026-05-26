@@ -184,6 +184,58 @@ input:focus, select:focus, textarea:focus {
 
 .drug-unit { font-size: 12px; color: var(--gray-400); margin-top: 3px; }
 
+/* ── Multi-drug rows ── */
+.drug-rows-container { display: flex; flex-direction: column; gap: 10px; margin-bottom: 12px; }
+.drug-row {
+  position: relative;
+  border: 1.5px solid var(--gray-200);
+  border-radius: var(--r-lg);
+  padding: 14px;
+  background: var(--gray-50);
+}
+.drug-row-header {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-bottom: 10px;
+}
+.drug-row-num {
+  font-size: 11px; font-weight: 700; color: var(--gray-500);
+  text-transform: uppercase; letter-spacing: 0.06em;
+}
+.btn-remove-row {
+  background: var(--white); border: 1.5px solid var(--gray-200);
+  color: var(--gray-400); cursor: pointer;
+  width: 28px; height: 28px; border-radius: 999px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 18px; line-height: 1;
+  transition: all 0.15s;
+  font-family: 'Google Sans', sans-serif;
+  padding: 0;
+}
+.btn-remove-row:hover { background: var(--red-light); border-color: var(--red); color: var(--red); }
+.drug-rows-container.single-row .btn-remove-row { display: none; }
+.drug-row-grid {
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  gap: 12px;
+}
+.btn-add-row {
+  width: 100%; height: 44px;
+  background: transparent;
+  border: 1.5px dashed var(--gray-300);
+  color: var(--teal);
+  font-size: 14px; font-weight: 600;
+  font-family: 'Google Sans', sans-serif;
+  border-radius: var(--r-lg);
+  cursor: pointer;
+  display: flex; align-items: center; justify-content: center; gap: 6px;
+  transition: all 0.15s;
+  margin-bottom: 16px;
+}
+.btn-add-row:hover { background: var(--teal-light); border-color: var(--teal); color: #0F766E; }
+@media (max-width: 768px) {
+  .drug-row-grid { grid-template-columns: 1fr; }
+}
+
 /* Submit */
 .btn-submit {
   width: 100%;
@@ -735,38 +787,53 @@ tr:last-child td { border-bottom: none; }
           <div id="pid-hint" style="font-size:12px;margin-top:3px;"></div>
         </div>
 
-        <div class="form-grid-3" style="margin-bottom:14px;">
-          <div class="field" style="grid-column: span 2;">
-            <label for="f-drug">ชื่อยา<span class="req">*</span></label>
-            <select id="f-drug" onchange="updateUnit()">
-              <option value="">— เลือกยา —</option>
-              <optgroup label="Opioid Analgesics">
-                <option value="Morphine inj" data-unit="amp" data-cat="opioid">Morphine inj</option>
-                <option value="Pethidine inj" data-unit="amp" data-cat="opioid">Pethidine inj</option>
-                <option value="Fentanyl inj" data-unit="amp" data-cat="opioid">Fentanyl inj</option>
-                <option value="Fentanyl patch" data-unit="patch" data-cat="opioid">Fentanyl patch</option>
-                <option value="MST 10 mg" data-unit="เม็ด" data-cat="opioid">MST 10 mg</option>
-                <option value="MO IR 10 mg" data-unit="เม็ด" data-cat="opioid">MO IR 10 mg</option>
-                <option value="Morphine syrup" data-unit="ขวด" data-cat="opioid">Morphine syrup</option>
-              </optgroup>
-              <optgroup label="Sedative/Anesthetic">
-                <option value="Ketamine inj" data-unit="amp" data-cat="sedative">Ketamine inj</option>
-                <option value="Midazolam inj" data-unit="amp" data-cat="sedative">Midazolam inj</option>
-              </optgroup>
-              <optgroup label="Stimulant">
-                <option value="Methylphenidate tab" data-unit="เม็ด" data-cat="stimulant">Methylphenidate tab</option>
-              </optgroup>
-              <optgroup label="Decongestant">
-                <option value="Pseudoephedrine 60 mg tab" data-unit="เม็ด" data-cat="decongestant">Pseudoephedrine 60 mg tab</option>
-              </optgroup>
-            </select>
+        <div class="form-section-title" style="margin-top:2px;">รายการยา <span style="text-transform:none;font-weight:500;color:var(--gray-400);">(เพิ่มได้หลายรายการ)</span></div>
+        <div class="drug-rows-container single-row" id="drug-rows-container"></div>
+        <button class="btn-add-row" type="button" onclick="addDrugRow()">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          เพิ่มรายการยา
+        </button>
+
+        <template id="drug-row-tpl">
+          <div class="drug-row">
+            <div class="drug-row-header">
+              <span class="drug-row-num">ยา #1</span>
+              <button type="button" class="btn-remove-row" onclick="removeDrugRow(this)" title="ลบรายการนี้" aria-label="ลบรายการนี้">×</button>
+            </div>
+            <div class="drug-row-grid">
+              <div class="field">
+                <label>ชื่อยา<span class="req">*</span></label>
+                <select class="f-drug" onchange="updateRowUnit(this)">
+                  <option value="">— เลือกยา —</option>
+                  <optgroup label="Opioid Analgesics">
+                    <option value="Morphine inj" data-unit="amp" data-cat="opioid">Morphine inj</option>
+                    <option value="Pethidine inj" data-unit="amp" data-cat="opioid">Pethidine inj</option>
+                    <option value="Fentanyl inj" data-unit="amp" data-cat="opioid">Fentanyl inj</option>
+                    <option value="Fentanyl patch" data-unit="patch" data-cat="opioid">Fentanyl patch</option>
+                    <option value="MST 10 mg" data-unit="เม็ด" data-cat="opioid">MST 10 mg</option>
+                    <option value="MO IR 10 mg" data-unit="เม็ด" data-cat="opioid">MO IR 10 mg</option>
+                    <option value="Morphine syrup" data-unit="ขวด" data-cat="opioid">Morphine syrup</option>
+                  </optgroup>
+                  <optgroup label="Sedative/Anesthetic">
+                    <option value="Ketamine inj" data-unit="amp" data-cat="sedative">Ketamine inj</option>
+                    <option value="Midazolam inj" data-unit="amp" data-cat="sedative">Midazolam inj</option>
+                  </optgroup>
+                  <optgroup label="Stimulant">
+                    <option value="Methylphenidate tab" data-unit="เม็ด" data-cat="stimulant">Methylphenidate tab</option>
+                  </optgroup>
+                  <optgroup label="Decongestant">
+                    <option value="Pseudoephedrine 60 mg tab" data-unit="เม็ด" data-cat="decongestant">Pseudoephedrine 60 mg tab</option>
+                  </optgroup>
+                </select>
+              </div>
+              <div class="field">
+                <label>จำนวน<span class="req">*</span></label>
+                <input type="number" class="f-qty" placeholder="0" min="0.1" step="any">
+                <div class="drug-unit f-unit-hint"></div>
+              </div>
+            </div>
           </div>
-          <div class="field">
-            <label for="f-qty">จำนวน<span class="req">*</span></label>
-            <input type="number" id="f-qty" placeholder="0" min="0.1" step="any">
-            <div class="drug-unit" id="drug-unit-hint"></div>
-          </div>
-        </div>
+        </template>
 
         <div class="field" style="margin-bottom:14px;">
           <label for="f-pharmacist">ชื่อผู้จ่ายยา<span class="req">*</span></label>
@@ -1397,6 +1464,8 @@ window.onload = () => {
   // default dashboard: แสดงวันนี้
   document.getElementById('dash-date-from').value = toDateStr(now);
   document.getElementById('dash-date-to').value   = toDateStr(now);
+  // เพิ่ม drug row แรกใน form
+  addDrugRow();
   initInvForm();
   updateClock();
   setInterval(updateClock, 1000);
@@ -1452,14 +1521,54 @@ function validatePID() {
   hint.textContent = '✓ ครบ 13 หลัก';
   return true;
 }
-function updateUnit() {
-  const sel = document.getElementById('f-drug');
-  const opt = sel.options[sel.selectedIndex];
-  const unit = opt.getAttribute('data-unit') || '';
-  document.getElementById('drug-unit-hint').textContent = unit ? 'หน่วย: ' + unit : '';
+// ─── Multi-drug rows helpers ───
+function addDrugRow() {
+  const tpl = document.getElementById('drug-row-tpl');
+  const container = document.getElementById('drug-rows-container');
+  if (!tpl || !container) return;
+  const clone = tpl.content.firstElementChild.cloneNode(true);
+  container.appendChild(clone);
+  refreshDrugRows();
 }
 
-// ─── Submit ───
+function removeDrugRow(btn) {
+  const container = document.getElementById('drug-rows-container');
+  if (!container) return;
+  // keep at least 1 row
+  if (container.querySelectorAll('.drug-row').length <= 1) return;
+  const row = btn.closest('.drug-row');
+  if (row) row.remove();
+  refreshDrugRows();
+}
+
+function refreshDrugRows() {
+  const container = document.getElementById('drug-rows-container');
+  if (!container) return;
+  const rows = container.querySelectorAll('.drug-row');
+  rows.forEach((r, i) => {
+    const numEl = r.querySelector('.drug-row-num');
+    if (numEl) numEl.textContent = 'ยา #' + (i + 1);
+  });
+  container.classList.toggle('single-row', rows.length <= 1);
+}
+
+function updateRowUnit(sel) {
+  const opt = sel.options[sel.selectedIndex];
+  const unit = opt ? (opt.getAttribute('data-unit') || '') : '';
+  const row = sel.closest('.drug-row');
+  if (!row) return;
+  const hint = row.querySelector('.f-unit-hint');
+  if (hint) hint.textContent = unit ? 'หน่วย: ' + unit : '';
+}
+
+function resetDrugRows() {
+  const container = document.getElementById('drug-rows-container');
+  if (!container) return;
+  container.innerHTML = '';
+  addDrugRow();
+}
+
+// ─── Submit (multi-drug per patient) ───
 async function submitForm() {
   if (!requireAuth()) return;
   const date = document.getElementById('f-date').value;
@@ -1467,22 +1576,16 @@ async function submitForm() {
   const hn = document.getElementById('f-hn').value.trim();
   const patient = document.getElementById('f-patient').value.trim();
   const pid = document.getElementById('f-pid').value.trim();
-  const drug = document.getElementById('f-drug').value;
-  const qty = document.getElementById('f-qty').value;
   const pharmacist = document.getElementById('f-pharmacist').value;
   const note = document.getElementById('f-note').value.trim();
 
-  if (!date||!time||!hn||!patient||!pid||!drug||!qty||!pharmacist) {
-    alert('กรุณากรอกข้อมูลที่จำเป็นให้ครบถ้วน (*)');
+  // ── Validate ข้อมูลผู้ป่วย/ผู้จ่าย ──
+  if (!date||!time||!hn||!patient||!pid||!pharmacist) {
+    alert('กรุณากรอกข้อมูลผู้ป่วย / ผู้จ่ายยา ให้ครบถ้วน (*)');
     return;
   }
   if (pid.length !== 13 || !/^\d{13}$/.test(pid)) {
     alert('เลขบัตรประชาชนต้องเป็นตัวเลข 13 หลัก');
-    return;
-  }
-  const qtyNum = parseFloat(qty);
-  if (!isFinite(qtyNum) || qtyNum <= 0 || qtyNum > 9999) {
-    alert('จำนวนต้องมากกว่า 0 และไม่เกิน 9999');
     return;
   }
   // ห้ามวันที่อนาคต (อนุญาตเลื่อมได้ 1 วันสำหรับ timezone)
@@ -1491,67 +1594,130 @@ async function submitForm() {
     alert('วันที่ห้ามเป็นอนาคต');
     return;
   }
-  // จำกัดความยาวข้อความ
   if (patient.length > 200 || (note && note.length > 500) || hn.length > 20) {
     alert('ข้อความยาวเกินกำหนด');
     return;
   }
 
-  const entry = {
-    id: Date.now(),
-    date, time, hn, patient, pid, drug,
-    qty: parseFloat(qty),
-    unit: DRUG_UNITS[drug] || '',
-    cat: DRUG_CATS[drug] || '',
-    pharmacist, note
-  };
-
-  // Disable button while saving
-  const btn = document.querySelector('.btn-submit');
-  btn.disabled = true;
-  btn.textContent = 'กำลังบันทึก...';
-  showStatus('⏳ กำลังบันทึกลง Google Sheets...', 'loading');
-
-  try {
-    const res = await apiCall({ action: 'add', entry });
-    if (res.ok) {
-      // Add to local state immediately for real-time feel
-      logs.unshift(entry);
-
-      // Reset form
-      document.getElementById('f-hn').value = '';
-      document.getElementById('f-patient').value = '';
-      document.getElementById('f-pid').value = '';
-      document.getElementById('pid-hint').textContent = '';
-      document.getElementById('f-drug').value = '';
-      document.getElementById('f-qty').value = '';
-      document.getElementById('f-pharmacist').value = '';
-      document.getElementById('f-note').value = '';
-      document.getElementById('drug-unit-hint').textContent = '';
-      const now = new Date();
-      document.getElementById('f-date').value = toDateStr(now);
-      document.getElementById('f-time').value = toTimeStr(now);
-
-      showStatus('✓ บันทึกเรียบร้อยแล้ว', 'success');
-
-      // Toast
-      const toast = document.getElementById('success-toast');
-      toast.classList.add('show');
-      setTimeout(() => toast.classList.remove('show'), 3000);
-
-      renderLog();
-      renderDashboard();
-      updateBadge();
-      if (document.getElementById('mrpt-month')) renderMonthlyReport();
-    } else {
-      showStatus('❌ บันทึกไม่สำเร็จ: ' + (res.error || ''), 'error');
-    }
-  } catch(e) {
-    showStatus('❌ เชื่อมต่อไม่ได้ — ตรวจสอบ internet', 'error');
+  // ── รวบรวมรายการยาจากทุก row ──
+  const rowEls = document.querySelectorAll('#drug-rows-container .drug-row');
+  if (rowEls.length === 0) {
+    alert('กรุณาเพิ่มอย่างน้อย 1 รายการยา');
+    return;
   }
 
+  const entries = [];
+  const seenDrugs = new Set();
+  for (let i = 0; i < rowEls.length; i++) {
+    const row = rowEls[i];
+    const drugSel = row.querySelector('.f-drug');
+    const qtyInp  = row.querySelector('.f-qty');
+    const drug = drugSel ? drugSel.value : '';
+    const qtyStr = qtyInp ? qtyInp.value : '';
+    if (!drug || !qtyStr) {
+      alert('รายการที่ ' + (i + 1) + ': กรุณาเลือกยาและกรอกจำนวน');
+      if (drugSel) drugSel.focus();
+      return;
+    }
+    const qtyNum = parseFloat(qtyStr);
+    if (!isFinite(qtyNum) || qtyNum <= 0 || qtyNum > 9999) {
+      alert('รายการที่ ' + (i + 1) + ': จำนวนต้องมากกว่า 0 และไม่เกิน 9999');
+      if (qtyInp) qtyInp.focus();
+      return;
+    }
+    if (seenDrugs.has(drug)) {
+      if (!confirm('พบรายการยา "' + drug + '" ซ้ำกัน ต้องการบันทึกต่อหรือไม่?')) {
+        return;
+      }
+    }
+    seenDrugs.add(drug);
+
+    entries.push({
+      // ใส่ index ลง id เพื่อกัน collision เมื่อบันทึกหลายรายการพร้อมกัน
+      id: Date.now() + i,
+      date, time, hn, patient, pid, drug,
+      qty: qtyNum,
+      unit: DRUG_UNITS[drug] || '',
+      cat: DRUG_CATS[drug] || '',
+      pharmacist, note
+    });
+  }
+
+  // ── Disable button while saving ──
+  const btn = document.querySelector('#panel-form .btn-submit');
+  const originalHTML = btn.innerHTML;
+  btn.disabled = true;
+  btn.textContent = 'กำลังบันทึก...';
+  showStatus('⏳ กำลังบันทึก ' + entries.length + ' รายการ...', 'loading');
+
+  let okCount = 0;
+  let failCount = 0;
+  let lastError = '';
+  const failedIdx = [];
+
+  for (let i = 0; i < entries.length; i++) {
+    btn.textContent = 'กำลังบันทึก ' + (i + 1) + '/' + entries.length + '...';
+    showStatus('⏳ กำลังบันทึก ' + (i + 1) + '/' + entries.length + '...', 'loading');
+    try {
+      const res = await apiCall({ action: 'add', entry: entries[i] });
+      if (res && res.ok) {
+        logs.unshift(entries[i]);
+        okCount++;
+      } else {
+        failCount++;
+        failedIdx.push(i + 1);
+        lastError = (res && res.error) || '';
+      }
+    } catch (e) {
+      failCount++;
+      failedIdx.push(i + 1);
+      lastError = (e && e.message) || 'network';
+    }
+  }
+
+  // ── สรุปผล ──
+  if (failCount === 0) {
+    // Reset form ทั้งหมด
+    document.getElementById('f-hn').value = '';
+    document.getElementById('f-patient').value = '';
+    document.getElementById('f-pid').value = '';
+    document.getElementById('pid-hint').textContent = '';
+    document.getElementById('f-pharmacist').value = '';
+    document.getElementById('f-note').value = '';
+    const now = new Date();
+    document.getElementById('f-date').value = toDateStr(now);
+    document.getElementById('f-time').value = toTimeStr(now);
+    resetDrugRows();
+
+    showStatus('✓ บันทึก ' + okCount + ' รายการเรียบร้อยแล้ว', 'success');
+
+    // Toast
+    const toast = document.getElementById('success-toast');
+    if (toast) {
+      // อัปเดตข้อความ toast ให้บอกจำนวน
+      const txtNode = Array.from(toast.childNodes).find(n => n.nodeType === 3 || (n.nodeType === 1 && n.tagName !== 'svg' && n.tagName !== 'SVG'));
+      // ปรับ text node ของ toast
+      const svg = toast.querySelector('svg');
+      toast.innerHTML = '';
+      if (svg) toast.appendChild(svg);
+      toast.appendChild(document.createTextNode(' บันทึกการจ่ายยา ' + okCount + ' รายการเรียบร้อยแล้ว'));
+      toast.classList.add('show');
+      setTimeout(() => toast.classList.remove('show'), 3000);
+    }
+  } else if (okCount > 0) {
+    alert('บันทึกสำเร็จ ' + okCount + ' รายการ\nล้มเหลว ' + failCount + ' รายการ (รายการที่: ' + failedIdx.join(', ') + ')' + (lastError ? '\nสาเหตุ: ' + lastError : '') + '\n\nกรุณาตรวจสอบรายการที่บันทึกไม่สำเร็จและลองใหม่');
+    showStatus('⚠ บันทึก ' + okCount + ' / ' + entries.length + ' รายการ', 'error');
+  } else {
+    showStatus('❌ บันทึกไม่สำเร็จ' + (lastError ? ': ' + lastError : ''), 'error');
+  }
+
+  renderLog();
+  renderDashboard();
+  updateBadge();
+  if (document.getElementById('mrpt-month')) renderMonthlyReport();
+
   btn.disabled = false;
-  btn.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v14a2 2 0 01-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg> บันทึกการจ่ายยา';
+  btn.innerHTML = originalHTML;
 }
 
 // ─── Render log ───
@@ -2271,136 +2437,136 @@ function renderMonthlyReport() {
   let ym = sel.value;
   if (!ym) {
     const opts = buildMonthOptions();
-    if (opts.length) {
-      populateMonthlyMonthSelect();
-      ym = document.getElementById('mrpt-month').value;
-    }
-  }
-  if (!ym) {
-    tbody.innerHTML = '<tr><td colspan="6" class="no-data">ไม่มีข้อมูล</td></tr>';
-    periodEl.textContent = '—';
-    return;
+    ym = opts[0] || toDateStr(new Date()).slice(0, 7);
+    sel.value = ym;
   }
 
   const { first, last } = monthBounds(ym);
-  const [fy, fm, fd] = first.split('-');
-  const [ly, lm, ld] = last.split('-');
-  periodEl.textContent = `ประจำเดือน ${ymLabel(ym)} (${Number(fd)} – ${Number(ld)} ${TH_MONTHS_SHORT[Number(fm)-1]} ${Number(fy)+543})`;
+  if (periodEl) {
+    const fd = first.split('-').reverse().join('/');
+    const ld = last.split('-').reverse().join('/');
+    periodEl.textContent = 'ช่วง: ' + fd + ' — ' + ld;
+  }
 
   const rep = calcMonthlyReport(ym);
   const DRUGS = Object.keys(DRUG_UNITS);
-
   const totals = { carry: 0, in: 0, out: 0, balance: 0 };
 
-  const rows = DRUGS.map(drug => {
-    const o = rep[drug];
-    const cat = DRUG_CATS[drug] || '';
-    const unit = DRUG_UNITS[drug] || '';
+  const rowsHTML = DRUGS.map(d => {
+    const o = rep[d];
     totals.carry   += o.carry;
     totals.in      += o.in;
     totals.out     += o.out;
     totals.balance += o.balance;
-
-    let balClass = '', balBadge = '';
-    if (o.balance <= 0) { balClass = 'zero'; balBadge = '<span class="mrpt-bal-badge zero">หมด</span>'; }
-    else if (o.balance <= 5) { balClass = 'low'; balBadge = '<span class="mrpt-bal-badge low">ใกล้หมด</span>'; }
-
-    return `<tr>
-      <td><span class="drug-pill ${cat}">${escHTML(drug)}</span></td>
-      <td class="num"><span class="mrpt-carry">${o.carry}</span></td>
-      <td class="num">
-        <span class="mrpt-in">${o.in ? '+'+o.in : '0'}</span>
-        <span class="mrpt-bd">ซื้อ ${o.buy} · รับคืน ${o.return}</span>
-      </td>
-      <td class="num">
-        <span class="mrpt-out">${o.out ? '−'+o.out : '0'}</span>
-        <span class="mrpt-bd">จ่าย ${o.dispense} · หมดอายุ ${o.destroy}</span>
-      </td>
-      <td class="num"><span class="mrpt-bal ${balClass}">${o.balance}</span> ${balBadge}</td>
-      <td class="mrpt-unit">${escHTML(unit)}</td>
-    </tr>`;
+    const balCls = o.balance === 0 ? 'zero' : (o.balance > 0 && o.balance < 5 ? 'low' : '');
+    const balBadge = o.balance === 0
+      ? '<span class="mrpt-bal-badge zero">หมด</span>'
+      : (o.balance > 0 && o.balance < 5 ? '<span class="mrpt-bal-badge low">ใกล้หมด</span>' : '');
+    return `
+      <tr>
+        <td><strong>${escHTML(d)}</strong><span class="mrpt-bd">${escHTML(DRUG_CATS[d] || '')}</span></td>
+        <td class="num mrpt-num mrpt-carry">${o.carry}</td>
+        <td class="num mrpt-num mrpt-in">+${o.in}<span class="mrpt-bd">รับ ${o.buy} / คืน ${o.return}</span></td>
+        <td class="num mrpt-num mrpt-out">−${o.out}<span class="mrpt-bd">จ่าย ${o.dispense} / ทำลาย ${o.destroy}</span></td>
+        <td class="num mrpt-num mrpt-bal ${balCls}">${o.balance}${balBadge}</td>
+        <td><span class="mrpt-unit">${escHTML(DRUG_UNITS[d] || '')}</span></td>
+      </tr>
+    `;
   }).join('');
 
-  const totalRow = `<tr class="mrpt-total">
-    <td><strong>รวม (${DRUGS.length} รายการ)</strong></td>
-    <td class="num"><span class="mrpt-num">${totals.carry}</span></td>
-    <td class="num"><span class="mrpt-num mrpt-in">${totals.in ? '+'+totals.in : '0'}</span></td>
-    <td class="num"><span class="mrpt-num mrpt-out">${totals.out ? '−'+totals.out : '0'}</span></td>
-    <td class="num"><span class="mrpt-num mrpt-bal">${totals.balance}</span></td>
-    <td class="mrpt-unit">—</td>
-  </tr>`;
-
-  tbody.innerHTML = rows + totalRow;
+  tbody.innerHTML = rowsHTML + `
+    <tr class="mrpt-total">
+      <td><strong>รวมทั้งหมด</strong></td>
+      <td class="num mrpt-num">${totals.carry}</td>
+      <td class="num mrpt-num">+${totals.in}</td>
+      <td class="num mrpt-num">−${totals.out}</td>
+      <td class="num mrpt-num">${totals.balance}</td>
+      <td></td>
+    </tr>
+  `;
 }
 
-// ── Export รายงานรายเดือนเป็น XLSX ──
+// ── Export รายงานรายเดือน เป็น XLSX ──
 function exportMonthlyXLSX() {
   const sel = document.getElementById('mrpt-month');
-  const ym = sel && sel.value;
-  if (!ym) { alert('ไม่มีเดือนที่เลือก'); return; }
+  if (!sel) return;
+  const ym = sel.value;
+  if (!ym) { alert('ยังไม่ได้เลือกเดือน'); return; }
 
   const rep = calcMonthlyReport(ym);
   const DRUGS = Object.keys(DRUG_UNITS);
-  const rows = [[
-    'ชื่อยา','ยกยอดจากเดือนก่อน',
-    'รับ-ซื้อ อย.','รับ-รับคืนจากผู้ป่วย','รวมรับเดือนนี้',
-    'จ่าย-จ่ายผู้ป่วย','จ่าย-หมดอายุ/แตก/เสื่อม','รวมจ่ายเดือนนี้',
-    'คงเหลือสิ้นเดือน','หน่วย'
-  ]];
-  const totals = { carry:0, buy:0, ret:0, in:0, dispense:0, destroy:0, out:0, balance:0 };
-  DRUGS.forEach(drug => {
-    const o = rep[drug];
-    totals.carry += o.carry; totals.buy += o.buy; totals.ret += o.return;
-    totals.in += o.in; totals.dispense += o.dispense; totals.destroy += o.destroy;
-    totals.out += o.out; totals.balance += o.balance;
-    rows.push([
-      drug, o.carry,
+  const { first, last } = monthBounds(ym);
+
+  const aoa = [
+    ['รายงานรับจ่ายยาเสพติด — ' + ymLabel(ym)],
+    ['ช่วงวันที่: ' + first + ' ถึง ' + last],
+    [],
+    ['ยา', 'หมวด', 'หน่วย',
+     'ยกยอดจากเดือนก่อน',
+     'รับ (ซื้อ อย.)', 'รับคืนจากผู้ป่วย', 'รวมรับ',
+     'จ่ายผู้ป่วย', 'หมดอายุ/เสื่อม', 'รวมจ่าย',
+     'คงเหลือสิ้นเดือน'],
+  ];
+
+  let tCarry = 0, tBuy = 0, tRet = 0, tIn = 0, tDisp = 0, tDest = 0, tOut = 0, tBal = 0;
+  DRUGS.forEach(d => {
+    const o = rep[d];
+    aoa.push([
+      d,
+      DRUG_CATS[d] || '',
+      DRUG_UNITS[d] || '',
+      o.carry,
       o.buy, o.return, o.in,
       o.dispense, o.destroy, o.out,
-      o.balance, DRUG_UNITS[drug] || ''
+      o.balance,
     ]);
+    tCarry += o.carry; tBuy += o.buy; tRet += o.return; tIn += o.in;
+    tDisp += o.dispense; tDest += o.destroy; tOut += o.out; tBal += o.balance;
   });
-  rows.push([
-    'รวมทั้งหมด', totals.carry,
-    totals.buy, totals.ret, totals.in,
-    totals.dispense, totals.destroy, totals.out,
-    totals.balance, ''
-  ]);
+  aoa.push(['รวมทั้งหมด', '', '', tCarry, tBuy, tRet, tIn, tDisp, tDest, tOut, tBal]);
 
   const wb = XLSX.utils.book_new();
-  const ws = XLSX.utils.aoa_to_sheet(rows);
-  XLSX.utils.book_append_sheet(wb, ws, 'รายงานรับจ่าย ' + ym);
-  XLSX.writeFile(wb, `narcotic_monthly_${ym}.xlsx`);
+  XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(aoa), 'รายงาน ' + ym);
+  XLSX.writeFile(wb, 'narcotic_monthly_' + ym + '.xlsx');
 }
 
+// ── Export Dashboard การจ่ายยา (ตามช่วงวันที่) ──
 function exportDashXLSX() {
-  const from  = document.getElementById('dash-date-from').value;
-  const to    = document.getElementById('dash-date-to').value;
+  const from = document.getElementById('dash-date-from').value;
+  const to   = document.getElementById('dash-date-to').value;
   const today = toDateStr(new Date());
-  const effectiveFrom = from || (!to ? today : '');
-  const effectiveTo   = to   || (!from ? today : '');
 
+  // กรองข้อมูลตามช่วงวันที่
   const data = logs.filter(r => {
-    const matchFrom = !effectiveFrom || r.date >= effectiveFrom;
-    const matchTo   = !effectiveTo   || r.date <= effectiveTo;
+    const matchFrom = !from || r.date >= from;
+    const matchTo   = !to   || r.date <= to;
     return matchFrom && matchTo;
   });
 
-  // ── Sheet 1: สรุปยาที่จ่ายในช่วงเวลา ──
-  const drugMap = {};
+  // ── สรุปยอดตามยา ──
+  const sum = {};
   data.forEach(r => {
-    if (!drugMap[r.drug]) drugMap[r.drug] = { total: 0, unit: r.unit, count: 0 };
-    drugMap[r.drug].total += Number(r.qty) || 0;
-    drugMap[r.drug].count += 1;
+    if (!sum[r.drug]) sum[r.drug] = { qty: 0, count: 0, unit: r.unit || DRUG_UNITS[r.drug] || '' };
+    sum[r.drug].qty   += Number(r.qty) || 0;
+    sum[r.drug].count += 1;
   });
-  const summaryRows = [['ชื่อยา', 'จำนวนรวม', 'หน่วย', 'จำนวนครั้ง']];
-  Object.entries(drugMap).sort((a,b) => b[1].total - a[1].total).forEach(([drug, d]) => {
-    summaryRows.push([drug, d.total, d.unit, d.count]);
-  });
-  if (!summaryRows.length) summaryRows.push(['ไม่มีข้อมูล','','','']);
 
-  // ── Sheet 2: Log รายการจ่ายยา ──
-  const logRows = [['วันที่','เวลา','HN','ชื่อผู้ป่วย','ชื่อยา','จำนวน','หน่วย','เภสัชกร','หมายเหตุ']];
+  const periodLabel = (from || to)
+    ? '(' + (from || '...') + ' — ' + (to || '...') + ')'
+    : 'วันที่ ' + today;
+  const summaryRows = [
+    ['สรุปการจ่ายยา ' + periodLabel],
+    [],
+    ['ยา', 'จำนวนรวม', 'หน่วย', 'จำนวนรายการ'],
+  ];
+  Object.keys(sum).forEach(d => {
+    summaryRows.push([d, sum[d].qty, sum[d].unit, sum[d].count]);
+  });
+
+  // ── Log รายละเอียด ──
+  const logRows = [
+    ['วันที่', 'เวลา', 'HN', 'ชื่อผู้ป่วย', 'ยา', 'จำนวน', 'หน่วย', 'ผู้จ่ายยา', 'หมายเหตุ'],
+  ];
   data.forEach(r => {
     logRows.push([
       r.date.split('-').reverse().join('/'),
