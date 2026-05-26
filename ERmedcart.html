@@ -821,6 +821,20 @@ input::placeholder, textarea::placeholder { color: var(--hint); }
 .sh-note .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--sh-coral); box-shadow: 0 0 0 3px var(--sh-coral-bg); flex-shrink: 0; }
 .sh-note b { color: var(--sh-ink-1); font-weight: 700; }
 
+/* Nurse miss alert card */
+.sh-nurse-alert { background: var(--sh-coral-bg); border: 1px solid rgba(255,111,104,.35); border-radius: 18px; padding: .9rem 1rem 1rem; margin-bottom: 1.25rem; box-shadow: var(--sh-card-shadow); }
+.sh-nurse-alert-header { display: flex; align-items: center; gap: 8px; margin-bottom: .65rem; }
+.sh-nurse-alert-icon { font-size: 18px; line-height: 1; }
+.sh-nurse-alert-ttl { font-size: 13px; font-weight: 700; color: var(--sh-coral-d); letter-spacing: -.005em; flex: 1; }
+.sh-nurse-alert-badge { background: var(--sh-coral); color: #fff; font-size: 11px; font-weight: 700; padding: 2px 9px; border-radius: 10px; min-width: 22px; text-align: center; }
+.sh-nurse-alert-list { display: flex; flex-direction: column; gap: 6px; }
+.sh-nurse-alert-item { display: grid; grid-template-columns: 1fr auto; gap: 8px 12px; align-items: start; padding: .6rem .7rem; background: #FFFFFF; border-radius: 12px; font-size: 12.5px; color: var(--sh-ink-1); border: 0.5px solid rgba(255,111,104,.2); cursor: pointer; transition: transform .2s, box-shadow .2s; }
+.sh-nurse-alert-item:hover { transform: translateY(-1px); box-shadow: 0 2px 8px rgba(255,111,104,.15); }
+.sh-nurse-alert-item .name { font-weight: 700; color: var(--sh-ink-1); }
+.sh-nurse-alert-item .meta { font-size: 11px; color: var(--sh-ink-3); margin-top: 2px; font-weight: 500; }
+.sh-nurse-alert-item .qty { font-size: 13px; font-weight: 700; color: var(--sh-coral-d); white-space: nowrap; }
+.sh-nurse-alert-item .qty .lbl { font-size: 10px; color: var(--sh-ink-3); font-weight: 600; display: block; text-transform: uppercase; letter-spacing: .06em; }
+
 .sh-section-title { font-size: 11px; font-weight: 700; color: rgba(20,50,90,.68); margin: 1.4rem 0 .6rem; padding-left: 4px; letter-spacing: .14em; text-transform: uppercase; text-shadow: 0 1px 0 rgba(255,255,255,.7); }
 
 .sh-action-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
@@ -1060,6 +1074,16 @@ input::placeholder, textarea::placeholder { color: var(--hint); }
     <div class="sh-note" id="sh-note" style="display:none;">
       <span class="dot"></span>
       <span>มี <b id="sh-note-n">0 รายการ</b> ต้องจัดการก่อนปิดเวร</span>
+    </div>
+
+    <!-- NURSE MISS ALERT (พยาบาลแจ้งยาขาด ค้างจากเวรก่อน) -->
+    <div class="sh-nurse-alert" id="sh-nurse-alert" style="display:none;">
+      <div class="sh-nurse-alert-header">
+        <span class="sh-nurse-alert-icon">🔔</span>
+        <span class="sh-nurse-alert-ttl">พยาบาลแจ้งยาขาด — รอเภสัชเติม</span>
+        <span class="sh-nurse-alert-badge" id="sh-nurse-alert-n">0</span>
+      </div>
+      <div class="sh-nurse-alert-list" id="sh-nurse-alert-list"></div>
     </div>
 
     <!-- TASK CHECKLIST -->
@@ -2442,6 +2466,7 @@ const APP = {
   errCount: 0,
   ncStatus: {},
   currentPage: null,
+  pendingNurseMisses: [],  // ยา miss ที่พยาบาลแจ้งและเภสัชยังไม่เคลียร์
 };
 
 /* ----------------------------------------------------------
@@ -2664,13 +2689,116 @@ function initShiftHub() {
     }
   }
 
+  // Nurse miss alerts (load from backend) — must run before close-shift gate
+  renderShiftHubNurseAlerts();
+
   // Activity feed
   renderShiftHubFeed();
+}
+
+// Re-evaluate ปุ่มปิดเวร หลังจาก nurse-alerts โหลดเสร็จ
+function applyShiftHubCloseGate() {
+  var pending = (APP.pendingNurseMisses || []).length;
+  if (pending <= 0) return;  // ไม่มี nurse miss ค้าง → ใช้ logic เดิม
+  var btn  = document.getElementById('sh-close-btn');
+  var hint = document.getElementById('sh-close-hint');
+  if (!btn || !hint) return;
+  btn.classList.remove('ok');
+  btn.classList.add('alert');
+  btn.disabled = false;
+  var setText = function(id, val){ var el=document.getElementById(id); if(el) el.textContent=val; };
+  setText('sh-close-text', '⚠ พยาบาลแจ้งยาขาด ' + pending + ' รายการ');
+  hint.textContent = 'ต้องเคลียร์รายการที่พยาบาลแจ้งก่อน · กดที่รายการเพื่อไปหน้าเติมยา';
+}
+
+function renderShiftHubNurseAlerts() {
+  var box   = document.getElementById('sh-nurse-alert');
+  var list  = document.getElementById('sh-nurse-alert-list');
+  var badge = document.getElementById('sh-nurse-alert-n');
+  if (!box || !list) return;
+
+  if (typeof callScript !== 'function') {
+    box.style.display = 'none';
+    return;
+  }
+
+  callScript('getPendingNurseMisses', {}).then(function(items) {
+    items = items || [];
+    APP.pendingNurseMisses = items;
+
+    if (!items.length) {
+      box.style.display = 'none';
+      list.innerHTML = '';
+      if (badge) badge.textContent = '0';
+      return;
+    }
+
+    box.style.display = '';
+    if (badge) badge.textContent = items.length;
+
+    var html = '';
+    items.forEach(function(it) {
+      var when = (it.timestamp || '').toString().slice(5,16).replace('T',' '); // MM-DD HH:MM
+      var qtyTxt = (it.miss_qty || '?') + ' ' + (it.unit || '');
+      var nameSafe = (it.drug_name || it.drug_id || '').replace(/</g,'&lt;');
+      var nurseSafe = (it.nurse_name || '').replace(/</g,'&lt;');
+      var locSafe   = (it.location || '').replace(/</g,'&lt;');
+      var noteSafe  = (it.miss_note || '').replace(/</g,'&lt;');
+      var meta = nurseSafe + ' · ' + when + (locSafe ? ' · ' + locSafe : '');
+      if (noteSafe) meta += ' · ' + noteSafe;
+      html += '<div class="sh-nurse-alert-item" onclick="onNurseAlertClick(\'' + it.drug_id + '\')">' +
+        '<div>' +
+          '<div class="name">' + nameSafe + '</div>' +
+          '<div class="meta">' + meta + '</div>' +
+        '</div>' +
+        '<div class="qty"><span class="lbl">ขาด</span>' + qtyTxt + '</div>' +
+      '</div>';
+    });
+    list.innerHTML = html;
+
+    // Update close-shift gate
+    applyShiftHubCloseGate();
+
+    // Push count into existing note banner ถ้ามีอยู่แล้ว
+    var note = document.getElementById('sh-note');
+    if (note && note.style.display === '') {
+      var nEl = document.getElementById('sh-note-n');
+      if (nEl) {
+        var curTxt = nEl.textContent || '';
+        if (curTxt.indexOf('+ พยาบาลแจ้ง') < 0) {
+          nEl.textContent = curTxt + ' + พยาบาลแจ้ง ' + items.length;
+        }
+      }
+    } else if (note) {
+      note.style.display = '';
+      var nEl2 = document.getElementById('sh-note-n');
+      if (nEl2) nEl2.textContent = items.length + ' รายการที่พยาบาลแจ้ง';
+    }
+  }).catch(function(err) {
+    box.style.display = 'none';
+  });
+}
+
+function onNurseAlertClick(drugId) {
+  // เปิดหน้าตรวจ/เติมยา และ pre-select drug ถ้า cart-check รองรับ
+  if (typeof window.cartCheckFocusDrug === 'function') {
+    try { window.cartCheckFocusDrug(drugId); } catch (e) {}
+  }
+  gotoPage('cart-check');
 }
 
 function trySheCloseShift() {
   var btn = document.getElementById('sh-close-btn');
   if (!btn || btn.disabled || btn.classList.contains('disabled')) return;
+
+  // Nurse miss ค้าง → ห้ามปิดเวร, ส่งไปหน้า cart-check
+  if ((APP.pendingNurseMisses || []).length > 0) {
+    alert('ยังมียาที่พยาบาลแจ้งขาด ' + APP.pendingNurseMisses.length +
+          ' รายการ\nกรุณาเติมยาให้ครบก่อนปิดเวร');
+    gotoPage('cart-check');
+    return;
+  }
+
   if (btn.classList.contains('alert')) {
     // Cart issues — redirect to cart-check
     gotoPage('cart-check');
