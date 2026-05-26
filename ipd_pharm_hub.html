@@ -5008,7 +5008,7 @@
                     <!-- ========== EMPTY STATE (no case yet) ========== -->
                     <div class="adr-empty" id="adrEmpty" style="display:none;">
                         <h3>ยังไม่มี ADR case สำหรับผู้ป่วยรายนี้</h3>
-                        <div style="font-size:12.5px;color:#666;">กดปุ่มด้านล่างเพื่อเริ่มบันทึก ADR · ระบบจะสร้าง case_id ให้อัตโนมัติ</div>
+                        <div style="font-size:12.5px;color:#666;">กดปุ่มด้านล่างเพื่อเริ่มบันทึก ADR</div>
                         <button class="adr-btn accent" id="adrBtnCreateCase">+ เริ่ม ADR case ใหม่</button>
                     </div>
 
@@ -9132,10 +9132,24 @@
             document.getElementById('mrMDDate').value = formatDate(_mdRevDate  || (latestMR && latestMR.admitDate) || new Date());
 
             // ── Shifts ──
+            // ★ DEBUG (2026-05-26): log what's coming from bundle
+            console.log('[populateDetailPanel] DEBUG shifts loaded:', {
+                hasLatestMR: !!latestMR,
+                hasLatestMRLog: !!latestMRLog,
+                latestMR_shiftMDReview: latestMR ? latestMR.shiftMDReview : '(no latestMR)',
+                latestMRLog_mdReviewShift: latestMRLog ? latestMRLog.mdReviewShift : '(no latestMRLog)',
+                latestMR_admitDate: latestMR ? latestMR.admitDate : '(no latestMR)',
+                ptAdmit: ptAdmit,
+                bundle_mrData_len: (bundle && bundle.mrData) ? bundle.mrData.length : 0
+            });
             if (latestMR) {
                 _setShift('mrAdmitShift', latestMR.shiftAdmit);
                 _setShift('mrDoneShift',  latestMR.shiftMR);
-                _setShift('mrMDShift',    latestMR.shiftMDReview);
+                // ★ FIX (2026-05-26): ถ้า mr_data ยังไม่มี shiftMDReview (เก่า/บั๊ก) แต่ mr_log มี → ใช้ mr_log แทน
+                //   เหตุ: markMRReviewed (รุ่นเก่า) update แค่ mr_log, ทำให้ mr_data.md_review_shift = ''
+                //   ส่งผลให้ปุ่มเวร MD ไม่ active ทั้งที่ data จริงอยู่ใน mr_log
+                var _mdShift = latestMR.shiftMDReview || (latestMRLog && latestMRLog.mdReviewShift) || '';
+                _setShift('mrMDShift', _mdShift);
             } else if (latestMRLog) {
                 _setShift('mrDoneShift', latestMRLog.shift);
                 _setShift('mrMDShift',   latestMRLog.mdReviewShift);
@@ -9665,6 +9679,20 @@
             mdShift: document.getElementById('mrMDShift').value,
             meds: meds
         };
+
+        // ★ DEBUG (2026-05-26): log shift values to track MD review shift bug
+        console.log('[saveMRData] DEBUG shifts being sent:', {
+            admitShift: mrData.admitShift,
+            doneShift: mrData.doneShift,
+            mdDate: mrData.mdDate,
+            mdShift: mrData.mdShift,
+            mdShift_btn_active: (function(){
+                var b = document.querySelector('#mrMDShift')
+                    ? document.querySelector('#mrMDShift').closest('.form-group').querySelector('.shift-btn.active')
+                    : null;
+                return b ? b.getAttribute('data-val') : '(none)';
+            })()
+        });
 
         // ★ SPEED FIX: Optimistic UI — flip badge + close panel ทันที
         //   ไม่ต้องรอ JSONP roundtrip 2-3 วิ
@@ -18509,8 +18537,20 @@ if (typeof module !== 'undefined' && module.exports) {
             +     '<div class="pb-cell"><div class="pb-k">Ward / เตียง</div><div class="pb-v">' + esc(pt.ward || pt.bed || '—') + '</div></div>'
             +     '<div class="pb-cell"><div class="pb-k">Admit</div><div class="pb-v">' + esc(pt_admit) + '</div></div>'
             +     '<div class="pb-cell wide"><div class="pb-k">Diagnosis</div><div class="pb-v">' + esc(pt.diagnosis || '—') + '</div></div>'
-            +     '<div class="pb-cell"><div class="pb-k">Case ID</div><div class="pb-v">' + esc(c.case_id || '—') + '</div></div>'
-            +     '<div class="pb-cell"><div class="pb-k">Event date</div><div class="pb-v">' + thDate(c.event_date) + '</div></div>'
+            // ★ FIX (2026-05-25): ลบ Case ID + เปลี่ยน Event date → "วันที่พบ ADR" + latency
+            +     (function(){
+                    if (!c.event_date) return '<div class="pb-cell"><div class="pb-k">วันที่พบ ADR</div><div class="pb-v">—</div></div>';
+                    var earliestStart = '';
+                    (allPeriods || []).forEach(function(p){
+                        if (p.start_date && (!earliestStart || p.start_date < earliestStart)) earliestStart = p.start_date;
+                    });
+                    var latencyTxt = '';
+                    if (earliestStart) {
+                        var lat = _adrDayNum(c.event_date, earliestStart);
+                        if (lat != null && lat >= 0) latencyTxt = ' <span style="font-size:10px;color:#64748b;">(latency ' + lat + ' วัน)</span>';
+                    }
+                    return '<div class="pb-cell"><div class="pb-k">วันที่พบ ADR</div><div class="pb-v">' + thDate(c.event_date) + latencyTxt + '</div></div>';
+                })()
             +     '<div class="pb-cell"><div class="pb-k">Severity / Phenotype</div><div class="pb-v">' + esc(c.severity || '—') + (c.phenotype || c.adr_type ? ' · ' + esc(c.phenotype || c.adr_type) : '') + '</div></div>'
             +   '</div>'
 
@@ -18763,7 +18803,7 @@ if (typeof module !== 'undefined' && module.exports) {
         if (pt.gender) ptAgeStr += (ptAgeStr ? ' · ' : '') + esc(pt.gender);
 
         var html = '<!DOCTYPE html><html><head><meta charset="UTF-8">' +
-            '<title>ADR Case Summary — ' + esc(c.case_id || '') + '</title>' +
+            '<title>ADR Case Summary — HN ' + esc(pt.hn || c.hn || '') + '</title>' +
             '<link rel="preconnect" href="https://fonts.googleapis.com">' +
             '<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>' +
             '<link href="https://fonts.googleapis.com/css2?family=Google+Sans:wght@400;500;700&family=Sarabun:wght@400;500;700&display=swap" rel="stylesheet">' +
@@ -18860,10 +18900,24 @@ if (typeof module !== 'undefined' && module.exports) {
                         '<div class="pb-cell"><div class="k">Ward / เตียง</div><div class="v">' + esc(pt.ward || pt.bed || '—') + '</div></div>' +
                         '<div class="pb-cell wide"><div class="k">Diagnosis</div><div class="v">' + esc(pt.diagnosis || '—') + '</div></div>' +
                         '<div class="pb-cell"><div class="k">Admit</div><div class="v">' + esc(thDate(pt.admit_date || pt.admitDate)) + '</div></div>' +
-                        '<div class="pb-cell"><div class="k">Case ID</div><div class="v">' + esc(c.case_id || '—') + '</div></div>' +
                         '<div class="pb-cell"><div class="k">Phenotype</div><div class="v">' + esc(c.classification || '—') + '</div></div>' +
                         '<div class="pb-cell"><div class="k">Severity</div><div class="v">' + esc(c.severity || '—') + '</div></div>' +
-                        '<div class="pb-cell"><div class="k">Event date</div><div class="v">' + esc(thDate(c.event_date)) + '</div></div>' +
+                        // ★ FIX (2026-05-25): Event date → "วันที่พบ ADR" + latency จาก drug start แรกสุด
+                        (function(){
+                            if (!c.event_date) {
+                                return '<div class="pb-cell"><div class="k">วันที่พบ ADR</div><div class="v">—</div></div>';
+                            }
+                            var earliestStart = '';
+                            (drugs || []).forEach(function(d){
+                                if (d.start_date && (!earliestStart || d.start_date < earliestStart)) earliestStart = d.start_date;
+                            });
+                            var latencyTxt = '';
+                            if (earliestStart) {
+                                var lat = _adrDayNum(c.event_date, earliestStart);
+                                if (lat != null && lat >= 0) latencyTxt = ' <span style="font-size:10px;color:#64748b;">(latency ' + lat + ' วัน)</span>';
+                            }
+                            return '<div class="pb-cell"><div class="k">วันที่พบ ADR</div><div class="v">' + esc(thDate(c.event_date)) + latencyTxt + '</div></div>';
+                        })() +
                     '</div>' +
                     // Timeline section (รอบ 12.1) — visual overview
                     (function(){
@@ -18988,7 +19042,7 @@ if (typeof module !== 'undefined' && module.exports) {
                     // Footer
                     '<div class="footer">' +
                         '<div>Generated ' + genTs + ' · IPD Pharm Hub · ADR module</div>' +
-                        '<div>Case ' + esc(c.case_id || '') + '</div>' +
+                        '<div>HN ' + esc(pt.hn || c.hn || '') + '</div>' +
                     '</div>' +
                 '</div>' +
             '</body></html>';
