@@ -827,13 +827,26 @@ input::placeholder, textarea::placeholder { color: var(--hint); }
 .sh-nurse-alert-icon { font-size: 18px; line-height: 1; }
 .sh-nurse-alert-ttl { font-size: 13px; font-weight: 700; color: var(--sh-coral-d); letter-spacing: -.005em; flex: 1; }
 .sh-nurse-alert-badge { background: var(--sh-coral); color: #fff; font-size: 11px; font-weight: 700; padding: 2px 9px; border-radius: 10px; min-width: 22px; text-align: center; }
-.sh-nurse-alert-list { display: flex; flex-direction: column; gap: 6px; }
-.sh-nurse-alert-item { display: grid; grid-template-columns: 1fr auto; gap: 8px 12px; align-items: start; padding: .6rem .7rem; background: #FFFFFF; border-radius: 12px; font-size: 12.5px; color: var(--sh-ink-1); border: 0.5px solid rgba(255,111,104,.2); cursor: pointer; transition: transform .2s, box-shadow .2s; }
-.sh-nurse-alert-item:hover { transform: translateY(-1px); box-shadow: 0 2px 8px rgba(255,111,104,.15); }
+.sh-nurse-alert-hint { font-size: 11px; color: var(--sh-coral-d); margin-bottom: .55rem; font-weight: 600; opacity: .85; }
+.sh-nurse-alert-list { display: flex; flex-direction: column; gap: 8px; }
+.sh-nurse-alert-item { display: grid; grid-template-columns: 1fr auto; gap: 6px 12px; padding: .7rem .8rem; background: #FFFFFF; border-radius: 14px; font-size: 12.5px; color: var(--sh-ink-1); border: 0.5px solid rgba(255,111,104,.2); transition: transform .2s, box-shadow .2s; }
+.sh-nurse-alert-item .top { display: contents; }
 .sh-nurse-alert-item .name { font-weight: 700; color: var(--sh-ink-1); }
-.sh-nurse-alert-item .meta { font-size: 11px; color: var(--sh-ink-3); margin-top: 2px; font-weight: 500; }
-.sh-nurse-alert-item .qty { font-size: 13px; font-weight: 700; color: var(--sh-coral-d); white-space: nowrap; }
+.sh-nurse-alert-item .meta { font-size: 11px; color: var(--sh-ink-3); margin-top: 2px; font-weight: 500; grid-column: 1 / 2; }
+.sh-nurse-alert-item .qty { font-size: 13px; font-weight: 700; color: var(--sh-coral-d); white-space: nowrap; text-align: right; }
 .sh-nurse-alert-item .qty .lbl { font-size: 10px; color: var(--sh-ink-3); font-weight: 600; display: block; text-transform: uppercase; letter-spacing: .06em; }
+.sh-nurse-alert-actions { grid-column: 1 / -1; display: flex; flex-direction: column; gap: 6px; padding-top: .55rem; margin-top: .25rem; border-top: 0.5px dashed rgba(255,111,104,.25); }
+.sh-nurse-alert-actions .row { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; }
+.sh-nurse-alert-actions select { flex: 1; min-width: 0; font-size: 12px; padding: 7px 9px; border: 0.5px solid rgba(20,20,40,.12); border-radius: 9px; background: #FAFBFD; color: var(--sh-ink-1); font-family: inherit; }
+.sh-nurse-alert-actions input[type="text"] { flex: 1; min-width: 0; font-size: 12px; padding: 7px 9px; border: 0.5px solid rgba(20,20,40,.12); border-radius: 9px; background: #FAFBFD; color: var(--sh-ink-1); font-family: inherit; }
+.sh-nurse-alert-actions .ack-btn { background: var(--sh-coral); color: #fff; border: none; border-radius: 9px; padding: 7px 14px; font-size: 12px; font-weight: 700; cursor: pointer; font-family: inherit; transition: all .2s; white-space: nowrap; }
+.sh-nurse-alert-actions .ack-btn:hover:not(:disabled) { background: var(--sh-coral-d); transform: translateY(-1px); }
+.sh-nurse-alert-actions .ack-btn:disabled { opacity: .5; cursor: not-allowed; }
+.sh-nurse-alert-item.done { background: var(--sh-mint-bg); border-color: rgba(77,208,145,.35); }
+.sh-nurse-alert-item.done .name { color: var(--sh-mint-d); }
+.sh-nurse-alert-item.done .qty { color: var(--sh-mint-d); }
+.sh-nurse-alert-item .ack-check { display: inline-flex; align-items: center; gap: 5px; font-size: 11.5px; font-weight: 700; color: var(--sh-mint-d); }
+.sh-nurse-alert-item .ack-check::before { content:"✓"; display: inline-flex; width: 16px; height: 16px; border-radius: 50%; background: var(--sh-mint); color: #fff; font-size: 11px; font-weight: 800; align-items: center; justify-content: center; }
 
 .sh-section-title { font-size: 11px; font-weight: 700; color: rgba(20,50,90,.68); margin: 1.4rem 0 .6rem; padding-left: 4px; letter-spacing: .14em; text-transform: uppercase; text-shadow: 0 1px 0 rgba(255,255,255,.7); }
 
@@ -1080,9 +1093,10 @@ input::placeholder, textarea::placeholder { color: var(--hint); }
     <div class="sh-nurse-alert" id="sh-nurse-alert" style="display:none;">
       <div class="sh-nurse-alert-header">
         <span class="sh-nurse-alert-icon">🔔</span>
-        <span class="sh-nurse-alert-ttl">พยาบาลแจ้งยาขาด — รอเภสัชเติม</span>
+        <span class="sh-nurse-alert-ttl">พยาบาลแจ้งยาขาด — รอเภสัชจัดการ</span>
         <span class="sh-nurse-alert-badge" id="sh-nurse-alert-n">0</span>
       </div>
+      <div class="sh-nurse-alert-hint">เลือกวิธีจัดการแต่ละรายการแล้วกด "ยืนยัน" จึงจะปิดเวรได้</div>
       <div class="sh-nurse-alert-list" id="sh-nurse-alert-list"></div>
     </div>
 
@@ -2661,33 +2675,8 @@ function initShiftHub() {
     }
   }
 
-  // === ปิดเวร button — gate logic ===
-  var btn = document.getElementById('sh-close-btn');
-  var hint = document.getElementById('sh-close-hint');
-  if (btn && hint) {
-    btn.classList.remove('disabled','alert','ok');
-    btn.disabled = false;
-
-    if (low > 0) {
-      btn.classList.add('alert');
-      setText('sh-close-text', '⚠ เติมยาไม่ครบ — ปิดเวรไม่ได้');
-      hint.textContent = 'ต้องเติมยาให้ครบก่อน · กดเข้าหน้า "ตรวจ/เติมยา"';
-    } else if (!APP.cartCheckSubmitted) {
-      btn.classList.add('disabled');
-      btn.disabled = true;
-      setText('sh-close-text', 'ต้องยืนยันการตรวจรถก่อน');
-      hint.textContent = 'กดเข้าหน้า "ตรวจ/เติมยา" → กดปุ่ม "ยืนยันการตรวจ" ที่ล่างสุด';
-    } else if (!APP.shiftSaved) {
-      btn.classList.add('disabled');
-      btn.disabled = true;
-      setText('sh-close-text', 'ต้องบันทึกเวรก่อน');
-      hint.textContent = 'กดเข้าหน้า "บันทึกเวร" → กรอก Rx + ME → กดบันทึก';
-    } else {
-      btn.classList.add('ok');
-      setText('sh-close-text', '✓ ปิดเวร');
-      hint.textContent = 'พร้อมปิดเวร · ทุกอย่างเรียบร้อย';
-    }
-  }
+  // === ปิดเวร button — gate logic (extracted into reusable function) ===
+  evaluateCloseShiftGate();
 
   // Nurse miss alerts (load from backend) — must run before close-shift gate
   renderShiftHubNurseAlerts();
@@ -2696,20 +2685,53 @@ function initShiftHub() {
   renderShiftHubFeed();
 }
 
-// Re-evaluate ปุ่มปิดเวร หลังจาก nurse-alerts โหลดเสร็จ
-function applyShiftHubCloseGate() {
-  var pending = (APP.pendingNurseMisses || []).length;
-  if (pending <= 0) return;  // ไม่มี nurse miss ค้าง → ใช้ logic เดิม
+// Re-evaluate ปุ่มปิดเวร — ใช้ทั้งตอน init และตอนติ๊ก ack เสร็จ
+function evaluateCloseShiftGate() {
   var btn  = document.getElementById('sh-close-btn');
   var hint = document.getElementById('sh-close-hint');
   if (!btn || !hint) return;
-  btn.classList.remove('ok');
-  btn.classList.add('alert');
-  btn.disabled = false;
+
   var setText = function(id, val){ var el=document.getElementById(id); if(el) el.textContent=val; };
-  setText('sh-close-text', '⚠ พยาบาลแจ้งยาขาด ' + pending + ' รายการ');
-  hint.textContent = 'ต้องเคลียร์รายการที่พยาบาลแจ้งก่อน · กดที่รายการเพื่อไปหน้าเติมยา';
+
+  // คำนวณ low จาก DRUGS
+  var low = 0;
+  if (typeof DRUGS !== 'undefined' && DRUGS && DRUGS.length) {
+    DRUGS.forEach(function(d){ if ((d.cur || 0) < (d.target || 0)) low++; });
+  }
+
+  var pending = (APP.pendingNurseMisses || []).length;
+
+  btn.classList.remove('disabled','alert','ok');
+  btn.disabled = false;
+
+  if (pending > 0) {
+    // priority สูงสุด: เคลียร์ nurse alert ก่อน
+    btn.classList.add('alert');
+    setText('sh-close-text', '⚠ พยาบาลแจ้งยาขาด ' + pending + ' รายการ');
+    hint.textContent = 'ต้องติ๊กวิธีจัดการให้ครบทุกรายการก่อน จึงจะปิดเวรได้';
+  } else if (low > 0) {
+    btn.classList.add('alert');
+    setText('sh-close-text', '⚠ เติมยาไม่ครบ — ปิดเวรไม่ได้');
+    hint.textContent = 'ต้องเติมยาให้ครบก่อน · กดเข้าหน้า "ตรวจ/เติมยา"';
+  } else if (!APP.cartCheckSubmitted) {
+    btn.classList.add('disabled');
+    btn.disabled = true;
+    setText('sh-close-text', 'ต้องยืนยันการตรวจรถก่อน');
+    hint.textContent = 'กดเข้าหน้า "ตรวจ/เติมยา" → กดปุ่ม "ยืนยันการตรวจ" ที่ล่างสุด';
+  } else if (!APP.shiftSaved) {
+    btn.classList.add('disabled');
+    btn.disabled = true;
+    setText('sh-close-text', 'ต้องบันทึกเวรก่อน');
+    hint.textContent = 'กดเข้าหน้า "บันทึกเวร" → กรอก Rx + ME → กดบันทึก';
+  } else {
+    btn.classList.add('ok');
+    setText('sh-close-text', '✓ ปิดเวร');
+    hint.textContent = 'พร้อมปิดเวร · ทุกอย่างเรียบร้อย';
+  }
 }
+
+// Backward-compat shim: ฟังก์ชันเก่ายังถูกเรียกจาก renderShiftHubNurseAlerts
+function applyShiftHubCloseGate() { evaluateCloseShiftGate(); }
 
 function renderShiftHubNurseAlerts() {
   var box   = document.getElementById('sh-nurse-alert');
@@ -2730,28 +2752,47 @@ function renderShiftHubNurseAlerts() {
       box.style.display = 'none';
       list.innerHTML = '';
       if (badge) badge.textContent = '0';
+      // เคลียร์แล้วทุกรายการ → เปิด gate
+      applyShiftHubCloseGate();
       return;
     }
 
     box.style.display = '';
     if (badge) badge.textContent = items.length;
 
+    var esc = function(s){ return String(s||'').replace(/</g,'&lt;').replace(/"/g,'&quot;'); };
     var html = '';
-    items.forEach(function(it) {
-      var when = (it.timestamp || '').toString().slice(5,16).replace('T',' '); // MM-DD HH:MM
-      var qtyTxt = (it.miss_qty || '?') + ' ' + (it.unit || '');
-      var nameSafe = (it.drug_name || it.drug_id || '').replace(/</g,'&lt;');
-      var nurseSafe = (it.nurse_name || '').replace(/</g,'&lt;');
-      var locSafe   = (it.location || '').replace(/</g,'&lt;');
-      var noteSafe  = (it.miss_note || '').replace(/</g,'&lt;');
-      var meta = nurseSafe + ' · ' + when + (locSafe ? ' · ' + locSafe : '');
-      if (noteSafe) meta += ' · ' + noteSafe;
-      html += '<div class="sh-nurse-alert-item" onclick="onNurseAlertClick(\'' + it.drug_id + '\')">' +
-        '<div>' +
-          '<div class="name">' + nameSafe + '</div>' +
-          '<div class="meta">' + meta + '</div>' +
+    items.forEach(function(it, idx) {
+      var when    = (it.timestamp || '').toString().slice(5,16).replace('T',' ');
+      var qtyTxt  = (it.miss_qty || '?') + ' ' + (it.unit || '');
+      var meta    = esc(it.nurse_name) + ' · ' + when + (it.location ? ' · ' + esc(it.location) : '');
+      if (it.miss_note) meta += ' · ' + esc(it.miss_note);
+
+      html += '<div class="sh-nurse-alert-item" data-drug="' + esc(it.drug_id) + '" data-shift="' + esc(it.shift_id) + '" id="sh-alert-' + idx + '">' +
+        '<div class="top">' +
+          '<div>' +
+            '<div class="name">' + esc(it.drug_name || it.drug_id) + '</div>' +
+            '<div class="meta">' + meta + '</div>' +
+          '</div>' +
+          '<div class="qty"><span class="lbl">ขาด</span>' + esc(qtyTxt) + '</div>' +
         '</div>' +
-        '<div class="qty"><span class="lbl">ขาด</span>' + qtyTxt + '</div>' +
+        '<div class="sh-nurse-alert-actions">' +
+          '<div class="row">' +
+            '<select id="ack-res-' + idx + '">' +
+              '<option value="">— เลือกวิธีจัดการ —</option>' +
+              '<option value="restocked">เติมยาแล้ว</option>' +
+              '<option value="withdraw">ไม่พบใบสั่ง · ลง WITHDRAW</option>' +
+              '<option value="found_rx">พบใบสั่ง · บันทึก DISPENSE</option>' +
+              '<option value="verified">ตรวจสอบแล้ว · ของจริงครบ</option>' +
+              '<option value="other">อื่นๆ (ใส่ note)</option>' +
+            '</select>' +
+            '<button class="ack-btn" onclick="ackNurseAlertItem(' + idx + ')">ยืนยัน</button>' +
+          '</div>' +
+          '<div class="row">' +
+            '<input type="text" id="ack-note-' + idx + '" placeholder="หมายเหตุ (ไม่บังคับ — กรอกถ้าเลือก &quot;อื่นๆ&quot;)">' +
+            '<a class="ack-btn" style="background:#11192a;text-decoration:none;display:inline-flex;align-items:center" onclick="onNurseAlertClick(\'' + esc(it.drug_id) + '\')" href="javascript:void(0)">ไปเติม</a>' +
+          '</div>' +
+        '</div>' +
       '</div>';
     });
     list.innerHTML = html;
@@ -2776,6 +2817,69 @@ function renderShiftHubNurseAlerts() {
     }
   }).catch(function(err) {
     box.style.display = 'none';
+  });
+}
+
+function ackNurseAlertItem(idx) {
+  var row    = document.getElementById('sh-alert-' + idx);
+  var select = document.getElementById('ack-res-' + idx);
+  var noteIn = document.getElementById('ack-note-' + idx);
+  if (!row || !select) return;
+  var resolution = select.value;
+  if (!resolution) {
+    alert('กรุณาเลือกวิธีจัดการก่อนกดยืนยัน');
+    select.focus();
+    return;
+  }
+  var note = (noteIn && noteIn.value) || '';
+  if (resolution === 'other' && !note.trim()) {
+    alert('เลือก "อื่นๆ" ต้องใส่หมายเหตุด้วย');
+    noteIn.focus();
+    return;
+  }
+  var drugId = row.getAttribute('data-drug');
+  var shiftId = row.getAttribute('data-shift');
+
+  // ปิดปุ่มชั่วคราว
+  var btn = row.querySelector('.ack-btn');
+  if (btn) { btn.disabled = true; btn.textContent = 'กำลังบันทึก…'; }
+
+  callScript('ackNurseAlert', {
+    drug_id         : drugId,
+    nurse_shift_id  : shiftId,
+    pharmacist_name : APP.userName || '',
+    resolution      : resolution,
+    note            : note,
+  }).then(function(res) {
+    if (res && res.success === false) {
+      alert('บันทึกไม่สำเร็จ: ' + (res.message || ''));
+      if (btn) { btn.disabled = false; btn.textContent = 'ยืนยัน'; }
+      return;
+    }
+    // ตัด item นี้ออกจาก pending list ฝั่ง client + อัปเดต UI
+    APP.pendingNurseMisses = (APP.pendingNurseMisses || []).filter(function(x){ return !(x.drug_id===drugId && x.shift_id===shiftId); });
+    row.classList.add('done');
+    row.innerHTML = '<div class="top">' +
+      '<div><div class="name">' + (row.querySelector('.name')?row.querySelector('.name').textContent:'') + '</div>' +
+      '<div class="meta">จัดการ: ' + ({restocked:'เติมยาแล้ว',withdraw:'ลง WITHDRAW',found_rx:'พบใบสั่ง',verified:'ตรวจสอบแล้ว นับครบ',other:'อื่นๆ'}[resolution]||resolution) + (note?' · '+note.replace(/</g,'&lt;'):'') + '</div></div>' +
+      '<div class="ack-check">จัดการแล้ว</div>' +
+      '</div>';
+
+    // อัปเดต badge
+    var badge = document.getElementById('sh-nurse-alert-n');
+    if (badge) badge.textContent = APP.pendingNurseMisses.length;
+
+    // ถ้าเคลียร์ครบหมด → ซ่อนการ์ดทั้งกล่อง + เปิด gate
+    if (APP.pendingNurseMisses.length === 0) {
+      setTimeout(function(){
+        var box = document.getElementById('sh-nurse-alert');
+        if (box) box.style.display = 'none';
+      }, 800);
+    }
+    applyShiftHubCloseGate();
+  }).catch(function(err) {
+    alert('เชื่อมต่อ Apps Script ไม่ได้: ' + (err && err.message || err));
+    if (btn) { btn.disabled = false; btn.textContent = 'ยืนยัน'; }
   });
 }
 
