@@ -1192,7 +1192,10 @@ textarea { resize:vertical; min-height:72px; line-height:1.5; }
             <div class="card">
               <div class="between mb8">
                 <div class="ct" style="margin:0;font-size:12.5px"><span class="cd am"></span>ตารางนัด <span style="font-size:11px;font-weight:400;color:var(--tx3)">(แก้ได้)</span></div>
-                <button class="btn btn-out btn-sm" id="btn-rebuild-sched" onclick="rebuildSchedule()" style="display:none;font-size:11px">🔄 Rebuild Schedule</button>
+                <div style="display:flex;gap:6px">
+                  <button class="btn btn-out btn-sm" id="btn-repair-sched" onclick="repairScheduleData()" style="display:none;font-size:11px">🔧 ซ่อมวันนัด</button>
+                  <button class="btn btn-out btn-sm" id="btn-rebuild-sched" onclick="rebuildSchedule()" style="display:none;font-size:11px">🔄 Rebuild Schedule</button>
+                </div>
               </div>
               <div id="visit-list"><div style="color:var(--tx3);font-size:13px;padding:12px 0;text-align:center">เลือกวันเริ่มยาก่อน</div></div>
               <button id="btn-add-custom-visit" class="btn btn-out btn-full mt12 btn-sm" onclick="addCustomVisit()" style="display:none">+ เพิ่ม Visit พิเศษ</button>
@@ -1476,6 +1479,8 @@ function goPage(key, keepContext) {
     if (addVisitBtn) addVisitBtn.style.display = (S.unlocked && S.selectedPatient) ? '' : 'none';
     const rebuildBtn = document.getElementById('btn-rebuild-sched');
     if (rebuildBtn) rebuildBtn.style.display = (S.unlocked && S.selectedPatient) ? '' : 'none';
+    const repairBtn = document.getElementById('btn-repair-sched');
+    if (repairBtn) repairBtn.style.display = (S.unlocked && S.selectedPatient) ? '' : 'none';
     const rawDate = document.getElementById('start-date')?.value;
     // Only rebuild if no schedule yet, or startDate changed
     if (!S.visitSched.length || rawDate !== S.startDate) {
@@ -2324,6 +2329,117 @@ function rebuildSchedule() {
   }
 }
 
+// ─── ซ่อมข้อมูลวันนัด/visit ที่ visit_num ชนกัน (custom note ถูกบันทึกทับ visit มาตรฐาน) ───
+// ตรวจหา: row ที่ visit_num เป็นเลขมาตรฐาน แต่วันที่ห่างจากที่ควรเป็นมาก (>40 วัน) และตรงกับวันของ visit พิเศษ
+// → ย้าย note นั้นไปเป็น visit พิเศษ (num 901+), reset visit มาตรฐานให้ว่าง, และเขียน visit_dates_json/custom_visits_json ใหม่
+async function repairScheduleData() {
+  const pid = S.selectedPatient;
+  if (!pid) { toast('เลือกผู้ป่วยก่อน'); return; }
+  if (!APPS_SCRIPT_URL || APPS_SCRIPT_URL.includes('YOUR_APPS')) { toast('ไม่ได้เชื่อมต่อฐานข้อมูล'); return; }
+  toast('🔍 กำลังตรวจสอบข้อมูลวันนัด...');
+
+  let p, visits = [];
+  try {
+    p = await api('getPatient', { patient_id: pid });
+    visits = await api('getVisits', { patient_id: pid }) || [];
+  } catch(e) { toast('โหลดข้อมูลไม่สำเร็จ'); return; }
+  if (!p) { toast('ไม่พบผู้ป่วย'); return; }
+
+  ensureCustomReg(p);
+  const regCode = p.regimen_code || S.reg;
+  const defs    = getVisDefs(regCode);
+  const N       = defs.length;
+  const start   = new Date((p.start_date || '').slice(0,10) + 'T00:00:00');
+  if (isNaN(start.getTime())) { toast('ไม่มีวันเริ่มยา'); return; }
+
+  // วันนัดมาตรฐานที่ถูกต้อง
+  const stdPlanned = defs.map(def => {
+    let r;
+    if (def.type === 'day')       r = new Date(start);
+    else if (def.type === 'week') r = addW(start, def.val);
+    else                          r = addM(start, def.val);
+    return def.num === 0 ? fmtISO(r) : fmtISO(snapClin(r));
+  });
+  const stdNumSet = new Set(defs.map(d => String(d.num)));
+  const DAY = 86400000;
+  const daysApart = (a, b) => Math.abs((new Date(a+'T00:00:00') - new Date(b+'T00:00:00')) / DAY);
+
+  // custom visits ปัจจุบัน → ออกเลขเสถียร 901+ เรียงตามวันที่
+  let customs = [];
+  try { customs = JSON.parse(p.custom_visits_json || '[]'); } catch(e) {}
+  const customsFixed = [...customs]
+    .sort((a,b) => (a.date||'').localeCompare(b.date||''))
+    .map((c, k) => ({ idx: N + k, num: 901 + k, lbl: c.lbl, date: c.date, phase: c.phase || 'CP', mon: c.mon || {} }));
+  const dateToCustomNum = {};
+  customsFixed.forEach(c => { dateToCustomNum[c.date] = c.num; });
+  const customDates = new Set(customsFixed.map(c => c.date));
+
+  // row ที่ผิดตำแหน่ง: visit_num มาตรฐาน + actual_date ห่าง >40 วัน + ตรงกับวัน custom
+  const misrouted = visits.filter(v =>
+    v.actual_date &&
+    stdNumSet.has(String(v.visit_num)) &&
+    stdPlanned[Number(v.visit_num)] &&
+    daysApart(v.actual_date, stdPlanned[Number(v.visit_num)]) > 40 &&
+    customDates.has(v.actual_date)
+  );
+
+  // visit_dates_json ใหม่: เก็บค่าเดิมถ้าใกล้เคียงวันที่ควรเป็น (<=40 วัน) ไม่งั้นใช้ค่าที่คำนวณ
+  let oldVD = [];
+  try { oldVD = JSON.parse(p.visit_dates_json || '[]'); } catch(e) {}
+  const newStdDates = defs.map((d, i) =>
+    (oldVD[i] && daysApart(oldVD[i], stdPlanned[i]) <= 40) ? oldVD[i] : stdPlanned[i]
+  );
+  const newVisitDates = [...newStdDates, ...customsFixed.map(c => c.date)];
+
+  // preview
+  const changes = [];
+  defs.forEach((d, i) => {
+    if (oldVD[i] && oldVD[i] !== newVisitDates[i])
+      changes.push(`• ${getVisitDispLbl(d)}: ${isoToTH(oldVD[i])} → ${isoToTH(newVisitDates[i])}`);
+  });
+  misrouted.forEach(v => {
+    const cnum = dateToCustomNum[v.actual_date];
+    changes.push(`• ย้ายบันทึก ${isoToTH(v.actual_date)} จาก V${v.visit_num} (ชนกับ "${defs[Number(v.visit_num)]?.lbl}") → visit พิเศษ #${cnum}`);
+  });
+
+  if (!changes.length) { toast('✅ ข้อมูลถูกต้องอยู่แล้ว ไม่ต้องซ่อม'); return; }
+  if (!confirm('🔧 พบข้อมูลที่ต้องแก้:\n\n' + changes.join('\n') + '\n\nยืนยันแก้ไขในฐานข้อมูล?\n(แนะนำให้ rebuild ไม่ได้ — ใช้ปุ่มนี้จะไม่ลบบันทึกที่มีอยู่)')) return;
+
+  toast('💾 กำลังซ่อมข้อมูล...');
+  try {
+    // 1. ย้าย misrouted → เลข custom ใหม่ แล้ว reset row มาตรฐานให้ว่าง
+    for (const v of misrouted) {
+      const cnum = dateToCustomNum[v.actual_date];
+      const cust = customsFixed.find(c => c.num === cnum);
+      await api('saveVisit', {
+        patient_id: pid, visit_num: cnum,
+        planned_date: v.actual_date, actual_date: v.actual_date,
+        phase: cust?.phase || v.phase || 'CP', month_num: cnum,
+        drugs_json: v.drugs_json || '{}', weight_kg: v.weight_kg || '',
+        missed_days: v.missed_days || 0, notes: v.notes || cust?.lbl || '',
+        dispensed: v.dispensed || false,
+      });
+      const sd = defs[Number(v.visit_num)];
+      await api('saveVisit', {
+        patient_id: pid, visit_num: Number(v.visit_num),
+        planned_date: stdPlanned[Number(v.visit_num)], actual_date: '',
+        phase: sd?.phase || '', month_num: sd?.val || 0,
+        drugs_json: '{}', weight_kg: '', missed_days: 0, notes: '', dispensed: false,
+      });
+    }
+    // 2. เขียน json ที่ถูกต้อง
+    await api('savePatient', {
+      patient_id: pid,
+      visit_dates_json:   JSON.stringify(newVisitDates),
+      custom_visits_json: JSON.stringify(customsFixed),
+    });
+    toast('✅ ซ่อมข้อมูลวันนัดเรียบร้อย — โหลดใหม่');
+    setTimeout(() => { if (typeof goToVisitNote === 'function') goToVisitNote(pid); }, 800);
+  } catch(e) {
+    toast('❌ ซ่อมไม่สำเร็จ: ' + (e?.message || e));
+  }
+}
+
 function buildSchedule() {
   const raw = document.getElementById('start-date').value;
   if (!raw) return;
@@ -2379,6 +2495,7 @@ async function saveVisitDatesToSheets() {
     const customVisits = S.visitSched
       .map((v, i) => v.isCustom ? {
         idx:   i,
+        num:   v.num,                 // stable num (901+) — ใช้ผูกกับ visit note
         lbl:   v.lbl,
         date:  S.visitDates[i] || '',
         phase: v.phase || 'IP',
@@ -2979,9 +3096,21 @@ function renderDispense() {
     ? (reg.ipDrugs?.length ? reg.ipDrugs : reg.cpDrugs)
     : (reg.cpDrugs?.length ? reg.cpDrugs : reg.ipDrugs);
 
+  // ── ใช้ dose ล่าสุดที่เภสัชกรปรับ (doseOverride) ถ้ามี ไม่งั้น weight-band standard ──
+  // รวบรวม doseOverride จาก visit notes ที่มีวันก่อน/ถึงวันนัดถัดไป แล้วเก็บค่าล่าสุดของแต่ละยา
+  const latestOverride = {};
+  Object.entries(S.visitNotes || {})
+    .map(([i, n]) => ({ d: S.visitDates[i] || '', ov: n && n.doseOverride }))
+    .filter(x => x.ov && x.d && x.d <= nd)
+    .sort((a, b) => a.d.localeCompare(b.d))
+    .forEach(x => Object.entries(x.ov).forEach(([abbr, mg]) => { if (mg) latestOverride[abbr] = parseFloat(mg); }));
+
   const rows = drugs.map(abbr => {
     const info     = DRUG_INFO[abbr];
-    const dose     = getDose(abbr, band, wt);
+    const stdDose  = getDose(abbr, band, wt);
+    const ovDose   = latestOverride[abbr];
+    const isAdjusted = ovDose != null && ovDose !== stdDose;
+    const dose     = ovDose != null ? ovDose : stdDose;
     const isAdj    = isCKD && (abbr==='E'||abbr==='Z');
     const daysUsed = isAdj ? Math.floor(days/7)*3 : days;
 
@@ -2997,8 +3126,8 @@ function renderDispense() {
 
     return `<tr>
       <td>
-        <div class="dn">${info.name} ${info.s}</div>
-        ${dose ? `<div class="da">${dose} mg/วัน${strPerTab ? ` · ${tabNote}` : ''}</div>` : ''}
+        <div class="dn">${info.name} ${info.s}${isAdjusted?' <span style="color:var(--warn);font-weight:700">✱</span>':''}</div>
+        ${dose ? `<div class="da">${dose} mg/วัน${strPerTab ? ` · ${tabNote}` : ''}${isAdjusted?' · ปรับจาก '+stdDose+' mg':''}</div>` : ''}
       </td>
       <td>${isAdj?'3×/สัปดาห์':'1×/วัน'}</td>
       <td class="dv ${isAdj?'dv-am':''}">${qty}</td>
@@ -3054,6 +3183,14 @@ function addCustomVisit() {
   }, 10);
 }
 
+// เลข visit พิเศษ: ใช้ช่วง 901+ เพื่อไม่ชนกับ visit มาตรฐาน (num 0..N) — กันวันนัด/บันทึกข้ามกัน
+function nextCustomNum() {
+  const used = (S.visitSched || []).filter(v => v.isCustom && Number(v.num) >= 900).map(v => Number(v.num));
+  let n = 901;
+  while (used.includes(n)) n++;
+  return n;
+}
+
 function submitCustomVisit() {
   const lbl     = document.getElementById('cv-label')?.value?.trim();
   const dateRaw = document.getElementById('cv-date-text')?.value || '';
@@ -3070,7 +3207,7 @@ function submitCustomVisit() {
   });
 
   const newVis = {
-    num: S.visitSched.length,
+    num: nextCustomNum(),   // ใช้เลขช่วง 900+ เพื่อไม่ชนกับ visit มาตรฐาน (0..N)
     lbl: lbl,
     type: 'custom',
     val: 0,
@@ -5700,6 +5837,7 @@ function goToVisitNote(patientId) {
     if (hidden && !hidden.value) setStartDateDisplay(p.start_date);
 
     // Load saved visit dates + custom visits from patient record
+    let _schedVisits = [];
     try {
       if (APPS_SCRIPT_URL && !APPS_SCRIPT_URL.includes('YOUR_APPS')) {
         const pt = await api('getPatient', { patient_id: p.patient_id });
@@ -5718,6 +5856,8 @@ function goToVisitNote(patientId) {
             }
           } catch(e) {}
         }
+        // โหลด visit notes เพื่อให้ renderDispense รู้ dose ที่เภสัชกรปรับ (doseOverride)
+        try { _schedVisits = await api('getVisits', { patient_id: p.patient_id }) || []; } catch(e) {}
       }
     } catch(e) {}
 
@@ -5726,15 +5866,31 @@ function goToVisitNote(patientId) {
     if (S._pendingCustomVisits?.length) {
       S._pendingCustomVisits.forEach(cv => {
         if (!S.visitSched.find(v => v.isCustom && v.lbl === cv.lbl)) {
-          S.visitSched.push({ lbl: cv.lbl, num: S.visitSched.length, phase: guessPhaseFromDate(cv.date)||cv.phase||'CP', mon: cv.mon||{}, isCustom: true });
+          // ใช้ num เดิมถ้าเป็นช่วง 901+ ไม่งั้นออกเลขใหม่ (กันชนกับ visit มาตรฐาน)
+          const cnum = (Number(cv.num) >= 900) ? Number(cv.num) : nextCustomNum();
+          S.visitSched.push({ lbl: cv.lbl, num: cnum, phase: guessPhaseFromDate(cv.date)||cv.phase||'CP', mon: cv.mon||{}, isCustom: true });
           S.visitDates.push(cv.date || '');
         }
       });
       S._pendingCustomVisits = null;
       renderVisitList();
       renderTimeline();
-      renderDispense(); // re-render เพื่อให้เห็น custom visit dates ใหม่
     }
+    // Populate S.visitNotes (doseOverride) จาก Sheets เพื่อให้ dispense ใช้ dose ที่ปรับจริง
+    if (Array.isArray(_schedVisits) && _schedVisits.length) {
+      if (!S.visitNotes) S.visitNotes = {};
+      _schedVisits.forEach(sv => {
+        const idx = S.visitSched.findIndex(v => String(v.num) === String(sv.visit_num));
+        if (idx < 0) return;
+        let ov = {};
+        try { ov = JSON.parse(sv.drugs_json || '{}'); } catch(e) {}
+        const prev = S.visitNotes[idx] || {};
+        S.visitNotes[idx] = { ...prev, doseOverride: ov, wt: sv.weight_kg ? String(sv.weight_kg) : (prev.wt||'') };
+      });
+    }
+    renderVisitList();
+    renderTimeline();
+    renderDispense(); // re-render เพื่อให้เห็น custom visit dates + dose ที่ปรับจริง
     // Show patient context bar, hide start-date card
     const bar  = document.getElementById('sched-pt-bar');
     const name = document.getElementById('sched-pt-name');
@@ -7754,7 +7910,8 @@ async function buildPatientCard(patientId) {
           if (Array.isArray(customs) && customs.length) {
             customs.forEach(cv => {
               if (!S.visitSched.find(v => v.isCustom && v.lbl === cv.lbl)) {
-                S.visitSched.push({ lbl: cv.lbl, num: S.visitSched.length, phase: guessPhaseFromDate(cv.date)||cv.phase||'CP', mon: cv.mon||{}, isCustom: true });
+                const cnum = (Number(cv.num) >= 900) ? Number(cv.num) : nextCustomNum();
+                S.visitSched.push({ lbl: cv.lbl, num: cnum, phase: guessPhaseFromDate(cv.date)||cv.phase||'CP', mon: cv.mon||{}, isCustom: true });
                 S.visitDates.push(cv.date || '');
               }
             });
@@ -7777,7 +7934,8 @@ async function buildPatientCard(patientId) {
               return mo > (reg2?.ip || 2) ? 'CP' : 'IP';
             })();
             if (!S.visitSched.find(v => v.isCustom && v.lbl === lbl)) {
-              S.visitSched.push({ lbl, num: S.visitSched.length, phase: guessedPhase, mon: {bw:true,lft:true}, isCustom: true });
+              const cnum = (Number(sv.visit_num) >= 900) ? Number(sv.visit_num) : nextCustomNum();
+              S.visitSched.push({ lbl, num: cnum, phase: guessedPhase, mon: {bw:true,lft:true}, isCustom: true });
               S.visitDates.push(sv.actual_date);
               needsSync = true;
             }
