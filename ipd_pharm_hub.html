@@ -5633,6 +5633,17 @@
 
     function parseDate(str) {
         if (!str) return null;
+        str = String(str).trim();
+        // ★ FIX RE-ADMIT (2026-05): รองรับ ISO YYYY-MM-DD จาก Supabase
+        //   ของเดิม split('/') อย่างเดียว → ค่า ISO คืน null → _filterATBByAdmit
+        //   ตัดสินเป็น "ไม่มี admitDate" แล้วคืน list เต็ม → ATB เก่า leak ข้าม visit
+        let iso = str.match(/^(\d{4})-(\d{1,2})-(\d{1,2})/);
+        if (iso) {
+            let yy = parseInt(iso[1]);
+            if (yy > 2400) yy -= 543;
+            return new Date(yy, parseInt(iso[2]) - 1, parseInt(iso[3]));
+        }
+        // Thai DD/MM/YYYY (จาก input field / date picker)
         let parts = str.split('/');
         if (parts.length !== 3) return null;
         let d = parseInt(parts[0]);
