@@ -9833,17 +9833,24 @@
     //   discharge ไม่ผ่าน flow ปกติ ก็กรองที่ frontend อีกชั้นด้วย
     //   เงื่อนไข: item.startDate < admitDate → ถือว่าเป็นของ admission เก่า → ตัดทิ้ง
     //   ถ้าไม่ส่ง admitDate หรือ parse ไม่ได้ → ไม่กรอง (defensive)
+    // ★ FIX (2026-06-02): grace window ก่อนวันแอดมิต
+    //   ของเดิมตัด ATB ที่ startDate < admitDate ทิ้งทั้งหมด → เคสที่เริ่มยา
+    //   ตั้งแต่ ER/รพ.ส่งต่อ ก่อนขึ้น ward (เช่น melioidosis เริ่ม meropenem
+    //   ก่อนแอดมิต) ถูกซ่อนหายจากลิสต์ "ยาเด่น" + modal แม้บันทึกลง DB สำเร็จ
+    //   แก้: เก็บ ATB ที่เริ่มได้ถึง ATB_ADMIT_GRACE_DAYS วันก่อนแอดมิต
+    //   ยังตัด ATB ของ admission เก่าที่ห่างเกิน grace ออกตามเดิม
+    var ATB_ADMIT_GRACE_DAYS = 7;
     function _filterATBByAdmit(atbList, admitDate) {
         if (!Array.isArray(atbList) || !atbList.length) return [];
         if (!admitDate) return atbList;
         var ptAdmit = parseDate(admitDate);
         if (!ptAdmit) return atbList;
-        var ptAdmitT = ptAdmit.getTime();
+        var cutoffT = ptAdmit.getTime() - (ATB_ADMIT_GRACE_DAYS * 86400000);
         return atbList.filter(function(item) {
             if (!item || !item.startDate) return true;
             var sd = parseDate(item.startDate);
             if (!sd) return true;
-            return sd.getTime() >= ptAdmitT;
+            return sd.getTime() >= cutoffT;
         });
     }
 
