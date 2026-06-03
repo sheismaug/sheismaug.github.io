@@ -650,6 +650,7 @@ function buildSlots(parsed, holidaySet) {
     slots[day] = {
       isHoliday,
       morningTeam: new Set(),   // เซตของชื่อที่อยู่ slot เช้า (วันธรรมดา = ว่างเสมอ)
+      dualShift: new Set(),     // เซตของชื่อที่เป็น "ช/บ" (เช้า+บ่าย) — ใช้ช่วย matching
       afternoon: null,          // ชื่อคนเดียวที่อยู่ slot บ่าย
     };
     parsed.names.forEach(name => {
@@ -657,6 +658,7 @@ function buildSlots(parsed, holidaySet) {
       const sh   = splitShifts(cell);
       if (sh.includes('ช')) slots[day].morningTeam.add(name);
       if (sh.includes('บ')) slots[day].afternoon = name;
+      if (sh.includes('ช') && sh.includes('บ')) slots[day].dualShift.add(name); // ช/บ
     });
   });
   return slots;
@@ -666,7 +668,9 @@ function buildSlots(parsed, holidaySet) {
 //   L = leavers (อยู่ before แต่ไม่อยู่ after)
 //   J = joiners (อยู่ after แต่ไม่อยู่ before)
 //   |L| = |J|  (ทีมขนาดคงที่)
-function diffMorning(beforeSet, afterSet, posLookup) {
+function diffMorning(beforeSet, afterSet, posLookup, beforeDual, afterDual) {
+  beforeDual = beforeDual || new Set();
+  afterDual  = afterDual  || new Set();
   const L = [...beforeSet].filter(n => !afterSet.has(n));
   const J = [...afterSet].filter(n => !beforeSet.has(n));
   if (L.length === 0) return { pairs: [], ambiguous: false };
@@ -679,7 +683,14 @@ function diffMorning(beforeSet, afterSet, posLookup) {
   if (L.length === 1) return { pairs: [[L[0], J[0]]], ambiguous: false };
 
   // L.length === 2: enumerate 2 permutations
-  const cost = (a, b) => isPharmacist(posLookup[a]) === isPharmacist(posLookup[b]) ? 0 : 1;
+  // cost = ชนิดเวรไม่ตรง (ช vs ช/บ) × 3  +  ตำแหน่งไม่ตรง (ภก vs จพ) × 1
+  // ถ่วงน้ำหนักให้ "ชนิดเวร" สำคัญกว่า "ตำแหน่ง" เสมอ — คน ช/บ ต้องคู่กับคนที่รับ ช/บ
+  const SHIFT_W = 3;
+  const cost = (a, b) => {
+    const shiftMiss = (beforeDual.has(a) !== afterDual.has(b)) ? 1 : 0;
+    const posMiss   = isPharmacist(posLookup[a]) === isPharmacist(posLookup[b]) ? 0 : 1;
+    return shiftMiss * SHIFT_W + posMiss;
+  };
   const optA = cost(L[0], J[0]) + cost(L[1], J[1]);
   const optB = cost(L[0], J[1]) + cost(L[1], J[0]);
   if (optA < optB) return { pairs: [[L[0], J[0]], [L[1], J[1]]], ambiguous: false };
@@ -761,7 +772,7 @@ function runDiff() {
 
     // morning team (วันหยุดเท่านั้น)
     if (sb.isHoliday && sb.morningTeam.has(reqBefore) && !sa.morningTeam.has(reqAfter || reqBefore)) {
-      const result = diffMorning(sb.morningTeam, sa.morningTeam, posLookup);
+      const result = diffMorning(sb.morningTeam, sa.morningTeam, posLookup, sb.dualShift, sa.dualShift);
       const pair   = result.pairs.find(p => p[0] === reqBefore);
       const receiver = pair ? pair[1] : '';
       if (result.ambiguous) ambiguousDays.push(dateStr);
