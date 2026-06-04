@@ -2449,16 +2449,25 @@ input::placeholder, textarea::placeholder { color: var(--hint); }
 /* ----------------------------------------------------------
    CONFIG — แก้ตรงนี้ 1 บรรทัดหลัง deploy Apps Script
    ---------------------------------------------------------- */
-const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyVdNc4IeN6VrVwbBow0H3Rg-zCyNMMIM4FRY5pyjJfcARzU00mBXK6A0GKOptJkrt1/exec';
+// ─── Supabase Edge Function (ย้ายจาก Google Apps Script — 2026-06) ───
+const EDGE_FUNCTION_URL  = 'https://qvtlekphxsubuklyirlz.supabase.co/functions/v1/ermedcart-hub';
+const SUPABASE_ANON_KEY  = 'sb_publishable_dPhW0DORMGlSTc1hzvT4Cw_9ChOlZ0H';
+// GAS เดิม (เก็บไว้เผื่อ rollback):
+// const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyVdNc4IeN6VrVwbBow0H3Rg-zCyNMMIM4FRY5pyjJfcARzU00mBXK6A0GKOptJkrt1/exec';
 
 /* ----------------------------------------------------------
-   API HELPER — fetch() ไปยัง Apps Script
+   API HELPER — fetch() ไปยัง Supabase Edge Function
+   (action + payload เหมือนเดิม — backend คืน JSON shape เดิมทุกประการ)
    ---------------------------------------------------------- */
 async function callScript(action, payload) {
   const body = Object.assign({ action: action }, payload || {});
-  const res  = await fetch(APPS_SCRIPT_URL, {
+  const res  = await fetch(EDGE_FUNCTION_URL, {
     method : 'POST',
-    headers: { 'Content-Type': 'text/plain' },
+    headers: {
+      'Content-Type' : 'application/json',
+      'Authorization': 'Bearer ' + SUPABASE_ANON_KEY,
+      'apikey'       : SUPABASE_ANON_KEY,
+    },
     body   : JSON.stringify(body),
   });
   if (!res.ok) throw new Error('HTTP ' + res.status);
