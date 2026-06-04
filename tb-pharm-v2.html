@@ -2074,9 +2074,22 @@ function getVisDefs(reg) {
   return defs;
 }
 
-// แปลงชื่อ visit สั้นๆ → ชื่อเต็มแบบ "ครบ X เดือน → เติมยาเดือน X+1"
-// ใช้ทั่วทั้งระบบเพื่อให้ชื่อนัดสื่อความหมายว่า refill ไปถึงเดือนไหน
-function getVisitDispLbl(v) {
+// หาเดือนของ "visit มาตรฐานถัดไป" หลัง index ที่กำหนด (ข้าม visit พิเศษ)
+// ใช้กำหนดว่า refill ของ visit ปัจจุบันต้องครอบคลุมถึงเดือนไหน (= เดือนของ visit ถัดไป)
+function nextVisitMonth(sched, idx) {
+  if (!Array.isArray(sched)) return null;
+  for (let j = idx + 1; j < sched.length; j++) {
+    const nv = sched[j];
+    if (!nv || nv.isCustom) continue;          // visit พิเศษ ไม่กำหนด horizon ของ refill มาตรฐาน
+    if (nv.type === 'month' && typeof nv.val === 'number') return nv.val;
+  }
+  return null;
+}
+
+// แปลงชื่อ visit สั้นๆ → ชื่อเต็มแบบ "ครบ X เดือน → เติมยาเดือน A–B"
+// refill ของ visit หนึ่งต้องครอบคลุมจนถึง visit ถัดไป ฉะนั้นเดือนปลายทาง = เดือนของ visit ถัดไป
+// (เดิม hardcode = เดือนปัจจุบัน+1 ทำให้พลาดเดือนที่ visit ห่างกัน >1 เดือน)
+function getVisitDispLbl(v, nextMo) {
   if (!v) return '';
   const lbl = v.lbl || '';
   // visit จบการรักษา → คงเดิม
@@ -2089,12 +2102,15 @@ function getVisitDispLbl(v) {
     const wk = parseFloat(wm[1]);
     return `ครบ ${wk} สัปดาห์ → เติมยาเดือน 1`;
   }
-  // visit แบบเดือน → เติมยาเดือน X+1 (preserve ⚡ ถ้ามี)
+  // visit แบบเดือน → เติมยาเดือน (เดือน+1) ถึง (เดือนของ visit ถัดไป) — preserve ⚡ ถ้ามี
   const mm = lbl.match(/(\d+(?:\.\d+)?)\s*เดือน/);
   if (mm) {
     const mo = parseFloat(mm[1]);
     const pcIcon = lbl.includes('⚡') ? ' ⚡' : '';
-    return `ครบ ${mo} เดือน${pcIcon} → เติมยาเดือน ${mo + 1}`;
+    const startMo = mo + 1;
+    const endMo = (typeof nextMo === 'number' && nextMo > startMo) ? nextMo : startMo;
+    const range = endMo > startMo ? `${startMo}–${endMo}` : `${startMo}`;
+    return `ครบ ${mo} เดือน${pcIcon} → เติมยาเดือน ${range}`;
   }
   // visit พิเศษที่ไม่ match pattern (เช่น "ตรวจตับ", "นัดฉุกเฉิน") → คงเดิม
   return lbl;
@@ -2330,8 +2346,109 @@ function rebuildSchedule() {
 }
 
 // ─── ซ่อมข้อมูลวันนัด/visit ที่ visit_num ชนกัน (custom note ถูกบันทึกทับ visit มาตรฐาน) ───
-// ตรวจหา: row ที่ visit_num เป็นเลขมาตรฐาน แต่วันที่ห่างจากที่ควรเป็นมาก (>40 วัน) และตรงกับวันของ visit พิเศษ
-// → ย้าย note นั้นไปเป็น visit พิเศษ (num 901+), reset visit มาตรฐานให้ว่าง, และเขียน visit_dates_json/custom_visits_json ใหม่
+// ลายเซ็นบั๊ก = มี visit row ที่ visit_num เป็นเลขมาตรฐาน แต่วันที่ห่างจากที่ควรเป็น >40 วัน และตรงกับวันของ visit พิเศษ
+// planVisitRepair: คำนวณแผนซ่อม (ไม่เขียนฐานข้อมูล) — คืน null ถ้าไม่พบลายเซ็นบั๊ก (= ไม่แตะวันที่ กันทับวันที่แก้มือ)
+function planVisitRepair(p, visits) {
+  if (!p) return null;
+  const start = new Date((p.start_date || '').slice(0,10) + 'T00:00:00');
+  if (isNaN(start.getTime())) return null;
+  const regCode = p.regimen_code || S.reg;
+  const defs    = getVisDefs(regCode);
+  const N       = defs.length;
+  const DAY = 86400000;
+  const daysApart = (a, b) => Math.abs((new Date(a+'T00:00:00') - new Date(b+'T00:00:00')) / DAY);
+
+  const stdPlanned = defs.map(def => {
+    let r;
+    if (def.type === 'day')       r = new Date(start);
+    else if (def.type === 'week') r = addW(start, def.val);
+    else                          r = addM(start, def.val);
+    return def.num === 0 ? fmtISO(r) : fmtISO(snapClin(r));
+  });
+  const stdNumSet = new Set(defs.map(d => String(d.num)));
+
+  let customs = [];
+  try { customs = JSON.parse(p.custom_visits_json || '[]'); } catch(e) {}
+  const customsFixed = [...customs]
+    .sort((a,b) => (a.date||'').localeCompare(b.date||''))
+    .map((c, k) => ({ idx: N + k, num: 901 + k, lbl: c.lbl, date: c.date, phase: c.phase || 'CP', mon: c.mon || {} }));
+  const dateToCustomNum = {};
+  customsFixed.forEach(c => { dateToCustomNum[c.date] = c.num; });
+  const customDates = new Set(customsFixed.map(c => c.date));
+
+  // row ที่ผิดตำแหน่ง = ลายเซ็นบั๊ก
+  const misrouted = (visits || []).filter(v =>
+    v.actual_date &&
+    stdNumSet.has(String(v.visit_num)) &&
+    stdPlanned[Number(v.visit_num)] &&
+    daysApart(v.actual_date, stdPlanned[Number(v.visit_num)]) > 40 &&
+    customDates.has(v.actual_date)
+  );
+  // ปลอดภัย: ซ่อมเฉพาะเมื่อเจอลายเซ็นบั๊กจริง ไม่งั้นไม่แตะอะไรเลย (กันทับวันที่แก้มือ)
+  if (!misrouted.length) return null;
+
+  let oldVD = [];
+  try { oldVD = JSON.parse(p.visit_dates_json || '[]'); } catch(e) {}
+  const newStdDates = defs.map((d, i) =>
+    (oldVD[i] && daysApart(oldVD[i], stdPlanned[i]) <= 40) ? oldVD[i] : stdPlanned[i]
+  );
+  const newVisitDates = [...newStdDates, ...customsFixed.map(c => c.date)];
+
+  const changes = [];
+  defs.forEach((d, i) => {
+    if (oldVD[i] && oldVD[i] !== newVisitDates[i])
+      changes.push(`• ${getVisitDispLbl(d, nextVisitMonth(defs, i))}: ${isoToTH(oldVD[i])} → ${isoToTH(newVisitDates[i])}`);
+  });
+  misrouted.forEach(v => {
+    const cnum = dateToCustomNum[v.actual_date];
+    changes.push(`• ย้ายบันทึก ${isoToTH(v.actual_date)} จาก V${v.visit_num} (ชนกับ "${defs[Number(v.visit_num)]?.lbl}") → visit พิเศษ #${cnum}`);
+  });
+
+  return { defs, stdPlanned, misrouted, customsFixed, dateToCustomNum, newVisitDates, changes };
+}
+
+// applyVisitRepair: เขียนแผนลงฐานข้อมูล (saveVisit + savePatient)
+async function applyVisitRepair(pid, plan) {
+  const { defs, stdPlanned, misrouted, customsFixed, dateToCustomNum, newVisitDates } = plan;
+  for (const v of misrouted) {
+    const cnum = dateToCustomNum[v.actual_date];
+    const cust = customsFixed.find(c => c.num === cnum);
+    await api('saveVisit', {
+      patient_id: pid, visit_num: cnum,
+      planned_date: v.actual_date, actual_date: v.actual_date,
+      phase: cust?.phase || v.phase || 'CP', month_num: cnum,
+      drugs_json: v.drugs_json || '{}', weight_kg: v.weight_kg || '',
+      missed_days: v.missed_days || 0, notes: v.notes || cust?.lbl || '',
+      dispensed: v.dispensed || false,
+    });
+    const sd = defs[Number(v.visit_num)];
+    await api('saveVisit', {
+      patient_id: pid, visit_num: Number(v.visit_num),
+      planned_date: stdPlanned[Number(v.visit_num)], actual_date: '',
+      phase: sd?.phase || '', month_num: sd?.val || 0,
+      drugs_json: '{}', weight_kg: '', missed_days: 0, notes: '', dispensed: false,
+    });
+  }
+  await api('savePatient', {
+    patient_id: pid,
+    visit_dates_json:   JSON.stringify(newVisitDates),
+    custom_visits_json: JSON.stringify(customsFixed),
+  });
+}
+
+// ซ่อมอัตโนมัติ (เงียบ) — เรียกตอนโหลดหน้า Schedule ถ้าเจอลายเซ็นบั๊ก
+// คืน plan ที่ทำไปแล้ว (เพื่อให้ caller ใช้ newVisitDates/customsFixed ต่อโดยไม่ต้องโหลดซ้ำ) หรือ null
+async function autoRepairVisits(p, visits) {
+  try {
+    const plan = planVisitRepair(p, visits);
+    if (!plan) return null;
+    await applyVisitRepair(p.patient_id, plan);
+    toast('🔧 ซ่อมวันนัดอัตโนมัติ ' + plan.changes.length + ' รายการ');
+    return plan;
+  } catch(e) { return null; }
+}
+
+// ปุ่ม 🔧 ซ่อมวันนัด — ตรวจ + แสดง preview + ยืนยันก่อนเขียน
 async function repairScheduleData() {
   const pid = S.selectedPatient;
   if (!pid) { toast('เลือกผู้ป่วยก่อน'); return; }
@@ -2343,96 +2460,15 @@ async function repairScheduleData() {
     p = await api('getPatient', { patient_id: pid });
     visits = await api('getVisits', { patient_id: pid }) || [];
   } catch(e) { toast('โหลดข้อมูลไม่สำเร็จ'); return; }
-  if (!p) { toast('ไม่พบผู้ป่วย'); return; }
-
   ensureCustomReg(p);
-  const regCode = p.regimen_code || S.reg;
-  const defs    = getVisDefs(regCode);
-  const N       = defs.length;
-  const start   = new Date((p.start_date || '').slice(0,10) + 'T00:00:00');
-  if (isNaN(start.getTime())) { toast('ไม่มีวันเริ่มยา'); return; }
 
-  // วันนัดมาตรฐานที่ถูกต้อง
-  const stdPlanned = defs.map(def => {
-    let r;
-    if (def.type === 'day')       r = new Date(start);
-    else if (def.type === 'week') r = addW(start, def.val);
-    else                          r = addM(start, def.val);
-    return def.num === 0 ? fmtISO(r) : fmtISO(snapClin(r));
-  });
-  const stdNumSet = new Set(defs.map(d => String(d.num)));
-  const DAY = 86400000;
-  const daysApart = (a, b) => Math.abs((new Date(a+'T00:00:00') - new Date(b+'T00:00:00')) / DAY);
-
-  // custom visits ปัจจุบัน → ออกเลขเสถียร 901+ เรียงตามวันที่
-  let customs = [];
-  try { customs = JSON.parse(p.custom_visits_json || '[]'); } catch(e) {}
-  const customsFixed = [...customs]
-    .sort((a,b) => (a.date||'').localeCompare(b.date||''))
-    .map((c, k) => ({ idx: N + k, num: 901 + k, lbl: c.lbl, date: c.date, phase: c.phase || 'CP', mon: c.mon || {} }));
-  const dateToCustomNum = {};
-  customsFixed.forEach(c => { dateToCustomNum[c.date] = c.num; });
-  const customDates = new Set(customsFixed.map(c => c.date));
-
-  // row ที่ผิดตำแหน่ง: visit_num มาตรฐาน + actual_date ห่าง >40 วัน + ตรงกับวัน custom
-  const misrouted = visits.filter(v =>
-    v.actual_date &&
-    stdNumSet.has(String(v.visit_num)) &&
-    stdPlanned[Number(v.visit_num)] &&
-    daysApart(v.actual_date, stdPlanned[Number(v.visit_num)]) > 40 &&
-    customDates.has(v.actual_date)
-  );
-
-  // visit_dates_json ใหม่: เก็บค่าเดิมถ้าใกล้เคียงวันที่ควรเป็น (<=40 วัน) ไม่งั้นใช้ค่าที่คำนวณ
-  let oldVD = [];
-  try { oldVD = JSON.parse(p.visit_dates_json || '[]'); } catch(e) {}
-  const newStdDates = defs.map((d, i) =>
-    (oldVD[i] && daysApart(oldVD[i], stdPlanned[i]) <= 40) ? oldVD[i] : stdPlanned[i]
-  );
-  const newVisitDates = [...newStdDates, ...customsFixed.map(c => c.date)];
-
-  // preview
-  const changes = [];
-  defs.forEach((d, i) => {
-    if (oldVD[i] && oldVD[i] !== newVisitDates[i])
-      changes.push(`• ${getVisitDispLbl(d)}: ${isoToTH(oldVD[i])} → ${isoToTH(newVisitDates[i])}`);
-  });
-  misrouted.forEach(v => {
-    const cnum = dateToCustomNum[v.actual_date];
-    changes.push(`• ย้ายบันทึก ${isoToTH(v.actual_date)} จาก V${v.visit_num} (ชนกับ "${defs[Number(v.visit_num)]?.lbl}") → visit พิเศษ #${cnum}`);
-  });
-
-  if (!changes.length) { toast('✅ ข้อมูลถูกต้องอยู่แล้ว ไม่ต้องซ่อม'); return; }
-  if (!confirm('🔧 พบข้อมูลที่ต้องแก้:\n\n' + changes.join('\n') + '\n\nยืนยันแก้ไขในฐานข้อมูล?\n(แนะนำให้ rebuild ไม่ได้ — ใช้ปุ่มนี้จะไม่ลบบันทึกที่มีอยู่)')) return;
+  const plan = planVisitRepair(p, visits);
+  if (!plan || !plan.changes.length) { toast('✅ ข้อมูลถูกต้องอยู่แล้ว ไม่ต้องซ่อม'); return; }
+  if (!confirm('🔧 พบข้อมูลที่ต้องแก้:\n\n' + plan.changes.join('\n') + '\n\nยืนยันแก้ไขในฐานข้อมูล?\n(จะไม่ลบบันทึกที่มีอยู่)')) return;
 
   toast('💾 กำลังซ่อมข้อมูล...');
   try {
-    // 1. ย้าย misrouted → เลข custom ใหม่ แล้ว reset row มาตรฐานให้ว่าง
-    for (const v of misrouted) {
-      const cnum = dateToCustomNum[v.actual_date];
-      const cust = customsFixed.find(c => c.num === cnum);
-      await api('saveVisit', {
-        patient_id: pid, visit_num: cnum,
-        planned_date: v.actual_date, actual_date: v.actual_date,
-        phase: cust?.phase || v.phase || 'CP', month_num: cnum,
-        drugs_json: v.drugs_json || '{}', weight_kg: v.weight_kg || '',
-        missed_days: v.missed_days || 0, notes: v.notes || cust?.lbl || '',
-        dispensed: v.dispensed || false,
-      });
-      const sd = defs[Number(v.visit_num)];
-      await api('saveVisit', {
-        patient_id: pid, visit_num: Number(v.visit_num),
-        planned_date: stdPlanned[Number(v.visit_num)], actual_date: '',
-        phase: sd?.phase || '', month_num: sd?.val || 0,
-        drugs_json: '{}', weight_kg: '', missed_days: 0, notes: '', dispensed: false,
-      });
-    }
-    // 2. เขียน json ที่ถูกต้อง
-    await api('savePatient', {
-      patient_id: pid,
-      visit_dates_json:   JSON.stringify(newVisitDates),
-      custom_visits_json: JSON.stringify(customsFixed),
-    });
+    await applyVisitRepair(pid, plan);
     toast('✅ ซ่อมข้อมูลวันนัดเรียบร้อย — โหลดใหม่');
     setTimeout(() => { if (typeof goToVisitNote === 'function') goToVisitNote(pid); }, 800);
   } catch(e) {
@@ -2469,9 +2505,20 @@ function buildSchedule() {
   S.visitDates  = [...stdDates, ...customDates];
 
   // Overlay saved dates from Sheets (user-edited dates persist over calculated ones)
+  // Corruption guard: สำหรับ visit มาตรฐาน ถ้าวันที่ที่ save ไว้ห่างจากวันที่คำนวณ >40 วัน
+  // ถือว่าเป็นข้อมูลเพี้ยน (เช่น วันของ visit พิเศษ รั่วมาทับ slot มาตรฐาน) → ไม่ overlay
+  // ใช้วันที่คำนวณใหม่แทน แล้วระบบจะ auto-save ทับให้ถูกต้อง (self-heal)
+  // หมายเหตุ: visit พิเศษ (i >= nStd) overlay ตามปกติ, การแก้มือในกรอบ ≤40 วัน ยังคงอยู่
   if (S._savedVisitDates?.length) {
+    const DAY = 86400000;
+    const nStd = stdSched.length;
     S._savedVisitDates.forEach((d, i) => {
-      if (d && i < S.visitDates.length) S.visitDates[i] = d;
+      if (!d || i >= S.visitDates.length) return;
+      if (i < nStd && stdDates[i]) {
+        const off = Math.abs((new Date(d+'T00:00:00') - new Date(stdDates[i]+'T00:00:00')) / DAY);
+        if (off > 40) return; // วันที่เพี้ยน → คงวันที่คำนวณ
+      }
+      S.visitDates[i] = d;
     });
   }
 
@@ -2614,7 +2661,7 @@ function renderVisitList() {
     return `<div class="vr" style="${skipStyle}">
       <div class="vr-num" style="${v.isEnd?'color:var(--g3)':''}${isSkipped?';text-decoration:line-through':''}">${v.num===0?'เริ่มยา':v.isCustom?'พิเศษ':'V'+v.num}</div>
       <div class="vr-label">
-        <div class="vr-title" style="${v.isEnd?'color:var(--g4)':v.isPC?'color:var(--warn)':v.isCustom?'color:var(--blue)':''}${isSkipped?';text-decoration:line-through':''}">${getVisitDispLbl(v)}</div>
+        <div class="vr-title" style="${v.isEnd?'color:var(--g4)':v.isPC?'color:var(--warn)':v.isCustom?'color:var(--blue)':''}${isSkipped?';text-decoration:line-through':''}">${getVisitDispLbl(v, nextVisitMonth(S.visitSched, i))}</div>
         <div class="vr-sub" style="display:flex;align-items:center;gap:5px;flex-wrap:wrap">${v.phase} ${monTags} ${noteTag} ${skipBadge}</div>
       </div>
       <div class="vr-date" style="display:flex;gap:5px;align-items:center">
@@ -5858,6 +5905,19 @@ function goToVisitNote(patientId) {
         }
         // โหลด visit notes เพื่อให้ renderDispense รู้ dose ที่เภสัชกรปรับ (doseOverride)
         try { _schedVisits = await api('getVisits', { patient_id: p.patient_id }) || []; } catch(e) {}
+
+        // ── ซ่อมวันนัดอัตโนมัติ ถ้าเจอ visit_num ชนกัน (ทำเฉพาะเมื่อเจอลายเซ็นบั๊ก) ──
+        try {
+          const ptForRepair = pt || p;
+          const plan = await autoRepairVisits(ptForRepair, _schedVisits);
+          if (plan) {
+            // ใช้ค่าที่ซ่อมแล้วต่อทันที ไม่ต้องโหลดซ้ำ
+            S.visitDates       = [...plan.newVisitDates];
+            S._savedVisitDates = [...plan.newVisitDates];
+            S._pendingCustomVisits = plan.customsFixed.map(c => ({ idx:c.idx, num:c.num, lbl:c.lbl, date:c.date, phase:c.phase, mon:c.mon }));
+            try { _schedVisits = await api('getVisits', { patient_id: p.patient_id }) || []; } catch(e) {}
+          }
+        } catch(e) {}
       }
     } catch(e) {}
 
@@ -7894,6 +7954,16 @@ async function buildPatientCard(patientId) {
       ]);
       if (labData?.length) { sheetLabs = labData.sort((a,b)=>(a.lab_date||'').localeCompare(b.lab_date||'')); window._ptcardLabs = sheetLabs; }
       if (visitData?.length) sheetVisits = visitData.sort((a,b)=>(a.actual_date||'').localeCompare(b.actual_date||''));
+      // ── ซ่อมวันนัดอัตโนมัติ ถ้าเจอ visit_num ชนกัน (ทำเฉพาะเมื่อเจอลายเซ็นบั๊ก) ──
+      try {
+        const plan = await autoRepairVisits(patientFull || p, sheetVisits);
+        if (plan && patientFull) {
+          patientFull.visit_dates_json   = JSON.stringify(plan.newVisitDates);
+          patientFull.custom_visits_json = JSON.stringify(plan.customsFixed);
+          const fresh = await api('getVisits', { patient_id: patientId });
+          if (Array.isArray(fresh) && fresh.length) sheetVisits = fresh.sort((a,b)=>(a.actual_date||'').localeCompare(b.actual_date||''));
+        }
+      } catch(e) {}
       // Restore saved visit dates & custom visits from patient record
       if (patientFull?.visit_dates_json) {
         try {
