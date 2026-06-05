@@ -3433,7 +3433,8 @@ async function submitNurseCheck() {
   });
   const data = {
     nurseName : APP.userName,
-    timestamp : new Date().toISOString(),
+    // ไม่ส่ง timestamp — ให้ backend ตีเวลาไทย 'YYYY-MM-DD HH:MM:SS' เอง
+    // (เดิมส่ง toISOString() = UTC 'Z' → dashboard parse ไม่ได้/วันเพี้ยน)
     items,
     note      : document.getElementById('nc-note').value,
     raw_json  : JSON.stringify(items),
@@ -7094,7 +7095,7 @@ async function confirmCartCheck() {
   try {
     await callScript('submitCartCheck', {
       pharmacist : APP.userName,
-      timestamp  : new Date().toISOString(),
+      // ไม่ส่ง timestamp — ให้ backend ตีเวลาไทยเอง (เดิมส่ง UTC 'Z')
       done_cnt   : done,
       low_cnt    : low,
       total_cnt  : total,
