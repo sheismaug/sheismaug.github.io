@@ -6225,7 +6225,7 @@ function showNurseDetail(type) {
         try {
           var items = JSON.parse(c.raw_json);
           items.filter(function(i){ return i.status === 'miss'; }).forEach(function(item) {
-            allMiss.push({ date: c.shift_date, drug_id: item.drug_id, qty: item.miss_qty||1, note: item.miss_note||'' });
+            allMiss.push({ date: c.shift_date, drug_id: item.drug_id, name: item.name||'', qty: item.miss_qty||1, note: item.miss_note||'' });
           });
         } catch(e) {}
       }
@@ -6239,8 +6239,9 @@ function showNurseDetail(type) {
     // นับตามยา
     var drugMap = {};
     allMiss.forEach(function(m) {
+      // ใช้ชื่อที่ backend แนบมาก่อน (เผื่อ DRUGS ยังไม่โหลด) → DRUGS → drug_id
       var d = DRUGS.find(function(x){ return x.id === m.drug_id; });
-      var name = d ? d.name : m.drug_id;
+      var name = m.name || (d ? d.name : m.drug_id);
       if (!drugMap[name]) drugMap[name] = { total: 0, dates: [] };
       drugMap[name].total += m.qty;
       drugMap[name].dates.push(dateToBE(m.date));
