@@ -2034,7 +2034,7 @@ function fmtISO(d) { const dt=typeof d==='string'?new Date(d+'T00:00:00'):d; con
 const DOW_TH=['อา','จ','อ','พ','พฤ','ศ','ส'];
 
 function getVisDefs(reg) {
-  const r = REGS[reg]; const ip=r.ip, cp=r.cp, tot=ip+cp;
+  const r = REGS[reg] || REGS['std']; const ip=r.ip, cp=r.cp, tot=ip+cp;
   const defs = [
     { num:0, lbl:'เริ่มยา',         type:'day',   val:0,    phase:'IP',    mon:{bw:true,afb:true,cxr:true} },
     { num:1, lbl:'2 สัปดาห์',       type:'week',  val:2,    phase:'IP',    mon:{bw:true} },
@@ -2308,7 +2308,9 @@ function rebuildSchedule() {
       if (!confirm(`Rebuild จะ generate วันนัดใหม่ทั้งหมดจาก ${fmtTH(p.start_date)}\nวันที่แก้ไขเองจะถูก reset — ยืนยัน?`)) return;
     }
 
-    delete REGS[p.regimen_code]; // ล้าง cache เก่า
+    // ล้าง cache เฉพาะสูตรพิเศษ (custom_*) — สูตรมาตรฐาน (std/elder/...) ห้ามลบ
+    // (เดิมลบทุกสูตร ทำให้ REGS[std] หาย แล้ว getVisDefs ระเบิด '.ip' of undefined ตอน Rebuild)
+    if (p.regimen_code && p.regimen_code.startsWith('custom_')) delete REGS[p.regimen_code];
     ensureCustomReg(p);
     S.visitSched = [];
     S.visitDates = [];
