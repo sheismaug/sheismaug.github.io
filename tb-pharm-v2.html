@@ -2289,24 +2289,26 @@ function rebuildSchedule() {
       const a = iso.split('-');
       return a.length === 3 ? `${a[2]}/${a[1]}/${parseInt(a[0])+543}` : iso;
     };
-    let baseDate = p.start_date;
-    if (p.restart_date && p.restart_date > p.start_date) {
-      const useRestart = confirm(
-        `ผู้ป่วยรายนี้มี Restart IP เมื่อ ${fmtTH(p.restart_date)}\n\n` +
-        `เลือกจุดเริ่มต้นในการสร้างตารางนัดใหม่:\n\n` +
-        `  ✅ OK = ใช้ Restart IP (${fmtTH(p.restart_date)}) เป็น Day 1 ใหม่\n` +
-        `  ❌ Cancel = ใช้ Start Date เดิม (${fmtTH(p.start_date)})\n\n` +
-        `⚠️ Rebuild จะ generate วันนัดใหม่ทั้งหมด · วันที่แก้ไขเองจะถูก reset`
-      );
-      if (useRestart) {
-        baseDate = p.restart_date;
-      } else {
-        // confirm ปกติ
-        if (!confirm(`ยืนยัน Rebuild จาก Start Date เดิม (${fmtTH(p.start_date)})?`)) return;
-      }
-    } else {
-      if (!confirm(`Rebuild จะ generate วันนัดใหม่ทั้งหมดจาก ${fmtTH(p.start_date)}\nวันที่แก้ไขเองจะถูก reset — ยืนยัน?`)) return;
+    // ── ให้ผู้ใช้กำหนด "วันเริ่มนับ Day 1" เองได้ ──
+    //   (เคสคนไข้ขาดยาแล้วกลับมา → อยากเริ่มนับใหม่จากวันที่กลับมา ทำให้วันเริ่มยา/นัดเลื่อนตาม)
+    //   default = restart_date (ถ้ามีและใหม่กว่า) มิฉะนั้น = start_date เดิม
+    const defaultBase = (p.restart_date && p.restart_date > p.start_date)
+      ? String(p.restart_date).slice(0,10) : String(p.start_date || '').slice(0,10);
+    const ans = prompt(
+      'Rebuild ตารางนัด — กำหนด "วันเริ่มนับ Day 1"\n' +
+      'รูปแบบ: ปี-เดือน-วัน (ค.ศ.) เช่น 2026-03-01\n\n' +
+      '• กดตกลงโดยไม่แก้ = ใช้ ' + fmtTH(defaultBase) + '\n' +
+      '• ใส่วันใหม่ = เริ่มนับใหม่จากวันนั้น (เช่น วันที่คนไข้กลับมาหลังขาดยา)\n\n' +
+      '⚠️ วันนัดทั้งหมดจะถูกคำนวณใหม่ · วันที่แก้ไขเองจะถูก reset',
+      defaultBase
+    );
+    if (ans === null) return;  // ยกเลิก
+    let baseDate = (ans || '').trim() || defaultBase;
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(baseDate)) {
+      toast('รูปแบบวันที่ไม่ถูกต้อง — ใช้ ปี-เดือน-วัน เช่น 2026-03-01');
+      return;
     }
+    const baseChanged = baseDate !== String(p.start_date || '').slice(0,10);
 
     // ล้าง cache เฉพาะสูตรพิเศษ (custom_*) — สูตรมาตรฐาน (std/elder/...) ห้ามลบ
     // (เดิมลบทุกสูตร ทำให้ REGS[std] หาย แล้ว getVisDefs ระเบิด '.ip' of undefined ตอน Rebuild)
@@ -2323,6 +2325,10 @@ function rebuildSchedule() {
     if (typeof setStartDateDisplay === 'function') setStartDateDisplay(baseDate);
 
     buildSchedule();
+    // ถ้าเริ่มนับใหม่จากวันที่ต่างจาก start_date เดิม → บันทึก restart_date ให้ระบบรู้ (สอดคล้องกับ DOT/Patient Card/คำนวณขาดยา)
+    if (baseChanged && hasBackend) {
+      try { await api('savePatient', { patient_id: p.patient_id, restart_date: baseDate, status: 'active' }); } catch (e) {}
+    }
     toast(`✅ Rebuild จาก ${fmtTH(baseDate)} เรียบร้อย`);
     // ถ้าอยู่หน้า ptcard ให้ rebuild card ด้วย
     if (S.page === 'ptcard' || S.page === 'schedule') {
