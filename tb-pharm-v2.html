@@ -4126,6 +4126,26 @@ lab: `
 </div>`,
 
 adr: `
+<div class="card" style="margin-bottom:16px">
+  <div class="ct"><span class="cd rd"></span>🧮 คำนวณการจัดการขาดยา (แผนภูมิ 5.1 NTP 2564)</div>
+  <div class="fg"><label>ผู้ป่วย</label>
+    <div class="pt-picker">
+      <input type="hidden" id="miss-pt-sel">
+      <div class="pt-picker-box">
+        <input type="text" class="pt-picker-q" placeholder="🔍 พิมพ์ชื่อ / HN — เฉพาะที่ยังรักษา" autocomplete="off">
+        <button type="button" class="pt-picker-clear" tabindex="-1">✕</button>
+      </div>
+      <div class="pt-picker-panel"></div>
+    </div>
+  </div>
+  <div class="g2" style="gap:12px">
+    <div class="fg"><label>วันที่เริ่มขาดยา</label><input type="date" id="miss-from"></div>
+    <div class="fg"><label>วันที่กลับมารับยา</label><input type="date" id="miss-to"></div>
+  </div>
+  <button class="btn btn-out btn-full" onclick="calcMissedPlan()">🧮 คำนวณการจัดการ + เสนอวันนัดใหม่</button>
+  <div id="miss-result"></div>
+</div>
+
 <div class="g2" style="gap:16px">
   <div class="card">
     <div class="ct"><span class="cd rd"></span>บันทึก ADR / ขาดยา</div>
@@ -7174,6 +7194,71 @@ function closeModal(e) {
 function initModalDragGuard() {
   const bg = document.getElementById('modal-bg');
   if (bg) bg.addEventListener('mousedown', e => { bg._mouseDownOnBg = (e.target === bg); });
+}
+
+/* ─── MISSED-DOSE PLAN (แผนภูมิ 5.1 NTP 2564) ── */
+async function calcMissedPlan() {
+  const pid  = document.getElementById('miss-pt-sel')?.value;
+  const from = document.getElementById('miss-from')?.value;
+  const to   = document.getElementById('miss-to')?.value;
+  const box  = document.getElementById('miss-result');
+  if (!pid)  { toast('เลือกผู้ป่วยก่อน'); return; }
+  if (!from) { toast('ระบุวันที่เริ่มขาดยา'); return; }
+  if (to && to < from) { toast('วันที่กลับมาต้องไม่ก่อนวันที่ขาดยา'); return; }
+  box.innerHTML = '<div style="padding:14px;color:var(--tx3);text-align:center">⏳ กำลังคำนวณ...</div>';
+  try {
+    const plan = await api('calcInterruptionPlan', { patient_id: pid, miss_from: from, miss_to: to });
+    if (!plan) { box.innerHTML = '<div class="al al-r" style="margin-top:12px"><span>⚠️</span><div>ไม่ได้เชื่อมต่อฐานข้อมูล</div></div>'; return; }
+    window._missPlanCtx = { patient_id: pid, miss_from: from, miss_to: to };
+    renderMissPlan(plan);
+  } catch (e) {
+    box.innerHTML = '<div class="al al-r" style="margin-top:12px"><span>⚠️</span><div>ผิดพลาด: ' + (e.message || e) + '</div></div>';
+  }
+}
+
+function renderMissPlan(p) {
+  const box = document.getElementById('miss-result');
+  const isRestart = p.mode === 'restart';
+  const color = isRestart ? 'var(--red)' : 'var(--g)';
+  const badge = isRestart ? (p.need_tests ? 'เริ่มการรักษาใหม่ + ส่งตรวจ' : 'เริ่มการรักษาใหม่ (Day 1 ใหม่)') : 'ให้ยาต่อ — เลื่อนนัด';
+  const rows = (p.reschedule || []).map(r =>
+    `<tr><td>${r.label}</td><td style="color:var(--tx3)">${r.old_date || '—'}</td><td style="font-weight:700;color:${color}">${r.new_date}</td></tr>`
+  ).join('');
+  box.innerHTML = `
+   <div style="border:1.5px solid ${color};border-radius:10px;padding:14px;margin-top:12px">
+     <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-bottom:8px">
+       <span class="pill" style="background:${color};color:#fff;border:none">${badge}</span>
+       <span class="pill pill-g">ระยะ: ${p.phase}</span>
+       <span class="pill pill-g">ขาดยา ${p.interruption_days} วัน</span>
+       ${p.cp_percent != null ? `<span class="pill pill-g">ได้ยาช่วงต่อเนื่อง ${p.cp_percent}%</span>` : ''}
+     </div>
+     <div style="font-size:13.5px;font-weight:600;color:var(--tx);margin-bottom:8px;line-height:1.5">${p.decision_label}</div>
+     <ul style="margin:6px 0 10px 18px;padding:0;font-size:12px;color:var(--tx3);line-height:1.6">${(p.caveats || []).map(c => `<li>${c}</li>`).join('')}</ul>
+     <div style="font-size:11px;color:var(--tx3);margin-bottom:12px">📖 ${p.ntp_ref}</div>
+     ${rows
+       ? `<div style="font-weight:600;font-size:13px;margin-bottom:6px">📅 วันนัดใหม่ที่เสนอ ${isRestart ? '(ตั้ง Day 1 ใหม่จากวันกลับมา)' : '(เลื่อนออก ' + p.interruption_days + ' วัน)'}</div>
+          <table class="tbl" style="font-size:12.5px"><thead><tr><th>นัด</th><th>เดิม</th><th>ใหม่</th></tr></thead><tbody>${rows}</tbody></table>
+          <button class="btn btn-g btn-full mt8" onclick="applyMissedPlan()">✅ ยืนยันใช้วันนัดใหม่นี้</button>`
+       : '<div class="al al-am"><span>ℹ️</span><div>ไม่มีนัดที่ค้างให้เลื่อน (ผู้ป่วยอาจยังไม่ได้สร้างตารางนัด หรือรับยาครบแล้ว)</div></div>'}
+   </div>`;
+}
+
+async function applyMissedPlan() {
+  const ctx = window._missPlanCtx;
+  if (!ctx) { toast('กรุณาคำนวณก่อน'); return; }
+  if (!confirm('ยืนยันบันทึกวันนัดใหม่' + '\\n(ถ้าเป็นการเริ่มรักษาใหม่ ระบบจะตั้ง restart_date และสถานะ active ให้ด้วย)')) return;
+  try {
+    const res = await api('applyInterruptionPlan', ctx);
+    if (res && res.applied) {
+      toast('✅ บันทึกวันนัดใหม่แล้ว (' + res.updated + ' นัด)');
+      const btn = document.querySelector('#miss-result button');
+      if (btn) { btn.disabled = true; btn.textContent = '✔ บันทึกแล้ว'; }
+    } else {
+      toast('บันทึกไม่สำเร็จ');
+    }
+  } catch (e) {
+    toast('ผิดพลาด: ' + (e.message || e));
+  }
 }
 
 /* ─── BACKEND ─────────────────────────────── */
