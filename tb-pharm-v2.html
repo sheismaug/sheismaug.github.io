@@ -1481,6 +1481,12 @@ function goPage(key, keepContext) {
     if (rebuildBtn) rebuildBtn.style.display = (S.unlocked && S.selectedPatient) ? '' : 'none';
     const repairBtn = document.getElementById('btn-repair-sched');
     if (repairBtn) repairBtn.style.display = (S.unlocked && S.selectedPatient) ? '' : 'none';
+    // ตั้งวันฐานตาราง = restart_date ถ้ามี (เริ่มนับใหม่หลังขาดยา) เมื่อกำลังสร้างตารางใหม่
+    //   กัน reload/refresh แล้ว build จาก start_date เดิม → guard >40 วันทิ้งวันที่ที่ save → เด้งกลับ
+    if (S.selectedPatient && (S.patients || []).length && !S.visitSched.length) {
+      const sp = S.patients.find(x => x.patient_id === S.selectedPatient);
+      if (sp) { const b = schedBaseDate(sp); if (b) { S.startDate = b; setStartDateDisplay(b); } }
+    }
     const rawDate = document.getElementById('start-date')?.value;
     // Only rebuild if no schedule yet, or startDate changed
     if (!S.visitSched.length || rawDate !== S.startDate) {
@@ -2482,6 +2488,15 @@ async function repairScheduleData() {
   } catch(e) {
     toast('❌ ซ่อมไม่สำเร็จ: ' + (e?.message || e));
   }
+}
+
+// วันฐานของตารางนัด = restart_date ถ้ามีและใหม่กว่า start_date (เคสเริ่มนับใหม่หลังขาดยา)
+//   ต้องใช้ฐานเดียวกันทั้งตอน rebuild และตอน reload ไม่งั้น guard >40 วันจะทิ้งวันที่ที่ save ไว้ → เด้งกลับวันเดิม
+function schedBaseDate(p) {
+  if (!p) return '';
+  const sd = String(p.start_date || '').slice(0, 10);
+  const rd = String(p.restart_date || '').slice(0, 10);
+  return (rd && rd > sd) ? rd : sd;
 }
 
 function buildSchedule() {
@@ -5899,8 +5914,8 @@ function goToVisitNote(patientId) {
   S.visitSched = [];
   S._savedVisitDates    = null;
   S._pendingCustomVisits = null;
-  // Set start-date display + hidden value
-  setStartDateDisplay(p.start_date);
+  // Set start-date display + hidden value (ใช้ restart_date ถ้ามี = เริ่มนับใหม่หลังขาดยา)
+  setStartDateDisplay(schedBaseDate(p));
   // Set regimen label
   const regLbl = document.getElementById('sched-reg-lbl');
   if (regLbl) regLbl.textContent = REGS[S.reg]?.label || p.regimen_label;
@@ -5909,7 +5924,7 @@ function goToVisitNote(patientId) {
   // Force buildSchedule + show patient context bar + load saved dates
   setTimeout(async () => {
     const hidden = document.getElementById('start-date');
-    if (hidden && !hidden.value) setStartDateDisplay(p.start_date);
+    if (hidden && !hidden.value) setStartDateDisplay(schedBaseDate(p));
 
     // Load saved visit dates + custom visits from patient record
     let _schedVisits = [];
