@@ -4944,7 +4944,7 @@ function buildAlertsPage() {
 // ════════════════════════════════════════════════════════════
 // 🖨️ Print Weekly Drug Prep Report (A4)
 // ════════════════════════════════════════════════════════════
-function printWeeklyDrugReport() {
+async function printWeeklyDrugReport() {
   const today    = new Date();
   const _pad     = n => String(n).padStart(2,'0');
   const todayISO = `${today.getFullYear()}-${_pad(today.getMonth()+1)}-${_pad(today.getDate())}`;
@@ -4987,6 +4987,37 @@ function printWeeklyDrugReport() {
     return schedLbl;
   };
 
+  // ── โหลด doseOverride ของผู้ป่วยแต่ละคน เพื่อให้สูตรในรายงานตรงกับหน้าจ่ายยา ──
+  // (combo เดิมใช้ getDose weight-band มาตรฐานเสมอ จึงไม่สะท้อน dose ที่เภสัชปรับ)
+  const ovByPt = {};
+  try {
+    await Promise.all(pts.map(async p => {
+      try {
+        const visits = await api('getVisits', { patient_id: p.patient_id }) || [];
+        ovByPt[p.patient_id] = visits.map(v => {
+          let ov = {};
+          try { ov = JSON.parse(v.drugs_json || '{}'); } catch(e) {}
+          return { date: v.planned_date || v.actual_date || '', ov };
+        }).filter(x => x.date && x.ov && Object.keys(x.ov).length);
+      } catch(e) { ovByPt[p.patient_id] = []; }
+    }));
+  } catch(e) {}
+  // dose ที่ปรับล่าสุด (date <= วันนัด) ของแต่ละยา สำหรับผู้ป่วยคนหนึ่ง
+  const getOverride = (ptId, uptoDate) => {
+    const out = {};
+    (ovByPt[ptId] || [])
+      .filter(x => x.date <= uptoDate)
+      .sort((a, b) => a.date.localeCompare(b.date))
+      .forEach(x => Object.entries(x.ov).forEach(([abbr, mg]) => { if (mg) out[abbr] = parseFloat(mg); }));
+    return out;
+  };
+  // สร้างสตริงสูตรยา โดยใช้ doseOverride ถ้ามี ไม่งั้น weight-band มาตรฐาน
+  const buildCombo = (drugList, ptId, atDate, wt, band) => drugList.map(abbr => {
+    const ov   = getOverride(ptId, atDate)[abbr];
+    const dose = ov != null ? ov : (wt ? getDose(abbr, band, wt) : null);
+    return dose ? `${abbr}${dose}` : null;
+  }).filter(Boolean).join('·');
+
   const weekAppts = [];
   pts.forEach(p => {
     if (!p.visit_dates_json) return;
@@ -5016,10 +5047,7 @@ function printWeeklyDrugReport() {
         const moElapsed = base ? (new Date(d+'T00:00:00') - base) / (1000*60*60*24*28) : 0;
         const isIP = moElapsed <= (reg?.ip || 2);
         const drugs = (isIP ? (reg?.ipDrugs || []) : (reg?.cpDrugs || [])).filter(x => x !== 'B6');
-        const combo = drugs.map(abbr => {
-          const dose = wt ? getDose(abbr, band, wt) : null;
-          return dose ? `${abbr}${dose}` : null;
-        }).filter(Boolean).join('·');
+        const combo = buildCombo(drugs, p.patient_id, d, wt, band);
         const ipEnd = base ? new Date(base.getTime() + (reg?.ip||2)*28*86400000) : null;
         const daysToPC = ipEnd ? Math.round((ipEnd - new Date(d+'T00:00:00')) / 86400000) : null;
         const nearPC = isIP && daysToPC !== null && daysToPC >= 0 && daysToPC <= 14;
@@ -5048,10 +5076,7 @@ function printWeeklyDrugReport() {
               const moEl2 = base ? (new Date(d+'T00:00:00') - base) / (1000*60*60*24*28) : 0;
               const isIP2 = moEl2 <= (reg?.ip || 2);
               const drugs2 = (isIP2 ? (reg?.ipDrugs||[]) : (reg?.cpDrugs||[])).filter(x => x !== 'B6');
-              const combo2 = drugs2.map(abbr => {
-                const dose = wt ? getDose(abbr, band, wt) : null;
-                return dose ? `${abbr}${dose}` : null;
-              }).filter(Boolean).join('·');
+              const combo2 = buildCombo(drugs2, p.patient_id, d, wt, band);
               weekAppts.push({
                 name: p.name, hn: p.hn, ptId: p.patient_id, date: d,
                 regLabel: reg?.label || '—', combo: combo2, isIP: isIP2, days: days2, wt,
