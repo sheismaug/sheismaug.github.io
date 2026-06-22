@@ -5783,14 +5783,15 @@
 
     // API Calls — Supabase Edge Function (Phase 3)
     // ใช้ fetch + Authorization header แทน JSONP เพราะ Edge Function รองรับ CORS
-    function gasGet(action, params, callback) {
+    function gasGet(action, params, callback, timeoutMs) {
         let done = false;
+        let _to = timeoutMs || 15000;
         let timer = setTimeout(function() {
             if (done) return;
             done = true;
-            console.warn('[gasGet] TIMEOUT action=' + action + ' (15s)');
+            console.warn('[gasGet] TIMEOUT action=' + action + ' (' + Math.round(_to/1000) + 's)');
             callback({ ok: false, error: 'timeout: ' + action });
-        }, 15000);
+        }, _to);
         let url = SCRIPT_URL + '?action=' + action;
         for (let k in params) {
             if (params[k] !== undefined && params[k] !== null && params[k] !== '') {
@@ -8196,6 +8197,67 @@
         return { from: fmt(fromD), to: fmt(toD) };
     }
 
+    // ★ FIX (2026-06): ดึง dashboard พร้อม retry — กัน cold start / network blip ทำหน้าค้าง 0%
+    function _fetchDashWithRetry(params, attempt, onOk, onFail) {
+        attempt = attempt || 1;
+        var MAX = 3;
+        var timeoutMs = 20000 + attempt * 5000;   // 25s, 30s, 35s
+        gasGet('getDashboardStats', params, function(data) {
+            if (data && data.ok) { onOk(data); return; }
+            if (attempt < MAX) {
+                console.warn('[dashboard] โหลดไม่สำเร็จ — retry ' + attempt + '/' + (MAX - 1) +
+                             ' (' + (data && data.error || 'unknown') + ')');
+                _showDashLoading(attempt);
+                setTimeout(function() {
+                    _fetchDashWithRetry(params, attempt + 1, onOk, onFail);
+                }, 800 * attempt);
+            } else {
+                console.error('[dashboard] โหลดไม่สำเร็จหลัง retry ' + MAX + ' ครั้ง');
+                onFail(data);
+            }
+        }, timeoutMs);
+    }
+
+    function _dashBannerEl() {
+        var el = document.getElementById('dashErrorBanner');
+        if (!el) {
+            var host = document.getElementById('dashboard');
+            if (!host) return null;
+            el = document.createElement('div');
+            el.id = 'dashErrorBanner';
+            el.style.cssText = 'display:none;margin:12px 0;padding:12px 16px;border-radius:10px;' +
+                'font-size:14px;align-items:center;gap:12px;';
+            host.insertBefore(el, host.firstChild);
+        }
+        return el;
+    }
+    function _showDashLoading(attempt) {
+        var el = _dashBannerEl(); if (!el) return;
+        el.style.background = '#eef2ff'; el.style.borderColor = '#c7d2fe'; el.style.color = '#3730a3';
+        el.innerHTML = '⏳ กำลังโหลดรายงาน' + (attempt ? ' (ลองใหม่ครั้งที่ ' + attempt + ')…' : '…') +
+                       ' เซิร์ฟเวอร์อาจกำลังตื่นจาก sleep';
+        el.style.display = 'flex';
+    }
+    function _showDashError(msg, retryFn) {
+        var el = _dashBannerEl(); if (!el) return;
+        el.style.background = '#fdecea'; el.style.borderColor = '#f5c6cb'; el.style.color = '#a3261d';
+        el.innerHTML = '';
+        var span = document.createElement('span');
+        span.textContent = '⚠ โหลดรายงานไม่สำเร็จ' + (msg ? ' (' + msg + ')' : '') +
+                           ' — ข้อมูลยังอยู่ครบ ลองกดโหลดใหม่อีกครั้ง';
+        var btn = document.createElement('button');
+        btn.textContent = '🔄 ลองใหม่';
+        btn.style.cssText = 'margin-left:auto;padding:6px 16px;border:none;border-radius:8px;' +
+            'background:#a3261d;color:#fff;font-weight:600;cursor:pointer;white-space:nowrap;';
+        btn.onclick = function() { _hideDashError(); if (retryFn) retryFn(); };
+        el.appendChild(span); el.appendChild(btn);
+        el.style.display = 'flex';
+    }
+    function _hideDashError() {
+        var el = document.getElementById('dashErrorBanner');
+        if (el) el.style.display = 'none';
+    }
+
     function _loadDashboard() {
         var from = (document.getElementById('dashFromDate') || {}).value || '';
         var to   = (document.getElementById('dashToDate')   || {}).value || '';
@@ -8223,15 +8285,19 @@
             _renderDashCharts(curData);
         }
 
-        gasGet('getDashboardStats', { from: from, to: to }, function(data) {
-            if (!data || !data.ok) {
-                showToast('โหลด dashboard ไม่สำเร็จ', { type:'error' });
-                curDone = true; maybeRender(); return;
-            }
+        // ★ FIX (2026-06): cold start ของ Supabase edge function อาจช้าเกิน timeout
+        //   เดิม: fail ครั้งเดียว → เด้ง toast แวบเดียว + ทิ้งหน้าค้างที่ค่า 0% โดยไม่ retry
+        //   ใหม่: retry สูงสุด 3 ครั้ง (timeout ยาวขึ้นทีละครั้ง) + ขึ้น banner "ลองใหม่" ถ้ายังพลาด
+        _showDashLoading();
+        _fetchDashWithRetry({ from: from, to: to }, 1, function(data) {
+            _hideDashError();
             _dashStats = data;
             curData = data;
             curDone = true;
             maybeRender();
+        }, function(data) {
+            curDone = true; maybeRender();
+            _showDashError(data && data.error, function() { _loadDashboard(); });
         });
 
         if (needPrev) {
