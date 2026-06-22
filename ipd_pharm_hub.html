@@ -8258,13 +8258,30 @@
         if (el) el.style.display = 'none';
     }
 
+    // ★ FIX (2026-06): backend getDashboardStats ไม่แปลงปี พ.ศ. — ถ้าส่ง "01/05/2569" ตรงๆ
+    //   Postgres ตีความ 2569 เป็น ค.ศ. → admit_date (2026) ไม่ match → ได้ 0 ราย
+    //   จึงต้องแปลง input (Thai BE DD/MM/YYYY) เป็น ISO YYYY-MM-DD ก่อนส่งทุกครั้ง
+    function _dashInputToIso(v) {
+        if (!v) return '';
+        v = String(v).trim();
+        if (/^\d{4}-\d{2}-\d{2}/.test(v)) return v.slice(0, 10);   // ISO อยู่แล้ว
+        var m = v.match(/^(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{4})/);
+        if (m) {
+            var d = parseInt(m[1], 10), mo = parseInt(m[2], 10), y = parseInt(m[3], 10);
+            if (y > 2400) y -= 543;   // พ.ศ. → ค.ศ.
+            return y + '-' + String(mo).padStart(2, '0') + '-' + String(d).padStart(2, '0');
+        }
+        return v;
+    }
+
     function _loadDashboard() {
-        var from = (document.getElementById('dashFromDate') || {}).value || '';
-        var to   = (document.getElementById('dashToDate')   || {}).value || '';
+        // อ่านค่าจาก input แล้วแปลงเป็น ISO เสมอ (input แสดงเป็น พ.ศ.)
+        var from = _dashInputToIso((document.getElementById('dashFromDate') || {}).value || '');
+        var to   = _dashInputToIso((document.getElementById('dashToDate')   || {}).value || '');
         if (!from && !to) {
             var r = _dashPeriodRange('this-month');
             from = r.from; to = r.to;
-            // แสดง Thai BE ใน input — ส่ง ISO ไป backend (parseDateInput รองรับทั้ง 2)
+            // แสดง Thai BE ใน input — แต่ส่ง ISO ไป backend
             document.getElementById('dashFromDate').value = _isoToBE(from);
             document.getElementById('dashToDate').value   = _isoToBE(to);
         }
