@@ -4992,13 +4992,31 @@ async function printWeeklyDrugReport() {
   const ovByPt = {};
   try {
     await Promise.all(pts.map(async p => {
+      // วันตามตารางนัดปัจจุบัน (index = visit_num สำหรับ visit มาตรฐาน)
+      let schedDates = [];
+      try { schedDates = JSON.parse(p.visit_dates_json || '[]'); } catch(e) {}
+      if (!Array.isArray(schedDates)) schedDates = [];
+      // map num→date ของ custom visit (num >= 900)
+      const customDateByNum = {};
+      try {
+        const customs = JSON.parse(p.custom_visits_json || '[]');
+        if (Array.isArray(customs)) customs.forEach(cv => { if (cv && cv.num != null && cv.date) customDateByNum[Number(cv.num)] = cv.date; });
+      } catch(e) {}
       try {
         const visits = await api('getVisits', { patient_id: p.patient_id }) || [];
         ovByPt[p.patient_id] = visits.map(v => {
           let ov = {};
           try { ov = JSON.parse(v.drugs_json || '{}'); } catch(e) {}
-          return { date: v.planned_date || v.actual_date || '', ov };
-        }).filter(x => x.date && x.ov && Object.keys(x.ov).length);
+          if (!Object.keys(ov).length) return null;
+          // ── ใช้วันจากตารางนัดปัจจุบัน และตัด record ค้าง (visit_num ที่ไม่อยู่ในตาราง) ──
+          // ให้ตรงกับหน้าจ่ายยา ซึ่ง map override ผ่าน visit_num → ตารางนัด
+          const vn = Number(v.visit_num);
+          let date = '';
+          if (vn >= 0 && vn < schedDates.length) date = schedDates[vn] || v.planned_date || '';
+          else if (vn >= 900) date = customDateByNum[vn] || v.planned_date || ''; // custom visit
+          else return null; // record ค้าง/ซ้ำ visit_num → ข้าม
+          return date ? { date, ov } : null;
+        }).filter(Boolean);
       } catch(e) { ovByPt[p.patient_id] = []; }
     }));
   } catch(e) {}
