@@ -2205,7 +2205,7 @@ function vrDateFromPicker(idx, isoVal) {
   renderDispense();
   renderTimeline();
   renderIPAlert();
-  if (S.selectedPatient) debounce('saveVD', () => saveDatesOnlyToSheets(), 1000);
+  if (S.selectedPatient) { const _isC = S.visitSched[idx] && S.visitSched[idx].isCustom; debounce('saveVD', () => _isC ? saveVisitDatesToSheets() : saveDatesOnlyToSheets(), 1000); }
 }
 
 function setVisitDate(idx, input) {
@@ -2224,7 +2224,7 @@ function setVisitDate(idx, input) {
     renderDispense();
     renderTimeline();
     renderIPAlert();
-    if (S.selectedPatient) debounce('saveVD', () => saveDatesOnlyToSheets(), 1000);
+    if (S.selectedPatient) { const _isC = S.visitSched[idx] && S.visitSched[idx].isCustom; debounce('saveVD', () => _isC ? saveVisitDatesToSheets() : saveDatesOnlyToSheets(), 1000); }
   }
 }
 
@@ -2567,22 +2567,25 @@ async function saveVisitDatesToSheets() {
         mon:   v.mon   || {},
       } : null)
       .filter(Boolean);
+    // vd = เฉพาะ std (slice ตัด custom tail) กัน absorb สร้าง phantom row is_custom=false
+    const _nStd = S.visitSched.filter(v => !v.isCustom).length;
     await api('savePatient', {
       patient_id:          S.selectedPatient,
-      visit_dates_json:    JSON.stringify(S.visitDates),
+      visit_dates_json:    JSON.stringify(S.visitDates.slice(0, _nStd)),
       custom_visits_json:  JSON.stringify(customVisits),
     });
   } catch(e) { /* silent fail */ }
 }
 
-// save เฉพาะ visit_dates_json (ไม่แตะ custom_visits_json)
-// ใช้ตอน buildSchedule rebuild เพื่อไม่ให้ทับ custom visits
+// save เฉพาะ visit_dates_json มาตรฐาน (ไม่แตะ custom_visits_json)
+// ใช้ตอนแก้วันนัด std / buildSchedule rebuild เพื่อไม่ให้ทับ custom visits
 async function saveDatesOnlyToSheets() {
   if (!S.selectedPatient || !APPS_SCRIPT_URL || APPS_SCRIPT_URL.includes('YOUR_APPS')) return;
   try {
+    const _nStd = S.visitSched.filter(v => !v.isCustom).length;
     await api('savePatient', {
       patient_id:       S.selectedPatient,
-      visit_dates_json: JSON.stringify(S.visitDates),
+      visit_dates_json: JSON.stringify(S.visitDates.slice(0, _nStd)),
     });
   } catch(e) { /* silent fail */ }
 }
