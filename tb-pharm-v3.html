@@ -1576,6 +1576,7 @@ async function refreshCurrentPage() {
       S.visitDates           = [];
       S.visitSched           = [];
       S._savedVisitDates     = null;
+      S._editedVisits        = null;
       S._pendingCustomVisits = null;
       S.visitNotes           = {};
       // โหลด custom_visits_json จาก Sheets ก่อน rebuild
@@ -1590,6 +1591,10 @@ async function refreshCurrentPage() {
         if (pt?.visit_dates_json) {
           const saved = JSON.parse(pt.visit_dates_json);
           if (Array.isArray(saved)) S._savedVisitDates = saved;
+        }
+        if (pt?.edited_visits_json) {
+          const ev = JSON.parse(pt.edited_visits_json);
+          if (Array.isArray(ev)) { S._editedVisits = {}; ev.forEach(n => S._editedVisits[n] = true); }
         }
       } catch(e) {}
       goPage('schedule', 'keepContext');
@@ -2192,6 +2197,14 @@ function updateIPExtAlert() {
   if (typeof window._vnRerenderDrugs === 'function') window._vnRerenderDrugs();
 }
 
+// จำ visit ที่ user แก้วันเอง (dirty flag) — persist ลง Sheets กัน guard >40 วัน เด้งกลับ
+function markVisitEdited(idx) {
+  const v = S.visitSched && S.visitSched[idx];
+  if (!v || v.isCustom) return;          // custom visit overlay อยู่แล้ว ไม่ต้องมาร์ก
+  if (!S._editedVisits) S._editedVisits = {};
+  S._editedVisits[v.num] = true;
+}
+
 function vrDateFromPicker(idx, isoVal) {
   if (!isoVal) return;
   const p = isoVal.split('-');
@@ -2200,6 +2213,7 @@ function vrDateFromPicker(idx, isoVal) {
   const el = document.getElementById('vr-date-'+idx);
   if (el) el.value = display;
   S.visitDates[idx] = isoVal;
+  markVisitEdited(idx);
   if (!S._savedVisitDates) S._savedVisitDates = [...S.visitDates];
   S._savedVisitDates[idx] = isoVal;
   renderDispense();
@@ -2219,6 +2233,7 @@ function setVisitDate(idx, input) {
   const iso = parseDateTH(v);
   if (iso) {
     S.visitDates[idx] = iso;
+    markVisitEdited(idx);
     if (!S._savedVisitDates) S._savedVisitDates = [...S.visitDates];
     S._savedVisitDates[idx] = iso;
     renderDispense();
@@ -2326,6 +2341,7 @@ function rebuildSchedule() {
     S.visitSched = [];
     S.visitDates = [];
     S._savedVisitDates = []; // clear saved dates ไม่ให้ overlay วันเดิม
+    S._editedVisits = null;  // rebuild = ตั้งใจ reset ทั้งหมด → ล้าง dirty flag เดิมด้วย
 
     // ── Set start-date input ตาม baseDate ที่เลือก แล้ว build ──
     const sdInput = document.getElementById('start-date');
@@ -2541,8 +2557,13 @@ function buildSchedule() {
     S._savedVisitDates.forEach((d, i) => {
       if (!d || i >= S.visitDates.length) return;
       if (i < nStd && stdDates[i]) {
-        const off = Math.abs((new Date(d+'T00:00:00') - new Date(stdDates[i]+'T00:00:00')) / DAY);
-        if (off > 40) return; // วันที่เพี้ยน → คงวันที่คำนวณ
+        // ── dirty flag: ถ้า user แก้วันนัดนี้เอง → ห้าม guard เด้งกลับ (แก้ตั้งใจ ไม่ใช่ข้อมูลเพี้ยน) ──
+        const vnum     = stdSched[i] && stdSched[i].num;
+        const isEdited = S._editedVisits && S._editedVisits[vnum];
+        if (!isEdited) {
+          const off = Math.abs((new Date(d+'T00:00:00') - new Date(stdDates[i]+'T00:00:00')) / DAY);
+          if (off > 40) return; // วันที่เพี้ยน (ไม่ได้แก้มือ) → คงวันที่คำนวณ
+        }
       }
       S.visitDates[i] = d;
     });
@@ -2579,6 +2600,7 @@ async function saveVisitDatesToSheets() {
       patient_id:          S.selectedPatient,
       visit_dates_json:    JSON.stringify(S.visitDates),
       custom_visits_json:  JSON.stringify(customVisits),
+      edited_visits_json:  JSON.stringify(Object.keys(S._editedVisits || {})),
     });
   } catch(e) { /* silent fail */ }
 }
@@ -2591,6 +2613,7 @@ async function saveDatesOnlyToSheets() {
     await api('savePatient', {
       patient_id:       S.selectedPatient,
       visit_dates_json: JSON.stringify(S.visitDates),
+      edited_visits_json: JSON.stringify(Object.keys(S._editedVisits || {})),
     });
   } catch(e) { /* silent fail */ }
 }
@@ -6007,6 +6030,7 @@ function goToVisitNote(patientId) {
   S.visitDates = [];
   S.visitSched = [];
   S._savedVisitDates    = null;
+  S._editedVisits       = null;
   S._pendingCustomVisits = null;
   // Set start-date display + hidden value (ใช้ restart_date ถ้ามี = เริ่มนับใหม่หลังขาดยา)
   setStartDateDisplay(schedBaseDate(p));
@@ -6031,6 +6055,12 @@ function goToVisitNote(patientId) {
             S.visitDates = saved;
             S._savedVisitDates = saved; // persist across buildSchedule calls
           }
+        }
+        if (pt?.edited_visits_json) {
+          try {
+            const ev = JSON.parse(pt.edited_visits_json);
+            if (Array.isArray(ev)) { S._editedVisits = {}; ev.forEach(n => S._editedVisits[n] = true); }
+          } catch(e) {}
         }
         if (pt?.custom_visits_json) {
           try {
