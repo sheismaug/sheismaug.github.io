@@ -8828,6 +8828,9 @@ async function submitChangeRegimen(patientId) {
 
   if (!newRegCode) { toast('❌ เลือกสูตรใหม่ก่อน'); return; }
   if (!changeDateRaw) { toast('❌ กรอกวันที่เปลี่ยนสูตรก่อน'); return; }
+  // แปลง dd/mm/พ.ศ. → ISO ก่อนส่ง backend (ไม่งั้น Postgres/JS Date พัง "Invalid time value")
+  const changeDateISO = parseDateTH(changeDateRaw);
+  if (!changeDateISO) { toast('❌ วันที่เปลี่ยนสูตรไม่ถูกต้อง (dd/mm/พ.ศ.)'); return; }
 
   const btn = document.getElementById('cr-confirm-btn');
   if (btn) { btn.textContent = '⏳ กำลังดำเนินการ...'; btn.disabled = true; }
@@ -8841,7 +8844,7 @@ async function submitChangeRegimen(patientId) {
       result = await api('changeRegimen', {
         patient_id:       patientId,
         new_regimen_code: newRegCode,
-        change_date:      changeDateRaw,
+        change_date:      changeDateISO,
         reason:           reason,
         adr_drug_suspect: drugSuspect,
         adr_symptoms:     symptoms,
@@ -8856,7 +8859,7 @@ async function submitChangeRegimen(patientId) {
       p.prev_regimen_code     = p.regimen_code;
       p.regimen_code          = newRegCode;
       p.regimen_label         = newLabel;
-      p.regimen_change_date   = changeDateRaw;
+      p.regimen_change_date   = changeDateISO;
       p.regimen_change_reason = reason;
     }
 
