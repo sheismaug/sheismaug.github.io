@@ -1576,7 +1576,6 @@ async function refreshCurrentPage() {
       S.visitDates           = [];
       S.visitSched           = [];
       S._savedVisitDates     = null;
-      S._editedVisits        = null;
       S._pendingCustomVisits = null;
       S.visitNotes           = {};
       // โหลด custom_visits_json จาก Sheets ก่อน rebuild
@@ -1591,10 +1590,6 @@ async function refreshCurrentPage() {
         if (pt?.visit_dates_json) {
           const saved = JSON.parse(pt.visit_dates_json);
           if (Array.isArray(saved)) S._savedVisitDates = saved;
-        }
-        if (pt?.edited_visits_json) {
-          const ev = JSON.parse(pt.edited_visits_json);
-          if (Array.isArray(ev)) { S._editedVisits = {}; ev.forEach(n => S._editedVisits[n] = true); }
         }
       } catch(e) {}
       goPage('schedule', 'keepContext');
@@ -2197,14 +2192,6 @@ function updateIPExtAlert() {
   if (typeof window._vnRerenderDrugs === 'function') window._vnRerenderDrugs();
 }
 
-// จำ visit ที่ user แก้วันเอง (dirty flag) — persist ลง Sheets กัน guard >40 วัน เด้งกลับ
-function markVisitEdited(idx) {
-  const v = S.visitSched && S.visitSched[idx];
-  if (!v || v.isCustom) return;          // custom visit overlay อยู่แล้ว ไม่ต้องมาร์ก
-  if (!S._editedVisits) S._editedVisits = {};
-  S._editedVisits[v.num] = true;
-}
-
 function vrDateFromPicker(idx, isoVal) {
   if (!isoVal) return;
   const p = isoVal.split('-');
@@ -2213,7 +2200,6 @@ function vrDateFromPicker(idx, isoVal) {
   const el = document.getElementById('vr-date-'+idx);
   if (el) el.value = display;
   S.visitDates[idx] = isoVal;
-  markVisitEdited(idx);
   if (!S._savedVisitDates) S._savedVisitDates = [...S.visitDates];
   S._savedVisitDates[idx] = isoVal;
   renderDispense();
@@ -2233,7 +2219,6 @@ function setVisitDate(idx, input) {
   const iso = parseDateTH(v);
   if (iso) {
     S.visitDates[idx] = iso;
-    markVisitEdited(idx);
     if (!S._savedVisitDates) S._savedVisitDates = [...S.visitDates];
     S._savedVisitDates[idx] = iso;
     renderDispense();
@@ -2341,7 +2326,6 @@ function rebuildSchedule() {
     S.visitSched = [];
     S.visitDates = [];
     S._savedVisitDates = []; // clear saved dates ไม่ให้ overlay วันเดิม
-    S._editedVisits = null;  // rebuild = ตั้งใจ reset ทั้งหมด → ล้าง dirty flag เดิมด้วย
 
     // ── Set start-date input ตาม baseDate ที่เลือก แล้ว build ──
     const sdInput = document.getElementById('start-date');
@@ -2546,25 +2530,12 @@ function buildSchedule() {
   S.visitSched  = [...stdSched, ...customVisits];
   S.visitDates  = [...stdDates, ...customDates];
 
-  // Overlay saved dates from Sheets (user-edited dates persist over calculated ones)
-  // Corruption guard: สำหรับ visit มาตรฐาน ถ้าวันที่ที่ save ไว้ห่างจากวันที่คำนวณ >40 วัน
-  // ถือว่าเป็นข้อมูลเพี้ยน (เช่น วันของ visit พิเศษ รั่วมาทับ slot มาตรฐาน) → ไม่ overlay
-  // ใช้วันที่คำนวณใหม่แทน แล้วระบบจะ auto-save ทับให้ถูกต้อง (self-heal)
-  // หมายเหตุ: visit พิเศษ (i >= nStd) overlay ตามปกติ, การแก้มือในกรอบ ≤40 วัน ยังคงอยู่
+  // Overlay วันนัดจาก backend (Supabase: tb_visits เป็นแหล่งความจริง)
+  // เลิกใช้ guard 40 วัน (มรดกยุค Sheets): ตอนนี้ standard/custom แยก row + key ด้วย visit_num
+  // การรั่วข้าม slot เกิดไม่ได้แล้ว guard เดิมจึงแค่เดาทับค่าจริง → วันนัดที่ user แก้เด้งกลับ
   if (S._savedVisitDates?.length) {
-    const DAY = 86400000;
-    const nStd = stdSched.length;
     S._savedVisitDates.forEach((d, i) => {
       if (!d || i >= S.visitDates.length) return;
-      if (i < nStd && stdDates[i]) {
-        // ── dirty flag: ถ้า user แก้วันนัดนี้เอง → ห้าม guard เด้งกลับ (แก้ตั้งใจ ไม่ใช่ข้อมูลเพี้ยน) ──
-        const vnum     = stdSched[i] && stdSched[i].num;
-        const isEdited = S._editedVisits && S._editedVisits[vnum];
-        if (!isEdited) {
-          const off = Math.abs((new Date(d+'T00:00:00') - new Date(stdDates[i]+'T00:00:00')) / DAY);
-          if (off > 40) return; // วันที่เพี้ยน (ไม่ได้แก้มือ) → คงวันที่คำนวณ
-        }
-      }
       S.visitDates[i] = d;
     });
   }
@@ -2600,7 +2571,6 @@ async function saveVisitDatesToSheets() {
       patient_id:          S.selectedPatient,
       visit_dates_json:    JSON.stringify(S.visitDates),
       custom_visits_json:  JSON.stringify(customVisits),
-      edited_visits_json:  JSON.stringify(Object.keys(S._editedVisits || {})),
     });
   } catch(e) { /* silent fail */ }
 }
@@ -2613,7 +2583,6 @@ async function saveDatesOnlyToSheets() {
     await api('savePatient', {
       patient_id:       S.selectedPatient,
       visit_dates_json: JSON.stringify(S.visitDates),
-      edited_visits_json: JSON.stringify(Object.keys(S._editedVisits || {})),
     });
   } catch(e) { /* silent fail */ }
 }
@@ -6030,7 +5999,6 @@ function goToVisitNote(patientId) {
   S.visitDates = [];
   S.visitSched = [];
   S._savedVisitDates    = null;
-  S._editedVisits       = null;
   S._pendingCustomVisits = null;
   // Set start-date display + hidden value (ใช้ restart_date ถ้ามี = เริ่มนับใหม่หลังขาดยา)
   setStartDateDisplay(schedBaseDate(p));
@@ -6055,12 +6023,6 @@ function goToVisitNote(patientId) {
             S.visitDates = saved;
             S._savedVisitDates = saved; // persist across buildSchedule calls
           }
-        }
-        if (pt?.edited_visits_json) {
-          try {
-            const ev = JSON.parse(pt.edited_visits_json);
-            if (Array.isArray(ev)) { S._editedVisits = {}; ev.forEach(n => S._editedVisits[n] = true); }
-          } catch(e) {}
         }
         if (pt?.custom_visits_json) {
           try {
@@ -9060,4 +9022,75 @@ function openEditPatientModal(patientId) {
     </div>
     <div class="fg">
       <label>eGFR <span style="font-weight:400;color:var(--tx3)">(ถ้ามี)</span></label>
-      <input type="number" id="ep-egfr" value="${p.egfr||''}" pl
+      <input type="number" id="ep-egfr" value="${p.egfr||''}" placeholder="mL/min">
+    </div>
+    <div class="fg">
+      <label>HIV status</label>
+      <select id="ep-hiv">
+        <option value="" ${!p.hiv_status?'selected':''}>— ไม่ระบุ —</option>
+        <option value="negative" ${p.hiv_status==='negative'?'selected':''}>Negative</option>
+        <option value="positive" ${p.hiv_status==='positive'?'selected':''}>Positive</option>
+      </select>
+    </div>
+
+    <div class="row mt16" style="gap:8px">
+      <button class="btn btn-out" style="flex:1" onclick="closeModal()">ยกเลิก</button>
+      <button class="btn btn-g" style="flex:1" onclick="submitEditPatient('${patientId}')">บันทึก</button>
+    </div>
+  `);
+
+  // toggle other field
+  setTimeout(() => {
+    const sel = document.getElementById('ep-site');
+    if (sel) sel.addEventListener('change', () => {
+      const wrap = document.getElementById('ep-site-other-wrap');
+      if (wrap) wrap.style.display = sel.value === 'other' ? 'block' : 'none';
+    });
+  }, 50);
+}
+
+async function submitEditPatient(patientId) {
+  const p = S.patients.find(x => x.patient_id === patientId);
+  if (!p) return;
+
+  const name    = document.getElementById('ep-name')?.value.trim();
+  const hn      = document.getElementById('ep-hn')?.value.trim();
+  const age     = document.getElementById('ep-age')?.value;
+  const sex     = document.getElementById('ep-sex')?.value;
+  const wt      = document.getElementById('ep-wt')?.value;
+  const siteRaw = document.getElementById('ep-site')?.value;
+  const siteOther = document.getElementById('ep-site-other')?.value.trim();
+  const tb_site = siteRaw === 'other' ? (siteOther||'other') : siteRaw;
+  const startRaw = document.getElementById('ep-start')?.value;
+  const egfr    = document.getElementById('ep-egfr')?.value;
+  const hiv     = document.getElementById('ep-hiv')?.value;
+
+  if (!name) { toast('❌ กรอกชื่อก่อน'); return; }
+
+  const start = parseDateTH(startRaw) || p.start_date;
+
+  const updates = { patient_id:patientId, name, hn, age, sex,
+    weight_kg:wt, tb_site, start_date:start, egfr, hiv_status:hiv };
+
+  // update local
+  Object.assign(p, updates);
+
+  const btn = document.querySelector('#modal-content .btn-g:last-child');
+  if (btn) { btn.textContent = '⏳ กำลังบันทึก...'; btn.disabled = true; }
+
+  try {
+    if (APPS_SCRIPT_URL && !APPS_SCRIPT_URL.includes('YOUR_APPS')) {
+      await api('savePatient', updates);
+      await api('savePatient', updates);
+      toast('✅ บันทึกข้อมูลแล้ว');
+    } else {
+      toast('💾 บันทึกแล้ว (local)');
+    }
+    closeModal();
+    await buildPatientCard(patientId);
+  } catch(e) {
+    toast('❌ บันทึกไม่สำเร็จ: ' + e.message);
+    if (btn) { btn.textContent = 'บันทึก'; btn.disabled = false; }
+  }
+}
+</script>
