@@ -376,8 +376,8 @@ body{
       <div class="hero-name">pharmacy<br>tools</div>
     </div>
     <div class="hero-stats">
-      <div class="stat accent"><div class="stat-n">10</div><div class="stat-l">Live Apps</div></div>
-      <div class="stat"><div class="stat-n">5</div><div class="stat-l">Open Access</div></div>
+      <div class="stat accent"><div class="stat-n">11</div><div class="stat-l">Live Apps</div></div>
+      <div class="stat"><div class="stat-n">6</div><div class="stat-l">Open Access</div></div>
       <div class="stat"><div class="stat-n" id="clk" style="font-family:'Google Sans',sans-serif;">--:--</div><div class="stat-l">เวลาปัจจุบัน</div></div>
     </div>
   </div>
@@ -444,6 +444,14 @@ body{
       <div class="cname">Shift Swap Form</div>
       <div class="cdesc">สร้างใบแลกเปลี่ยนเวรอัตโนมัติ อัปโหลดตารางเวร Excel 2 ไฟล์ ระบบ diff และ auto-fill ใบพิมพ์ A4</div>
       <div class="cfoot"><span class="cclicks"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg><span id="v-shiftswap">—</span> views</span><div class="carr"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg></div></div>
+    </a>
+    <a class="card" href="date-counter-demo.html" data-cat="open clinical">
+      <div class="cnum">06</div>
+      <div class="cico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/><path d="M9 15l2 2 4-4"/></svg></div>
+      <span class="ctag">Pharmacy · TB &amp; Melioidosis</span>
+      <div class="cname">Date Counter</div>
+      <div class="cdesc">คำนวณวันนัด TB (ทุกศุกร์) และ Melioidosis (oral + ปรับยาตาม GFR) พร้อม note คัดลอกลง HosXP</div>
+      <div class="cfoot"><span class="cclicks"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg><span id="v-datecounter">—</span> views</span><div class="carr"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg></div></div>
     </a>
   </div>
 
@@ -572,7 +580,7 @@ const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxTtFx4xqqYE-qUULiIo
 
 function showClicks(d){
   if(d.ok){
-    const ids=['iv','narcotic','mederr','emergency','ermedcart','tbpharm','shiftswap','largeprint','medrecon','amikacin'];
+    const ids=['iv','narcotic','mederr','emergency','ermedcart','tbpharm','shiftswap','largeprint','medrecon','amikacin','datecounter'];
     ids.forEach(app=>{
       const el=document.getElementById('v-'+app);
       if(el) el.textContent=(d[app]||0).toLocaleString();
@@ -601,6 +609,7 @@ document.querySelector('[href="large-print-label.html"]')?.addEventListener('cli
 document.querySelector('[href="med_reconciliation.html"]')?.addEventListener('click',()=>recordClick('medrecon'));
 document.querySelector('[href="had_round_app.html"]')?.addEventListener('click',()=>recordClick('hadround'));
 document.querySelector('[href="amikacin_calendar.html"]')?.addEventListener('click',()=>recordClick('amikacin'));
+document.querySelector('[href="date-counter-demo.html"]')?.addEventListener('click',()=>recordClick('datecounter'));
 
 loadClicks();
 
