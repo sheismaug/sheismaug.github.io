@@ -1,0 +1,333 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Date Counter — sheisphere</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Google+Sans:wght@400;500;700&family=Noto+Sans+Thai:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+  :root{--ink:#0D0D0D;--yellow:#F5C800;--gray:#888;--faint:#bbb;--line:#F0F0F0;--soft:#F5F5F5;}
+  body{font-family:'Google Sans','Noto Sans Thai',sans-serif;background:#fff;color:var(--ink);min-height:100vh}
+  .wrap{max-width:660px;margin:0 auto;padding:0 20px}
+
+  /* topbar */
+  .topbar{background:var(--ink);padding:13px 20px;display:flex;align-items:center;justify-content:space-between}
+  .topbar-in{max-width:660px;margin:0 auto;width:100%;display:flex;align-items:center;justify-content:space-between}
+  .logo{font-family:'Google Sans','Noto Sans Thai',sans-serif;font-size:18px;font-weight:700;color:#fff;letter-spacing:-.03em;
+        display:inline-flex;align-items:baseline;line-height:1;text-decoration:none}
+  .logo-dot{display:inline-block;width:.42em;height:.42em;border-radius:50%;background:#fff;position:relative;top:-.06em}
+  .logo-dot::after{content:'';position:absolute;bottom:-.28em;left:50%;transform:translateX(-50%);width:100%;height:2.5px;background:var(--yellow);border-radius:1px}
+  .back{font-size:11px;color:rgba(255,255,255,.4);letter-spacing:.08em;text-transform:uppercase;text-decoration:none}
+  .back:hover{color:rgba(255,255,255,.75)}
+
+  /* hero */
+  .hero{padding:34px 0 22px}
+  .hero-row{display:flex;align-items:center;justify-content:space-between;gap:18px;flex-wrap:wrap}
+  .hero-art{width:120px;flex:0 0 auto}
+  .hero-art svg{width:100%;height:auto;display:block}
+  .eyebrow{font-size:10px;font-weight:700;letter-spacing:.18em;text-transform:uppercase;color:var(--faint);margin-bottom:10px}
+  h1{font-family:'Google Sans','Noto Sans Thai',sans-serif;font-size:clamp(38px,9vw,56px);font-weight:700;line-height:.92;letter-spacing:-.03em}
+  .lede{font-size:13.5px;color:var(--gray);margin-top:12px}
+
+  /* tabs */
+  .tab-nav{display:flex;gap:8px;padding:14px 0;border-bottom:1px solid var(--line)}
+  .tab-btn{padding:9px 20px;font-size:13px;font-weight:600;color:var(--gray);cursor:pointer;border-radius:10px;
+           border:1.5px solid #E5E5E5;background:#fff;transition:all .15s;user-select:none}
+  .tab-btn:hover{border-color:#ccc;color:#333}
+  .tab-btn.active{background:var(--ink);border-color:var(--ink);color:var(--yellow)}
+
+  /* panel */
+  .pane{display:none}.pane.active{display:block}
+  .panel{border:2px solid var(--ink);border-radius:20px;padding:24px;margin-top:22px}
+  .phead{display:flex;align-items:center;gap:13px;margin-bottom:20px}
+  .phead .cico{width:40px;height:40px;border-radius:11px;background:var(--soft);color:var(--ink);
+               display:flex;align-items:center;justify-content:center;flex:0 0 auto}
+  .phead .cico svg{width:21px;height:21px}
+  .phead-txt{display:flex;flex-direction:column;line-height:1.15}
+  .phead .cnum{font-size:10px;font-weight:700;color:var(--faint);letter-spacing:.14em;margin-bottom:2px}
+  .phead h2{font-family:'Google Sans','Noto Sans Thai',sans-serif;font-size:18px;font-weight:700;letter-spacing:-.01em}
+  .phead .tag{font-size:9px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:#92400e;
+              background:#fef3c7;padding:4px 10px;border-radius:99px;margin-left:auto}
+
+  label{display:block;font-size:11px;font-weight:600;letter-spacing:.05em;color:var(--gray);margin-bottom:6px}
+  input,select{width:100%;padding:12px 13px;border:1.5px solid #E5E5E5;border-radius:11px;
+        font-family:'Google Sans','Noto Sans Thai',sans-serif;font-size:14px;background:#fff;color:var(--ink);transition:.15s}
+  input:focus,select:focus{outline:none;border-color:var(--ink)}
+  .row{display:flex;gap:14px;flex-wrap:wrap}
+  .row>div{flex:1;min-width:130px;margin-bottom:14px}
+
+  .btn{width:100%;padding:14px;background:var(--ink);color:var(--yellow);border:2px solid var(--ink);border-radius:12px;
+       font-family:'Google Sans',sans-serif;font-size:13px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;
+       cursor:pointer;margin-top:6px;transition:.15s}
+  .btn:hover{background:var(--yellow);color:var(--ink)}
+
+  .out{border:2px solid var(--ink);border-radius:14px;padding:18px 16px 16px;margin-top:20px;background:#fff;
+       font-family:ui-monospace,'SFMono-Regular','Menlo',monospace;font-size:13px;line-height:1.8;
+       color:var(--ink);white-space:pre-wrap;position:relative}
+  .copy{position:absolute;top:12px;right:12px;background:var(--ink);color:var(--yellow);border:none;border-radius:8px;
+        font-family:'Google Sans',sans-serif;font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;
+        cursor:pointer;padding:6px 11px}
+  .copy.done{background:var(--yellow);color:var(--ink)}
+
+  table{width:100%;border-collapse:collapse;margin-top:18px;font-size:13px}
+  th,td{text-align:left;padding:10px 6px;border-bottom:1px solid var(--line)}
+  th{color:var(--faint);font-weight:700;font-size:9.5px;letter-spacing:.12em;text-transform:uppercase}
+  tr:last-child td{border-bottom:none}
+  td:first-child{color:var(--gray)}
+
+  .warn{background:#fef3c7;border-radius:11px;padding:13px 15px;font-size:12.5px;color:#92400e;margin-top:18px;line-height:1.6}
+  .hide{display:none}
+
+  /* footer */
+  .foot-bar{background:var(--ink);padding:18px 20px;margin-top:40px}
+  .foot-in{max-width:660px;margin:0 auto;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px}
+  .flogo{font-family:'Google Sans','Noto Sans Thai',sans-serif;font-size:15px;font-weight:700;color:#fff;letter-spacing:-.03em;display:inline-flex;align-items:baseline;line-height:1}
+  .fright{font-size:10px;color:rgba(255,255,255,.3);letter-spacing:.06em}
+  @media(max-width:600px){h1{font-size:44px}}
+</style>
+</head>
+<body>
+
+<div class="topbar"><div class="topbar-in">
+  <a class="logo" href="index.html">sheis<span class="logo-dot"></span><span>p</span>here</a>
+  <a class="back" href="index.html">← กลับหน้าแรก</a>
+</div></div>
+
+<div class="wrap">
+  <div class="hero">
+    <div class="hero-row">
+      <div>
+        <div class="eyebrow">คลินิกวัณโรค · เมลิออยโดสิส</div>
+        <h1>Date<br>Counter</h1>
+        <p class="lede">คำนวณวันนัดตามสูตร แล้วคัดลอก note ไปวางใน HosXP</p>
+      </div>
+      <div class="hero-art">
+        <svg viewBox="0 0 120 120" fill="none" stroke="#0D0D0D" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M40 10v13M80 10v13"/>
+          <rect x="18" y="22" width="84" height="84" rx="15" fill="#fff"/>
+          <path d="M18 46h84"/>
+          <circle cx="47" cy="34" r="1.8" fill="#0D0D0D" stroke="none"/>
+          <circle cx="73" cy="34" r="1.8" fill="#0D0D0D" stroke="none"/>
+          <path d="M53 38q7 5 14 0" stroke-width="2.8"/>
+          <circle cx="46" cy="72" r="12" fill="#F5C800" stroke="none"/>
+          <path d="M40.5 72l4 4 7-8" stroke="#0D0D0D" stroke-width="3.2"/>
+          <circle cx="75" cy="70" r="2.2" fill="#0D0D0D" stroke="none"/>
+          <circle cx="46" cy="93" r="2.2" fill="#0D0D0D" stroke="none"/>
+          <circle cx="75" cy="93" r="2.2" fill="#0D0D0D" stroke="none"/>
+        </svg>
+      </div>
+    </div>
+  </div>
+
+  <div class="tab-nav">
+    <div class="tab-btn active" onclick="showTab('tb',this)">วัณโรค (TB)</div>
+    <div class="tab-btn" onclick="showTab('melio',this)">Melioidosis</div>
+  </div>
+
+  <!-- ================= TB ================= -->
+  <div id="tb" class="pane active">
+    <div class="panel">
+      <div class="phead">
+        <div class="cico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4v7"/><path d="M12 9c-1.2-2.4-3.4-2-3.4 1.2 0 0-2.1.2-2.1 4.3 0 3 .9 5.5 2.8 5.5 1.7 0 2.7-1.1 2.7-3.4z"/><path d="M12 9c1.2-2.4 3.4-2 3.4 1.2 0 0 2.1.2 2.1 4.3 0 3-.9 5.5-2.8 5.5-1.7 0-2.7-1.1-2.7-3.4z"/></svg></div>
+        <div class="phead-txt"><span class="cnum">01</span><h2>ข้อมูลผู้ป่วย</h2></div>
+      </div>
+      <div style="margin-bottom:14px">
+        <label>บรรทัดวินิจฉัย</label>
+        <input id="tbDx" value="pul TB (M+)">
+      </div>
+      <div class="row">
+        <div>
+          <label>สูตรยา</label>
+          <select id="tbReg">
+            <option value="2,4">2HRZE / 4HR &nbsp;(6 เดือน)</option>
+            <option value="2,7" selected>2HRE / 7HR &nbsp;(9 เดือน)</option>
+            <option value="2,10">2HEZL / 10HEL &nbsp;(12 เดือน)</option>
+          </select>
+        </div>
+        <div>
+          <label>วันเริ่มยา · dd/mm/yyyy</label>
+          <input type="text" id="tbStart" class="dmy" inputmode="numeric" maxlength="10" placeholder="dd/mm/yyyy">
+        </div>
+      </div>
+      <button class="btn" onclick="calcTB()">คำนวณ</button>
+      <div id="tbNoteWrap"></div>
+      <div id="tbTableWrap"></div>
+    </div>
+  </div>
+
+  <!-- ================= MELIO ================= -->
+  <div id="melio" class="pane">
+    <div class="panel">
+      <div class="phead">
+        <div class="cico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="2.5" y="8.5" width="19" height="7" rx="3.5" transform="rotate(-45 12 12)"/><path d="M9.2 9.2l5.6 5.6"/></svg></div>
+        <div class="phead-txt"><span class="cnum">01</span><h2>วันนัด oral</h2></div>
+      </div>
+      <div class="row">
+        <div>
+          <label>เริ่ม ceftazidime IV · dd/mm/yyyy</label>
+          <input type="text" id="mStart" class="dmy" inputmode="numeric" maxlength="10" placeholder="dd/mm/yyyy">
+        </div>
+        <div>
+          <label>IV (วัน)</label>
+          <input type="number" id="mIV" value="14">
+        </div>
+        <div>
+          <label>Oral (สัปดาห์)</label>
+          <input type="number" id="mWk" value="20">
+        </div>
+      </div>
+      <button class="btn" onclick="calcMelio()">คำนวณ</button>
+      <div id="mNoteWrap"></div>
+    </div>
+
+    <div class="panel">
+      <div class="phead">
+        <div class="cico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3.5s6.5 7 6.5 11.5a6.5 6.5 0 01-13 0C5.5 10.5 12 3.5 12 3.5z"/><path d="M9.5 14.5a2.5 2.5 0 002.5 2.5"/></svg></div>
+        <div class="phead-txt"><span class="cnum">02</span><h2>ปรับขนาดยาตาม GFR</h2></div>
+        <span class="tag">dose melioidosis</span>
+      </div>
+      <div class="row">
+        <div>
+          <label>น้ำหนัก (kg)</label>
+          <input type="number" id="mWt" value="60">
+        </div>
+        <div>
+          <label>eGFR / CrCl (mL/min)</label>
+          <input type="number" id="mGfr" value="70">
+        </div>
+      </div>
+      <button class="btn" onclick="calcDose()">แนะนำขนาดยา</button>
+      <div id="doseWrap"></div>
+      <div class="warn">ตารางนี้เป็นค่าตั้งต้น demo อ้างอิงแนวทางทั่วไป (Darwin/UpToDate) — เภสัชกรต้องตรวจสอบและปรับตาม guideline รพ. ก่อนใช้จริงเสมอ ไม่ใช่คำสั่งใช้ยา</div>
+    </div>
+  </div>
+</div>
+
+<div class="foot-bar"><div class="foot-in">
+  <div class="flogo">sheis<span class="logo-dot"></span><span>p</span>here</div>
+  <div class="fright">pharmacy digital tools · © 2026</div>
+</div></div>
+
+<script>
+function addDays(d,n){const r=new Date(d);r.setDate(r.getDate()+n);return r;}
+function fmtTH(d){return d.getDate()+'/'+(d.getMonth()+1)+'/'+String((d.getFullYear()+543)%100).padStart(2,'0');}
+function snapFriday(d){return addDays(d,(5-d.getDay()+7)%7);}
+function snapWeekdayFwd(d){const wd=d.getDay();if(wd===6)return addDays(d,2);if(wd===0)return addDays(d,1);return new Date(d);}
+function today(){const t=new Date();return String(t.getDate()).padStart(2,'0')+'/'+String(t.getMonth()+1).padStart(2,'0')+'/'+t.getFullYear();}
+function parseDate(v){
+  const m=(v||'').trim().match(/^(\d{1,2})\/(\d{1,2})\/(\d{3,4})$/);
+  if(!m)return null;
+  let d=+m[1],mo=+m[2],y=+m[3];
+  if(y>2400)y-=543;
+  const dt=new Date(y,mo-1,d);
+  if(dt.getDate()!==d||dt.getMonth()!==mo-1)return null;
+  return dt;
+}
+
+document.addEventListener('input',function(e){
+  if(!e.target.classList.contains('dmy'))return;
+  let v=e.target.value.replace(/\D/g,'').slice(0,8);
+  if(v.length>4)v=v.slice(0,2)+'/'+v.slice(2,4)+'/'+v.slice(4);
+  else if(v.length>2)v=v.slice(0,2)+'/'+v.slice(2);
+  e.target.value=v;
+});
+
+function showTab(id,el){
+  document.getElementById('tb').classList.toggle('active',id==='tb');
+  document.getElementById('melio').classList.toggle('active',id==='melio');
+  document.querySelectorAll('.tab-btn').forEach(t=>t.classList.remove('active'));
+  el.classList.add('active');
+}
+
+function esc(s){return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+function noteBlock(text){
+  return '<div class="out" data-note="'+esc(text).replace(/"/g,'&quot;')+'"><button class="copy">คัดลอก</button>'+esc(text)+'</div>';
+}
+document.addEventListener('click',function(e){
+  const btn=e.target.closest('.copy'); if(!btn)return;
+  const box=btn.parentElement;
+  navigator.clipboard.writeText(box.getAttribute('data-note'));
+  btn.textContent='คัดลอกแล้ว';
+  btn.classList.add('done');
+  setTimeout(function(){btn.textContent='คัดลอก';btn.classList.remove('done');},1500);
+});
+
+function calcTB(){
+  const dx=document.getElementById('tbDx').value.trim();
+  const parts=document.getElementById('tbReg').value.split(',').map(Number);
+  const intM=parts[0], contM=parts[1], total=intM+contM;
+  const regTxt=document.getElementById('tbReg').selectedOptions[0].text.split('(')[0].trim();
+  const start=parseDate(document.getElementById('tbStart').value);
+  if(!start){alert('กรุณากรอกวันเริ่มยาให้ครบ dd/mm/yyyy');return;}
+
+  const endInt=snapFriday(addDays(start,28*intM));
+  const endTot=snapFriday(addDays(start,28*total));
+
+  let rows='', listLines='';
+  for(let m=1;m<=total;m++){
+    const d=snapFriday(addDays(start,28*m));
+    const phase=m<=intM?'intensive':'continuation';
+    rows+='<tr><td>เดือน '+m+'</td><td>ศ '+fmtTH(d)+'</td><td style="color:var(--gray)">'+phase+'</td></tr>';
+    listLines+='\nเดือน '+m+'  ศ '+fmtTH(d)+'  ('+phase+')';
+  }
+
+  const note=dx+'\n'+regTxt+'\nstart '+fmtTH(start)+' -> ครบ '+intM+' mo~'+fmtTH(endInt)+'\nครบ '+total+' mo~'+fmtTH(endTot)+'\n--- นัดทุกศุกร์ ---'+listLines;
+  document.getElementById('tbNoteWrap').innerHTML=noteBlock(note);
+  document.getElementById('tbTableWrap').innerHTML=
+    '<table><tr><th>นัด</th><th>วันที่ (ทุกศุกร์)</th><th>ระยะ</th></tr>'+rows+'</table>';
+}
+
+function calcMelio(){
+  const start=parseDate(document.getElementById('mStart').value);
+  if(!start){alert('กรุณากรอกวันเริ่ม ceftazidime ให้ครบ dd/mm/yyyy');return;}
+  const iv=+document.getElementById('mIV').value;
+  const wk=+document.getElementById('mWk').value;
+  const oral=snapWeekdayFwd(addDays(start,iv));
+  const end=snapWeekdayFwd(addDays(oral,wk*7));
+  const note='Melioidosis\nceftazidime IV x '+iv+' d\nstart '+fmtTH(start)+' -> oral '+fmtTH(oral)+'\noral (bactrim/augmentin) x '+wk+' wk\nครบ ~'+fmtTH(end);
+  document.getElementById('mNoteWrap').innerHTML=noteBlock(note);
+}
+
+function calcDose(){
+  const wt=+document.getElementById('mWt').value;
+  const g=+document.getElementById('mGfr').value;
+
+  let cef;
+  if(g>50)cef='2 g IV q8–12h';
+  else if(g>=10)cef='2 g IV q12–24h';
+  else cef='2 g IV q24–48h';
+
+  let base = wt<40?'160/800 mg':(wt<=60?'240/1200 mg':'320/1600 mg');
+  let smx;
+  if(g>30)smx=base+' PO q12h';
+  else if(g>=15)smx=base+' PO q24h (ลด 50% / q24h)';
+  else smx='ไม่แนะนำ — ใช้ยาทางเลือก';
+
+  // co-amoxiclav — force เม็ด 875/125 ของ รพ. (ตัวหนักพิจารณา 2 เม็ด/มื้อ)
+  const augTab = wt<60?'875/125 mg':'875/125 mg x2';
+  let aug;
+  if(g>30)aug=augTab+' PO q8h (TID)';
+  else if(g>=10)aug=augTab+' PO q12h (ไตแย่: ยืด interval)';
+  else aug=augTab+' PO q24h หรือสลับ doxycycline';
+
+  const doxy='100 mg PO q12h — ไม่ปรับตามไต (เลี่ยงตั้งครรภ์/เด็ก<8)';
+
+  document.getElementById('doseWrap').innerHTML=
+   '<table>'+
+     '<tr><th>ยา</th><th>ขนาดแนะนำ</th></tr>'+
+     '<tr><td>Ceftazidime <span style="color:var(--gray)">(IV intensive)</span></td><td>'+cef+'</td></tr>'+
+     '<tr><td>Co-trimoxazole <span style="color:var(--gray)">(oral erad.)</span></td><td>'+smx+'</td></tr>'+
+     '<tr><td>Co-amoxiclav <span style="color:var(--gray)">(oral alt.)</span></td><td>'+aug+'</td></tr>'+
+     '<tr><td>Doxycycline <span style="color:var(--gray)">(sulfa-intol.)</span></td><td>'+doxy+'</td></tr>'+
+    '</table>'+
+    '<div class="warn" style="margin-top:12px">ใช้เม็ด 875/125 ตามที่ รพ. มี — clavulanate 125 mg/มื้อ ต่ำกว่าเป้า guideline (250–375 mg, อัตราส่วน 4:1) ผู้ป่วยตัวใหญ่พิจารณา 2 เม็ด/มื้อ</div>';
+}
+
+document.getElementById('tbStart').value=today();
+document.getElementById('mStart').value=today();
+</script>
+</body>
+</html>
