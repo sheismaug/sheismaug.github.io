@@ -2205,7 +2205,7 @@ function vrDateFromPicker(idx, isoVal) {
   renderDispense();
   renderTimeline();
   renderIPAlert();
-  if (S.selectedPatient) { const _isC = S.visitSched[idx] && S.visitSched[idx].isCustom; debounce('saveVD', () => _isC ? saveVisitDatesToSheets() : saveDatesOnlyToSheets(), 1000); }
+  if (S.selectedPatient) debounce('saveVD', () => saveDatesOnlyToSheets(), 1000);
 }
 
 function setVisitDate(idx, input) {
@@ -2224,7 +2224,7 @@ function setVisitDate(idx, input) {
     renderDispense();
     renderTimeline();
     renderIPAlert();
-    if (S.selectedPatient) { const _isC = S.visitSched[idx] && S.visitSched[idx].isCustom; debounce('saveVD', () => _isC ? saveVisitDatesToSheets() : saveDatesOnlyToSheets(), 1000); }
+    if (S.selectedPatient) debounce('saveVD', () => saveDatesOnlyToSheets(), 1000);
   }
 }
 
@@ -2530,12 +2530,20 @@ function buildSchedule() {
   S.visitSched  = [...stdSched, ...customVisits];
   S.visitDates  = [...stdDates, ...customDates];
 
-  // Overlay วันนัดจาก backend (Supabase: tb_visits เป็นแหล่งความจริง)
-  // เลิกใช้ guard 40 วัน (มรดกยุค Sheets): ตอนนี้ standard/custom แยก row + key ด้วย visit_num
-  // การรั่วข้าม slot เกิดไม่ได้แล้ว guard เดิมจึงแค่เดาทับค่าจริง → วันนัดที่ user แก้เด้งกลับ
+  // Overlay saved dates from Sheets (user-edited dates persist over calculated ones)
+  // Corruption guard: สำหรับ visit มาตรฐาน ถ้าวันที่ที่ save ไว้ห่างจากวันที่คำนวณ >40 วัน
+  // ถือว่าเป็นข้อมูลเพี้ยน (เช่น วันของ visit พิเศษ รั่วมาทับ slot มาตรฐาน) → ไม่ overlay
+  // ใช้วันที่คำนวณใหม่แทน แล้วระบบจะ auto-save ทับให้ถูกต้อง (self-heal)
+  // หมายเหตุ: visit พิเศษ (i >= nStd) overlay ตามปกติ, การแก้มือในกรอบ ≤40 วัน ยังคงอยู่
   if (S._savedVisitDates?.length) {
+    const DAY = 86400000;
+    const nStd = stdSched.length;
     S._savedVisitDates.forEach((d, i) => {
       if (!d || i >= S.visitDates.length) return;
+      if (i < nStd && stdDates[i]) {
+        const off = Math.abs((new Date(d+'T00:00:00') - new Date(stdDates[i]+'T00:00:00')) / DAY);
+        if (off > 40) return; // วันที่เพี้ยน → คงวันที่คำนวณ
+      }
       S.visitDates[i] = d;
     });
   }
@@ -2567,25 +2575,22 @@ async function saveVisitDatesToSheets() {
         mon:   v.mon   || {},
       } : null)
       .filter(Boolean);
-    // vd = เฉพาะ std (slice ตัด custom tail) กัน absorb สร้าง phantom row is_custom=false
-    const _nStd = S.visitSched.filter(v => !v.isCustom).length;
     await api('savePatient', {
       patient_id:          S.selectedPatient,
-      visit_dates_json:    JSON.stringify(S.visitDates.slice(0, _nStd)),
+      visit_dates_json:    JSON.stringify(S.visitDates),
       custom_visits_json:  JSON.stringify(customVisits),
     });
   } catch(e) { /* silent fail */ }
 }
 
-// save เฉพาะ visit_dates_json มาตรฐาน (ไม่แตะ custom_visits_json)
-// ใช้ตอนแก้วันนัด std / buildSchedule rebuild เพื่อไม่ให้ทับ custom visits
+// save เฉพาะ visit_dates_json (ไม่แตะ custom_visits_json)
+// ใช้ตอน buildSchedule rebuild เพื่อไม่ให้ทับ custom visits
 async function saveDatesOnlyToSheets() {
   if (!S.selectedPatient || !APPS_SCRIPT_URL || APPS_SCRIPT_URL.includes('YOUR_APPS')) return;
   try {
-    const _nStd = S.visitSched.filter(v => !v.isCustom).length;
     await api('savePatient', {
       patient_id:       S.selectedPatient,
-      visit_dates_json: JSON.stringify(S.visitDates.slice(0, _nStd)),
+      visit_dates_json: JSON.stringify(S.visitDates),
     });
   } catch(e) { /* silent fail */ }
 }
@@ -5480,7 +5485,7 @@ function renderPatients(filter='all', search='') {
         <div class="pt-av" style="width:38px;height:38px;font-size:13px;flex-shrink:0;${avBg}">${av}</div>
         <div style="flex:1;min-width:0">
           <div style="font-size:13px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${p.name} — HN ${p.hn} ${hivBadge}</div>
-          <div class="da" style="margin-top:2px">${p.sex==='M'?'♂':'♀'} ${p.age}ปี · ${p.weight_kg}กก. · ${p.regimen_label}</div>
+          <div class="da" style="margin-top:2px">${p.sex==='M'?'♂':'♀'} ${p.age}ปี · ${p.weight_kg}กก. · ${p.regimen_label || lookupReg(p)?.label || p.regimen_code || '—'}</div>
         </div>
         <div style="text-align:right;flex-shrink:0">
           <span class="pill ${m.cls}" style="font-size:11px">${m.lbl}</span>
@@ -5495,7 +5500,7 @@ function renderPatients(filter='all', search='') {
       <div style="flex:1;min-width:0;display:flex;align-items:center;gap:8px;overflow:hidden">
         <span style="font-size:13px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:240px">${p.name}</span>
         <span style="font-size:11px;color:var(--tx3);white-space:nowrap;flex-shrink:0">HN ${p.hn}</span>
-        <span style="font-size:11px;color:var(--tx3);white-space:nowrap;flex-shrink:0">${p.regimen_label}</span>
+        <span style="font-size:11px;color:var(--tx3);white-space:nowrap;flex-shrink:0">${p.regimen_label || lookupReg(p)?.label || p.regimen_code || '—'}</span>
         ${hivBadge}
       </div>
       <div style="display:flex;align-items:center;gap:6px;flex-shrink:0">
@@ -6348,8 +6353,16 @@ async function submitAddPt() {
       hiv_status:       document.getElementById('np-hiv')?.value || '',
       start_date:       start,
     });
-    toast('ลงทะเบียนแล้ว');
-  } catch(e) { toast('Demo: บันทึกแล้ว (ยังไม่มี backend)'); }
+    toast('✅ ลงทะเบียนแล้ว');
+    // โหลดรายชื่อใหม่ทันที ให้คนไข้ใหม่โผล่ใน list เลย
+    try {
+      const d = await api('getPatients', {});
+      if (d?.length) S.patients = d;
+      renderPatients(gcv('chips-ptf') || 'all', S._ptSearch || '');
+      populatePatientSelects();
+      updateDashboardStats();
+    } catch (_e) {}
+  } catch(e) { toast('❌ บันทึกไม่สำเร็จ: ' + (e.message || e), 7000); }
 }
 
 /* ─── DASHBOARD STATS ────────────────────── */
@@ -7124,6 +7137,9 @@ function parseDateTH(ddmmyyyy) {
   let y = parseInt(parts[2]);
   if (!d || !m || !y || d.length < 2 || m.length < 2 || parts[2].length < 4) return null;
   if (y > 2400) y = y - 543; // พ.ศ. → ค.ศ.
+  // กันวันที่ไม่มีจริง เช่น 32/07 หรือ 31/06 (DB จะ reject แล้วบันทึกไม่เข้า)
+  const chk = new Date(`${y}-${m}-${d}T00:00:00`);
+  if (isNaN(chk) || chk.getDate() !== parseInt(d) || (chk.getMonth() + 1) !== parseInt(m)) return null;
   return `${y}-${m}-${d}`;
 }
 
@@ -8517,7 +8533,7 @@ async function buildPatientCard(patientId) {
 
       <!-- Progress bar -->
       <div style="font-size:12px;font-weight:600;color:var(--tx2);margin-bottom:5px">
-        ${p.regimen_label} &nbsp;·&nbsp; เริ่ม ${p.start_date ? fmtD(p.start_date) : '—'} &nbsp;·&nbsp; ครบ ${endDate ? fmtD(endDate.toISOString().slice(0,10)) : '—'}
+        ${p.regimen_label || lookupReg(p)?.label || p.regimen_code || '—'} &nbsp;·&nbsp; เริ่ม ${p.start_date ? fmtD(p.start_date) : '—'} &nbsp;·&nbsp; ครบ ${endDate ? fmtD(endDate.toISOString().slice(0,10)) : '—'}
       </div>
       <div style="display:flex;justify-content:space-between;font-size:11px;color:var(--tx3);margin-bottom:4px">
         <span>เริ่มยา</span><span>${pct}% ผ่านไปแล้ว</span><span>ครบรักษา</span>
@@ -8659,7 +8675,7 @@ async function buildPatientCard(patientId) {
         <div class="ct"><span class="cd"></span>ข้อมูลทั่วไป</div>
         <table class="tbl" style="font-size:13px">
           <tbody>
-            <tr><td style="color:var(--tx3)">สูตรยา</td><td style="font-weight:600">${p.regimen_label} <button class="btn btn-sm btn-rd" style="font-size:11px;padding:3px 9px;min-height:26px;margin-left:4px" onclick="openChangeRegimenModal('${p.patient_id}')">เปลี่ยนสูตร</button></td></tr>
+            <tr><td style="color:var(--tx3)">สูตรยา</td><td style="font-weight:600">${p.regimen_label || lookupReg(p)?.label || p.regimen_code || '—'} <button class="btn btn-sm btn-rd" style="font-size:11px;padding:3px 9px;min-height:26px;margin-left:4px" onclick="openChangeRegimenModal('${p.patient_id}')">เปลี่ยนสูตร</button></td></tr>
             <tr><td style="color:var(--tx3)">TB site</td><td>${p.tb_site||'—'}</td></tr>
             <tr><td style="color:var(--tx3)">เพศ / อายุ</td><td>${p.sex==='M'?'ชาย':'หญิง'} · ${p.age} ปี</td></tr>
             <tr><td style="color:var(--tx3)">เริ่มยา</td><td>${p.start_date ? fmtD(p.start_date) : '—'}</td></tr>
@@ -8828,9 +8844,6 @@ async function submitChangeRegimen(patientId) {
 
   if (!newRegCode) { toast('❌ เลือกสูตรใหม่ก่อน'); return; }
   if (!changeDateRaw) { toast('❌ กรอกวันที่เปลี่ยนสูตรก่อน'); return; }
-  // แปลง dd/mm/พ.ศ. → ISO ก่อนส่ง backend (ไม่งั้น Postgres/JS Date พัง "Invalid time value")
-  const changeDateISO = parseDateTH(changeDateRaw);
-  if (!changeDateISO) { toast('❌ วันที่เปลี่ยนสูตรไม่ถูกต้อง (dd/mm/พ.ศ.)'); return; }
 
   const btn = document.getElementById('cr-confirm-btn');
   if (btn) { btn.textContent = '⏳ กำลังดำเนินการ...'; btn.disabled = true; }
@@ -8844,7 +8857,7 @@ async function submitChangeRegimen(patientId) {
       result = await api('changeRegimen', {
         patient_id:       patientId,
         new_regimen_code: newRegCode,
-        change_date:      changeDateISO,
+        change_date:      changeDateRaw,
         reason:           reason,
         adr_drug_suspect: drugSuspect,
         adr_symptoms:     symptoms,
@@ -8859,7 +8872,7 @@ async function submitChangeRegimen(patientId) {
       p.prev_regimen_code     = p.regimen_code;
       p.regimen_code          = newRegCode;
       p.regimen_label         = newLabel;
-      p.regimen_change_date   = changeDateISO;
+      p.regimen_change_date   = changeDateRaw;
       p.regimen_change_reason = reason;
     }
 
@@ -9028,75 +9041,4 @@ function openEditPatientModal(patientId) {
     </div>
     <div class="fg">
       <label>eGFR <span style="font-weight:400;color:var(--tx3)">(ถ้ามี)</span></label>
-      <input type="number" id="ep-egfr" value="${p.egfr||''}" placeholder="mL/min">
-    </div>
-    <div class="fg">
-      <label>HIV status</label>
-      <select id="ep-hiv">
-        <option value="" ${!p.hiv_status?'selected':''}>— ไม่ระบุ —</option>
-        <option value="negative" ${p.hiv_status==='negative'?'selected':''}>Negative</option>
-        <option value="positive" ${p.hiv_status==='positive'?'selected':''}>Positive</option>
-      </select>
-    </div>
-
-    <div class="row mt16" style="gap:8px">
-      <button class="btn btn-out" style="flex:1" onclick="closeModal()">ยกเลิก</button>
-      <button class="btn btn-g" style="flex:1" onclick="submitEditPatient('${patientId}')">บันทึก</button>
-    </div>
-  `);
-
-  // toggle other field
-  setTimeout(() => {
-    const sel = document.getElementById('ep-site');
-    if (sel) sel.addEventListener('change', () => {
-      const wrap = document.getElementById('ep-site-other-wrap');
-      if (wrap) wrap.style.display = sel.value === 'other' ? 'block' : 'none';
-    });
-  }, 50);
-}
-
-async function submitEditPatient(patientId) {
-  const p = S.patients.find(x => x.patient_id === patientId);
-  if (!p) return;
-
-  const name    = document.getElementById('ep-name')?.value.trim();
-  const hn      = document.getElementById('ep-hn')?.value.trim();
-  const age     = document.getElementById('ep-age')?.value;
-  const sex     = document.getElementById('ep-sex')?.value;
-  const wt      = document.getElementById('ep-wt')?.value;
-  const siteRaw = document.getElementById('ep-site')?.value;
-  const siteOther = document.getElementById('ep-site-other')?.value.trim();
-  const tb_site = siteRaw === 'other' ? (siteOther||'other') : siteRaw;
-  const startRaw = document.getElementById('ep-start')?.value;
-  const egfr    = document.getElementById('ep-egfr')?.value;
-  const hiv     = document.getElementById('ep-hiv')?.value;
-
-  if (!name) { toast('❌ กรอกชื่อก่อน'); return; }
-
-  const start = parseDateTH(startRaw) || p.start_date;
-
-  const updates = { patient_id:patientId, name, hn, age, sex,
-    weight_kg:wt, tb_site, start_date:start, egfr, hiv_status:hiv };
-
-  // update local
-  Object.assign(p, updates);
-
-  const btn = document.querySelector('#modal-content .btn-g:last-child');
-  if (btn) { btn.textContent = '⏳ กำลังบันทึก...'; btn.disabled = true; }
-
-  try {
-    if (APPS_SCRIPT_URL && !APPS_SCRIPT_URL.includes('YOUR_APPS')) {
-      await api('savePatient', updates);
-      await api('savePatient', updates);
-      toast('✅ บันทึกข้อมูลแล้ว');
-    } else {
-      toast('💾 บันทึกแล้ว (local)');
-    }
-    closeModal();
-    await buildPatientCard(patientId);
-  } catch(e) {
-    toast('❌ บันทึกไม่สำเร็จ: ' + e.message);
-    if (btn) { btn.textContent = 'บันทึก'; btn.disabled = false; }
-  }
-}
-</script>
+      <input type="number" id="ep-egfr" value="${p.egfr||''}" pl
