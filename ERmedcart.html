@@ -2436,6 +2436,34 @@ input::placeholder, textarea::placeholder { color: var(--hint); }
         <p style="font-size:11px;color:var(--muted);margin-bottom:.6rem;">รวม 3 แหล่ง — ตามรอยรายการที่ยังไม่ได้ข้อยุติ</p>
         <div id="az-miss-table" style="overflow-x:auto;"></div>
       </div>
+
+      <div style="font-size:13px;font-weight:700;margin:1.1rem 0 .6rem;">ภาระงาน
+        <span style="font-size:10px;font-weight:600;background:var(--blue-bg);color:var(--blue);border-radius:999px;padding:2px 9px;margin-left:4px;">ใครทำอะไรบ่อยในช่วงนี้</span>
+      </div>
+
+      <div class="chart-2col">
+        <div class="card" style="margin-bottom:0;">
+          <p style="font-size:13px;font-weight:500;margin-bottom:.6rem;">พยาบาลตรวจรับรถยา (ครั้ง)</p>
+          <div id="az-wl-nurse"></div>
+        </div>
+        <div class="card" style="margin-bottom:0;">
+          <p style="font-size:13px;font-weight:500;margin-bottom:.6rem;">เภสัช/จพ. เช็ครถประจำวัน (ครั้ง)</p>
+          <div id="az-wl-cart"></div>
+        </div>
+      </div>
+
+      <div class="chart-2col" style="margin-top:.75rem;">
+        <div class="card" style="margin-bottom:0;">
+          <p style="font-size:13px;font-weight:500;">เติมยา — RESTOCK (ครั้ง)</p>
+          <p style="font-size:11px;color:var(--muted);margin-bottom:.6rem;">ชี้ที่แท่งเพื่อดูจำนวนจ่าย/นำออกของคนเดียวกัน</p>
+          <div id="az-wl-restock"></div>
+        </div>
+        <div class="card" style="margin-bottom:0;">
+          <p style="font-size:13px;font-weight:500;">บันทึก Med Error (รายการ)</p>
+          <p style="font-size:11px;color:var(--muted);margin-bottom:.6rem;">นับผู้บันทึกรายงาน ไม่ใช่ผู้ก่อ error — ยิ่งบันทึกมาก = วัฒนธรรมรายงานยิ่งดี</p>
+          <div id="az-wl-err"></div>
+        </div>
+      </div>
     </div>
 
 
@@ -8044,7 +8072,7 @@ var renderDashAnalytics = (function () {
       vl.textContent = fmt(it.value);
       svg.appendChild(vl);
       var hit = svgE('rect', { x: 0, y: M.t + i * rowH, width: W, height: rowH, fill: 'transparent' });
-      hit.addEventListener('pointermove', function (ev) { showTT('<div class="t">' + esc(it.label) + '</div>' + ttRow(color, name || '', fmt(it.value)), ev); });
+      hit.addEventListener('pointermove', function (ev) { showTT('<div class="t">' + esc(it.label) + '</div>' + ttRow(color, name || '', fmt(it.value) + (it.extra ? ' · ' + it.extra : '')), ev); });
       hit.addEventListener('pointerleave', hideTT);
       svg.appendChild(hit);
     });
@@ -8229,6 +8257,34 @@ var renderDashAnalytics = (function () {
         }).join('') + '</tbody></table>' +
         (cur.miss.length > 120 ? '<div style="font-size:11px;color:var(--hint);margin-top:6px;">แสดง 120 รายการแรกจาก ' + cur.miss.length + '</div>' : '');
     }
+
+    /* ── ภาระงาน ── */
+    renderWorkload(data, cur);
+  }
+
+  function countBy(rows, keyFn) {
+    var m = {};
+    (rows || []).forEach(function (r) { var k = String(keyFn(r) || '').trim() || '—'; m[k] = (m[k] || 0) + 1; });
+    return Object.keys(m).map(function (k) { return { label: k, value: m[k] }; })
+      .sort(function (a, b) { return b.value - a.value; }).slice(0, 10);
+  }
+  function needDeploy(elId) {
+    document.getElementById(elId).innerHTML = '<div class="az-empty">ต้อง deploy Edge Function เวอร์ชันล่าสุดก่อน จึงจะเห็นข้อมูลนี้</div>';
+  }
+  function renderWorkload(data, cur) {
+    hbars('az-wl-nurse', countBy(data.nurse_checks, function (c) { return c.nurse_name; }), '#2a78d6', 'ตรวจรับ');
+    if (!data.cart_checks) needDeploy('az-wl-cart');
+    else hbars('az-wl-cart', countBy(data.cart_checks, function (c) { return c.pharmacist; }), '#2a78d6', 'เช็ครถ');
+    if (!data.stock_by_person) needDeploy('az-wl-restock');
+    else {
+      var items = data.stock_by_person.map(function (p) {
+        return { label: String(p.name || '—'), value: Number(p.restock) || 0,
+          extra: 'จ่าย ' + fmt(p.dispense || 0) + ' · นำออก ' + fmt(p.withdraw || 0) };
+      }).filter(function (i) { return i.value > 0; })
+        .sort(function (a, b) { return b.value - a.value; }).slice(0, 10);
+      hbars('az-wl-restock', items, '#2a78d6', 'เติมยา');
+    }
+    hbars('az-wl-err', countBy(cur.errors, function (e) { return e.pharmacist_name; }), '#2a78d6', 'บันทึก');
   }
   return render;
 })();
