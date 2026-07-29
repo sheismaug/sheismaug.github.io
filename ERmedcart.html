@@ -2447,34 +2447,16 @@ input::placeholder, textarea::placeholder { color: var(--hint); }
           <div id="az-wl-nurse"></div>
         </div>
         <div class="card" style="margin-bottom:0;">
-          <p style="font-size:13px;font-weight:500;margin-bottom:.6rem;">เภสัช/จพ. เช็ครถประจำวัน (ครั้ง)</p>
-          <div id="az-wl-cart"></div>
-        </div>
-      </div>
-
-      <div class="chart-2col" style="margin-top:.75rem;">
-        <div class="card" style="margin-bottom:0;">
-          <p style="font-size:13px;font-weight:500;">เติมยา (นับเวรที่มีการเติม)</p>
-          <p style="font-size:11px;color:var(--muted);margin-bottom:.6rem;">1 เวร = 1 ไม่ว่าจะเติมกี่รายการ · ชี้ที่แท่งเพื่อดูจำนวนครั้งจริง</p>
-          <div id="az-wl-restock"></div>
-        </div>
-        <div class="card" style="margin-bottom:0;">
-          <p style="font-size:13px;font-weight:500;">บันทึก Med Error (รายการ)</p>
-          <p style="font-size:11px;color:var(--muted);margin-bottom:.6rem;">นับผู้บันทึกรายงาน ไม่ใช่ผู้ก่อ error — ยิ่งบันทึกมาก = วัฒนธรรมรายงานยิ่งดี</p>
-          <div id="az-wl-err"></div>
-        </div>
-      </div>
-
-      <div class="chart-2col" style="margin-top:.75rem;">
-        <div class="card" style="margin-bottom:0;">
-          <p style="font-size:13px;font-weight:500;margin-bottom:.6rem;">เภสัชบันทึกเวร (นับเวร)</p>
-          <div id="az-wl-shift-ph"></div>
-        </div>
-        <div class="card" style="margin-bottom:0;">
           <p style="font-size:13px;font-weight:500;">จพ. เติมรถยา (นับเวร)</p>
           <p style="font-size:11px;color:var(--muted);margin-bottom:.6rem;">จับคู่ จพ. ประจำเวร (จากบันทึกท้ายเวร) กับวันที่มีการเติมยาจริง</p>
           <div id="az-wl-shift-tech"></div>
         </div>
+      </div>
+
+      <div class="card" style="margin-top:.75rem;">
+        <p style="font-size:13px;font-weight:500;">ภาระงานรายคน (เภสัช/จพ.)</p>
+        <p style="font-size:11px;color:var(--muted);margin-bottom:.6rem;">รวมทุกบทบาทในตารางเดียว — บันทึกเวร · เช็ครถ · เติมยา · จ่ายยา · บันทึก med error (นับผู้บันทึก ไม่ใช่ผู้ก่อ)</p>
+        <div id="az-wl-pharm" style="overflow-x:auto;"></div>
       </div>
     </div>
 
@@ -8285,22 +8267,9 @@ var renderDashAnalytics = (function () {
   }
   function renderWorkload(data, cur) {
     hbars('az-wl-nurse', countBy(data.nurse_checks, function (c) { return c.nurse_name; }), '#2a78d6', 'ตรวจรับ');
-    if (!data.cart_checks) needDeploy('az-wl-cart');
-    else hbars('az-wl-cart', countBy(data.cart_checks, function (c) { return c.pharmacist; }), '#2a78d6', 'เช็ครถ');
-    if (!data.stock_by_person) needDeploy('az-wl-restock');
-    else {
-      var items = data.stock_by_person.map(function (p) {
-        var days = p.restock_days != null ? Number(p.restock_days) : (Number(p.restock) || 0);
-        return { label: String(p.name || '—'), value: days,
-          extra: 'เติม ' + fmt(p.restock || 0) + ' ครั้ง · จ่าย ' + fmt(p.dispense || 0) + ' · นำออก ' + fmt(p.withdraw || 0) };
-      }).filter(function (i) { return i.value > 0; })
-        .sort(function (a, b) { return b.value - a.value; }).slice(0, 10);
-      hbars('az-wl-restock', items, '#2a78d6', 'เวรที่เติม');
-    }
-    hbars('az-wl-err', countBy(cur.errors, function (e) { return e.pharmacist_name; }), '#2a78d6', 'บันทึก');
-    hbars('az-wl-shift-ph', countBy(cur.shifts, function (s) { return s.pharmacist_name; }), '#2a78d6', 'เวร');
+
+    /* จพ. เติมรถยา — จับคู่ จพ. ประจำเวรกับวันที่มี RESTOCK */
     var techShifts = (cur.shifts || []).filter(function (s) { return String(s.tech_name || '').trim(); });
-    /* นับเฉพาะเวรที่มีการเติมยาจริง (restock_dates จาก Edge Function) — ถ้ายังไม่ deploy ใช้ทุกเวรไปก่อน */
     var rd = data.restock_dates;
     var techFill = rd ? techShifts.filter(function (s) { return rd.indexOf(String(s.shift_date || '').slice(0, 10)) >= 0; }) : techShifts;
     if (!techFill.length) {
@@ -8309,6 +8278,38 @@ var renderDashAnalytics = (function () {
           ? 'ช่วงนี้ไม่มีเวรที่บันทึกชื่อ จพ. ตรงกับวันที่มีการเติมยา'
           : 'ยังไม่มีการบันทึกชื่อ จพ. ในบันทึกท้ายเวรช่วงนี้<br>ถ้ากรอกช่อง "จพ." ตอนปิดเวร กราฟนี้จะแสดงอัตโนมัติ') + '</div>';
     } else hbars('az-wl-shift-tech', countBy(techFill, function (s) { return s.tech_name; }), '#2a78d6', 'เวรที่เติม');
+
+    /* ตารางภาระงานรายคน — รวมทุกบทบาท ไม่ให้กราฟซ้ำซ้อน */
+    var hasCart = !!data.cart_checks, hasStock = !!data.stock_by_person;
+    var P = {};
+    function prow(nm) {
+      nm = String(nm || '').trim() || '—';
+      if (!P[nm]) P[nm] = { name: nm, shifts: 0, cart: 0, rsDays: 0, rsCnt: 0, disp: 0, err: 0 };
+      return P[nm];
+    }
+    (cur.shifts || []).forEach(function (s) { prow(s.pharmacist_name).shifts++; });
+    (cur.errors || []).forEach(function (e) { prow(e.pharmacist_name).err++; });
+    if (hasCart) data.cart_checks.forEach(function (c) { prow(c.pharmacist).cart++; });
+    if (hasStock) data.stock_by_person.forEach(function (p) {
+      var r = prow(p.name);
+      r.rsDays = p.restock_days != null ? Number(p.restock_days) : (Number(p.restock) || 0);
+      r.rsCnt = Number(p.restock) || 0;
+      r.disp = Number(p.dispense) || 0;
+    });
+    var rows = Object.keys(P).map(function (k) { return P[k]; })
+      .sort(function (a, b) { return (b.shifts - a.shifts) || (b.rsDays - a.rsDays) || (b.cart - a.cart); });
+    var box = document.getElementById('az-wl-pharm');
+    if (!rows.length) { box.innerHTML = '<div class="az-empty">ไม่มีข้อมูลในช่วงนี้</div>'; return; }
+    var num = function (v, ok) { return '<td style="text-align:right;font-variant-numeric:tabular-nums;">' + (ok === false ? '—' : fmt(v)) + '</td>'; };
+    box.innerHTML = '<table class="az-table"><thead><tr><th>ชื่อ</th>' +
+      '<th style="text-align:right;">บันทึกเวร</th><th style="text-align:right;">เช็ครถ (ครั้ง)</th>' +
+      '<th style="text-align:right;">เติมยา (เวร)</th><th style="text-align:right;">เติมยา (ครั้ง)</th>' +
+      '<th style="text-align:right;">จ่ายยา (ครั้ง)</th><th style="text-align:right;">บันทึก Med Error</th></tr></thead><tbody>' +
+      rows.map(function (r) {
+        return '<tr><td>' + esc(r.name) + '</td>' + num(r.shifts) + num(r.cart, hasCart) +
+          num(r.rsDays, hasStock) + num(r.rsCnt, hasStock) + num(r.disp, hasStock) + num(r.err) + '</tr>';
+      }).join('') + '</tbody></table>' +
+      ((hasCart && hasStock) ? '' : '<div style="font-size:11px;color:var(--hint);margin-top:6px;">คอลัมน์ที่เป็น — จะแสดงเมื่อ deploy Edge Function เวอร์ชันล่าสุด</div>');
   }
   return render;
 })();
