@@ -2030,6 +2030,7 @@ input::placeholder, textarea::placeholder { color: var(--hint); }
       <button class="btn-sm" id="dtab-risk"  onclick="switchDashTab('risk')">ความเสี่ยง</button>
       <button class="btn-sm" id="dtab-pharm" onclick="switchDashTab('pharm')">เภสัช</button>
       <button class="btn-sm" id="dtab-nurse" onclick="switchDashTab('nurse')">พยาบาล</button>
+      <button class="btn-sm" id="dtab-analytics" onclick="switchDashTab('analytics')">วิเคราะห์</button>
     </div>
 
     <div id="dash-loading" style="text-align:center;padding:2rem;color:var(--muted);font-size:13px;display:none;">กำลังโหลด...</div>
@@ -2348,6 +2349,95 @@ input::placeholder, textarea::placeholder { color: var(--hint); }
       <div class="section-label" style="margin-top:1rem;">ประวัติการตรวจรถยา</div>
       <div id="dash-nurse-log"></div>
     </div>
+
+    <!-- ═══ TAB: วิเคราะห์ (Analytics — Med Error & ยาหาย) ═══ -->
+    <style>
+      .az-kpi-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(150px,1fr)); gap:8px; margin-bottom:.875rem; }
+      .az-kpi { background:var(--white); border:1px solid var(--border); border-radius:var(--radius-lg); padding:10px 12px; }
+      .az-kpi .l { font-size:11px; color:var(--muted); }
+      .az-kpi .v { font-size:24px; font-weight:700; font-family:'Google Sans',sans-serif; line-height:1.25; }
+      .az-kpi .u { font-size:11px; font-weight:400; color:var(--hint); margin-left:2px; }
+      .az-kpi .d { font-size:11px; }
+      .az-kpi .d.up { color:#b01030; } .az-kpi .d.down { color:#006300; } .az-kpi .d.flat { color:var(--hint); }
+      .az-legend { display:flex; flex-wrap:wrap; gap:10px; font-size:11px; color:var(--muted); margin-top:6px; }
+      .az-legend .sw { width:10px; height:10px; border-radius:3px; display:inline-block; margin-right:4px; vertical-align:-1px; }
+      .az-empty { font-size:13px; color:var(--hint); padding:20px 0; text-align:center; }
+      .az-sev { display:inline-block; min-width:22px; text-align:center; font-weight:700; font-size:11px; border-radius:6px; padding:1px 6px; }
+      .az-sev-ab { background:var(--green-bg); color:var(--green); }
+      .az-sev-cd { background:var(--amber-bg); color:var(--amber); }
+      .az-sev-e  { background:var(--red-bg); color:var(--red); }
+      .az-had { display:inline-block; font-size:10px; font-weight:700; border-radius:6px; padding:1px 6px; background:var(--red-bg); color:var(--red); }
+      .az-src { display:inline-block; font-size:10px; border-radius:6px; padding:1px 7px; background:var(--blue-bg); color:var(--blue); white-space:nowrap; }
+      .az-table { width:100%; border-collapse:collapse; font-size:12px; }
+      .az-table th { text-align:left; font-size:10px; text-transform:uppercase; letter-spacing:.05em; color:var(--hint); font-weight:600; padding:5px 7px; border-bottom:1px solid var(--border2); }
+      .az-table td { padding:6px 7px; border-bottom:1px solid var(--border); vertical-align:top; }
+      #az-tooltip { position:fixed; z-index:99; pointer-events:none; display:none; background:#0d1535; color:#fff; border-radius:10px; padding:7px 10px; font-size:12px; line-height:1.5; max-width:260px; box-shadow:0 6px 18px rgba(13,21,53,.25); }
+      #az-tooltip .t { font-size:11px; opacity:.7; margin-bottom:2px; }
+      #az-tooltip .r { display:flex; align-items:center; gap:6px; }
+      #az-tooltip .k { width:10px; height:3px; border-radius:2px; flex:0 0 auto; }
+    </style>
+    <div id="dash-analytics" style="display:none;">
+      <div class="az-kpi-grid" id="az-kpi"></div>
+
+      <div class="chart-2col">
+        <div class="card" style="margin-bottom:0;">
+          <p style="font-size:13px;font-weight:500;">แนวโน้ม Med Error ตามความรุนแรง</p>
+          <p style="font-size:11px;color:var(--muted);margin-bottom:.6rem;" id="az-trend-sub">แยกกลุ่ม MERP</p>
+          <div id="az-trend"></div><div class="az-legend" id="az-lg-trend"></div>
+        </div>
+        <div class="card" style="margin-bottom:0;">
+          <p style="font-size:13px;font-weight:500;">อัตรา Med Error ต่อ 100 ใบสั่งยา</p>
+          <p style="font-size:11px;color:var(--muted);margin-bottom:.6rem;">เทียบภาระงาน (ใบสั่งยาที่บันทึกต่อเวร)</p>
+          <div id="az-rate"></div>
+        </div>
+      </div>
+
+      <div class="card" style="margin-top:.75rem;">
+        <p style="font-size:13px;font-weight:500;">Pareto — subtype ที่พบบ่อย (Top 10)</p>
+        <p style="font-size:11px;color:var(--muted);margin-bottom:.6rem;">แท่ง = จำนวนครั้ง · เส้น = สะสม (% = สัดส่วนสะสมของทั้งหมด)</p>
+        <div id="az-pareto"></div>
+      </div>
+
+      <div class="chart-2col" style="margin-top:.75rem;">
+        <div class="card" style="margin-bottom:0;">
+          <p style="font-size:13px;font-weight:500;margin-bottom:.6rem;">แยกตามขั้นตอน (phase)</p>
+          <div id="az-phase"></div>
+        </div>
+        <div class="card" style="margin-bottom:0;">
+          <p style="font-size:13px;font-weight:500;margin-bottom:.6rem;">การกระจายระดับ A–I</p>
+          <div id="az-sevdist"></div>
+        </div>
+      </div>
+
+      <div class="card" style="margin-top:.75rem;">
+        <p style="font-size:13px;font-weight:500;">รายการที่ต้องทบทวน — ระดับ E ขึ้นไป หรือ HAD</p>
+        <p style="font-size:11px;color:var(--muted);margin-bottom:.6rem;">ใช้ประกอบ RCA / รายงาน PCT</p>
+        <div id="az-review" style="overflow-x:auto;"></div>
+      </div>
+
+      <div style="font-size:13px;font-weight:700;margin:1.1rem 0 .6rem;">ยาหาย / ยาขาดจากรถ
+        <span style="font-size:10px;font-weight:600;background:var(--amber-bg);color:var(--amber);border-radius:999px;padding:2px 9px;margin-left:4px;">3 แหล่งข้อมูล</span>
+      </div>
+
+      <div class="chart-2col">
+        <div class="card" style="margin-bottom:0;">
+          <p style="font-size:13px;font-weight:500;">เหตุการณ์แยกตามแหล่งที่ตรวจพบ</p>
+          <p style="font-size:11px;color:var(--muted);margin-bottom:.6rem;" id="az-miss-sub"></p>
+          <div id="az-miss-trend"></div><div class="az-legend" id="az-lg-miss"></div>
+        </div>
+        <div class="card" style="margin-bottom:0;">
+          <p style="font-size:13px;font-weight:500;margin-bottom:.6rem;">ยาที่หาย/ขาดบ่อยที่สุด</p>
+          <div id="az-miss-top"></div>
+        </div>
+      </div>
+
+      <div class="card" style="margin-top:.75rem;">
+        <p style="font-size:13px;font-weight:500;">บันทึกเหตุการณ์ทั้งหมดในช่วงนี้</p>
+        <p style="font-size:11px;color:var(--muted);margin-bottom:.6rem;">รวม 3 แหล่ง — ตามรอยรายการที่ยังไม่ได้ข้อยุติ</p>
+        <div id="az-miss-table" style="overflow-x:auto;"></div>
+      </div>
+    </div>
+
 
   </div>
 </div>
@@ -5174,7 +5264,7 @@ function initDashboard() {
 
 function switchDashTab(tab) {
   dashCurrentTab = tab;
-  ['drug','risk','pharm','nurse'].forEach(t => {
+  ['drug','risk','pharm','nurse','analytics'].forEach(t => {
     document.getElementById('dash-' + t).style.display = t === tab ? 'block' : 'none';
     const btn = document.getElementById('dtab-' + t);
     if (btn) btn.style.cssText = t === tab ? 'background:var(--text);color:var(--white);border-color:var(--text);' : '';
@@ -5204,6 +5294,7 @@ function renderDashboard(data) {
   if (dashCurrentTab === 'risk')  renderDashRisk(data);
   if (dashCurrentTab === 'pharm') renderDashPharm(data);
   if (dashCurrentTab === 'nurse') renderDashNurse(data);
+  if (dashCurrentTab === 'analytics') renderDashAnalytics(data);
 }
 
 /* ---- TAB: ยา ---- */
@@ -7680,6 +7771,461 @@ function updateCcSummary() {
 function ccFilter() {
   renderCartCheckList();
 }
+
+/* ============================================================
+   ANALYTICS TAB (วิเคราะห์) — Med Error & ยาหาย
+   ใช้ dashData จาก getDashboardData เดิม ไม่ fetch เพิ่ม
+   (ยกเว้นช่วงก่อนหน้า 1 ครั้ง เพื่อคิด delta ใน KPI)
+   ============================================================ */
+var renderDashAnalytics = (function () {
+  var NSx = 'http://www.w3.org/2000/svg';
+  var MERP = [
+    { key: 'AB', label: 'A–B ไม่ถึงผู้ป่วย',         hex: '#86b6ef', test: function (s) { return s === 'A' || s === 'B'; } },
+    { key: 'CD', label: 'C–D ถึงผู้ป่วย ไม่อันตราย',  hex: '#2a78d6', test: function (s) { return s === 'C' || s === 'D'; } },
+    { key: 'E+', label: 'E ขึ้นไป อันตราย',           hex: '#104281', test: function (s) { return 'EFGHI'.indexOf(s) >= 0; } },
+  ];
+  var SOURCES = [
+    { key: 'pharm', label: 'เภสัช (บันทึกความเสี่ยง)', hex: '#2a78d6' },
+    { key: 'nurse', label: 'พยาบาลตรวจรับ',            hex: '#eb6834' },
+    { key: 'shift', label: 'เช็ครถ — ไม่มีใบสั่ง',       hex: '#1baf7a' },
+  ];
+  var THMx = ['', 'ม.ค.', 'ก.พ.', 'มี.ค.', 'เม.ย.', 'พ.ค.', 'มิ.ย.', 'ก.ค.', 'ส.ค.', 'ก.ย.', 'ต.ค.', 'พ.ย.', 'ธ.ค.'];
+
+  function esc(s) { return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
+  function fmt(n) { return Number(n || 0).toLocaleString('en-US'); }
+  function pad2(n) { return String(n).padStart(2, '0'); }
+  function ymdStr(d) { return d.getFullYear() + '-' + pad2(d.getMonth() + 1) + '-' + pad2(d.getDate()); }
+  function pYmd(s) { var p = String(s).slice(0, 10).split('-'); return new Date(+p[0], +p[1] - 1, +p[2] || 1); }
+  function addD(d, n) { var x = new Date(d); x.setDate(x.getDate() + n); return x; }
+  function thD(s) {
+    if (!s) return '—';
+    var p = String(s).slice(0, 10).split('-');
+    if (p.length < 3) return s;
+    return (+p[2]) + ' ' + THMx[+p[1]] + ' ' + String(+p[0] + 543).slice(-2);
+  }
+  function merpG(sev) {
+    var s = String(sev || '').trim().toUpperCase();
+    for (var i = 0; i < MERP.length; i++) if (MERP[i].test(s)) return MERP[i].key;
+    return null;
+  }
+  function splitSub(s) { return String(s || '').split(',').map(function (x) { return x.trim(); }).filter(Boolean); }
+  function niceMax(v) {
+    if (v <= 0) return 4;
+    var mag = Math.pow(10, Math.floor(Math.log10(v)));
+    var cands = [1, 2, 2.5, 5, 10];
+    for (var i = 0; i < cands.length; i++) if (v <= cands[i] * mag) return cands[i] * mag;
+    return 10 * mag;
+  }
+  function niceCount(v) { return 4 * Math.ceil(Math.max(v, 1) / 4); }
+
+  /* ── tooltip ── */
+  var ttEl = null;
+  function tt() {
+    if (!ttEl) { ttEl = document.createElement('div'); ttEl.id = 'az-tooltip'; document.body.appendChild(ttEl); }
+    return ttEl;
+  }
+  function showTT(html, ev) {
+    var el = tt(); el.innerHTML = html; el.style.display = 'block';
+    var pad = 14, x = ev.clientX + pad, y = ev.clientY + pad, r = el.getBoundingClientRect();
+    if (x + r.width > window.innerWidth - 8) x = ev.clientX - r.width - pad;
+    if (y + r.height > window.innerHeight - 8) y = ev.clientY - r.height - pad;
+    el.style.left = x + 'px'; el.style.top = y + 'px';
+  }
+  function hideTT() { if (ttEl) ttEl.style.display = 'none'; }
+  function ttRow(hex, label, val) {
+    return '<div class="r"><span class="k" style="background:' + hex + '"></span><b>' + esc(val) + '</b>&nbsp;<span style="opacity:.8;">' + esc(label) + '</span></div>';
+  }
+
+  /* ── svg helpers ── */
+  function svgE(tag, attrs) { var el = document.createElementNS(NSx, tag); for (var k in attrs) el.setAttribute(k, attrs[k]); return el; }
+  function barP(x, y, w, h, r) {
+    r = Math.min(r, w / 2, h); if (h <= 0) return '';
+    return 'M' + x + ' ' + (y + h) + 'V' + (y + r) + 'Q' + x + ' ' + y + ' ' + (x + r) + ' ' + y + 'H' + (x + w - r) + 'Q' + (x + w) + ' ' + y + ' ' + (x + w) + ' ' + (y + r) + 'V' + (y + h) + 'Z';
+  }
+  function hbarP(x, y, w, h, r) {
+    r = Math.min(r, h / 2, w); if (w <= 0) return '';
+    return 'M' + x + ' ' + y + 'H' + (x + w - r) + 'Q' + (x + w) + ' ' + y + ' ' + (x + w) + ' ' + (y + r) + 'V' + (y + h - r) + 'Q' + (x + w) + ' ' + (y + h) + ' ' + (x + w - r) + ' ' + (y + h) + 'H' + x + 'Z';
+  }
+  function frame(svg, W, H, M, max, fmtFn) {
+    for (var i = 0; i <= 4; i++) {
+      var t = max / 4 * i;
+      var y = H - M.b - (t / max) * (H - M.t - M.b);
+      svg.appendChild(svgE('line', { x1: M.l, x2: W - M.r, y1: y, y2: y, stroke: t === 0 ? '#c3c2b7' : '#e1e0d9', 'stroke-width': 1 }));
+      if (t > 0) {
+        var lb = svgE('text', { x: M.l - 6, y: y + 3.5, 'text-anchor': 'end', 'font-size': 10, fill: '#898781' });
+        lb.textContent = fmtFn ? fmtFn(t) : fmt(t);
+        svg.appendChild(lb);
+      }
+    }
+  }
+  function xLab(svg, x, y, text) { var t = svgE('text', { x: x, y: y, 'text-anchor': 'middle', 'font-size': 10, fill: '#898781' }); t.textContent = text; svg.appendChild(t); }
+  function empty(el, msg) { el.innerHTML = '<div class="az-empty">' + esc(msg || 'ไม่มีข้อมูลในช่วงนี้') + '</div>'; }
+
+  /* ── buckets ── */
+  function mkBuckets(from, to) {
+    var days = Math.round((to - from) / 86400000) + 1;
+    var mode = days <= 31 ? 'day' : (days <= 140 ? 'week' : 'month');
+    var buckets = [], d;
+    if (mode === 'day') {
+      for (d = new Date(from); d <= to; d = addD(d, 1))
+        buckets.push({ key: ymdStr(d), label: d.getDate() + (d.getDate() === 1 || !buckets.length ? ' ' + THMx[d.getMonth() + 1] : '') });
+    } else if (mode === 'week') {
+      d = new Date(from); d.setDate(d.getDate() - ((d.getDay() + 6) % 7));
+      for (; d <= to; d = addD(d, 7)) buckets.push({ key: ymdStr(d), label: d.getDate() + ' ' + THMx[d.getMonth() + 1] });
+    } else {
+      d = new Date(from.getFullYear(), from.getMonth(), 1);
+      for (; d <= to; d = new Date(d.getFullYear(), d.getMonth() + 1, 1))
+        buckets.push({ key: ymdStr(d).slice(0, 7), label: THMx[d.getMonth() + 1] + ' ' + String(d.getFullYear() + 543).slice(-2) });
+    }
+    function keyOf(ds) {
+      var s = String(ds || '').slice(0, 10);
+      if (!s) return null;
+      if (mode === 'day') return s;
+      if (mode === 'month') return s.slice(0, 7);
+      var dd = pYmd(s); dd.setDate(dd.getDate() - ((dd.getDay() + 6) % 7));
+      return ymdStr(dd);
+    }
+    return { mode: mode, buckets: buckets, keyOf: keyOf };
+  }
+  function idxOf(bk, ds) {
+    var k = bk.keyOf(ds);
+    if (k == null) return -1;
+    for (var i = 0; i < bk.buckets.length; i++) if (bk.buckets[i].key === k) return i;
+    return -1;
+  }
+  function bucketCnt(bk, rows, dateOf, filter) {
+    var arr = bk.buckets.map(function () { return 0; });
+    rows.forEach(function (r) {
+      if (filter && !filter(r)) return;
+      var i = idxOf(bk, dateOf(r));
+      if (i >= 0) arr[i]++;
+    });
+    return arr;
+  }
+
+  /* ── derive ── */
+  function derive(data) {
+    var errors = data.med_errors || [], shifts = data.shifts || [], risks = data.risks || [], nurse = data.nurse_checks || [];
+    var rxTotal = 0, rxMissing = 0;
+    shifts.forEach(function (s) { rxTotal += Number(s.rx_total) || 0; rxMissing += Number(s.rx_missing) || 0; });
+    var errEplus = errors.filter(function (e) { return merpG(e.severity) === 'E+'; }).length;
+    var errHad = errors.filter(function (e) { return e.had; }).length;
+    var miss = [];
+    risks.forEach(function (r) {
+      if (String(r.risk_type || '').trim() !== 'ยาหาย') return;
+      var note = String(r.note || ''), parts = note.split(' · ');
+      miss.push({ date: r.shift_date, source: 'pharm', drug: parts.length > 1 ? parts[0] : '', note: parts.length > 1 ? parts.slice(1).join(' · ') : note, had: !!r.had, by: r.pharmacist_name || '' });
+    });
+    nurse.forEach(function (c) {
+      if (!(Number(c.missing_cnt) > 0)) return;
+      var items = [];
+      try { items = JSON.parse(c.raw_json || '[]'); } catch (e) { items = []; }
+      if (items.length) items.forEach(function (it) { miss.push({ date: c.shift_date, source: 'nurse', drug: it.name || it.drug_id || '', note: c.note || '', had: false, by: c.nurse_name || '' }); });
+      else miss.push({ date: c.shift_date, source: 'nurse', drug: '', note: 'ขาด ' + c.missing_cnt + ' รายการ', had: false, by: c.nurse_name || '' });
+    });
+    shifts.forEach(function (s) {
+      var n = Number(s.drug_missing_cnt) || 0;
+      for (var i = 0; i < n; i++) miss.push({ date: s.shift_date, source: 'shift', drug: '', note: 'ยาหายโดยไม่มีการสั่งใช้ (บันทึกท้ายเวร)', had: false, by: s.pharmacist_name || '' });
+    });
+    miss.sort(function (a, b) { return String(b.date).localeCompare(String(a.date)); });
+    return {
+      errors: errors, shifts: shifts, rxTotal: rxTotal, rxMissing: rxMissing,
+      errTotal: errors.length, errEplus: errEplus, errHad: errHad,
+      rate: rxTotal > 0 ? errors.length / rxTotal * 100 : null, miss: miss,
+    };
+  }
+
+  /* ── charts ── */
+  function stacked(elId, bk, series) {
+    var box = document.getElementById(elId);
+    var total = 0;
+    series.forEach(function (s) { s.values.forEach(function (v) { total += v; }); });
+    if (!bk.buckets.length || !total) { empty(box); return; }
+    var W = 500, H = 210, M = { t: 12, r: 8, b: 22, l: 34 };
+    var sums = bk.buckets.map(function (b, i) { return series.reduce(function (a, s) { return a + s.values[i]; }, 0); });
+    var max = niceCount(Math.max.apply(null, sums));
+    var svg = svgE('svg', { viewBox: '0 0 ' + W + ' ' + H, style: 'display:block;width:100%;height:auto;' });
+    frame(svg, W, H, M, max);
+    var plotW = W - M.l - M.r, plotH = H - M.t - M.b;
+    var band = plotW / bk.buckets.length, bw = Math.min(24, Math.max(5, band * 0.55));
+    bk.buckets.forEach(function (b, i) {
+      var x = M.l + band * i + (band - bw) / 2, yC = H - M.b, top = null;
+      series.forEach(function (s) {
+        var v = s.values[i];
+        if (v <= 0) return;
+        var h = (v / max) * plotH;
+        if (top) svg.appendChild(svgE('rect', { x: x, y: top.y + 2, width: bw, height: Math.max(0, top.h - 2), fill: top.hex }));
+        top = { hex: s.hex, y: yC - h, h: h };
+        yC -= h;
+      });
+      if (top) svg.appendChild(svgE('path', { d: barP(x, top.y, bw, top.h, 4), fill: top.hex }));
+      var hit = svgE('rect', { x: M.l + band * i, y: M.t, width: band, height: plotH + M.b - 2, fill: 'transparent' });
+      hit.addEventListener('pointermove', function (ev) {
+        var html = '<div class="t">' + esc(b.label) + '</div>';
+        series.forEach(function (s) { html += ttRow(s.hex, s.label, fmt(s.values[i])); });
+        html += ttRow('#9aa0bc', 'รวม', fmt(sums[i]));
+        showTT(html, ev);
+      });
+      hit.addEventListener('pointerleave', hideTT);
+      svg.appendChild(hit);
+    });
+    var every = Math.ceil(bk.buckets.length / 8);
+    bk.buckets.forEach(function (b, i) { if (i % every) return; xLab(svg, M.l + band * i + band / 2, H - 6, b.label); });
+    box.innerHTML = ''; box.appendChild(svg);
+  }
+
+  function line(elId, bk, values, hex, name, fmtFn) {
+    var box = document.getElementById(elId);
+    var has = values.some(function (v) { return v != null; });
+    if (!bk.buckets.length || !has) { empty(box); return; }
+    var W = 500, H = 210, M = { t: 14, r: 36, b: 22, l: 38 };
+    var mx = 0.1;
+    values.forEach(function (v) { if (v != null && v > mx) mx = v; });
+    var max = niceMax(mx);
+    var svg = svgE('svg', { viewBox: '0 0 ' + W + ' ' + H, style: 'display:block;width:100%;height:auto;' });
+    frame(svg, W, H, M, max, fmtFn);
+    var plotW = W - M.l - M.r, plotH = H - M.t - M.b;
+    function xOf(i) { return M.l + (bk.buckets.length === 1 ? plotW / 2 : plotW * i / (bk.buckets.length - 1)); }
+    function yOf(v) { return H - M.b - (v / max) * plotH; }
+    var d = '', started = false, last = -1;
+    values.forEach(function (v, i) {
+      if (v == null) { started = false; return; }
+      d += (started ? 'L' : 'M') + xOf(i).toFixed(1) + ' ' + yOf(v).toFixed(1);
+      started = true; last = i;
+    });
+    svg.appendChild(svgE('path', { d: d, fill: 'none', stroke: hex, 'stroke-width': 2, 'stroke-linejoin': 'round', 'stroke-linecap': 'round' }));
+    if (last >= 0) {
+      svg.appendChild(svgE('circle', { cx: xOf(last), cy: yOf(values[last]), r: 6, fill: '#ffffff' }));
+      svg.appendChild(svgE('circle', { cx: xOf(last), cy: yOf(values[last]), r: 4, fill: hex }));
+      var lb = svgE('text', { x: Math.min(xOf(last) + 8, W - 2), y: yOf(values[last]) + 3.5, 'font-size': 11, 'font-weight': 700, fill: '#0d1535' });
+      lb.textContent = fmtFn ? fmtFn(values[last]) : fmt(values[last]);
+      svg.appendChild(lb);
+    }
+    var cross = svgE('line', { x1: 0, x2: 0, y1: M.t, y2: H - M.b, stroke: '#c3c2b7', 'stroke-width': 1, opacity: 0 });
+    svg.appendChild(cross);
+    var hit = svgE('rect', { x: M.l, y: M.t, width: plotW, height: plotH, fill: 'transparent' });
+    hit.addEventListener('pointermove', function (ev) {
+      var r = svg.getBoundingClientRect(), px = (ev.clientX - r.left) / r.width * W, best = 0, bd = 1e9;
+      bk.buckets.forEach(function (b, i) { var dd = Math.abs(xOf(i) - px); if (dd < bd) { bd = dd; best = i; } });
+      cross.setAttribute('x1', xOf(best)); cross.setAttribute('x2', xOf(best)); cross.setAttribute('opacity', 1);
+      var v = values[best];
+      showTT('<div class="t">' + esc(bk.buckets[best].label) + '</div>' + ttRow(hex, name, v == null ? '—' : (fmtFn ? fmtFn(v) : fmt(v))), ev);
+    });
+    hit.addEventListener('pointerleave', function () { cross.setAttribute('opacity', 0); hideTT(); });
+    svg.appendChild(hit);
+    var every = Math.ceil(bk.buckets.length / 8);
+    bk.buckets.forEach(function (b, i) { if (i % every) return; xLab(svg, xOf(i), H - 6, b.label); });
+    box.innerHTML = ''; box.appendChild(svg);
+  }
+
+  function hbars(elId, items, hex, name) {
+    var box = document.getElementById(elId);
+    if (!items.length) { empty(box); return; }
+    var rowH = 30, W = 500, M = { t: 4, r: 44, b: 4, l: 150 };
+    var H = M.t + M.b + items.length * rowH;
+    var max = niceCount(Math.max.apply(null, items.map(function (i) { return i.value; })));
+    var svg = svgE('svg', { viewBox: '0 0 ' + W + ' ' + H, style: 'display:block;width:100%;height:auto;' });
+    var plotW = W - M.l - M.r;
+    svg.appendChild(svgE('line', { x1: M.l, x2: M.l, y1: M.t, y2: H - M.b, stroke: '#c3c2b7', 'stroke-width': 1 }));
+    items.forEach(function (it, i) {
+      var y = M.t + i * rowH + (rowH - 18) / 2, w = (it.value / max) * plotW, color = it.hex || hex;
+      svg.appendChild(svgE('path', { d: hbarP(M.l, y, w, 18, 4), fill: color }));
+      var nm = svgE('text', { x: M.l - 8, y: y + 13, 'text-anchor': 'end', 'font-size': 11, fill: '#52514e' });
+      nm.textContent = it.label.length > 22 ? it.label.slice(0, 21) + '…' : it.label;
+      svg.appendChild(nm);
+      var vl = svgE('text', { x: M.l + w + 6, y: y + 13, 'font-size': 11, 'font-weight': 700, fill: '#0d1535' });
+      vl.textContent = fmt(it.value);
+      svg.appendChild(vl);
+      var hit = svgE('rect', { x: 0, y: M.t + i * rowH, width: W, height: rowH, fill: 'transparent' });
+      hit.addEventListener('pointermove', function (ev) { showTT('<div class="t">' + esc(it.label) + '</div>' + ttRow(color, name || '', fmt(it.value)), ev); });
+      hit.addEventListener('pointerleave', hideTT);
+      svg.appendChild(hit);
+    });
+    box.innerHTML = ''; box.appendChild(svg);
+  }
+
+  function pareto(elId, items) {
+    var box = document.getElementById(elId);
+    if (!items.length) { empty(box); return; }
+    var W = 860, H = 280, M = { t: 26, r: 10, b: 74, l: 40 };
+    var grand = items.reduce(function (a, i) { return a + i.value; }, 0), cum = 0;
+    var cums = items.map(function (i) { return (cum += i.value); });
+    var max = niceCount(grand);
+    var svg = svgE('svg', { viewBox: '0 0 ' + W + ' ' + H, style: 'display:block;width:100%;height:auto;' });
+    frame(svg, W, H, M, max);
+    var plotW = W - M.l - M.r, plotH = H - M.t - M.b;
+    var band = plotW / items.length, bw = Math.min(24, band * 0.5);
+    function yOf(v) { return H - M.b - (v / max) * plotH; }
+    items.forEach(function (it, i) {
+      var x = M.l + band * i + (band - bw) / 2, h = (it.value / max) * plotH;
+      svg.appendChild(svgE('path', { d: barP(x, yOf(it.value), bw, h, 4), fill: '#2a78d6' }));
+      var v = svgE('text', { x: x + bw / 2, y: yOf(it.value) - 5, 'text-anchor': 'middle', 'font-size': 10.5, 'font-weight': 700, fill: '#0d1535' });
+      v.textContent = fmt(it.value);
+      svg.appendChild(v);
+      var t = svgE('text', { x: x + bw / 2 + 4, y: H - M.b + 12, 'font-size': 10, fill: '#52514e', transform: 'rotate(32 ' + (x + bw / 2 + 4) + ' ' + (H - M.b + 12) + ')' });
+      t.textContent = it.label.length > 18 ? it.label.slice(0, 17) + '…' : it.label;
+      svg.appendChild(t);
+    });
+    var d = '';
+    items.forEach(function (it, i) { var x = M.l + band * i + band / 2; d += (i ? 'L' : 'M') + x.toFixed(1) + ' ' + yOf(cums[i]).toFixed(1); });
+    svg.appendChild(svgE('path', { d: d, fill: 'none', stroke: '#eb6834', 'stroke-width': 2, 'stroke-linejoin': 'round', 'stroke-linecap': 'round' }));
+    items.forEach(function (it, i) {
+      var x = M.l + band * i + band / 2, y = yOf(cums[i]);
+      svg.appendChild(svgE('circle', { cx: x, cy: y, r: 6, fill: '#ffffff' }));
+      svg.appendChild(svgE('circle', { cx: x, cy: y, r: 4, fill: '#eb6834' }));
+      var pct = i === 0
+        ? svgE('text', { x: x + bw / 2 + 5, y: y + 14, 'text-anchor': 'start', 'font-size': 10, fill: '#52514e' })
+        : svgE('text', { x: x, y: y - 9, 'text-anchor': 'middle', 'font-size': 10, fill: '#52514e' });
+      pct.textContent = Math.round(cums[i] / grand * 100) + '%';
+      svg.appendChild(pct);
+      var hit = svgE('rect', { x: M.l + band * i, y: M.t, width: band, height: plotH, fill: 'transparent' });
+      hit.addEventListener('pointermove', function (ev) {
+        showTT('<div class="t">' + esc(it.label) + '</div>' + ttRow('#2a78d6', 'จำนวน', fmt(it.value) + ' ครั้ง') + ttRow('#eb6834', 'สะสม', fmt(cums[i]) + ' (' + Math.round(cums[i] / grand * 100) + '%)'), ev);
+      });
+      hit.addEventListener('pointerleave', hideTT);
+      svg.appendChild(hit);
+    });
+    box.innerHTML = ''; box.appendChild(svg);
+  }
+
+  /* ── KPI (+delta จากช่วงก่อนหน้า — โหลด lazy 1 ครั้งต่อช่วง) ── */
+  var prevKey = null, prevD = null, prevLoading = false;
+  function deltaHtml(curV, prevV) {
+    if (prevV == null || curV == null || !isFinite(curV - prevV)) return '';
+    var d = curV - prevV;
+    var cls = d === 0 ? 'flat' : (d > 0 ? 'up' : 'down');
+    var arrow = d === 0 ? '·' : (d > 0 ? '▲' : '▼');
+    var num = Math.abs(d) < 10 && !Number.isInteger(d) ? d.toFixed(1) : fmt(Math.round(d * 10) / 10);
+    return '<div class="d ' + cls + '">' + arrow + ' ' + (d > 0 ? '+' : '') + num + ' จากช่วงก่อนหน้า</div>';
+  }
+  function renderKpis(cur, prev) {
+    var p = prev || {};
+    var tiles = [
+      { l: 'Med error รวม', v: fmt(cur.errTotal), u: 'รายการ', d: deltaHtml(cur.errTotal, p.errTotal) },
+      { l: 'อัตราต่อ 100 ใบสั่งยา', v: cur.rate == null ? '—' : cur.rate.toFixed(2), u: '', d: deltaHtml(cur.rate, p.rate), s: 'ใบสั่งยารวม ' + fmt(cur.rxTotal) },
+      { l: 'ระดับ E ขึ้นไป', v: fmt(cur.errEplus), u: 'รายการ', d: deltaHtml(cur.errEplus, p.errEplus) },
+      { l: 'เกี่ยวข้อง HAD', v: cur.errTotal ? Math.round(cur.errHad / cur.errTotal * 100) + '%' : '—', u: '', s: fmt(cur.errHad) + ' จาก ' + fmt(cur.errTotal) + ' รายการ' },
+      { l: 'เหตุการณ์ยาหาย/ยาขาด', v: fmt(cur.miss.length), u: 'ครั้ง', d: deltaHtml(cur.miss.length, p.miss ? p.miss.length : null) },
+      { l: 'ใบสั่งยาไม่ครบ', v: fmt(cur.rxMissing), u: 'ใบ', d: deltaHtml(cur.rxMissing, p.rxMissing), s: 'อาจมี dispensing error ไม่มีหลักฐาน' },
+    ];
+    document.getElementById('az-kpi').innerHTML = tiles.map(function (t) {
+      return '<div class="az-kpi"><div class="l">' + esc(t.l) + '</div><div class="v">' + t.v + '<span class="u">' + esc(t.u) + '</span></div>' + (t.d || '') + (t.s ? '<div class="d flat">' + esc(t.s) + '</div>' : '') + '</div>';
+    }).join('');
+  }
+
+  function sevChip(sev) {
+    var g = merpG(sev);
+    var cls = g === 'E+' ? 'az-sev-e' : g === 'CD' ? 'az-sev-cd' : 'az-sev-ab';
+    return '<span class="az-sev ' + cls + '">' + esc(String(sev || '?').toUpperCase()) + '</span>';
+  }
+
+  /* ── main render ── */
+  function render(data) {
+    if (!data) return;
+    var fromS = document.getElementById('dash-from-native').value;
+    var toS = document.getElementById('dash-to-native').value;
+    if (!fromS || !toS) return;
+    var from = pYmd(fromS), to = pYmd(toS);
+    var cur = derive(data);
+    var bk = mkBuckets(from, to);
+    var modeL = bk.mode === 'day' ? 'รายวัน' : bk.mode === 'week' ? 'รายสัปดาห์' : 'รายเดือน';
+    document.getElementById('az-trend-sub').textContent = 'แยกกลุ่ม MERP (' + modeL + ')';
+    document.getElementById('az-miss-sub').textContent = 'เภสัช · พยาบาลตรวจรับ · เช็ครถ (' + modeL + ')';
+
+    /* KPI — แสดงก่อนโดยไม่มี delta แล้วเติมเมื่อได้ข้อมูลช่วงก่อนหน้า */
+    renderKpis(cur, prevKey === fromS + '|' + toS ? prevD : null);
+    var key = fromS + '|' + toS;
+    if (prevKey !== key && !prevLoading && typeof callScript === 'function') {
+      prevLoading = true;
+      var days = Math.round((to - from) / 86400000) + 1;
+      var pTo = addD(from, -1), pFrom = addD(pTo, -(days - 1));
+      callScript('getDashboardData', { from: ymdStr(pFrom), to: ymdStr(pTo) }).then(function (pd) {
+        prevD = derive(pd); prevKey = key; prevLoading = false;
+        if (document.getElementById('dash-analytics').style.display !== 'none') renderKpis(cur, prevD);
+      }).catch(function () { prevLoading = false; });
+    }
+
+    /* trend by MERP */
+    var series = MERP.map(function (g) {
+      return { label: g.label, hex: g.hex, values: bucketCnt(bk, cur.errors, function (e) { return e.shift_date; }, function (e) { return merpG(e.severity) === g.key; }) };
+    });
+    var unk = bucketCnt(bk, cur.errors, function (e) { return e.shift_date; }, function (e) { return merpG(e.severity) === null; });
+    if (unk.some(function (v) { return v > 0; })) series.push({ label: 'ไม่ระบุระดับ', hex: '#9aa0bc', values: unk });
+    stacked('az-trend', bk, series);
+    document.getElementById('az-lg-trend').innerHTML = series.map(function (s) {
+      return '<span><span class="sw" style="background:' + s.hex + '"></span>' + esc(s.label) + '</span>';
+    }).join('');
+
+    /* rate per 100 rx */
+    var errCnt = bucketCnt(bk, cur.errors, function (e) { return e.shift_date; });
+    var rx = bk.buckets.map(function () { return 0; });
+    cur.shifts.forEach(function (s) { var i = idxOf(bk, s.shift_date); if (i >= 0) rx[i] += Number(s.rx_total) || 0; });
+    var rate = bk.buckets.map(function (b, i) { return rx[i] > 0 ? +(errCnt[i] / rx[i] * 100).toFixed(2) : null; });
+    line('az-rate', bk, rate, '#2a78d6', 'อัตรา/100 ใบสั่ง', function (v) { return Number(v).toFixed(2); });
+
+    /* pareto subtype */
+    var cnt = {};
+    cur.errors.forEach(function (e) { splitSub(e.error_subtype).forEach(function (s) { cnt[s] = (cnt[s] || 0) + 1; }); });
+    var pItems = Object.keys(cnt).map(function (k) { return { label: k, value: cnt[k] }; }).sort(function (a, b) { return b.value - a.value; }).slice(0, 10);
+    pareto('az-pareto', pItems);
+
+    /* phase */
+    var ORDER = ['Prescribing', 'Transcribing', 'Pre-Dispensing', 'Dispensing', 'Administration'];
+    var pc = {};
+    cur.errors.forEach(function (e) { var t = String(e.error_type || '').trim() || 'อื่นๆ'; pc[t] = (pc[t] || 0) + 1; });
+    var phItems = ORDER.filter(function (k) { return pc[k]; }).map(function (k) { return { label: k, value: pc[k] }; });
+    Object.keys(pc).forEach(function (k) { if (ORDER.indexOf(k) < 0) phItems.push({ label: k, value: pc[k] }); });
+    hbars('az-phase', phItems, '#2a78d6', 'จำนวน');
+
+    /* severity A–I (ordinal ramp น้ำเงิน — เข้ม = รุนแรง) */
+    var LET = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I'];
+    var RAMP = ['#86b6ef', '#6da7ec', '#5598e7', '#3987e5', '#2a78d6', '#256abf', '#1c5cab', '#184f95', '#104281'];
+    var sc = {};
+    cur.errors.forEach(function (e) { var s = String(e.severity || '').trim().toUpperCase(); if (LET.indexOf(s) >= 0) sc[s] = (sc[s] || 0) + 1; });
+    var svItems = LET.filter(function (l) { return sc[l]; }).map(function (l) { return { label: 'ระดับ ' + l, value: sc[l], hex: RAMP[LET.indexOf(l)] }; });
+    hbars('az-sevdist', svItems, '#2a78d6', 'จำนวน');
+
+    /* review table */
+    var rev = cur.errors.filter(function (e) { return merpG(e.severity) === 'E+' || e.had; })
+      .sort(function (a, b) { return String(b.shift_date).localeCompare(String(a.shift_date)); });
+    var revBox = document.getElementById('az-review');
+    if (!rev.length) revBox.innerHTML = '<div class="az-empty">ไม่มีรายการระดับ E ขึ้นไปหรือเกี่ยวข้อง HAD ในช่วงนี้ 🎉</div>';
+    else revBox.innerHTML = '<table class="az-table"><thead><tr><th>วันที่</th><th>ขั้นตอน</th><th>subtype</th><th>ระดับ</th><th>HAD</th><th>รายละเอียด</th><th>ผู้บันทึก</th></tr></thead><tbody>' +
+      rev.map(function (e) {
+        return '<tr><td style="white-space:nowrap;">' + esc(thD(e.shift_date)) + '</td><td>' + esc(e.error_type || '—') + '</td><td>' + esc(splitSub(e.error_subtype).join(', ') || '—') + '</td><td>' + sevChip(e.severity) + '</td><td>' + (e.had ? '<span class="az-had">HAD</span>' : '') + '</td><td>' + esc(e.note || '—') + '</td><td>' + esc(e.pharmacist_name || '—') + '</td></tr>';
+      }).join('') + '</tbody></table>';
+
+    /* ยาหาย — trend by source */
+    var mSeries = SOURCES.map(function (src) {
+      return { label: src.label, hex: src.hex, values: bucketCnt(bk, cur.miss, function (m) { return m.date; }, function (m) { return m.source === src.key; }) };
+    });
+    stacked('az-miss-trend', bk, mSeries);
+    document.getElementById('az-lg-miss').innerHTML = mSeries.map(function (s) {
+      return '<span><span class="sw" style="background:' + s.hex + '"></span>' + esc(s.label) + '</span>';
+    }).join('');
+
+    /* top missing drugs */
+    var mc = {};
+    cur.miss.forEach(function (m) { var d = String(m.drug || '').trim(); if (d) mc[d] = (mc[d] || 0) + 1; });
+    var mItems = Object.keys(mc).map(function (k) { return { label: k, value: mc[k] }; }).sort(function (a, b) { return b.value - a.value; }).slice(0, 8);
+    hbars('az-miss-top', mItems, '#eb6834', 'ครั้ง');
+
+    /* miss table */
+    var SRC_L = { pharm: 'เภสัช (risk)', nurse: 'พยาบาลตรวจรับ', shift: 'เช็ครถ' };
+    var mBox = document.getElementById('az-miss-table');
+    if (!cur.miss.length) mBox.innerHTML = '<div class="az-empty">ไม่มีเหตุการณ์ยาหาย/ยาขาดในช่วงนี้ 🎉</div>';
+    else {
+      var rows = cur.miss.slice(0, 120);
+      mBox.innerHTML = '<table class="az-table"><thead><tr><th>วันที่</th><th>ตรวจพบโดย</th><th>ยา</th><th>รายละเอียด</th><th>HAD</th><th>ผู้บันทึก</th></tr></thead><tbody>' +
+        rows.map(function (m) {
+          return '<tr><td style="white-space:nowrap;">' + esc(thD(m.date)) + '</td><td><span class="az-src">' + esc(SRC_L[m.source] || m.source) + '</span></td><td>' + esc(m.drug || '—') + '</td><td>' + esc(m.note || '—') + '</td><td>' + (m.had ? '<span class="az-had">HAD</span>' : '') + '</td><td>' + esc(m.by || '—') + '</td></tr>';
+        }).join('') + '</tbody></table>' +
+        (cur.miss.length > 120 ? '<div style="font-size:11px;color:var(--hint);margin-top:6px;">แสดง 120 รายการแรกจาก ' + cur.miss.length + '</div>' : '');
+    }
+  }
+  return render;
+})();
+
 </script>
 <button id="back-to-top" onclick="window.scrollTo({top:0,behavior:'smooth'})" title="กลับด้านบน">
   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round">
