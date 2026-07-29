@@ -2455,7 +2455,7 @@ input::placeholder, textarea::placeholder { color: var(--hint); }
 
       <div class="card" style="margin-top:.75rem;">
         <p style="font-size:13px;font-weight:500;">ภาระงานรายคน (เภสัช/จพ.)</p>
-        <p style="font-size:11px;color:var(--muted);margin-bottom:.6rem;">รวมทุกบทบาทในตารางเดียว — บันทึกเวร · เช็ครถ · เติมยา · จ่ายยา · บันทึก med error (นับผู้บันทึก ไม่ใช่ผู้ก่อ)</p>
+        <p style="font-size:11px;color:var(--muted);margin-bottom:.6rem;">เช็ครถ · เติมยา · บันทึก med error (นับผู้บันทึก ไม่ใช่ผู้ก่อ)</p>
         <div id="az-wl-pharm" style="overflow-x:auto;"></div>
       </div>
     </div>
@@ -8297,17 +8297,17 @@ var renderDashAnalytics = (function () {
       r.disp = Number(p.dispense) || 0;
     });
     var rows = Object.keys(P).map(function (k) { return P[k]; })
-      .sort(function (a, b) { return (b.shifts - a.shifts) || (b.rsDays - a.rsDays) || (b.cart - a.cart); });
+      .filter(function (r) { return (r.cart + r.rsCnt + r.err) > 0; })
+      .sort(function (a, b) { return (b.cart - a.cart) || (b.rsCnt - a.rsCnt) || (b.err - a.err); });
     var box = document.getElementById('az-wl-pharm');
     if (!rows.length) { box.innerHTML = '<div class="az-empty">ไม่มีข้อมูลในช่วงนี้</div>'; return; }
     var num = function (v, ok) { return '<td style="text-align:right;font-variant-numeric:tabular-nums;">' + (ok === false ? '—' : fmt(v)) + '</td>'; };
     box.innerHTML = '<table class="az-table"><thead><tr><th>ชื่อ</th>' +
-      '<th style="text-align:right;">บันทึกเวร</th><th style="text-align:right;">เช็ครถ (ครั้ง)</th>' +
-      '<th style="text-align:right;">เติมยา (เวร)</th><th style="text-align:right;">เติมยา (ครั้ง)</th>' +
-      '<th style="text-align:right;">จ่ายยา (ครั้ง)</th><th style="text-align:right;">บันทึก Med Error</th></tr></thead><tbody>' +
+      '<th style="text-align:right;">เช็ครถ (ครั้ง)</th><th style="text-align:right;">เติมยา (ครั้ง)</th>' +
+      '<th style="text-align:right;">บันทึก Med Error</th></tr></thead><tbody>' +
       rows.map(function (r) {
-        return '<tr><td>' + esc(r.name) + '</td>' + num(r.shifts) + num(r.cart, hasCart) +
-          num(r.rsDays, hasStock) + num(r.rsCnt, hasStock) + num(r.disp, hasStock) + num(r.err) + '</tr>';
+        return '<tr><td>' + esc(r.name) + '</td>' + num(r.cart, hasCart) +
+          num(r.rsCnt, hasStock) + num(r.err) + '</tr>';
       }).join('') + '</tbody></table>' +
       ((hasCart && hasStock) ? '' : '<div style="font-size:11px;color:var(--hint);margin-top:6px;">คอลัมน์ที่เป็น — จะแสดงเมื่อ deploy Edge Function เวอร์ชันล่าสุด</div>');
   }
