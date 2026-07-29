@@ -7808,6 +7808,10 @@ var renderDashAnalytics = (function () {
     for (var i = 0; i < MERP.length; i++) if (MERP[i].test(s)) return MERP[i].key;
     return null;
   }
+  /* note ที่เป็นชื่อยาละตินล้วนสั้น ๆ (ไม่มีอักษรไทย) = ผู้ใช้กรอกเฉพาะชื่อยา */
+  function azLooksLikeDrug(s) {
+    return !!s && s.length <= 60 && /^[A-Za-z]/.test(s) && !/[\u0E00-\u0E7F]/.test(s);
+  }
   function splitSub(s) { return String(s || '').split(',').map(function (x) { return x.trim(); }).filter(Boolean); }
   function niceMax(v) {
     if (v <= 0) return 4;
@@ -7913,8 +7917,11 @@ var renderDashAnalytics = (function () {
     var miss = [];
     risks.forEach(function (r) {
       if (String(r.risk_type || '').trim() !== 'ยาหาย') return;
-      var note = String(r.note || ''), parts = note.split(' · ');
-      miss.push({ date: r.shift_date, source: 'pharm', drug: parts.length > 1 ? parts[0] : '', note: parts.length > 1 ? parts.slice(1).join(' · ') : note, had: !!r.had, by: r.pharmacist_name || '' });
+      var note = String(r.note || '').trim(), parts = note.split(' · ');
+      var drug = '', rest = note;
+      if (parts.length > 1) { drug = parts[0].trim(); rest = parts.slice(1).join(' · '); }
+      else if (azLooksLikeDrug(note)) { drug = note; rest = ''; }
+      miss.push({ date: r.shift_date, source: 'pharm', drug: drug, note: rest, had: !!r.had, by: r.pharmacist_name || '' });
     });
     nurse.forEach(function (c) {
       if (!(Number(c.missing_cnt) > 0)) return;
