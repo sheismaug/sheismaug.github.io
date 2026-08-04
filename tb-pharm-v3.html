@@ -2407,7 +2407,8 @@ function planVisitRepair(p, visits) {
   let oldVD = [];
   try { oldVD = JSON.parse(p.visit_dates_json || '[]'); } catch(e) {}
   const newStdDates = defs.map((d, i) =>
-    (oldVD[i] && daysApart(oldVD[i], stdPlanned[i]) <= 40) ? oldVD[i] : stdPlanned[i]
+    // คงวันที่แก้มือไว้ ทิ้งเฉพาะลายเซ็นบั๊ก (ห่าง >40 วัน และตรงกับวันของ visit พิเศษ)
+    (oldVD[i] && !(daysApart(oldVD[i], stdPlanned[i]) > 40 && customDates.has(oldVD[i]))) ? oldVD[i] : stdPlanned[i]
   );
   const newVisitDates = [...newStdDates, ...customsFixed.map(c => c.date)];
 
@@ -2531,10 +2532,10 @@ function buildSchedule() {
   S.visitDates  = [...stdDates, ...customDates];
 
   // Overlay saved dates from Sheets (user-edited dates persist over calculated ones)
-  // Corruption guard: สำหรับ visit มาตรฐาน ถ้าวันที่ที่ save ไว้ห่างจากวันที่คำนวณ >40 วัน
-  // ถือว่าเป็นข้อมูลเพี้ยน (เช่น วันของ visit พิเศษ รั่วมาทับ slot มาตรฐาน) → ไม่ overlay
-  // ใช้วันที่คำนวณใหม่แทน แล้วระบบจะ auto-save ทับให้ถูกต้อง (self-heal)
-  // หมายเหตุ: visit พิเศษ (i >= nStd) overlay ตามปกติ, การแก้มือในกรอบ ≤40 วัน ยังคงอยู่
+  // Corruption guard (ฉลาดขึ้น): ทิ้งวันที่ save ไว้ "เฉพาะ" เมื่อเจอลายเซ็นบั๊กจริง คือ
+  //   ห่างจากวันคำนวณ >40 วัน "และ" ตรงกับวันของ visit พิเศษ (= วันรั่วมาทับ slot มาตรฐาน)
+  // การแก้วันนัดด้วยมือ แม้เกิน 40 วัน (เช่น เลื่อนนัด/มาก่อนนัดนาน) → คงไว้ตามที่บันทึก
+  // หมายเหตุ: visit พิเศษ (i >= nStd) overlay ตามปกติ
   if (S._savedVisitDates?.length) {
     const DAY = 86400000;
     const nStd = stdSched.length;
@@ -2542,7 +2543,7 @@ function buildSchedule() {
       if (!d || i >= S.visitDates.length) return;
       if (i < nStd && stdDates[i]) {
         const off = Math.abs((new Date(d+'T00:00:00') - new Date(stdDates[i]+'T00:00:00')) / DAY);
-        if (off > 40) return; // วันที่เพี้ยน → คงวันที่คำนวณ
+        if (off > 40 && customDates.includes(d)) return; // ลายเซ็นบั๊ก → คงวันที่คำนวณ
       }
       S.visitDates[i] = d;
     });
@@ -3707,10 +3708,9 @@ function submitEditBalance(drugId) {
   if (APPS_SCRIPT_URL && !APPS_SCRIPT_URL.includes('YOUR_APPS')) {
     api('saveStockTxn', {
       drug_id: drugId, txn_type: 'ADJUST', qty,
-      source: note, txn_date: new Date().toISOString().slice(0,10),
-      balance_after: qty
+      source: note, txn_date: new Date().toISOString().slice(0,10)
     }).then(() => toast('✅ ปรับยอดแล้ว '+prev+' → '+qty+' '+d.unit))
-      .catch(() => toast('💾 ปรับยอดแล้ว (offline)'));
+      .catch(e => toast('⚠️ sync ไม่สำเร็จ — ข้อมูลจะหายเมื่อ reload: '+(e.message||e), 6000));
   } else {
     toast('💾 ปรับยอด '+d.abbr+' : '+prev+' → '+qty+' '+d.unit);
   }
@@ -7875,12 +7875,11 @@ function saveStockTxn() {
       txn_type:   typeMap[type] || 'IN',
       qty:        type === 'จ่ายออก' ? -Math.abs(q) : q,
       lot_no:     lot,
-      exp_date:   expiry,
+      exp_date:   expiry || null,
       source:     note,
-      txn_date:   new Date().toISOString().slice(0,10),
-      balance_after: d.balance
+      txn_date:   new Date().toISOString().slice(0,10)
     }).then(() => toast('✅ บันทึก '+type+' — sync สำเร็จ'))
-      .catch(() => toast('💾 บันทึก '+type+' แล้ว (offline)'));
+      .catch(e => toast('⚠️ sync ไม่สำเร็จ — ข้อมูลจะหายเมื่อ reload: '+(e.message||e), 6000));
   } else {
     toast('💾 บันทึก '+type+' : '+d.abbr+' '+q+' '+d.unit);
   }
