@@ -7385,11 +7385,10 @@ function ccRenderBody(drugId) {
       if (es.status === 'danger')   expWarn = ' <span style="color:var(--red);font-size:10px;">หมดแล้ว</span>';
       else if (es.status === 'critical') expWarn = ' <span style="color:var(--red);font-size:10px;">วิกฤต</span>';
       else if (es.status === 'warn') expWarn = ' <span style="color:#d97706;font-size:10px;">'+es.daysLeft+' วัน</span>';
-      // "ถอน" button for near-expiry lots — auto-fills 0
-      const withdrawBtn = isNearExp
-        ? ' <button type="button" class="cc-withdraw-btn" data-did="'+drugId+'" data-exp="'+lot.exp_date+'"'
-          + ' onclick="ccWithdraw(this.dataset.did,this.dataset.exp)">ถอน</button>'
-        : '';
+      // "ถอน" button on every lot — auto-fills 0 (e.g. change lot / near-expiry)
+      const withdrawBtn =
+        ' <button type="button" class="cc-withdraw-btn" data-did="'+drugId+'" data-exp="'+lot.exp_date+'"'
+          + ' onclick="ccWithdraw(this.dataset.did,this.dataset.exp)">ถอน</button>';
       const curVal = st.actuals[lot.exp_date];
       const valAttr = (curVal!=null ? ' value="'+curVal+'"' : '');
       html +=
