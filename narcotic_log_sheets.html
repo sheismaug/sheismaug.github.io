@@ -1399,8 +1399,15 @@ function showStatus(msg, type) {
 //  ทั้งที่ส่วนใหญ่คือ cold start ของ Apps Script (ครั้งแรกของวัน)
 //  ซึ่งอาจตอบกลับเป็น HTML/503 แทน JSON → res.json() โยน SyntaxError
 const NET_TIMEOUT_MS = 25000;
-const NET_RETRIES    = 2;              // ลองซ้ำอีก 2 ครั้ง (รวม 3 ครั้ง)
-const NET_BACKOFF    = [1000, 3000];   // ms
+const NET_RETRIES    = 3;                     // ลองซ้ำอีก 3 ครั้ง (รวม 4 ครั้ง)
+const NET_BACKOFF    = [800, 2000, 5000];     // ms
+
+// GAS /exec ตอบ 302 ไป script.googleusercontent.com/...?user_content_key=...
+// browser cache redirect นั้นไว้ พอ key หมดอายุ → ยิงซ้ำได้ 404 ทั้งที่ deployment ปกติ
+// แก้ด้วยการเติม query ใหม่ทุกครั้ง + no-store
+function withCacheBust_(url) {
+  return url + (url.indexOf('?') >= 0 ? '&' : '?') + '_=' + Date.now();
+}
 
 function netSleep_(ms) { return new Promise(r => setTimeout(r, ms)); }
 
@@ -1421,13 +1428,19 @@ async function fetchJSON(url, opts) {
     const ctrl  = new AbortController();
     const timer = setTimeout(() => ctrl.abort(), NET_TIMEOUT_MS);
     try {
-      const res  = await fetch(url, Object.assign({}, opts || {}, { signal: ctrl.signal }));
+      const isGet  = !opts || !opts.method || String(opts.method).toUpperCase() === 'GET';
+      const target = isGet ? withCacheBust_(url) : url;
+      const res  = await fetch(target, Object.assign({ cache: 'no-store' }, opts || {}, { signal: ctrl.signal }));
       clearTimeout(timer);
       const text = await res.text();
       if (!res.ok) {
-        // 401/403/404 = deployment มีปัญหาจริง → ไม่ต้อง retry
-        if (res.status === 401 || res.status === 403 || res.status === 404) {
+        // 401/403 = สิทธิ์เข้าถึงผิดจริง → ไม่ต้อง retry
+        if (res.status === 401 || res.status === 403) {
           throw netError_('deploy', 'HTTP ' + res.status, res.status);
+        }
+        // 404 ของ GAS มัก "ชั่วคราว" (redirect key ค้าง/หมดอายุ) → ต้อง retry
+        if (res.status === 404) {
+          throw netError_('notfound', 'HTTP 404', 404);
         }
         throw netError_('http', 'HTTP ' + res.status, res.status);
       }
@@ -1454,7 +1467,8 @@ async function fetchJSON(url, opts) {
 // แปลง error → ข้อความที่บอกสาเหตุจริง
 function netErrorMsg_(e) {
   const k = e && e.kind;
-  if (k === 'deploy')  return 'GAS ปฏิเสธการเข้าถึง (' + (e.status || 'ขอ login') + ') — ตรวจ SCRIPT_URL หรือ Deploy ใหม่ (Who has access: Anyone)';
+  if (k === 'deploy')   return 'GAS ปฏิเสธการเข้าถึง (' + (e.status || 'ขอ login') + ') — ตรวจ SCRIPT_URL หรือ Deploy ใหม่ (Who has access: Anyone)';
+  if (k === 'notfound') return 'GAS ตอบ 404 ครบ ' + (NET_RETRIES + 1) + ' ครั้ง — ถ้ากด "ลองใหม่" แล้วหาย = redirect ค้างชั่วคราว, ถ้ายังไม่หาย = deployment URL เก่า ต้อง Deploy ใหม่แล้วอัปเดต SCRIPT_URL';
   if (k === 'timeout') return 'GAS ตอบช้าเกิน 25 วินาที (cold start) — กด "ลองใหม่" อีกครั้ง';
   if (k === 'html')    return 'GAS ตอบกลับผิดรูปแบบ — มักเกิดตอนเปิดใช้ครั้งแรกของวัน กด "ลองใหม่" ได้เลย';
   if (k === 'http')    return 'Google ตอบกลับ ' + e.status + ' — server ไม่พร้อมชั่วคราว ลองใหม่อีกครั้ง';
@@ -1464,6 +1478,19 @@ function netErrorMsg_(e) {
 function showNetError_(e) {
   if (e && e.message === 'unauthorized') return;   // doLogout แสดงข้อความเองแล้ว
   showStatus('❌ ' + netErrorMsg_(e), 'error');
+}
+
+// กัน poll ซ้อนกัน — ถ้ารอบก่อนยัง retry ค้างอยู่ ให้ข้ามรอบนี้ไป
+let POLL_BUSY = false;
+async function refreshAll_() {
+  if (POLL_BUSY) return;
+  POLL_BUSY = true;
+  try {
+    await loadLogs();
+    await loadInventory();
+  } finally {
+    POLL_BUSY = false;
+  }
 }
 
 // warm-up: ยิง ping เบา ๆ ปลุก GAS instance ก่อนโหลดข้อมูลจริง
@@ -1570,7 +1597,7 @@ window.onload = () => {
     await loadLogs();
     await loadInventory();
   })();
-  setInterval(async () => { await loadLogs(); await loadInventory(); }, 30000);
+  setInterval(refreshAll_, 30000);
 };
 
 function toDateStr(d) {
