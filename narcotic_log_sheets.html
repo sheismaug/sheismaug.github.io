@@ -903,6 +903,10 @@ tr:last-child td { border-bottom: none; }
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="4" y1="6" x2="20" y2="6"/><line x1="8" y1="12" x2="16" y2="12"/><line x1="11" y1="18" x2="13" y2="18"/></svg>
           กรอง
         </button>
+        <button onclick="refreshAll_(true)" id="refresh-btn" title="ดึงข้อมูลล่าสุดจาก Google Sheets" style="height:38px;padding:0 14px;background:var(--white);color:var(--gray-500);border:1.5px solid var(--gray-200);border-radius:var(--r);font-size:13px;font-family:'Google Sans', sans-serif;cursor:pointer;display:flex;align-items:center;gap:7px;white-space:nowrap;">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M23 4v6h-6"/><path d="M1 20v-6h6"/><path d="M3.51 9a9 9 0 0114.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0020.49 15"/></svg>
+          <span id="last-sync">รีเฟรช</span>
+        </button>
         <button class="btn-export" onclick="exportCSV()">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
           Export CSV
@@ -1480,18 +1484,53 @@ function showNetError_(e) {
   showStatus('❌ ' + netErrorMsg_(e), 'error');
 }
 
-// กัน poll ซ้อนกัน — ถ้ารอบก่อนยัง retry ค้างอยู่ ให้ข้ามรอบนี้ไป
-let POLL_BUSY = false;
-async function refreshAll_() {
+// ─── Polling ───
+//  เดิม: setInterval 30 วินาที ยิง 2 request ตลอดเวลาที่เปิดหน้าไว้
+//  แต่ละ request ให้ GAS กวาดทั้งชีต → execution ค้างคิว → login ช้า / 404
+//  ตอนนี้: 5 นาที + หยุดสนิทเมื่อสลับแท็บ + มีปุ่มรีเฟรชเอง
+const POLL_INTERVAL_MS = 5 * 60 * 1000;
+let POLL_BUSY  = false;
+let POLL_TIMER = null;
+let lastSyncAt = 0;
+
+function markSynced_() {
+  lastSyncAt = Date.now();
+  const el = document.getElementById('last-sync');
+  if (el) el.textContent = toTimeStr(new Date(lastSyncAt)) + ' น.';
+}
+
+async function refreshAll_(manual) {
   if (POLL_BUSY) return;
   POLL_BUSY = true;
+  const btn = document.getElementById('refresh-btn');
+  if (manual && btn) btn.style.opacity = '0.5';
   try {
     await loadLogs();
     await loadInventory();
   } finally {
     POLL_BUSY = false;
+    if (btn) btn.style.opacity = '1';
   }
 }
+
+function startPolling_() {
+  stopPolling_();
+  POLL_TIMER = setInterval(refreshAll_, POLL_INTERVAL_MS);
+}
+
+function stopPolling_() {
+  if (POLL_TIMER) { clearInterval(POLL_TIMER); POLL_TIMER = null; }
+}
+
+// ไม่ได้ดูแท็บอยู่ = ไม่ต้องยิง request; กลับมาดูแล้วค่อยดึงถ้าข้อมูลเก่าเกิน 5 นาที
+document.addEventListener('visibilitychange', () => {
+  if (document.hidden) {
+    stopPolling_();
+  } else {
+    if (Date.now() - lastSyncAt > POLL_INTERVAL_MS) refreshAll_();
+    startPolling_();
+  }
+});
 
 // warm-up: ยิง ping เบา ๆ ปลุก GAS instance ก่อนโหลดข้อมูลจริง
 async function warmUpGAS_() {
@@ -1550,6 +1589,7 @@ async function loadLogs() {
       }
       document.getElementById('status-bar').style.opacity = '0';
       document.getElementById('load-error-bar').style.display = 'none';
+      markSynced_();
     } else {
       showStatus('❌ โหลดข้อมูลไม่ได้: ' + (data.error || ''), 'error');
       showLoadError('GAS ตอบกลับแต่ไม่พบข้อมูล: ' + (data.error || 'ไม่ทราบสาเหตุ'));
@@ -1597,7 +1637,7 @@ window.onload = () => {
     await loadLogs();
     await loadInventory();
   })();
-  setInterval(refreshAll_, 30000);
+  startPolling_();
 };
 
 function toDateStr(d) {
