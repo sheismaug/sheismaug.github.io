@@ -1445,7 +1445,7 @@ async function fetchJSON(url, opts) {
   let lastErr = null;
   for (let attempt = 0; attempt <= NET_RETRIES; attempt++) {
     if (attempt > 0) {
-      showStatus('⏳ GAS ยังไม่ตอบ กำลังลองใหม่ (' + attempt + '/' + NET_RETRIES + ')...', 'loading');
+      showStatus('⏳ server ยังไม่ตอบ กำลังลองใหม่ (' + attempt + '/' + NET_RETRIES + ')...', 'loading');
       await netSleep_(NET_BACKOFF[attempt - 1] || 3000);
     }
     const ctrl  = new AbortController();
@@ -1588,7 +1588,7 @@ async function loadLogs() {
       markSynced_();
     } else {
       showStatus('❌ โหลดข้อมูลไม่ได้: ' + (data.error || ''), 'error');
-      showLoadError('GAS ตอบกลับแต่ไม่พบข้อมูล: ' + (data.error || 'ไม่ทราบสาเหตุ'));
+      showLoadError('server ตอบกลับแต่ไม่พบข้อมูล: ' + (data.error || 'ไม่ทราบสาเหตุ'));
     }
   } catch(e) {
     showStatus('❌ โหลดข้อมูลไม่ได้', 'error');
@@ -1627,7 +1627,7 @@ window.onload = () => {
       enterAuthedUI_();
     }
   } catch (e) {}
-  // ปลุก GAS ก่อน แล้วค่อยโหลดทีละอย่าง — เดิมยิง 2 request พร้อมกันตอน cold start
+  // โหลดทีละอย่าง (warmUpGAS_ เป็น no-op แล้วตั้งแต่ย้ายมา Supabase)
   (async () => {
     await warmUpGAS_();
     await loadLogs();
