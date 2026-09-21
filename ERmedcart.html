@@ -456,6 +456,20 @@ input::placeholder, textarea::placeholder { color: var(--hint); }
 .log-card.log-err { border-color: var(--red-b); background: var(--red-bg); }
 .log-head { display: flex; align-items: center; gap: 7px; margin-bottom: 8px; }
 .log-type { font-size: 13px; font-weight: 700; color: var(--text); flex: 1; min-width: 0; }
+.qty-ctrl {
+  display: flex; align-items: center; gap: 2px; flex-shrink: 0;
+  background: var(--white); border: 1px solid var(--border2);
+  border-radius: 20px; padding: 2px;
+}
+.qty-lbl { font-size: 10.5px; color: var(--hint); font-weight: 600; padding: 0 3px 0 6px; }
+.qb {
+  width: 24px; height: 24px; border-radius: 50%; border: none; background: transparent;
+  font-size: 16px; line-height: 1; color: var(--text); cursor: pointer;
+  font-family: inherit; padding: 0; display: flex; align-items: center; justify-content: center;
+}
+.qb:active { transform: scale(.9); }
+.qb:disabled { opacity: .3; cursor: not-allowed; }
+.qv { font-size: 13.5px; font-weight: 700; min-width: 18px; text-align: center; }
 .log-badge { font-size: 10px; font-weight: 700; padding: 2px 8px; border-radius: 99px; flex-shrink: 0; }
 .log-badge.wait { background: var(--white); color: var(--amber); border: 1px solid var(--amber-b); }
 .log-badge.ok   { background: var(--green-bg); color: var(--green); border: 1px solid var(--green-b); }
@@ -3623,6 +3637,7 @@ function normalizeLogLists() {
     if (!r.id) r.id = _newLogId();
     if (r.drug == null) r.drug = '';
     if (r.note == null) r.note = '';
+    r.qty = Math.max(1, Number(r.qty) || 1);
     r.had = !!r.had;
   });
   APP.errList.forEach(function(e) {
@@ -3706,7 +3721,7 @@ function _riskById(id) {
 
 function addRiskItem(type) {
   if (!Array.isArray(APP.riskList)) APP.riskList = [];
-  var item = { id: _newLogId(), type: type, drug: '', note: '', had: false };
+  var item = { id: _newLogId(), type: type, drug: '', note: '', had: false, qty: 1 };
   // "ยาหาย" = นับรวมใน "รายการยาหายโดยไม่มีการสั่งใช้" ให้อัตโนมัติ (ยกเลิกได้ในการ์ด)
   if (type === 'ยาหาย') { item.countMiss = true; adj('miss', 1); }
   APP.riskList.push(item);
@@ -3724,7 +3739,7 @@ function addRiskItem(type) {
 
 function removeRiskItem(id) {
   var r = _riskById(id);
-  if (r && r.countMiss) adj('miss', -1);
+  if (r && r.countMiss) adj('miss', -(r.qty || 1));
   APP.riskList = (APP.riskList || []).filter(function(x) { return String(x.id) !== String(id); });
   renderRiskList();
   updateSummary();
@@ -3735,6 +3750,24 @@ function setRiskField(id, field, val) {
   var r = _riskById(id);
   if (!r) return;
   r[field] = val;
+  saveDraft();
+}
+
+function setRiskQty(id, delta) {
+  var r = _riskById(id);
+  if (!r) return;
+  var old = Math.max(1, Number(r.qty) || 1);
+  var next = Math.max(1, old + delta);
+  if (next === old) return;
+  r.qty = next;
+  if (r.countMiss) adj('miss', next - old);   // ตัวนับด้านบนตามจำนวนจริง
+  var card = document.querySelector('#risk-list [data-rid="' + id + '"]');
+  if (card) {
+    var v = card.querySelector('.qv');
+    if (v) v.textContent = next;
+    var minus = card.querySelector('.qb-minus');
+    if (minus) minus.disabled = (next <= 1);
+  }
   saveDraft();
 }
 
@@ -3750,7 +3783,7 @@ function toggleRiskCount(id, btn) {
   var r = _riskById(id);
   if (!r) return;
   r.countMiss = !r.countMiss;
-  adj('miss', r.countMiss ? 1 : -1);
+  adj('miss', (r.countMiss ? 1 : -1) * (r.qty || 1));
   btn.classList.toggle('on', r.countMiss);
   btn.textContent = r.countMiss ? '✓ นับเป็นยาหายไร้ใบสั่ง' : 'นับเป็นยาหายไร้ใบสั่ง';
   saveDraft();
@@ -3774,6 +3807,13 @@ function renderRiskList() {
       '<div class="log-card" data-rid="' + r.id + '">' +
         '<div class="log-head">' +
           '<span class="log-type">' + _esc(r.type) + '</span>' +
+          '<span class="qty-ctrl">' +
+            '<span class="qty-lbl">จำนวน</span>' +
+            '<button type="button" class="qb qb-minus" ' + (r.qty <= 1 ? 'disabled ' : '') +
+              'onclick="setRiskQty(\'' + r.id + '\',-1)" aria-label="ลดจำนวน">−</button>' +
+            '<span class="qv">' + r.qty + '</span>' +
+            '<button type="button" class="qb" onclick="setRiskQty(\'' + r.id + '\',1)" aria-label="เพิ่มจำนวน">+</button>' +
+          '</span>' +
           '<button type="button" class="log-del" onclick="removeRiskItem(\'' + r.id + '\')" aria-label="ลบรายการ">✕</button>' +
         '</div>' +
         '<input type="text" placeholder="ชื่อยา (ไม่บังคับ) เช่น Morphine 10 mg" value="' + _esc(r.drug) + '" ' +
