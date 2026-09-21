@@ -433,6 +433,80 @@ input::placeholder, textarea::placeholder { color: var(--hint); }
 .chip.on-err  { background: var(--red-bg);   color: var(--red);   border-color: var(--red-b);  }
 
 /* ============================================================
+   QUICK LOG — แตะ chip = เพิ่มรายการทันที, กรอกในการ์ด
+   ============================================================ */
+.quick-hint {
+  font-size: 11.5px; color: var(--muted); line-height: 1.55;
+  background: var(--bg2); border-radius: var(--radius);
+  padding: 7px 11px; margin-bottom: 10px;
+}
+.add-chip-row { display: flex; flex-wrap: wrap; gap: 5px; margin-bottom: 10px; }
+.chip-add {
+  margin: 0; font-weight: 600; font-size: 12px; padding: 7px 12px;
+  background: var(--amber-bg); color: var(--amber); border-color: var(--amber-b);
+}
+.chip-add:active { transform: scale(.96); }
+.chip-add-red { background: var(--red-bg); color: var(--red); border-color: var(--red-b); }
+.empty-note { font-size: 11.5px; color: var(--hint); text-align: center; padding: 8px 0 2px; }
+
+.log-card {
+  border-radius: var(--radius); padding: 10px 11px 11px; margin-bottom: 8px;
+  border: 1px solid var(--amber-b); background: var(--amber-bg);
+}
+.log-card.log-err { border-color: var(--red-b); background: var(--red-bg); }
+.log-head { display: flex; align-items: center; gap: 7px; margin-bottom: 8px; }
+.log-type { font-size: 13px; font-weight: 700; color: var(--text); flex: 1; min-width: 0; }
+.log-badge { font-size: 10px; font-weight: 700; padding: 2px 8px; border-radius: 99px; flex-shrink: 0; }
+.log-badge.wait { background: var(--white); color: var(--amber); border: 1px solid var(--amber-b); }
+.log-badge.ok   { background: var(--green-bg); color: var(--green); border: 1px solid var(--green-b); }
+.log-del {
+  border: none; background: transparent; color: var(--muted);
+  font-size: 15px; line-height: 1; cursor: pointer; padding: 2px 5px; flex-shrink: 0;
+}
+.log-card input[type=text], .log-card textarea {
+  background: var(--white); font-size: 13px; padding: 8px 10px; margin-bottom: 6px;
+}
+.log-sub {
+  font-size: 10px; font-weight: 700; color: var(--hint);
+  text-transform: uppercase; letter-spacing: .06em; margin: 9px 0 5px;
+}
+.log-card .chip { background: var(--white); font-size: 11.5px; padding: 4px 9px; margin: 2px 2px 2px 0; }
+.log-card .chip.on { background: var(--text); color: var(--white); border-color: var(--text); }
+
+.log-tog-row { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 9px; }
+.tog {
+  border-radius: 20px; border: 1px solid var(--border2); background: var(--white);
+  color: var(--muted); font-size: 11.5px; font-weight: 600; padding: 6px 11px;
+  cursor: pointer; font-family: inherit; transition: all .12s;
+}
+.tog:active { transform: scale(.96); }
+.tog.on { background: var(--red); color: var(--white); border-color: var(--red); }
+.tog.tog-count.on { background: var(--navy); color: var(--white); border-color: var(--navy); }
+
+/* แถบระดับความรุนแรง 9 ระดับ — กดครั้งเดียว ไม่ต้อง scroll */
+.sev-strip { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+.sev-grp { background: var(--white); border-radius: 10px; padding: 6px 8px 7px; }
+.sev-grp-lbl {
+  font-size: 9px; color: var(--hint); font-weight: 700;
+  letter-spacing: .02em; text-align: center; margin-bottom: 4px; white-space: nowrap;
+}
+.sev-row { display: flex; gap: 4px; justify-content: center; }
+.sev-dot {
+  width: 32px; height: 32px; border-radius: 9px; border: 1px solid var(--border2);
+  background: var(--white); color: var(--muted); font-size: 13px; font-weight: 700;
+  cursor: pointer; font-family: inherit; padding: 0; transition: all .12s;
+}
+.sev-dot:active { transform: scale(.94); }
+.sev-dot.on { color: var(--white); border-color: transparent; }
+.sev-desc { font-size: 11.5px; color: var(--text); font-weight: 600; margin-top: 7px; min-height: 16px; }
+.sev-desc.empty { color: var(--hint); font-weight: 400; }
+.log-card.need { box-shadow: 0 0 0 2px var(--amber); }
+@media (max-width: 370px) {
+  .sev-dot { width: 28px; height: 28px; font-size: 12px; }
+  .sev-grp-lbl { font-size: 8px; }
+}
+
+/* ============================================================
    ERROR MESSAGE
    ============================================================ */
 .err-msg {
@@ -1242,7 +1316,7 @@ input::placeholder, textarea::placeholder { color: var(--hint); }
     <div class="card" style="margin-bottom:.75rem;padding:.75rem 1rem;">
       <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
         <span style="font-size:13px;font-weight:500;white-space:nowrap;">จพ.เภสัชที่ดูแลรถยา</span>
-        <select id="tech-select" style="flex:1;min-width:160px;font-size:13px;padding:6px 10px;" onchange="updateSummary()">
+        <select id="tech-select" style="flex:1;min-width:160px;font-size:13px;padding:6px 10px;" onchange="updateSummary();if(typeof saveDraft==='function')saveDraft();">
           <option value="">-- ไม่ระบุ --</option>
           <option>จพ.วิภารัตน์</option>
           <option>จพ.ปุญญพัฒน์</option>
@@ -1322,152 +1396,47 @@ input::placeholder, textarea::placeholder { color: var(--hint); }
       <div class="card-title">
         ความเสี่ยงทั่วไป
         <span class="pill pill-amber" style="font-size:10px;">Non-clinical</span>
-        <span class="pill pill-amber" style="font-size:10px;margin-left:auto;">เพิ่มได้หลายรายการ</span>
+        <span class="pill pill-gray" style="font-size:10px;margin-left:auto;" id="risk-count-pill">0 รายการ</span>
       </div>
 
-      <!-- รายการที่เพิ่มแล้ว -->
+      <div class="quick-hint">แตะประเภท = <b>เพิ่มรายการทันที</b> · รายละเอียดกรอกในการ์ดได้เลย ไม่ต้องกดยืนยันซ้ำ</div>
+
+      <div id="risk-chips-wrap" class="add-chip-row">
+        <button class="chip chip-add" onclick="addRiskItem('ยาตก/แตก')">+ ยาตก / แตก</button>
+        <button class="chip chip-add" onclick="addRiskItem('ยาหาย')">+ ยาหาย</button>
+        <button class="chip chip-add" onclick="addRiskItem('ยาหมดอายุ')">+ ยาหมดอายุ</button>
+        <button class="chip chip-add" onclick="addRiskItem('ฉลากหลุด')">+ ฉลากหลุด</button>
+        <button class="chip chip-add" onclick="addRiskItem('บรรจุภัณฑ์ชำรุด')">+ บรรจุภัณฑ์ชำรุด</button>
+        <button class="chip chip-add" onclick="addRiskItem('ยาสลับตำแหน่ง')">+ ยาสลับตำแหน่ง</button>
+        <button class="chip chip-add" onclick="addRiskItem('อุณหภูมิผิดปกติ')">+ อุณหภูมิผิดปกติ</button>
+      </div>
+
       <div id="risk-list"></div>
-
-      <div id="risk-list-sep" style="display:none;height:1px;background:var(--border);margin:.75rem 0;"></div>
-
-      <!-- ฟอร์มเพิ่มรายการใหม่ -->
-      <div style="font-size:11px;font-weight:600;color:var(--hint);text-transform:uppercase;letter-spacing:.08em;margin-bottom:6px;" id="risk-form-label">เลือกประเภทความเสี่ยง</div>
-      <div id="risk-chips-wrap" style="display:flex;flex-wrap:wrap;gap:4px;margin-bottom:8px;">
-        <button class="chip" onclick="selectRiskType(this,'ยาตก/แตก')">ยาตก / แตก</button>
-        <button class="chip" onclick="selectRiskType(this,'ยาหาย')">ยาหาย</button>
-        <button class="chip" onclick="selectRiskType(this,'ยาหมดอายุ')">ยาหมดอายุ</button>
-        <button class="chip" onclick="selectRiskType(this,'ฉลากหลุด')">ฉลากหลุด</button>
-        <button class="chip" onclick="selectRiskType(this,'บรรจุภัณฑ์ชำรุด')">บรรจุภัณฑ์ชำรุด</button>
-        <button class="chip" onclick="selectRiskType(this,'ยาสลับตำแหน่ง')">ยาสลับตำแหน่ง</button>
-        <button class="chip" onclick="selectRiskType(this,'อุณหภูมิผิดปกติ')">อุณหภูมิผิดปกติ</button>
-      </div>
-
-      <div id="risk-form-fields" style="display:none;">
-        <input type="text" id="risk-drug-input" placeholder="ชื่อยา (ไม่บังคับ) เช่น Morphine 10 mg"
-          style="width:100%;font-size:13px;margin-bottom:6px;">
-        <textarea id="risk-note-input" rows="2"
-          placeholder="รายละเอียดเพิ่มเติม (ไม่บังคับ) เช่น สาเหตุที่สันนิษฐาน สถานที่เกิดเหตุ..."
-          style="width:100%;font-size:13px;resize:none;margin-bottom:0;"></textarea>
-        <div style="display:flex;align-items:center;gap:8px;margin-top:8px;padding:8px 12px;border-radius:var(--radius);background:var(--red-bg);border:1px solid var(--red-b);">
-          <input type="checkbox" id="risk-had-check" style="width:16px;height:16px;accent-color:var(--red);cursor:pointer;">
-          <label for="risk-had-check" style="font-size:13px;font-weight:500;color:var(--red);cursor:pointer;">เกี่ยวข้องกับยา HAD</label>
-          <span style="font-size:11px;color:var(--hint);">(High Alert Drug)</span>
-        </div>
-        <button onclick="addRiskItem()"
-          style="width:100%;margin-top:8px;padding:9px;border-radius:var(--radius);border:1px dashed var(--border2);background:transparent;color:var(--text);font-size:13px;cursor:pointer;font-family:inherit;display:flex;align-items:center;justify-content:center;gap:6px;">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-          เพิ่มรายการนี้
-        </button>
-      </div>
+      <div id="risk-empty" class="empty-note">ยังไม่มีรายการ — เวรนี้ไม่พบความเสี่ยง ข้ามได้เลย</div>
     </div>
 
     <!-- ส่วน 3: Med Error -->
     <div class="card">
       <div class="card-title">
         Med error
-        <span class="pill" style="background:var(--red-bg);color:var(--red);font-size:10px;">
-          เพิ่มได้หลายรายการ
-        </span>
+        <span class="pill pill-red" style="font-size:10px;">Clinical</span>
+        <span class="pill pill-gray" style="font-size:10px;margin-left:auto;" id="err-count-pill">0 รายการ</span>
+      </div>
+
+      <div class="quick-hint">แตะหมวด = <b>เพิ่มรายการทันที</b> · เลือกอาการและระดับความรุนแรงในการ์ด</div>
+
+      <div id="err-type-row" class="add-chip-row">
+        <button class="chip chip-add chip-add-red" onclick="addErrItem('Prescribing')">+ Prescribing</button>
+        <button class="chip chip-add chip-add-red" onclick="addErrItem('Transcribing')">+ Transcribing</button>
+        <button class="chip chip-add chip-add-red" onclick="addErrItem('Pre-Dispensing')">+ Pre-Dispensing</button>
+        <button class="chip chip-add chip-add-red" onclick="addErrItem('Dispensing')">+ Dispensing</button>
+        <button class="chip chip-add chip-add-red" onclick="addErrItem('Administration')">+ Administration</button>
       </div>
 
       <div id="err-log"></div>
-
-      <div style="border:1px dashed var(--border2);border-radius:var(--radius-lg);padding:1rem;" id="err-form">
-        <p style="font-size:12px;color:var(--muted);margin-bottom:.5rem;">ขั้น 1 — เลือกหมวด</p>
-        <div style="display:flex;gap:5px;flex-wrap:wrap;" id="err-type-row">
-          <button class="type-btn" onclick="pickErrType('Prescribing',this)">Prescribing</button>
-          <button class="type-btn" onclick="pickErrType('Transcribing',this)">Transcribing</button>
-          <button class="type-btn" onclick="pickErrType('Pre-Dispensing',this)">Pre-Dispensing</button>
-          <button class="type-btn" onclick="pickErrType('Dispensing',this)">Dispensing</button>
-          <button class="type-btn" onclick="pickErrType('Administration',this)">Administration</button>
-        </div>
-
-        <div id="err-sub-area" style="display:none;">
-          <p style="font-size:12px;color:var(--muted);margin:.75rem 0 .5rem;">ขั้น 2 — เลือก subtype</p>
-          <div style="background:var(--bg);border-radius:var(--radius);padding:10px 12px;">
-            <div id="err-sub-chips"></div>
-          </div>
-
-          <p style="font-size:12px;color:var(--muted);margin:.75rem 0 .5rem;">ขั้น 3 — ระดับความรุนแรง (NCC MERP)</p>
-
-          <div style="background:var(--bg);border-radius:var(--radius);padding:.75rem;margin-bottom:.625rem;">
-            <div style="font-size:10px;font-weight:700;color:var(--hint);text-transform:uppercase;letter-spacing:.06em;margin-bottom:.5rem;">ไม่ถึงผู้ป่วย</div>
-            <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;">
-              <button class="sev-btn-i" id="sev-A" onclick="selSevI(this,'A')">
-                <span class="sev-letter" style="background:#1a7a4a;">A</span>
-                <div><div style="font-size:12px;font-weight:600;">สภาวะเสี่ยง</div><div style="font-size:10px;color:var(--muted);">มีโอกาสเกิด error</div></div>
-              </button>
-              <button class="sev-btn-i" id="sev-B" onclick="selSevI(this,'B')">
-                <span class="sev-letter" style="background:#2e8b57;">B</span>
-                <div><div style="font-size:12px;font-weight:600;">Error ไม่ถึงคนไข้</div><div style="font-size:10px;color:var(--muted);">ยังไม่ถึงผู้ป่วย</div></div>
-              </button>
-            </div>
-          </div>
-
-          <div style="background:var(--bg);border-radius:var(--radius);padding:.75rem;margin-bottom:.625rem;">
-            <div style="font-size:10px;font-weight:700;color:var(--hint);text-transform:uppercase;letter-spacing:.06em;margin-bottom:.5rem;">ถึงผู้ป่วย — ไม่อันตราย</div>
-            <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;">
-              <button class="sev-btn-i" id="sev-C" onclick="selSevI(this,'C')">
-                <span class="sev-letter" style="background:#8a5c00;">C</span>
-                <div><div style="font-size:12px;font-weight:600;">ไม่เกิดอันตราย</div><div style="font-size:10px;color:var(--muted);">ถึงผู้ป่วยแต่ไม่อันตราย</div></div>
-              </button>
-              <button class="sev-btn-i" id="sev-D" onclick="selSevI(this,'D')">
-                <span class="sev-letter" style="background:#b8860b;">D</span>
-                <div><div style="font-size:12px;font-weight:600;">ต้องติดตาม</div><div style="font-size:10px;color:var(--muted);">ต้องมีการแทรกแซงเพิ่ม</div></div>
-              </button>
-            </div>
-          </div>
-
-          <div style="background:var(--bg);border-radius:var(--radius);padding:.75rem;margin-bottom:.625rem;">
-            <div style="font-size:10px;font-weight:700;color:var(--hint);text-transform:uppercase;letter-spacing:.06em;margin-bottom:.5rem;">เกิดอันตราย</div>
-            <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;">
-              <button class="sev-btn-i" id="sev-E" onclick="selSevI(this,'E')">
-                <span class="sev-letter" style="background:#c0392b;">E</span>
-                <div><div style="font-size:12px;font-weight:600;">อันตรายชั่วคราว</div><div style="font-size:10px;color:var(--muted);">ต้องได้รับการรักษา</div></div>
-              </button>
-              <button class="sev-btn-i" id="sev-F" onclick="selSevI(this,'F')">
-                <span class="sev-letter" style="background:#a93226;">F</span>
-                <div><div style="font-size:12px;font-weight:600;">ต้องนอน รพ.</div><div style="font-size:10px;color:var(--muted);">อันตรายชั่วคราว+นอน รพ.</div></div>
-              </button>
-            </div>
-          </div>
-
-          <div style="background:var(--bg);border-radius:var(--radius);padding:.75rem;margin-bottom:.625rem;">
-            <div style="font-size:10px;font-weight:700;color:var(--hint);text-transform:uppercase;letter-spacing:.06em;margin-bottom:.5rem;">อันตรายถาวร / เสียชีวิต</div>
-            <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;">
-              <button class="sev-btn-i" id="sev-G" onclick="selSevI(this,'G')">
-                <span class="sev-letter" style="background:#922b21;">G</span>
-                <div><div style="font-size:12px;font-weight:600;">อันตรายถาวร</div><div style="font-size:10px;color:var(--muted);">เกิดความเสียหายถาวร</div></div>
-              </button>
-              <button class="sev-btn-i" id="sev-H" onclick="selSevI(this,'H')">
-                <span class="sev-letter" style="background:#7b241c;">H</span>
-                <div><div style="font-size:12px;font-weight:600;">เกือบเสียชีวิต</div><div style="font-size:10px;color:var(--muted);">ช็อค หยุดหายใจ</div></div>
-              </button>
-              <button class="sev-btn-i" id="sev-I" onclick="selSevI(this,'I')">
-                <span class="sev-letter" style="background:#641e16;">I</span>
-                <div><div style="font-size:12px;font-weight:600;">เสียชีวิต</div><div style="font-size:10px;color:var(--muted);">เสียชีวิตจาก error</div></div>
-              </button>
-            </div>
-          </div>
-
-          <div id="sev-selected-preview" style="display:none;font-size:13px;padding:8px 12px;border-radius:var(--radius);background:var(--purple-bg);color:var(--purple);margin-bottom:.5rem;font-weight:500;">
-            ระดับที่เลือก: <span id="sev-selected-label"></span>
-          </div>
-
-          <p style="font-size:12px;color:var(--muted);margin:.75rem 0 .5rem;">ขั้น 4 — รายละเอียด (ไม่บังคับ)</p>
-          <textarea id="err-note" rows="2"
-            placeholder="เช่น ชื่อยา ขนาด สาเหตุที่คาดว่าเกิดจาก..."></textarea>
-          <div style="display:flex;align-items:center;gap:8px;margin-top:.625rem;padding:8px 12px;border-radius:var(--radius);background:var(--red-bg);border:1px solid var(--red-b);">
-            <input type="checkbox" id="err-had-check" style="width:16px;height:16px;accent-color:var(--red);cursor:pointer;">
-            <label for="err-had-check" style="font-size:13px;font-weight:500;color:var(--red);cursor:pointer;">เกี่ยวข้องกับยา HAD</label>
-            <span style="font-size:11px;color:var(--hint);">(High Alert Drug)</span>
-          </div>
-          <button class="btn btn-secondary" style="margin-top:.625rem;" onclick="addErr()">
-            + เพิ่มรายการนี้
-          </button>
-        </div>
-      </div>
+      <div id="err-empty" class="empty-note">ยังไม่มีรายการ — เวรนี้ไม่พบ error ข้ามได้เลย</div>
     </div>
+
 
     <!-- สรุปเวร -->
     <div style="background:var(--bg2);border-radius:var(--radius-lg);padding:1rem 1.25rem;margin-bottom:.75rem;">
@@ -2620,6 +2589,7 @@ const APP = {
   counts: { rx: 0, match: 0, miss: 0 },
   sessionLog: [],
   riskList: [],
+  errList: [],
   errCount: 0,
   ncStatus: {},
   currentPage: null,
@@ -2707,7 +2677,7 @@ function gotoPage(name) {
   if (name === 'stock')       renderStock();
   if (name === 'dispense')    initDispensePage();
   if (name === 'edit-stock')  { /* init from caller */ }
-  if (name === 'pharm-verify') { wizStep = 1; wizSetStep(1); if (!APP.shiftSaved) { APP.currentShiftId = null; APP.errList = []; APP.errCount = 0; APP.riskList = []; renderRiskList(); var ts = document.getElementById('tech-select'); if(ts) ts.value=''; var nd = document.getElementById('no-drug-check'); if(nd && nd.checked){ nd.checked=false; var f=document.getElementById('pv-drug-fields'); if(f){f.style.opacity='';f.style.pointerEvents='';} } } renderShiftLog(); }
+  if (name === 'pharm-verify') { wizStep = 1; wizSetStep(1); if (!APP.shiftSaved) { loadDraft(); } renderLogLists(); renderShiftLog(); }
   if (name === 'dashboard')   { initDashboard(); }
   if (name === 'shift-log')   { initShiftLogPage(); }
   if (name === 'restock')     renderRestockList();
@@ -3594,6 +3564,7 @@ function adj(k, d) {
   pvCounts[k] = Math.max(0, pvCounts[k] + d);
   document.getElementById('v-'+k).textContent = pvCounts[k];
   updateMismatch(); updateSummary();
+  if (typeof saveDraft === 'function') saveDraft();
 }
 
 function updateMismatch() {
@@ -3611,129 +3582,373 @@ function updateMismatch() {
   }
 }
 
-var _riskCurrentType = null;
+/* ==========================================================
+   QUICK LOG — ความเสี่ยงทั่วไป + Med error
+   หลักการ: แตะ chip = สร้างรายการเข้า model ทันที
+   ไม่มีปุ่ม "เพิ่มรายการนี้" = ไม่มีข้อมูลค้างที่ยังไม่ commit
+   ========================================================== */
 
-function selectRiskType(el, name) {
-  document.querySelectorAll('#risk-chips-wrap .chip').forEach(function(b){ b.classList.remove('on-risk'); });
-  el.classList.add('on-risk');
-  _riskCurrentType = name;
-  document.getElementById('risk-form-fields').style.display = 'block';
+var SEV_META = {
+  A: { c:'#1a7a4a', t:'สภาวะเสี่ยง',        d:'มีโอกาสเกิด error' },
+  B: { c:'#2e8b57', t:'Error ไม่ถึงคนไข้',   d:'ยังไม่ถึงผู้ป่วย' },
+  C: { c:'#8a5c00', t:'ไม่เกิดอันตราย',      d:'ถึงผู้ป่วยแต่ไม่อันตราย' },
+  D: { c:'#b8860b', t:'ต้องติดตาม',          d:'ต้องมีการแทรกแซงเพิ่ม' },
+  E: { c:'#c0392b', t:'อันตรายชั่วคราว',     d:'ต้องได้รับการรักษา' },
+  F: { c:'#a93226', t:'ต้องนอน รพ.',         d:'อันตรายชั่วคราว + นอน รพ.' },
+  G: { c:'#922b21', t:'อันตรายถาวร',         d:'เกิดความเสียหายถาวร' },
+  H: { c:'#7b241c', t:'เกือบเสียชีวิต',      d:'ช็อค หยุดหายใจ' },
+  I: { c:'#641e16', t:'เสียชีวิต',           d:'เสียชีวิตจาก error' }
+};
+var SEV_GROUPS = [
+  { label:'ไม่ถึงผู้ป่วย',   levels:['A','B'] },
+  { label:'ถึง ผป. ไม่อันตราย', levels:['C','D'] },
+  { label:'เกิดอันตราย',     levels:['E','F'] },
+  { label:'ถาวร / เสียชีวิต', levels:['G','H','I'] }
+];
+
+var _logIdSeq = 0;
+function _newLogId() { _logIdSeq++; return Date.now() * 100 + (_logIdSeq % 100); }
+
+function _esc(s) {
+  return String(s == null ? '' : s)
+    .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+    .replace(/"/g,'&quot;').replace(/'/g,'&#39;');
 }
 
-function addRiskItem() {
-  if (!_riskCurrentType) { return; }
-  var drug = (document.getElementById('risk-drug-input').value || '').trim();
-  var note = (document.getElementById('risk-note-input').value || '').trim();
-  var had  = document.getElementById('risk-had-check').checked;
-  APP.riskList.push({ type: _riskCurrentType, drug: drug, note: note, had: had, id: Date.now() });
-  // reset form
-  _riskCurrentType = null;
-  document.querySelectorAll('#risk-chips-wrap .chip').forEach(function(b){ b.classList.remove('on-risk'); });
-  document.getElementById('risk-drug-input').value = '';
-  document.getElementById('risk-note-input').value = '';
-  document.getElementById('risk-had-check').checked = false;
-  document.getElementById('risk-form-fields').style.display = 'none';
+// ให้ข้อมูลที่ rehydrate จาก backend / draft เก่า มี id และ field ครบเสมอ
+function normalizeLogLists() {
+  if (!Array.isArray(APP.riskList)) APP.riskList = [];
+  if (!Array.isArray(APP.errList))  APP.errList  = [];
+  APP.riskList.forEach(function(r) {
+    if (!r.id) r.id = _newLogId();
+    if (r.drug == null) r.drug = '';
+    if (r.note == null) r.note = '';
+    r.had = !!r.had;
+  });
+  APP.errList.forEach(function(e) {
+    if (!e.id) e.id = _newLogId();
+    if (!Array.isArray(e.subtypes)) e.subtypes = e.subtypes ? [e.subtypes] : [];
+    if (e.severity == null || e.severity === 'ไม่ระบุ') e.severity = e.severity === 'ไม่ระบุ' ? '' : (e.severity || '');
+    if (e.note == null) e.note = '';
+    e.had = !!e.had;
+  });
+  APP.errCount = APP.errList.length;
+}
+
+/* ---------- DRAFT: กันข้อมูลหายตอนสลับแท็บ / รีเฟรช ---------- */
+function _draftKey() {
+  return 'ermc_draft_v2_' + (APP.userName || 'anon') + '_' + new Date().toISOString().split('T')[0];
+}
+var _restoringDraft = false;
+
+function saveDraft() {
+  try {
+    if (_restoringDraft) return;
+    if (APP.role !== 'pharm') return;
+    localStorage.setItem(_draftKey(), JSON.stringify({
+      riskList : APP.riskList || [],
+      errList  : APP.errList  || [],
+      rx       : pvCounts.rx,
+      match    : pvCounts.match,
+      miss     : pvCounts.miss,
+      tech     : (document.getElementById('tech-select') || {}).value || '',
+      noDrug   : isNoDrug(),
+      ts       : Date.now()
+    }));
+  } catch (e) { /* localStorage เต็ม/ปิด — ไม่ต้องทำอะไร */ }
+}
+function loadDraft() {
+  try {
+    _cleanOldDrafts();
+    var raw = localStorage.getItem(_draftKey());
+    if (!raw) return false;
+    var d = JSON.parse(raw);
+    if (!d) return false;
+    _restoringDraft = true;
+    APP.riskList = Array.isArray(d.riskList) ? d.riskList : [];
+    APP.errList  = Array.isArray(d.errList)  ? d.errList  : [];
+    var nd = document.getElementById('no-drug-check');
+    if (nd && !!d.noDrug !== nd.checked) toggleNoDrug();
+    pvCounts.rx    = Number(d.rx)    || 0;
+    pvCounts.match = Number(d.match) || 0;
+    pvCounts.miss  = Number(d.miss)  || 0;
+    ['rx','match','miss'].forEach(function(k) {
+      var el = document.getElementById('v-' + k);
+      if (el) el.textContent = pvCounts[k];
+    });
+    var ts = document.getElementById('tech-select');
+    if (ts && d.tech) ts.value = d.tech;
+    updateMismatch();
+    _restoringDraft = false;
+    return true;
+  } catch (e) { _restoringDraft = false; return false; }
+}
+
+// ลบ draft ของวันก่อน ๆ ไม่ให้ค้างใน localStorage
+function _cleanOldDrafts() {
+  try {
+    var today = new Date().toISOString().split('T')[0];
+    for (var i = localStorage.length - 1; i >= 0; i--) {
+      var k = localStorage.key(i);
+      if (k && k.indexOf('ermc_draft_') === 0 && k.indexOf(today) === -1) localStorage.removeItem(k);
+    }
+  } catch (e) {}
+}
+function clearDraft() {
+  try { localStorage.removeItem(_draftKey()); } catch (e) {}
+}
+
+/* ==================== ความเสี่ยงทั่วไป ==================== */
+
+function _riskById(id) {
+  return (APP.riskList || []).filter(function(r) { return String(r.id) === String(id); })[0];
+}
+
+function addRiskItem(type) {
+  if (!Array.isArray(APP.riskList)) APP.riskList = [];
+  var item = { id: _newLogId(), type: type, drug: '', note: '', had: false };
+  // "ยาหาย" = นับรวมใน "รายการยาหายโดยไม่มีการสั่งใช้" ให้อัตโนมัติ (ยกเลิกได้ในการ์ด)
+  if (type === 'ยาหาย') { item.countMiss = true; adj('miss', 1); }
+  APP.riskList.push(item);
   renderRiskList();
   updateSummary();
+  saveDraft();
+  setTimeout(function() {
+    var card = document.querySelector('#risk-list [data-rid="' + item.id + '"]');
+    if (!card) return;
+    card.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    var inp = card.querySelector('input[type=text]');
+    if (inp) inp.focus();
+  }, 40);
 }
 
 function removeRiskItem(id) {
-  APP.riskList = APP.riskList.filter(function(r){ return r.id !== id; });
+  var r = _riskById(id);
+  if (r && r.countMiss) adj('miss', -1);
+  APP.riskList = (APP.riskList || []).filter(function(x) { return String(x.id) !== String(id); });
   renderRiskList();
   updateSummary();
+  saveDraft();
+}
+
+function setRiskField(id, field, val) {
+  var r = _riskById(id);
+  if (!r) return;
+  r[field] = val;
+  saveDraft();
+}
+
+function toggleRiskHad(id, btn) {
+  var r = _riskById(id);
+  if (!r) return;
+  r.had = !r.had;
+  btn.classList.toggle('on', r.had);
+  saveDraft();
+}
+
+function toggleRiskCount(id, btn) {
+  var r = _riskById(id);
+  if (!r) return;
+  r.countMiss = !r.countMiss;
+  adj('miss', r.countMiss ? 1 : -1);
+  btn.classList.toggle('on', r.countMiss);
+  btn.textContent = r.countMiss ? '✓ นับเป็นยาหายไร้ใบสั่ง' : 'นับเป็นยาหายไร้ใบสั่ง';
+  saveDraft();
 }
 
 function renderRiskList() {
-  var el = document.getElementById('risk-list');
-  var sep = document.getElementById('risk-list-sep');
-  var lbl = document.getElementById('risk-form-label');
+  var el    = document.getElementById('risk-list');
+  var empty = document.getElementById('risk-empty');
+  var pill  = document.getElementById('risk-count-pill');
   if (!el) return;
-  if (!APP.riskList.length) {
-    el.innerHTML = '';
-    if (sep) sep.style.display = 'none';
-    if (lbl) lbl.textContent = 'เลือกประเภทความเสี่ยง';
-    return;
-  }
-  if (sep) sep.style.display = '';
-  if (lbl) lbl.textContent = 'เพิ่มรายการถัดไป';
-  el.innerHTML = APP.riskList.map(function(r) {
-    var subLine = [r.drug, r.note].filter(Boolean).join(' · ') || '<span style="color:var(--hint);">ไม่มีรายละเอียดเพิ่มเติม</span>';
-    var hadBadge = r.had ? '<span style="font-size:10px;padding:1px 6px;border-radius:99px;background:var(--red-bg);color:var(--red);font-weight:600;flex-shrink:0;">HAD</span>' : '';
-    return '<div style="display:flex;align-items:flex-start;gap:8px;padding:9px 12px;border-radius:var(--radius);background:var(--bg2);margin-bottom:6px;">' +
-      '<div style="flex:1;min-width:0;">' +
-        '<div style="font-size:13px;font-weight:500;margin-bottom:2px;">'+r.type+'</div>' +
-        '<div style="font-size:11px;color:var(--muted);line-height:1.5;">'+subLine+'</div>' +
-      '</div>' +
-      hadBadge +
-      '<button onclick="removeRiskItem('+r.id+')" style="font-size:13px;color:var(--hint);background:none;border:none;cursor:pointer;padding:2px 4px;flex-shrink:0;">✕</button>' +
-    '</div>';
+  var list = APP.riskList || [];
+  if (pill)  pill.textContent = list.length + ' รายการ';
+  if (empty) empty.style.display = list.length ? 'none' : '';
+  el.innerHTML = list.map(function(r) {
+    var countTog = r.type === 'ยาหาย'
+      ? '<button type="button" class="tog tog-count' + (r.countMiss ? ' on' : '') +
+        '" onclick="toggleRiskCount(\'' + r.id + '\',this)">' +
+        (r.countMiss ? '✓ นับเป็นยาหายไร้ใบสั่ง' : 'นับเป็นยาหายไร้ใบสั่ง') + '</button>'
+      : '';
+    return '' +
+      '<div class="log-card" data-rid="' + r.id + '">' +
+        '<div class="log-head">' +
+          '<span class="log-type">' + _esc(r.type) + '</span>' +
+          '<button type="button" class="log-del" onclick="removeRiskItem(\'' + r.id + '\')" aria-label="ลบรายการ">✕</button>' +
+        '</div>' +
+        '<input type="text" placeholder="ชื่อยา (ไม่บังคับ) เช่น Morphine 10 mg" value="' + _esc(r.drug) + '" ' +
+          'oninput="setRiskField(\'' + r.id + '\',\'drug\',this.value)">' +
+        '<textarea rows="2" placeholder="รายละเอียดเพิ่มเติม (ไม่บังคับ) เช่น สาเหตุ สถานที่เกิดเหตุ..." ' +
+          'oninput="setRiskField(\'' + r.id + '\',\'note\',this.value)">' + _esc(r.note) + '</textarea>' +
+        '<div class="log-tog-row">' +
+          '<button type="button" class="tog' + (r.had ? ' on' : '') +
+            '" onclick="toggleRiskHad(\'' + r.id + '\',this)">เกี่ยวข้องกับยา HAD</button>' +
+          countTog +
+        '</div>' +
+      '</div>';
   }).join('');
 }
 
-let errType = null, errSev = null;
-function pickErrType(type, btn) {
-  errType = type; errSev = null;
-  document.querySelectorAll('.type-btn').forEach(b => b.classList.remove('on'));
-  btn.classList.add('on');
-  document.getElementById('err-sub-chips').innerHTML =
-    SUBTYPES[type].map(s => `<button class="chip" onclick="this.classList.toggle('on')">${s}</button>`).join('');
-  document.getElementById('err-sub-area').style.display = 'block';
-  document.querySelectorAll('.sev-btn').forEach(b => b.className = 'sev-btn');
+/* ==================== MED ERROR ==================== */
+
+function _errById(id) {
+  return (APP.errList || []).filter(function(e) { return String(e.id) === String(id); })[0];
 }
 
-function selSev(el, cls) {
-  document.querySelectorAll('.sev-btn').forEach(b => b.className = 'sev-btn');
-  el.classList.add('s'+cls);
-  errSev = cls==='a'?'A–B':cls==='b'?'C–D':'E–I';
+function _errComplete(e) {
+  return !!(e && e.subtypes && e.subtypes.length && e.severity);
 }
 
-function selSevI(el, level) {
-  document.querySelectorAll('.sev-btn-i').forEach(b => b.classList.remove('selected'));
-  el.classList.add('selected');
-  errSev = level;
-  const prev = document.getElementById('sev-selected-preview');
-  const lbl  = document.getElementById('sev-selected-label');
-  if (prev && lbl) {
-    const desc = { A:'สภาวะเสี่ยง', B:'Error ไม่ถึงคนไข้', C:'ไม่เกิดอันตราย', D:'ต้องติดตาม',
-                   E:'อันตรายชั่วคราว', F:'ต้องนอน รพ.', G:'อันตรายถาวร', H:'เกือบเสียชีวิต', I:'เสียชีวิต' };
-    lbl.textContent = level + ' — ' + (desc[level] || '');
-    prev.style.display = 'block';
+function addErrItem(type) {
+  if (!Array.isArray(APP.errList)) APP.errList = [];
+  var item = { id: _newLogId(), type: type, subtypes: [], severity: '', note: '', had: false };
+  APP.errList.push(item);
+  APP.errCount = APP.errList.length;
+  renderErrList();
+  updateSummary();
+  saveDraft();
+  setTimeout(function() {
+    var card = document.querySelector('#err-log [data-eid="' + item.id + '"]');
+    if (card) card.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  }, 40);
+}
+
+function removeErrItem(id) {
+  APP.errList = (APP.errList || []).filter(function(x) { return String(x.id) !== String(id); });
+  APP.errCount = APP.errList.length;
+  renderErrList();
+  updateSummary();
+  saveDraft();
+}
+
+function toggleErrSub(id, btn, idx) {
+  var e = _errById(id);
+  if (!e) return;
+  var name = (SUBTYPES[e.type] || [])[idx];
+  if (name == null) return;
+  var i = e.subtypes.indexOf(name);
+  if (i >= 0) e.subtypes.splice(i, 1); else e.subtypes.push(name);
+  btn.classList.toggle('on', i < 0);
+  _refreshErrBadge(id);
+  saveDraft();
+}
+
+function setErrSev(id, btn, level) {
+  var e = _errById(id);
+  if (!e) return;
+  var card = btn.closest('.log-card');
+  if (e.severity === level) {
+    e.severity = '';
+    btn.classList.remove('on');
+    btn.style.background = '';
+  } else {
+    e.severity = level;
+    card.querySelectorAll('.sev-dot').forEach(function(b) {
+      b.classList.remove('on'); b.style.background = '';
+    });
+    btn.classList.add('on');
+    btn.style.background = SEV_META[level].c;
   }
+  var desc = card.querySelector('.sev-desc');
+  if (desc) {
+    if (e.severity) {
+      desc.textContent = level + ' — ' + SEV_META[level].t + ' (' + SEV_META[level].d + ')';
+      desc.classList.remove('empty');
+    } else {
+      desc.textContent = 'ยังไม่ได้เลือกระดับ';
+      desc.classList.add('empty');
+    }
+  }
+  _refreshErrBadge(id);
+  saveDraft();
 }
 
-function addErr() {
-  const subs = Array.from(document.querySelectorAll('#err-sub-chips .chip.on')).map(c=>c.textContent);
-  if (!subs.length) { alert('กรุณาเลือก subtype อย่างน้อย 1 ข้อ'); return; }
-  const note = document.getElementById('err-note').value.trim();
-  const sev = errSev || 'ไม่ระบุ';
-  // เก็บลง APP.errList เพื่อส่งไป saveRecord
-  if (!APP.errList) APP.errList = [];
-  var errHadEl = document.getElementById('err-had-check');
-  var errHad = errHadEl ? errHadEl.checked : false;
-  APP.errList.push({ type: errType, subtypes: subs, severity: sev, note: note, had: errHad });
-  const sevColor = {'A–B':'var(--green)','C–D':'var(--amber)','E–I':'var(--red)','ไม่ระบุ':'var(--muted)'};
-  APP.errCount++;
-  const id = 'ev-' + APP.errCount;
-  const div = document.createElement('div');
-  div.className = 'ev-item'; div.id = id;
-  div.innerHTML = `<div style="flex:1">
-    <div style="display:flex;gap:5px;flex-wrap:wrap;margin-bottom:3px;">
-      <span class="pill" style="background:var(--red-bg);color:var(--red)">${errType}</span>
-      <span style="font-size:11px;font-weight:600;color:${sevColor[sev]}">${sev}</span>
-      ${errHad ? '<span class="pill" style="background:var(--red-bg);color:var(--red);font-weight:700;">HAD</span>' : ''}
-    </div>
-    <div>${subs.map(s=>`<span class="pill pill-gray" style="margin:2px 2px 2px 0;">${s}</span>`).join('')}</div>
-    ${note ? `<p style="font-size:12px;color:var(--muted);margin-top:4px;">${note}</p>` : ''}
-  </div>
-  <button onclick="document.getElementById('${id}').remove();updateSummary();"
-    style="font-size:18px;background:none;border:none;cursor:pointer;color:var(--muted);padding:0;line-height:1;">×</button>`;
-  document.getElementById('err-log').appendChild(div);
-  document.querySelectorAll('#err-sub-chips .chip').forEach(c => c.classList.remove('on'));
-  document.querySelectorAll('.sev-btn').forEach(b => b.className = 'sev-btn');
-  document.getElementById('err-note').value = '';
-  var hadEl = document.getElementById('err-had-check');
-  if (hadEl) hadEl.checked = false;
-  errSev = null;
+function setErrField(id, field, val) {
+  var e = _errById(id);
+  if (!e) return;
+  e[field] = val;
+  saveDraft();
+}
+
+function toggleErrHad(id, btn) {
+  var e = _errById(id);
+  if (!e) return;
+  e.had = !e.had;
+  btn.classList.toggle('on', e.had);
+  saveDraft();
+}
+
+function _refreshErrBadge(id) {
+  var e = _errById(id);
+  var card = document.querySelector('#err-log [data-eid="' + id + '"]');
+  if (!e || !card) return;
+  var badge = card.querySelector('.log-badge');
+  var ok = _errComplete(e);
+  if (badge) {
+    badge.className = 'log-badge ' + (ok ? 'ok' : 'wait');
+    badge.textContent = ok ? 'ครบ' : 'ต้องเลือกอาการ + ระดับ';
+  }
+  card.classList.toggle('need', !ok);
+}
+
+function _sevStripHtml(e) {
+  return '<div class="sev-strip">' + SEV_GROUPS.map(function(g) {
+    return '<div class="sev-grp"><div class="sev-grp-lbl">' + g.label + '</div><div class="sev-row">' +
+      g.levels.map(function(L) {
+        var on = e.severity === L;
+        return '<button type="button" class="sev-dot' + (on ? ' on' : '') + '" ' +
+          (on ? 'style="background:' + SEV_META[L].c + ';" ' : '') +
+          'title="' + _esc(SEV_META[L].t) + '" onclick="setErrSev(\'' + e.id + '\',this,\'' + L + '\')">' + L + '</button>';
+      }).join('') + '</div></div>';
+  }).join('') + '</div>';
+}
+
+function renderErrList() {
+  var el    = document.getElementById('err-log');
+  var empty = document.getElementById('err-empty');
+  var pill  = document.getElementById('err-count-pill');
+  if (!el) return;
+  var list = APP.errList || [];
+  if (pill)  pill.textContent = list.length + ' รายการ';
+  if (empty) empty.style.display = list.length ? 'none' : '';
+  el.innerHTML = list.map(function(e) {
+    var ok = _errComplete(e);
+    var subs = (SUBTYPES[e.type] || []).map(function(s, si) {
+      var on = e.subtypes.indexOf(s) >= 0;
+      return '<button type="button" class="chip' + (on ? ' on' : '') +
+        '" onclick="toggleErrSub(\'' + e.id + '\',this,' + si + ')">' + _esc(s) + '</button>';
+    }).join('');
+    var sevLine = e.severity
+      ? e.severity + ' — ' + SEV_META[e.severity].t + ' (' + SEV_META[e.severity].d + ')'
+      : 'ยังไม่ได้เลือกระดับ';
+    return '' +
+      '<div class="log-card log-err' + (ok ? '' : ' need') + '" data-eid="' + e.id + '">' +
+        '<div class="log-head">' +
+          '<span class="log-type">' + _esc(e.type) + '</span>' +
+          '<span class="log-badge ' + (ok ? 'ok' : 'wait') + '">' + (ok ? 'ครบ' : 'ต้องเลือกอาการ + ระดับ') + '</span>' +
+          '<button type="button" class="log-del" onclick="removeErrItem(\'' + e.id + '\')" aria-label="ลบรายการ">✕</button>' +
+        '</div>' +
+        '<div class="log-sub">อาการที่พบ (เลือกได้หลายข้อ)</div>' +
+        '<div>' + subs + '</div>' +
+        '<div class="log-sub">ระดับความรุนแรง (NCC MERP)</div>' +
+        _sevStripHtml(e) +
+        '<div class="sev-desc' + (e.severity ? '' : ' empty') + '">' + _esc(sevLine) + '</div>' +
+        '<div class="log-sub">รายละเอียด (ไม่บังคับ)</div>' +
+        '<textarea rows="2" placeholder="เช่น ชื่อยา ขนาด สาเหตุที่คาดว่าเกิดจาก..." ' +
+          'oninput="setErrField(\'' + e.id + '\',\'note\',this.value)">' + _esc(e.note) + '</textarea>' +
+        '<div class="log-tog-row">' +
+          '<button type="button" class="tog' + (e.had ? ' on' : '') +
+            '" onclick="toggleErrHad(\'' + e.id + '\',this)">เกี่ยวข้องกับยา HAD</button>' +
+        '</div>' +
+      '</div>';
+  }).join('');
+}
+
+// เรียกทั้งสองลิสต์พร้อมกัน — ใช้ตอนเข้าหน้า / restore draft
+function renderLogLists() {
+  normalizeLogLists();
+  renderRiskList();
+  renderErrList();
   updateSummary();
 }
 
@@ -3755,7 +3970,10 @@ function toggleNoDrug() {
     fields.style.pointerEvents = '';
   }
   updateSummary();
+  _noDrugChanged();
 }
+
+function _noDrugChanged() { if (typeof saveDraft === 'function') saveDraft(); }
 
 function isNoDrug() {
   var chk = document.getElementById('no-drug-check');
@@ -3765,7 +3983,7 @@ function isNoDrug() {
 function updateSummary() {
   document.getElementById('sum-rx').textContent   = pvCounts.rx;
   const rc = APP.riskList.length;
-  const ec = document.querySelectorAll('#err-log .ev-item').length;
+  const ec = (APP.errList || []).length;
   document.getElementById('sum-risk').textContent = rc;
   document.getElementById('sum-risk').style.color = rc > 0 ? 'var(--amber)' : 'var(--text)';
   document.getElementById('sum-err').textContent  = ec;
@@ -3778,13 +3996,7 @@ async function submitVerify() {
     e.style.display = 'block'; e.textContent = 'กรุณากรอกจำนวนใบสั่งยาก่อน หรือติ๊ก "ไม่มีการใช้ยาในเวรนี้"';
     return;
   }
-  const errs = Array.from(document.querySelectorAll('#err-log .ev-item')).map(el => {
-    const type = el.querySelector('.pill')?.textContent || '';
-    const subs = Array.from(el.querySelectorAll('.pill-gray')).map(p => p.textContent);
-    const sev  = el.querySelector('span[style*="color"]')?.textContent || '';
-    const note = el.querySelector('p')?.textContent || '';
-    return { type, subtypes: subs, severity: sev, note };
-  });
+  const errs = APP.errList || [];
   const data = {
     pharmacistName : APP.userName,
     techName       : (document.getElementById('tech-select')||{}).value || '',
@@ -4876,6 +5088,22 @@ async function wizNext() {
 
 async function submitShiftLog() {
   const btn = document.getElementById('wiz-next');
+  const errBox = document.getElementById('pv-err');
+
+  // กันบันทึก med error ที่ยังเลือกอาการ/ระดับไม่ครบ
+  normalizeLogLists();
+  const incomplete = (APP.errList || []).filter(function(e) { return !_errComplete(e); });
+  if (incomplete.length) {
+    if (errBox) {
+      errBox.style.display = 'block';
+      errBox.textContent = 'มี Med error ' + incomplete.length + ' รายการที่ยังเลือกอาการหรือระดับความรุนแรงไม่ครบ';
+    }
+    const card = document.querySelector('#err-log [data-eid="' + incomplete[0].id + '"]');
+    if (card) card.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    return;
+  }
+  if (errBox) errBox.style.display = 'none';
+
   if (btn) { btn.disabled = true; btn.textContent = 'กำลังบันทึก...'; }
 
   // ถ้ามี shift_id แล้ว = เคยบันทึกไปแล้ว ให้ update แทน insert
@@ -4902,6 +5130,7 @@ async function submitShiftLog() {
   try {
     const result = await callScript('saveRecord', data);
     APP.shiftSaved = true;
+    clearDraft();
     APP.currentShiftId = result.shift_id || APP.currentShiftId;
     APP.lastShiftRxTotal = data.rx_total;
     if (btn) {
@@ -5119,13 +5348,7 @@ async function submitWizard() {
   btn.style.background = '';
 
   // บันทึก ShiftLog + RiskLog + MedErrorLog (step 1)
-  const errs = Array.from(document.querySelectorAll('#err-log .ev-item')).map(el => {
-    const type = el.querySelector('.pill')?.textContent || '';
-    const subs = Array.from(el.querySelectorAll('.pill-gray')).map(p => p.textContent);
-    const sev  = el.querySelector('[style*="color:var"]')?.textContent || '';
-    const note = el.querySelector('p')?.textContent || '';
-    return { type, subtypes: subs, severity: sev, note };
-  });
+  const errs = APP.errList || [];
 
   const data = {
     pharmacistName: APP.userName,
