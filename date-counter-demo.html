@@ -87,6 +87,41 @@
   .flogo{font-family:'Google Sans','Noto Sans Thai',sans-serif;font-size:15px;font-weight:700;color:#fff;letter-spacing:-.03em;display:inline-flex;align-items:baseline;line-height:1}
   .fright{font-size:10px;color:rgba(255,255,255,.3);letter-spacing:.06em}
   @media(max-width:600px){h1{font-size:44px}}
+
+  /* ===== print card ===== */
+  .pcard-box{border:1.5px dashed #ccc;border-radius:14px;padding:16px;margin-top:18px}
+  .pcard-box .ttl{font-size:12px;font-weight:700;margin-bottom:12px}
+  .btn2{background:#fff;color:var(--ink)}
+  .btn2:hover{background:var(--ink);color:var(--yellow)}
+  #printArea{display:none}
+  .sheet{display:flex;flex-direction:column;align-items:center;gap:6mm;font-family:'Noto Sans Thai','Google Sans',sans-serif;color:#000}
+  .pair{display:flex}
+  .card{width:85.6mm;height:54mm;border:.3mm dashed #999;padding:3.2mm 3.8mm;overflow:hidden;position:relative;background:#fff}
+  .card+.card{border-left:.3mm dotted #999}
+  .c-top{display:flex;justify-content:space-between;align-items:flex-start;border-bottom:.5mm solid #000;padding-bottom:1.3mm;margin-bottom:1.6mm}
+  .c-hosp{font-size:6.8pt;font-weight:600;line-height:1.25}
+  .c-type{font-size:10.5pt;font-weight:700;line-height:1.1}
+  .c-badge{font-size:6pt;font-weight:700;background:#000;color:#fff;padding:.6mm 1.8mm;border-radius:1mm;white-space:nowrap}
+  .c-f{display:flex;gap:1.5mm;font-size:7.6pt;line-height:1.45;align-items:flex-end;height:4.3mm}
+  .c-f b{font-weight:600;min-width:15mm;color:#444;font-size:6.6pt}
+  .c-f span{flex:1;border-bottom:.2mm dotted #999;min-height:3.6mm;font-weight:600}
+  .c-end{margin-top:1.8mm;border:.4mm solid #000;border-radius:1.4mm;padding:1.2mm 2mm;display:flex;justify-content:space-between;align-items:center}
+  .c-end small{font-size:6.4pt}
+  .c-end strong{font-size:10pt}
+  .c-warn{position:absolute;left:3.8mm;right:3.8mm;bottom:2.4mm;font-size:6.2pt;font-weight:600;text-align:center}
+  .c-list{display:grid;grid-template-columns:1fr 1fr;column-gap:3mm;font-size:7pt;line-height:1.5}
+  .c-list div{display:flex;justify-content:space-between;border-bottom:.2mm dotted #bbb}
+  .c-list .n{color:#555}
+  .c-list .ok{display:inline-block;width:2.6mm;height:2.6mm;border:.25mm solid #000;margin-left:1mm;vertical-align:-0.3mm}
+  .c-sub{font-size:6.6pt;font-weight:700;letter-spacing:.04em;margin-bottom:1mm}
+  .c-lines div{border-bottom:.2mm dotted #999;height:4.6mm;font-size:6.6pt;display:flex;align-items:flex-end;color:#555}
+  .p-hint{font-size:8pt;color:#777;text-align:center}
+  @media print{
+    @page{size:A4 portrait;margin:12mm}
+    body>*:not(#printArea){display:none!important}
+    #printArea{display:block!important}
+    body{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  }
 </style>
 </head>
 <body>
@@ -202,6 +237,8 @@
   </div>
 </div>
 
+<div id="printArea"></div>
+
 <div class="foot-bar"><div class="foot-in">
   <div class="flogo">sheis<span class="logo-dot"></span><span>p</span>here</div>
   <div class="fright">pharmacy digital tools · © 2026</div>
@@ -272,8 +309,12 @@ function calcTB(){
 
   const note=dx+'\n'+regTxt+'\nstart '+fmtTH(start)+' -> ครบ '+intM+' mo~'+fmtTH(endInt)+'\nครบ '+total+' mo~'+fmtTH(endTot)+'\n--- นัดทุกศุกร์ ---'+listLines;
   document.getElementById('tbNoteWrap').innerHTML=noteBlock(note);
+  const list=[];for(let m=1;m<=total;m++)list.push({m:m,d:snapFriday(addDays(start,28*m))});
+  cardData.tb={dx:dx,reg:regTxt,start:start,end:endTot,total:total,list:list};
+  const keepN=document.getElementById('tbName')?document.getElementById('tbName').value:'',keepH=document.getElementById('tbHN')?document.getElementById('tbHN').value:'';
   document.getElementById('tbTableWrap').innerHTML=
-    '<table><tr><th>นัด</th><th>วันที่ (ทุกศุกร์)</th><th>ระยะ</th></tr>'+rows+'</table>';
+    '<table><tr><th>นัด</th><th>วันที่ (ทุกศุกร์)</th><th>ระยะ</th></tr>'+rows+'</table>'+cardBox('tb');
+  document.getElementById('tbName').value=keepN;document.getElementById('tbHN').value=keepH;
 }
 
 function calcMelio(){
@@ -283,7 +324,64 @@ function calcMelio(){
   if(!(wk>0)){alert('กรุณากรอกจำนวนสัปดาห์ของยา oral');return;}
   const end=snapWeekdayFwd(addDays(start,wk*7));
   const note='Melioidosis\nstart oral '+fmtTH(start)+'\noral (bactrim/augmentin) x '+wk+' wk\nครบ ~'+fmtTH(end);
-  document.getElementById('mNoteWrap').innerHTML=noteBlock(note);
+  cardData.melio={start:start,end:end,wk:wk};
+  const keepN=document.getElementById('melioName')?document.getElementById('melioName').value:'',keepH=document.getElementById('melioHN')?document.getElementById('melioHN').value:'';
+  document.getElementById('mNoteWrap').innerHTML=noteBlock(note)+cardBox('melio');
+  document.getElementById('melioName').value=keepN;document.getElementById('melioHN').value=keepH;
+}
+
+
+/* ===== print card ===== */
+const TH_M=['ม.ค.','ก.พ.','มี.ค.','เม.ย.','พ.ค.','มิ.ย.','ก.ค.','ส.ค.','ก.ย.','ต.ค.','พ.ย.','ธ.ค.'];
+const TH_D=['อา','จ','อ','พ','พฤ','ศ','ส'];
+function fmtCard(d){return TH_D[d.getDay()]+' '+d.getDate()+' '+TH_M[d.getMonth()]+' '+String((d.getFullYear()+543)%100).padStart(2,'0');}
+const HOSP='โรงพยาบาลห้วยผึ้ง จ.กาฬสินธุ์';
+let cardData={tb:null,melio:null};
+
+function cardBox(k){
+  return '<div class="pcard-box"><div class="ttl">พิมพ์บัตรนัดพกพา (ขนาดบัตรเครดิต 8.6 × 5.4 ซม.)</div>'+
+    '<div class="row"><div><label>ชื่อ-สกุล (เว้นว่างเพื่อเขียนมือ)</label><input id="'+k+'Name"></div>'+
+    '<div style="flex:.6"><label>HN</label><input id="'+k+'HN" inputmode="numeric"></div></div>'+
+    '<button class="btn btn2" onclick="printCard(\''+k+'\')">พิมพ์บัตร</button></div>';
+}
+function h(s){return esc(String(s||''));}
+function cardFront(type,badge,name,hn,fields,endLabel,endDate,warn){
+  return '<div class="card"><div class="c-top"><div><div class="c-hosp">'+HOSP+'</div><div class="c-type">'+type+'</div></div><div class="c-badge">'+badge+'</div></div>'+
+    '<div class="c-f"><b>ชื่อ-สกุล</b><span>'+h(name)+'</span></div>'+
+    '<div class="c-f"><b>HN</b><span>'+h(hn)+'</span></div>'+
+    fields.map(f=>'<div class="c-f"><b>'+f[0]+'</b><span>'+h(f[1])+'</span></div>').join('')+
+    '<div class="c-end"><small>'+endLabel+'</small><strong>'+endDate+'</strong></div>'+
+    '<div class="c-warn">'+warn+'</div></div>';
+}
+function printCard(k){
+  const d=cardData[k]; if(!d){alert('กรุณากดคำนวณก่อน');return;}
+  const name=document.getElementById(k+'Name').value.trim();
+  const hn=document.getElementById(k+'HN').value.trim();
+  let front,back;
+  if(k==='tb'){
+    front=cardFront('บัตรนัดรับยาวัณโรค','TB',name,hn,
+      [['วินิจฉัย',d.dx],['สูตรยา',d.reg],['เริ่มยา',fmtCard(d.start)]],
+      'ครบการรักษา '+d.total+' เดือน ประมาณ',fmtCard(d.end),
+      'กินยาทุกวัน ห้ามหยุดยาเอง · พกบัตรนี้มาทุกครั้ง');
+    const half=Math.ceil(d.list.length/2);
+    let cells='';
+    for(let i=0;i<half;i++){
+      [d.list[i],d.list[i+half]].forEach(function(x){
+        cells+=x?'<div><span class="n">เดือน '+x.m+'</span><span>'+fmtCard(x.d)+'<i class="ok"></i></span></div>':'<div></div>';
+      });
+    }
+    back='<div class="card"><div class="c-sub">วันนัด (ทุกวันศุกร์) · ✓ เมื่อมาตามนัด</div><div class="c-list">'+cells+'</div></div>';
+  }else{
+    front=cardFront('บัตรนัดยาเมลิออยโดสิส','MELIOIDOSIS',name,hn,
+      [['เริ่มยากิน',fmtCard(d.start)],['ระยะเวลา',d.wk+' สัปดาห์'],['ยาที่ได้','']],
+      'กินยาครบ ประมาณ',fmtCard(d.end),
+      'กินยาทุกวันจนครบ ห้ามหยุดยาเอง แม้อาการดีขึ้น');
+    back='<div class="card"><div class="c-sub">วันนัดติดตาม</div><div class="c-lines">'+
+      '<div>1.</div><div>2.</div><div>3.</div><div>4.</div><div>5.</div><div>6.</div><div>7.</div><div>8.</div></div></div>';
+  }
+  document.getElementById('printArea').innerHTML='<div class="sheet"><div class="pair">'+front+back+'</div>'+
+    '<div class="p-hint">ตัดตามเส้นประรอบนอก แล้วพับครึ่งตรงเส้นกลาง (หน้า-หลัง) · ตั้งค่าพิมพ์ Scale 100% / Actual size</div></div>';
+  setTimeout(function(){window.print();},50);
 }
 
 function calcDose(){
