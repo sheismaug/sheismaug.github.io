@@ -103,8 +103,8 @@
   .c-type{font-size:10.5pt;font-weight:700;line-height:1.1}
   .c-badge{font-size:6pt;font-weight:700;background:#000;color:#fff;padding:.6mm 1.8mm;border-radius:1mm;white-space:nowrap}
   .c-f{display:flex;gap:1.5mm;font-size:7.6pt;line-height:1.45;align-items:flex-end;height:4.3mm}
-  .c-f b{font-weight:600;min-width:15mm;color:#444;font-size:6.6pt}
-  .c-f span{flex:1;border-bottom:.2mm dotted #999;min-height:3.6mm;font-weight:600}
+  .c-f b{font-weight:600;min-width:15mm;color:#444;font-size:6.6pt;line-height:1.2;padding-bottom:.5mm}
+  .c-f span{flex:1;border-bottom:.2mm dotted #999;line-height:1.2;padding-bottom:.3mm;min-height:3.6mm;font-weight:600}
   .c-end{margin-top:1.8mm;border:.4mm solid #000;border-radius:1.4mm;padding:1.2mm 2mm;display:flex;justify-content:space-between;align-items:center}
   .c-end small{font-size:6.4pt}
   .c-end strong{font-size:10pt}
@@ -335,6 +335,7 @@ function calcMelio(){
 const TH_M=['ม.ค.','ก.พ.','มี.ค.','เม.ย.','พ.ค.','มิ.ย.','ก.ค.','ส.ค.','ก.ย.','ต.ค.','พ.ย.','ธ.ค.'];
 const TH_D=['อา','จ','อ','พ','พฤ','ศ','ส'];
 function fmtCard(d){return TH_D[d.getDay()]+' '+d.getDate()+' '+TH_M[d.getMonth()]+' '+String((d.getFullYear()+543)%100).padStart(2,'0');}
+function fmtDMY(d){return d.getDate()+' '+TH_M[d.getMonth()]+' '+String((d.getFullYear()+543)%100).padStart(2,'0');}
 const HOSP='โรงพยาบาลห้วยผึ้ง จ.กาฬสินธุ์';
 let cardData={tb:null,melio:null};
 
@@ -360,8 +361,8 @@ function printCard(k){
   let front,back;
   if(k==='tb'){
     front=cardFront('บัตรนัดรับยาวัณโรค','TB',name,hn,
-      [['วินิจฉัย',d.dx],['สูตรยา',d.reg],['เริ่มยา',fmtCard(d.start)]],
-      'ครบการรักษา '+d.total+' เดือน ประมาณ',fmtCard(d.end),
+      [['วินิจฉัย',d.dx],['สูตรยา',d.reg],['เริ่มยา',fmtDMY(d.start)]],
+      'ครบการรักษา '+d.total+' เดือน ประมาณ',fmtDMY(d.end),
       'กินยาทุกวัน ห้ามหยุดยาเอง · พกบัตรนี้มาทุกครั้ง');
     const half=Math.ceil(d.list.length/2);
     let cells='';
@@ -373,14 +374,13 @@ function printCard(k){
     back='<div class="card"><div class="c-sub">วันนัด (ทุกวันศุกร์) · ✓ เมื่อมาตามนัด</div><div class="c-list">'+cells+'</div></div>';
   }else{
     front=cardFront('บัตรนัดยาเมลิออยโดสิส','MELIOIDOSIS',name,hn,
-      [['เริ่มยากิน',fmtCard(d.start)],['ระยะเวลา',d.wk+' สัปดาห์'],['ยาที่ได้','']],
-      'กินยาครบ ประมาณ',fmtCard(d.end),
+      [['เริ่มยากิน',fmtDMY(d.start)],['ระยะเวลา',d.wk+' สัปดาห์'],['ยาที่ได้','']],
+      'กินยาครบ ประมาณ',fmtDMY(d.end),
       'กินยาทุกวันจนครบ ห้ามหยุดยาเอง แม้อาการดีขึ้น');
-    back='<div class="card"><div class="c-sub">วันนัดติดตาม</div><div class="c-lines">'+
-      '<div>1.</div><div>2.</div><div>3.</div><div>4.</div><div>5.</div><div>6.</div><div>7.</div><div>8.</div></div></div>';
+    back='';
   }
   document.getElementById('printArea').innerHTML='<div class="sheet"><div class="pair">'+front+back+'</div>'+
-    '<div class="p-hint">ตัดตามเส้นประรอบนอก แล้วพับครึ่งตรงเส้นกลาง (หน้า-หลัง) · ตั้งค่าพิมพ์ Scale 100% / Actual size</div></div>';
+    '<div class="p-hint">'+(back?'ตัดตามเส้นประรอบนอก แล้วพับครึ่งตรงเส้นกลาง (หน้า-หลัง)':'ตัดตามเส้นประ')+' · ตั้งค่าพิมพ์ Scale 100% / Actual size</div></div>';
   setTimeout(function(){window.print();},50);
 }
 
