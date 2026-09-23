@@ -167,12 +167,8 @@
       </div>
       <div class="row">
         <div>
-          <label>เริ่ม ceftazidime IV · dd/mm/yyyy</label>
+          <label>วันเริ่มยา oral · dd/mm/yyyy</label>
           <input type="text" id="mStart" class="dmy" inputmode="numeric" maxlength="10" placeholder="dd/mm/yyyy">
-        </div>
-        <div>
-          <label>IV (วัน)</label>
-          <input type="number" id="mIV" value="14">
         </div>
         <div>
           <label>Oral (สัปดาห์)</label>
@@ -282,12 +278,11 @@ function calcTB(){
 
 function calcMelio(){
   const start=parseDate(document.getElementById('mStart').value);
-  if(!start){alert('กรุณากรอกวันเริ่ม ceftazidime ให้ครบ dd/mm/yyyy');return;}
-  const iv=+document.getElementById('mIV').value;
+  if(!start){alert('กรุณากรอกวันเริ่มยา oral ให้ครบ dd/mm/yyyy');return;}
   const wk=+document.getElementById('mWk').value;
-  const oral=snapWeekdayFwd(addDays(start,iv));
-  const end=snapWeekdayFwd(addDays(oral,wk*7));
-  const note='Melioidosis\nceftazidime IV x '+iv+' d\nstart '+fmtTH(start)+' -> oral '+fmtTH(oral)+'\noral (bactrim/augmentin) x '+wk+' wk\nครบ ~'+fmtTH(end);
+  if(!(wk>0)){alert('กรุณากรอกจำนวนสัปดาห์ของยา oral');return;}
+  const end=snapWeekdayFwd(addDays(start,wk*7));
+  const note='Melioidosis\nstart oral '+fmtTH(start)+'\noral (bactrim/augmentin) x '+wk+' wk\nครบ ~'+fmtTH(end);
   document.getElementById('mNoteWrap').innerHTML=noteBlock(note);
 }
 
