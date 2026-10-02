@@ -4209,6 +4209,7 @@ stock: `
 <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;flex-wrap:wrap;gap:8px">
   <div class="ct" style="margin:0;font-size:14.5px"><span class="cd"></span>คลังยา TB</div>
   <div class="row" style="gap:8px">
+    <button class="btn btn-g btn-sm" onclick="openStockPrintReport()">🖨️ รายงาน PDF</button>
     <button class="btn btn-out btn-sm" onclick="exportStockExcel()">📥 Export Excel</button>
     <button class="btn btn-out btn-sm" onclick="goPage('catalog')">จัดการยา →</button>
   </div>
@@ -4362,6 +4363,17 @@ stock: `
               <tbody id="sr-expiry-body"><tr><td colspan="6" style="text-align:center;color:var(--tx3)">กดที่หัวข้อเพื่อดูข้อมูล</td></tr></tbody>
             </table>
           </div>
+        </div>
+      </div>
+
+      <!-- รายงานคงคลัง พิมพ์ A4 -->
+      <div style="border-top:1px solid var(--bd)">
+        <div style="padding:11px 14px;display:flex;align-items:center;gap:10px;cursor:pointer" onclick="openStockPrintReport()">
+          <div style="flex:1">
+            <div style="font-size:13px;font-weight:600">🖨️ ยอดคงคลัง (พิมพ์ A4)</div>
+            <div style="font-size:11.5px;color:var(--tx3)">ยอดคงเหลือทุกรายการ · สถานะเทียบ Min · ช่องลงชื่อ (1 หน้า)</div>
+          </div>
+          <span style="color:var(--tx3);font-size:14px">›</span>
         </div>
       </div>
     </div>
@@ -8004,6 +8016,104 @@ async function voidStockTxn(idx) {
   renderStock();
   renderStockTxLog();
   toast('✅ ยกเลิก transaction แล้ว — บันทึก VOID audit trail');
+}
+
+/* ─── STOCK PRINT REPORT (A4) ──────────────── */
+// รายงานยอดคงคลังแบบสรุป 1 หน้า สำหรับส่งหัวหน้า
+function openStockPrintReport() {
+  const cat = S.catalog.filter(d => d.active);
+  if (!cat.length) { toast('ยังไม่มีข้อมูล stock — รอโหลดข้อมูลก่อน'); return; }
+
+  const pad = n => String(n).padStart(2,'0');
+  const TH_M = ['ม.ค.','ก.พ.','มี.ค.','เม.ย.','พ.ค.','มิ.ย.','ก.ค.','ส.ค.','ก.ย.','ต.ค.','พ.ย.','ธ.ค.'];
+  const now = new Date();
+  const dateTH = `${now.getDate()} ${TH_M[now.getMonth()]} ${now.getFullYear()+543}`;
+  const timeStr = `${pad(now.getHours())}:${pad(now.getMinutes())}`;
+  const esc = s => String(s==null?'':s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+  const n0 = v => Math.round(v||0).toLocaleString();
+
+  const ORDER = { CRITICAL:0, LOW:1, OK:2 };
+  const ST = { OK:{t:'เพียงพอ',c:'ok'}, LOW:{t:'ต่ำกว่า Min',c:'low'}, CRITICAL:{t:'วิกฤต',c:'crit'} };
+  const rows = cat.map(d => ({ d, st:getStatus(d).lbl, bal:d.balance||0, unit:d.unit||'เม็ด' }))
+    .sort((a,b) => (ORDER[a.st]-ORDER[b.st]) || a.d.name.localeCompare(b.d.name) || (a.d.strength_mg-b.d.strength_mg));
+  const okCt  = rows.filter(r=>r.st==='OK').length;
+  const badCt = rows.length - okCt;
+
+  const verdict = badCt
+    ? `<div class="vd warn">⚠️ ต่ำกว่า Min <b>${badCt}</b> รายการ — ควรเบิกเพิ่ม</div>`
+    : `<div class="vd ok">✅ ยาเพียงพอครบทุกรายการ (${rows.length} รายการ)</div>`;
+
+  const body = rows.map((r,i) => `<tr class="${ST[r.st].c}">
+      <td class="no">${i+1}</td>
+      <td><b>${esc(r.d.name)}</b> <span class="str">${esc(r.d.strength_mg)} mg</span> <span class="ab">(${esc(r.d.abbr)})</span></td>
+      <td class="qty">${n0(r.bal)}</td>
+      <td class="unit">${esc(r.unit)}</td>
+      <td class="min">${n0(r.d.min_stock)}</td>
+      <td class="stc"><span class="pill">${ST[r.st].t}</span></td>
+    </tr>`).join('');
+
+  const html = `<!DOCTYPE html><html lang="th"><head><meta charset="UTF-8">
+<title>ยอดคงคลังยาวัณโรค · ${dateTH}</title>
+<link href="https://fonts.googleapis.com/css2?family=Google+Sans:wght@400;500;600;700&family=Google+Sans+Text:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0;font-family:'Google Sans Text','Google Sans',-apple-system,sans-serif}
+body{background:#e5e5e5;color:#1a1a1a;padding:24px 0;line-height:1.45;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+.toolbar{max-width:794px;margin:0 auto 16px;padding:10px 14px;background:#fff;border-radius:8px;box-shadow:0 1px 3px rgba(0,0,0,.1);display:flex;align-items:center;justify-content:space-between;gap:12px}
+.toolbar span{font-size:13px;color:#666}.toolbar b{color:#3D2E80}
+.toolbar button{padding:8px 16px;background:#3D2E80;color:#fff;border:none;border-radius:6px;cursor:pointer;font-size:13px;font-weight:600;font-family:inherit}
+.a4{width:210mm;min-height:297mm;background:#fff;margin:0 auto;padding:16mm 16mm 14mm;box-shadow:0 4px 16px rgba(0,0,0,.1);font-size:10pt}
+.hd{display:flex;justify-content:space-between;align-items:flex-end;border-bottom:2px solid #3D2E80;padding-bottom:8px;margin-bottom:14px}
+.hd h1{font-size:17pt;color:#3D2E80;font-weight:700;line-height:1.2}
+.hd .sub{font-size:9pt;color:#555;margin-top:2px}
+.hd-r{text-align:right;font-size:8.5pt;color:#555}
+.hd-r .big{font-size:13pt;font-weight:700;color:#3D2E80}
+.vd{border-radius:8px;padding:10px 14px;font-size:11.5pt;font-weight:600;margin-bottom:14px;border:1.2px solid}
+.vd.ok{background:#DFF5EB;border-color:#9FE1CB;color:#04342C}
+.vd.warn{background:#FEF3C7;border-color:#FBD38D;color:#78350F}
+.vd b{font-size:13pt}
+table{width:100%;border-collapse:collapse}
+th{background:#3D2E80;color:#fff;font-weight:600;font-size:9pt;padding:7px 10px;text-align:left}
+th.r{text-align:right}th.c{text-align:center}
+td{padding:9px 10px;border-bottom:1px solid #e8e6f0;vertical-align:middle;font-size:10.5pt}
+tbody tr:nth-child(even) td{background:#FAFAFC}
+.no{color:#999;width:6%;text-align:center;font-size:9pt}
+.str{color:#444;font-weight:500}.ab{color:#888;font-size:9pt}
+.qty{text-align:right;font-family:'Google Sans',sans-serif;font-weight:700;font-size:15pt;color:#0E7A5C;font-variant-numeric:tabular-nums;width:16%}
+.unit{color:#666;font-size:9.5pt;width:9%}
+.min{text-align:right;color:#888;font-size:9.5pt;width:10%}
+.stc{text-align:center;width:16%}
+.pill{display:inline-block;padding:2px 12px;border-radius:99px;font-size:8.5pt;font-weight:700;background:#DFF5EB;color:#0E7A5C}
+tr.low .qty{color:#B45309}tr.low .pill{background:#FEF3C7;color:#B45309}
+tr.crit .qty{color:#C81E1E}tr.crit .pill{background:#FEE2E2;color:#C81E1E}
+.note{font-size:8pt;color:#888;margin-top:8px}
+.signs{display:grid;grid-template-columns:1fr 1fr;gap:24px;margin-top:40px}
+.sign{text-align:center;font-size:9.5pt;color:#444}
+.sign .nm{margin-top:8px}.sign .rl{font-size:8.5pt;color:#777;margin-top:3px}
+@media print{body{background:#fff;padding:0}.toolbar{display:none}.a4{box-shadow:none;margin:0;width:auto;min-height:auto;padding:0}tr{break-inside:avoid}@page{size:A4 portrait;margin:14mm}}
+</style></head><body>
+<div class="toolbar"><span><b>ยอดคงคลังยาวัณโรค</b> · ณ ${dateTH} ${timeStr} น.</span><button onclick="(document.fonts?document.fonts.ready:Promise.resolve()).then(()=>window.print())">🖨️ พิมพ์ / บันทึก PDF</button></div>
+<div class="a4">
+  <div class="hd">
+    <div><h1>📦 ยอดคงคลังยาวัณโรค</h1><div class="sub">คลินิกวัณโรค · กลุ่มงานเภสัชกรรม · รพ.ห้วยผึ้ง</div></div>
+    <div class="hd-r"><div>ข้อมูล ณ วันที่</div><div class="big">${dateTH}</div><div>เวลา ${timeStr} น.</div></div>
+  </div>
+  ${verdict}
+  <table>
+    <thead><tr><th class="c">ลำดับ</th><th>รายการยา</th><th class="r">คงเหลือ</th><th>หน่วย</th><th class="r">Min</th><th class="c">สถานะ</th></tr></thead>
+    <tbody>${body}</tbody>
+  </table>
+  <div class="note">* ยอดคงเหลือจากบัญชีรับ–จ่ายในระบบ TB Pharm Hub ณ เวลาที่พิมพ์ · Min = ระดับต่ำสุดที่ควรมีในคลัง</div>
+  <div class="signs">
+    <div class="sign">ลงชื่อ ..................................................<div class="nm">(..................................................)</div><div class="rl">เภสัชกรผู้จัดทำ</div></div>
+    <div class="sign">ลงชื่อ ..................................................<div class="nm">(..................................................)</div><div class="rl">หัวหน้ากลุ่มงานเภสัชกรรมฯ</div></div>
+  </div>
+</div>
+</body></html>`;
+
+  const w = window.open('', 'tbStockReport');
+  if (!w) { toast('เบราว์เซอร์บล็อค popup — อนุญาต popup ก่อน'); return; }
+  w.document.open(); w.document.write(html); w.document.close();
+  try { w.focus(); } catch(e) {}
 }
 
 /* ─── STOCK EXPORT FUNCTIONS ───────────────── */
