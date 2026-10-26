@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="theme-color" content="#ffffff">
 <title>รถยา ER v2</title>
-<!-- ER Med Cart v2 · build 2026-10-26 07:05 UTC · แหล่งข้อมูล: Supabase ermedcart-hub (เดียวกับ v1) -->
+<!-- ER Med Cart v2 · build 2026-10-26 07:12 UTC · แหล่งข้อมูล: Supabase ermedcart-hub (เดียวกับ v1) -->
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Google+Sans:wght@400;500;700&family=Noto+Sans+Thai:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -1434,9 +1434,9 @@ function renderRecord() {
         (SUBTYPES[e.type] || []).map((s, i) => '<button class="chip' + (e.subtypes.indexOf(s) >= 0 ? ' on' : '') + '" type="button" aria-pressed="' + (e.subtypes.indexOf(s) >= 0) + '" onclick="recSub(\'' + e.id + '\',' + i + ')">' + esc(s) + '</button>').join('') + '</div></div>' +
         '<div><div class="lbl" style="margin-bottom:6px">ความรุนแรง' + (e.severity ? ' · <b style="color:var(--ink)">' + e.severity + ' — ' + esc(SEV[e.severity][1]) + '</b>' : '') + '</div><div class="sev" role="group" aria-label="ระดับความรุนแรง">' +
         Object.keys(SEV).map(k => '<button class="sv' + (e.severity === k ? ' on' + ('EFGHI'.indexOf(k) >= 0 ? ' hi' : '') : '') + '" type="button" aria-pressed="' + (e.severity === k) + '" title="' + esc(SEV[k][1]) + '" onclick="recSev(\'' + e.id + '\',\'' + k + '\')">' + k + '</button>').join('') + '</div></div>' +
-        '<div class="mepair"><div><div class="lbl" style="margin-bottom:4px">ยาตามใบสั่ง <span style="font-weight:400">(ไม่บังคับ)</span></div>' + drugPick(e.id + 'r', e.rx_drug_id, e.rx_drug && !e.rx_drug_id ? e.rx_drug : '', 'recErrRx', 'พิมพ์ค้นหา เช่น hista') + '</div>' +
+        (errSwap(e) ? '<div class="mepair"><div><div class="lbl" style="margin-bottom:4px">ยาตามใบสั่ง <span style="font-weight:400">(ไม่บังคับ)</span></div>' + drugPick(e.id + 'r', e.rx_drug_id, e.rx_drug && !e.rx_drug_id ? e.rx_drug : '', 'recErrRx', 'พิมพ์ค้นหา เช่น hista') + '</div>' +
         '<div><div class="lbl" style="margin-bottom:4px">ยาที่หายจากรถจริง <span style="font-weight:400">(ไม่บังคับ)</span></div>' + drugPick(e.id, e.drug_id, e.drug && !e.drug_id ? e.drug : '', 'recErrDrug', 'พิมพ์ค้นหา เช่น poly') + '</div>' +
-        '<div class="lbl">หยิบผิดตัว → กรอกทั้ง 2 ช่อง · ยาตัวเดียวกันแต่ผิดอย่างอื่น → กรอกแค่ยาที่หายจริง</div></div>' +
+        '</div>' : '<div><div class="lbl" style="margin-bottom:4px">ชื่อยา <span style="font-weight:400">(ไม่บังคับ)</span></div>' + drugPick(e.id, e.drug_id, e.drug && !e.drug_id ? e.drug : '', 'recErrDrug', 'พิมพ์ค้นหาชื่อยา') + '</div>') +
         '<input class="inp" placeholder="รายละเอียดเพิ่มเติม (ไม่บังคับ)" aria-label="รายละเอียด" value="' + esc(e.note) + '" oninput="recErrNote(\'' + e.id + '\',this.value)">' +
         '<button class="tog' + (e.had ? ' on' : '') + '" type="button" aria-pressed="' + !!e.had + '" onclick="recErrHad(\'' + e.id + '\')">เกี่ยวข้องกับยา HAD</button>' +
         (inc ? '<div class="note err">เลือกลักษณะและระดับความรุนแรงก่อนบันทึก</div>' : '') + '</div>';
@@ -1479,16 +1479,20 @@ function recErrSet(id, field, v) {
 }
 function recErrDrug(key, v) { recErrSet(key, 'drug', v); }
 function recErrRx(key, v) { recErrSet(key.slice(0, -1), 'rx_drug', v); }
-/* ME ไม่มีคอลัมน์ยาใน DB → เก็บใน note: "สั่ง X → หาย Y · รายละเอียด" (รายงานแสดง note อยู่แล้ว) */
+/* ลักษณะที่ "ยาที่สั่ง ≠ ยาที่หยิบ" → แยก 2 ช่อง (ยาตามใบสั่ง / ยาที่หายจากรถจริง) · อื่นๆ ช่องเดียว (ชื่อยา) */
+const SWAP_RE = /ผิดชนิด|ผิดความแรง|ผิดรูปแบบ/;
+function errSwap(e) { return (e.subtypes || []).some(x => SWAP_RE.test(x)); }
+/* ME ไม่มีคอลัมน์ยาใน DB → เก็บใน note: "สั่ง X → หาย Y · …" หรือ "ยา X · …" (รายงานแสดง note อยู่แล้ว) */
 function errNoteOut(e) {
   const a = String(e.rx_drug || '').trim(), b = String(e.drug || '').trim();
-  const head = a && b ? 'สั่ง ' + a + ' → หาย ' + b : a ? 'สั่ง ' + a : b ? 'หาย ' + b : '';
+  const head = !errSwap(e) ? (b ? 'ยา ' + b : '') : a && b ? 'สั่ง ' + a + ' → หาย ' + b : a ? 'สั่ง ' + a : b ? 'หาย ' + b : '';
   return [head, String(e.note || '').trim()].filter(Boolean).join(' · ');
 }
 function errNoteIn(note) {
   const parts = String(note || '').split(' · '), f = (parts[0] || '').trim(), rest = parts.slice(1).join(' · ');
   let m;
   if ((m = f.match(/^สั่ง (.+?) → หาย (.+)$/))) return { rx_drug: m[1], drug: m[2], note: rest };
+  if ((m = f.match(/^ยา (.+)$/)) && drugIdByName(m[1])) return { rx_drug: '', drug: m[1], note: rest };
   if ((m = f.match(/^หาย (.+)$/))) return { rx_drug: '', drug: m[1], note: rest };
   if ((m = f.match(/^สั่ง (.+)$/))) return { rx_drug: m[1], drug: '', note: rest };
   if (f && drugIdByName(f)) return { rx_drug: '', drug: f, note: rest };
