@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="theme-color" content="#ffffff">
 <title>รถยา ER v2</title>
-<!-- ER Med Cart v2 · build 2026-10-26 05:19 UTC · แหล่งข้อมูล: Supabase ermedcart-hub (เดียวกับ v1) -->
+<!-- ER Med Cart v2 · build 2026-10-26 05:28 UTC · แหล่งข้อมูล: Supabase ermedcart-hub (เดียวกับ v1) -->
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Google+Sans:wght@400;500;700&family=Noto+Sans+Thai:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -859,7 +859,8 @@ function ccToggle(id) {
 async function ccLoad(id) {
   if (!CC.st[id]) CC.st[id] = { counts: {}, wd: {}, refill: null, mode: 'latest', expRaw: '', loaded: false, err: null };
   const st = CC.st[id];
-  if (st.loaded) return;
+  if (st.loaded || st.loading) return;
+  st.loading = true;
   try {
     const res = await api('getStockByDrug', { drug_id: id });
     const lots = (Array.isArray(res) ? res : (res && res.data) || []).filter(l => num(l.available_qty) > 0)
@@ -868,6 +869,7 @@ async function ccLoad(id) {
     lots.forEach(l => { if (st.counts[l.exp] == null) st.counts[l.exp] = l.avail; });
     st.loaded = true; st.err = null;
   } catch (e) { st.err = e.message; }
+  st.loading = false;
   if (APP.page === 'cart' && CC.open === id) renderCartList();
 }
 /* ล็อตที่ RESTOCK เข้ารถครั้งล่าสุด (ไม่นับล็อตที่กำลังถอน) · ไม่มีข้อมูลเวลา → EXP ไกลสุด */
@@ -903,7 +905,7 @@ function ccCardOpen(d) {
     '<span class="grow"><span class="nm" style="font-size:15px">' + esc(d.name) + '</span>' + hadTag(d) + '<br>' + locPill(d, true) + '<span class="lbl" style="display:block;margin-top:2px">เป้า ' + d.target + ' ' + esc(d.unit) + ' · ในระบบ ' + d.cur +
     pendingFor(d.id).map(p => ' · <span style="color:var(--red);font-weight:600">พยาบาลแจ้งขาด ' + esc(p.miss_qty) + '</span>').join('') + '</span></span></button>';
   if (st.err) return '<section id="cc-' + d.id + '" class="cc">' + head + '<div class="cc-in"><div class="note err">โหลดข้อมูลล็อตไม่ได้: ' + esc(st.err) + '</div><button class="btn2" type="button" onclick="CC.st[\'' + d.id + '\'].err=null;ccLoad(\'' + d.id + '\');renderCartList()">ลองใหม่</button></div></section>';
-  if (!st.loaded) return '<section id="cc-' + d.id + '" class="cc">' + head + '<div class="cc-in"><div class="skel" style="height:96px"></div></div></section>';
+  if (!st.loaded) { if (!st.loading) setTimeout(() => ccLoad(d.id), 0); return '<section id="cc-' + d.id + '" class="cc">' + head + '<div class="cc-in"><div class="skel" style="height:96px"></div></div></section>'; }
   const c = ccCalc(d.id), lots = CC.lots[d.id] || [];
   const id = d.id;
   let h = '<section id="cc-' + id + '" class="cc">' + head + '<div class="cc-in" style="gap:8px">';
