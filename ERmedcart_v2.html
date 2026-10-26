@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="theme-color" content="#ffffff">
 <title>รถยา ER v2</title>
-<!-- ER Med Cart v2 · build 2026-10-26 04:12 UTC · แหล่งข้อมูล: Supabase ermedcart-hub (เดียวกับ v1) -->
+<!-- ER Med Cart v2 · build 2026-10-26 05:06 UTC · แหล่งข้อมูล: Supabase ermedcart-hub (เดียวกับ v1) -->
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Google+Sans:wght@400;500;700&family=Noto+Sans+Thai:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -198,6 +198,85 @@ textarea.inp{padding:10px 12px;min-height:64px;resize:vertical}
   .card{break-inside:avoid;border-color:#ccc}
 }
 
+/* cart: lot rows — highlight only */
+.lotr{display:flex;align-items:center;gap:10px;padding:8px 10px;border-radius:10px;margin:0 -10px}
+.lotr.miss{background:#ffe8ee}
+.lotr.wd{background:#fef3da}
+.refill{display:flex;align-items:center;gap:10px;background:var(--blu-bg);border-radius:10px;padding:10px 12px}
+.refill-n{display:block;font-size:16px;font-weight:700;color:var(--blu)}
+
+/* =========================================================
+   CALM THEME (v2.1) — แดงสีเดียว = ต้องทำ · ที่เหลือขาวดำ
+   ========================================================= */
+:root{
+  --ink:#14171f; --muted:#6b7080; --hint:#6b7080; --line:#e6e8ec; --line2:#d9dce3;
+  --bg:#f4f5f7; --soft:#f7f8fa; --chipbg:#f0f1f4; --sub:#3d4250;
+  --red:#c4122f; --red-bg:#fdecef; --red-b:#f2b8c2;
+  --amb:#3d4250; --amb-bg:#f0f1f4; --amb-dot:#c4122f;
+  --grn:#3d4250; --grn-bg:#f0f1f4; --grn-soft:#fff;
+  --blu:#3d4250; --blu-bg:#f0f1f4; --bar:#3d4250; --bar2:#b8bcc6; --org:#c4122f;
+}
+body{color:var(--ink)}
+.card{border-radius:14px}
+.pill{font-weight:600}
+.p-amb,.p-blu,.p-grn,.p-gry{background:var(--chipbg);color:var(--sub)}
+.p-red{background:var(--red-bg);color:var(--red)}
+.note.ok,.note.info,.note.warn{background:var(--chipbg);color:var(--sub)}
+.note.warn{box-shadow:inset 3px 0 0 var(--red)}
+.note.err{background:var(--red-bg);color:var(--red)}
+.had{border:0;padding:0;margin-left:6px;font-size:11px;color:var(--red)}
+.loc{background:none;padding:0;color:var(--muted);font-weight:500}
+.locp{display:inline-block;font-size:12px;color:#5b6070;background:var(--chipbg);border-radius:10px;padding:1px 8px;margin-top:4px;white-space:nowrap}
+.missp{display:inline-block;font-size:12px;font-weight:600;color:var(--red);background:var(--red-bg);border-radius:10px;padding:1px 8px}
+.st{font-size:13px;color:var(--muted);white-space:nowrap;text-align:right}
+.st.act{color:var(--red);font-weight:600}
+.st.act::before{content:'';display:inline-block;width:6px;height:6px;border-radius:3px;background:currentColor;margin-right:6px;vertical-align:2px}
+.kdot{display:inline-block;width:7px;height:7px;border-radius:4px;background:var(--red);margin-left:6px;vertical-align:5px}
+/* grouped lists (หนึ่งกล่องต่อชั้น · คั่นเส้นบาง) */
+.group{background:#fff;border:1px solid var(--line);border-radius:14px;overflow:hidden}
+.gr{display:flex;align-items:center;gap:12px;padding:10px 14px;border:0;border-top:1px solid #eef0f3;background:none;width:100%;text-align:left;color:var(--ink)}
+.gr:first-child{border-top:0}
+.gr.done .nm{color:#8a8f9c}
+.shelf{color:var(--muted);font-size:12px;letter-spacing:.02em;padding:6px 4px 0}
+/* cart card */
+.cc{border:1.5px solid var(--ink);border-radius:14px}
+.cc-hd{background:#fff;border-bottom:1px solid #eef0f3}
+.lotr{position:relative;margin:0;padding:10px 0;border-radius:0;border-top:1px solid #eef0f3}
+.lotr:first-child{border-top:0}
+.lotr.miss,.lotr.wd{background:none}
+.lotr.miss::before{content:'';position:absolute;left:-10px;top:8px;bottom:8px;width:3px;border-radius:2px;background:var(--red)}
+.lotr.miss .qv{color:var(--red)}
+.lotr.wd .expd{color:#a0a4af;text-decoration:line-through}
+.lotr.wd .qv{color:#a0a4af}
+.refill{background:none;border:0;padding:4px 0;color:var(--sub);font-size:14px}
+.qb{border-color:var(--line2)}
+.it.done{background:#fff}
+.it.alert{border-color:var(--line)}
+/* hub */
+.kpis{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));background:#fff;border:1px solid var(--line);border-radius:14px;overflow:hidden}
+.kc{padding:12px 14px;border:0;border-left:1px solid #eef0f3;background:none;text-align:left;color:var(--ink)}
+.kc:first-child{border-left:0}
+.sdot{background:none;border:1.5px solid #c9ccd4;color:var(--muted)}
+.sdot.cur{border-color:var(--ink);color:var(--ink);background:none}
+.sdot.ok{background:var(--ink);border-color:var(--ink);color:#fff}
+.go{border:1px solid var(--ink);background:#fff;border-radius:10px;min-height:38px;padding:0 12px;font-size:13px;font-weight:600;color:var(--ink);white-space:nowrap}
+.go2{border:1px solid var(--line2);background:#fff;border-radius:10px;min-height:38px;padding:0 10px;font-size:13px;color:var(--sub);white-space:nowrap}
+/* nurse */
+.nrow.ok{background:#fff} .nrow.miss{background:var(--red-bg);border-color:var(--red-b)}
+.okb.on{background:var(--ink);border-color:var(--ink);color:#fff} .okb{color:var(--ink)}
+.shelfbox{border:1.5px solid var(--ink)}
+/* record */
+.sv.on{background:var(--ink)!important}
+.sv.on.hi{background:var(--red)!important}
+.tog.on{background:var(--red-bg);border-color:var(--red-b);color:var(--red)}
+/* date field */
+.expf{position:relative}
+.expf .inp{padding-right:52px}
+.expf .calb{position:absolute;right:6px;top:6px;width:36px;height:36px;border:0;background:var(--chipbg);border-radius:8px;display:flex;align-items:center;justify-content:center;color:var(--sub)}
+.expf .calp{position:absolute;right:6px;top:6px;width:36px;height:36px;opacity:0;border:0;padding:0;cursor:pointer}
+/* toast */
+.toast svg{stroke:#fff}
+
 </style>
 </head>
 <body>
@@ -322,7 +401,7 @@ function parseExpInput(raw, todayIso) {
 }
 function expReadout(r) {
   if (!r || !r.ok) return '';
-  const left = r.days < 0 ? 'หมดอายุแล้ว' : r.days < 60 ? 'อีก ' + r.days + ' วัน' : 'อีก ' + Math.round(r.days / 30.4) + ' เดือน';
+  const left = r.days < 0 ? 'หมดอายุแล้ว' : leftText(r.days);
   return '<b>' + expFull(r.iso) + '</b> (พ.ศ. ' + r.be + ') · ' + left + (r.monthOnly ? ' · นับเป็นสิ้นเดือน' : '');
 }
 
@@ -345,6 +424,7 @@ function svg(name, size, color, sw) {
 /* ---------- UI kit: toast / sheet ---------- */
 function toast(msg, kind, actLabel, actFn) {
   const root = $('toast-root');
+  root.innerHTML = '';   // แสดงทีละอัน ไม่ซ้อนกัน
   const el = document.createElement('div');
   el.className = 'toast' + (kind === 'err' ? ' err' : '');
   el.setAttribute('role', kind === 'err' ? 'alert' : 'status');
@@ -432,6 +512,26 @@ function byPos(a, b) {
 function shelfKey(d) { return d.location === FRIDGE ? 'fridge' : String(posParts(d.cart_pos)[0]); }
 function shelfName(k) { return k === 'fridge' ? 'ตู้เย็น ER' : k === '99' ? 'ยังไม่ระบุตำแหน่ง' : 'ชั้น ' + k; }
 function locLabel(d) { return d.location === FRIDGE ? 'ตู้เย็น' : (d.cart_pos || '—'); }
+/* ตำแหน่งเป็นคำ: full = มีชั้น (ใช้นอกรายการที่จัดกลุ่มตามชั้น) */
+function locText(d, full) {
+  if (d.location === FRIDGE) return 'ตู้เย็น ER';
+  const p = posParts(d.cart_pos);
+  if (p[0] >= 99) return 'ยังไม่ระบุตำแหน่ง';
+  return (full ? 'ชั้น ' + p[0] + ' · ' : '') + 'กล่อง ' + p[1] + ' · ช่อง ' + p[2];
+}
+function locPill(d, full) { return '<span class="locp">' + esc(locText(d, full)) + '</span>'; }
+/* ช่อง EXP: พิมพ์ (ค.ศ./พ.ศ.) หรือแตะปฏิทิน · onInput = ชื่อฟังก์ชัน global รับ (value) */
+function expField(id, value, onInput, placeholder) {
+  return '<div class="expf"><input id="' + id + '" class="inp big" inputmode="numeric" autocomplete="off" placeholder="' + esc(placeholder || 'EXP เช่น 31/08/2027 (ค.ศ./พ.ศ.)') + '" value="' + esc(value || '') + '" oninput="' + onInput + '(this.value)">' +
+    '<span class="calb" aria-hidden="true"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></svg></span>' +
+    '<input type="date" class="calp" aria-label="เลือกวันหมดอายุจากปฏิทิน" onclick="try{this.showPicker()}catch(e){}" onchange="expPicked(\'' + id + '\',this.value)"></div>';
+}
+function expPicked(id, iso) {
+  if (!iso) return;
+  const p = isoParts(iso), el = $(id); if (!el) return;
+  el.value = pad2(p.d) + '/' + pad2(p.m) + '/' + p.y;
+  el.dispatchEvent(new Event('input', { bubbles: true }));
+}
 function hadTag(d) { return d.had ? '<span class="had">HAD</span>' : ''; }
 
 /* สถานะยา — ที่เดียวทั้งระบบ (ใช้ exp_status จาก backend: <7 วัน warn, <1 วัน critical, หมดแล้ว danger) */
@@ -446,15 +546,17 @@ function flags(d) {
   };
 }
 function needsAction(d) { const f = flags(d); return f.nurse || f.empty || f.expired || f.near || f.low; }
+/* สถานะ: แดง+จุด = ต้องทำ · เทา = ข้อมูล */
 function statusPill(d, opts) {
   const f = flags(d);
-  if (f.done && !(opts && opts.ignoreDone)) return '<span class="pill p-grn">✓ เสร็จ</span>';
-  if (f.nurse) return '<span class="pill p-red">พยาบาลแจ้งขาด</span>';
-  if (f.empty) return '<span class="pill p-red">ยาหมด ' + d.cur + '/' + d.target + '</span>';
-  if (d.status === 'danger') return '<span class="pill p-red">หมดอายุแล้ว</span>';
-  if (d.status === 'critical') return '<span class="pill p-red">หมดอายุวันนี้</span>';
-  if (f.near) return '<span class="pill p-amb">EXP ' + esc(expShort(d.exp)) + '</span>';
-  if (f.low) return '<span class="pill p-blu">ขาด ' + (d.target - d.cur) + '</span>';
+  const act = (t) => '<span class="st act">' + t + '</span>';
+  if (f.done && !(opts && opts.ignoreDone)) return '<span class="st">✓ บันทึกแล้ว</span>';
+  if (f.nurse) return act('พยาบาลแจ้งขาด');
+  if (f.empty) return act('ยาหมด ' + d.cur + '/' + d.target);
+  if (d.status === 'danger') return act('หมดอายุแล้ว');
+  if (d.status === 'critical') return act('หมดอายุวันนี้');
+  if (f.near) return act('EXP ' + esc(expShort(d.exp)));
+  if (f.low) return act('ขาด ' + (d.target - d.cur));
   return '';
 }
 function cartStats() {
@@ -562,7 +664,7 @@ const HUB = { feedOpen: false, feed: null };
 
 PAGES.hub = {
   title: 'เวรนี้',
-  sub: () => thDow(bkkToday()) + ' ' + thDate(bkkToday()) + ' · ' + bkkTime(),
+  sub: () => APP.user + ' · ' + thDow(bkkToday()) + ' ' + thDate(bkkToday()) + ' · ' + bkkTime(),
   topAction: () => '<button class="chip" type="button" onclick="doLogout()">ออกจากระบบ</button>',
   render: () => { renderHub(); loadPending().then(() => { if (APP.page === 'hub') { renderHub(); renderNav(); } }); },
 };
@@ -585,33 +687,25 @@ function renderHub() {
   const pend = APP.pending;
 
   let h = '';
-  h += '<section class="card" style="flex-direction:row;align-items:center;gap:12px">' + SUN_SVG +
-       '<div class="grow"><div class="h" style="font-size:16px">' + esc(APP.user) + '</div><div class="lbl">เภสัชกรเวร</div></div></section>';
-
   h += '<section class="card" style="gap:6px"><label class="lbl" for="hub-tech">จพ.เภสัชประจำเวร — เลือกครั้งเดียว ใช้ทั้งเวร</label>' +
        '<select id="hub-tech" class="inp" onchange="setTech(this.value)"><option value="">— ไม่ระบุ —</option>' +
        TECHS.map(t => '<option' + (APP.tech === t ? ' selected' : '') + '>' + esc(t) + '</option>').join('') + '</select></section>';
 
-  h += '<div class="grid3">' +
-    kpiBtn('หมดอายุ/วิกฤต', s.expired, 'var(--red)', 'ดู Stock →', "go('stock',{filter:'expired'})") +
-    kpiBtn('ใกล้ EXP &lt; 7 วัน', s.near, 'var(--amb)', 'ดู Stock →', "go('stock',{filter:'near'})") +
-    kpiBtn('เติมไม่ครบ', s.low, 'var(--blu)', 'ไปตรวจ/เติม →', "go('cart',{filter:'need'})") +
-  '</div>';
+  h += '<div class="kpis">' +
+    kpiBtn('หมดอายุ', s.expired, "go('stock',{filter:'expired'})") +
+    kpiBtn('ใกล้ EXP', s.near, "go('stock',{filter:'near'})") +
+    kpiBtn('เติมไม่ครบ', s.low, "go('cart',{filter:'need'})") + '</div>';
 
   if (pend.length) {
-    h += '<section class="card" style="border-color:var(--red-b)">' +
-      '<div class="row"><span class="h grow">พยาบาลแจ้งยาขาด</span><span class="pill p-red">' + pend.length + ' รายการ</span></div>' +
-      '<div class="lbl" style="margin-top:-6px">ต้องจัดการให้ครบก่อนปิดเวร · ปิดเองเมื่อบันทึกการ์ดยานั้นในหน้าตรวจ/เติม</div>' +
+    h += '<section class="card" style="padding:0;gap:0"><div style="padding:12px 14px 4px"><span class="h">พยาบาลแจ้งขาด · ' + pend.length + '</span> <span class="lbl">ต้องเคลียร์ก่อนปิดเวร</span></div>' +
       pend.map((p, i) => {
-        const d = drugById(p.drug_id) || { name: p.drug_name, cart_pos: '', location: p.location };
-        return '<div class="alertbox">' +
-          '<div class="row"><span class="loc">' + esc(locLabel(d)) + '</span><span class="nm grow">' + esc(d.name || p.drug_name) + hadTag(d) + '</span></div>' +
-          '<div class="lbl">แจ้งโดย ' + esc(p.nurse_name || '—') + ' · ' + esc(thDateShort(tsDate(p.timestamp))) + ' ' + tsTime(p.timestamp) + ' · ขาด ' + esc(p.miss_qty || '?') + ' ' + esc(p.unit || d.unit || '') + (p.miss_note ? ' · ' + esc(p.miss_note) : '') + '</div>' +
-          '<div class="row" style="gap:8px"><button class="btn sm grow" type="button" onclick="go(\'cart\',{open:\'' + esc(p.drug_id) + '\'})">ไปตรวจ/เติมยานี้ →</button>' +
-          '<button class="btn2" type="button" onclick="ackVerified(' + i + ',this)">ของครบ (นับผิด)</button></div>' +
-        '</div>';
-      }).join('') +
-    '</section>';
+        const d = drugById(p.drug_id) || { name: p.drug_name, cart_pos: '', location: p.location, unit: p.unit };
+        return '<div class="gr" style="align-items:flex-start;border-top:1px solid #eef0f3"><span class="grow"><span class="nm">' + esc(d.name || p.drug_name) + '</span>' + hadTag(d) +
+          '<br>' + locPill(d, true) +
+          '<span style="display:block;margin-top:4px"><span class="missp">ขาด ' + esc(p.miss_qty || '?') + '</span> <span class="lbl">' + esc(p.nurse_name || '—') + ' ' + tsTime(p.timestamp) + (p.miss_note ? ' · ' + esc(p.miss_note) : '') + '</span></span></span>' +
+          '<span style="display:flex;flex-direction:column;gap:6px;flex:none"><button class="go" type="button" onclick="go(\'cart\',{open:\'' + esc(p.drug_id) + '\'})">ไปเติม</button>' +
+          '<button class="go2" type="button" onclick="ackVerified(' + i + ',this)">ยาครบ ไม่ต้องเติม</button></span></div>';
+      }).join('') + '</section>';
   }
 
   const step1 = APP.shift.cartSubmitted ? 'ok' : (doneN > 0 ? 'cur' : '');
@@ -624,11 +718,10 @@ function renderHub() {
     stepRow(2, step2, 'บันทึกเวร',
       APP.shift.saved ? 'บันทึกแล้ว' + (APP.shift.savedAt ? ' ' + APP.shift.savedAt : '') + ' · ใบสั่ง ' + (APP.shift.rxTotal != null ? APP.shift.rxTotal : '?') + ' · แก้ไขได้' : 'ใบสั่งยา · ยาหาย · ความเสี่ยง · Med error',
       "go('record')") +
-    '<div class="step"><span class="sdot' + (left.length ? '' : ' cur') + '">3</span><span class="grow"><span style="display:block;font-size:15px;font-weight:600">ปิดเวร</span><span class="lbl">' + (left.length ? 'ปลดล็อกเมื่อทำครบ' : 'พร้อมปิดเวร') + '</span></span>' + (left.length ? svg('lock', 18, '#5b6280', 2) : '') + '</div>' +
+    '<div class="step"><span class="sdot' + (left.length ? '' : ' cur') + '">3</span><span class="grow"><span style="display:block;font-size:15px;font-weight:600">ปิดเวร</span><span class="lbl">' + (left.length ? 'เหลือ: ' + esc(left.join(' · ')) : 'พร้อมปิดเวร') + '</span></span></div>' +
   '</section>';
 
-  h += '<button class="btn" type="button" onclick="closeShift()"' + (left.length ? ' disabled' : '') + '>ปิดเวร</button>' +
-       '<div class="lbl" style="text-align:center;margin-top:-4px">' + (left.length ? 'เหลือ: ' + esc(left.join(' · ')) : 'ทุกอย่างเรียบร้อย') + '</div>';
+  h += '<button class="btn" type="button" onclick="closeShift()"' + (left.length ? ' disabled' : '') + '>ปิดเวร</button>';
 
   h += '<section class="card" style="padding:4px 16px"><button class="step" type="button" style="border:0;justify-content:space-between" onclick="toggleFeed()" aria-expanded="' + HUB.feedOpen + '">' +
        '<span style="font-size:14px;font-weight:600">กิจกรรมล่าสุดวันนี้</span><span class="lbl">' + (HUB.feedOpen ? 'ซ่อน' : 'แสดง') + ' ›</span></button>' +
@@ -636,8 +729,8 @@ function renderHub() {
 
   $('pg-hub').innerHTML = '<div class="wrap">' + h + '</div>';
 }
-function kpiBtn(label, n, color, foot, onclick) {
-  return '<button class="kpi" type="button" onclick="' + onclick + '"><span class="lbl">' + label + '</span><span class="kn" style="color:' + (n ? color : 'var(--ink)') + '">' + n + '</span><span class="lbl">' + foot + '</span></button>';
+function kpiBtn(label, n, onclick) {
+  return '<button class="kc" type="button" onclick="' + onclick + '"><span class="lbl" style="display:block">' + label + '</span><span class="kn">' + n + (n ? '<span class="kdot"></span>' : '') + '</span></button>';
 }
 function stepRow(n, state, title, line, onclick) {
   return '<button class="step" type="button" onclick="' + onclick + '"><span class="sdot ' + state + '">' + (state === 'ok' ? svg('tick', 16, 'currentColor', 2.4) : n) + '</span>' +
@@ -645,7 +738,7 @@ function stepRow(n, state, title, line, onclick) {
 }
 async function ackVerified(i, btn) {
   const p = APP.pending[i]; if (!p) return;
-  const ok = await confirmSheet({ title: 'ยืนยันว่าของครบ?', sub: (p.drug_name || '') + ' — พยาบาลแจ้งขาด ' + (p.miss_qty || '?') + ' แต่ตรวจแล้วของในรถครบ', ok: 'ของครบ' });
+  const ok = await confirmSheet({ title: 'ยืนยันว่ายาครบ ไม่ต้องเติม?', sub: (p.drug_name || '') + ' — พยาบาลแจ้งขาด ' + (p.miss_qty || '?') + ' แต่ตรวจแล้วยาในรถครบ', ok: 'ยาครบ ไม่ต้องเติม' });
   if (!ok) return;
   setBusy(btn, true, '…');
   try {
@@ -675,24 +768,24 @@ async function closeShift() {
     ckRow('แจ้งขาดจากพยาบาล', 'เคลียร์ครบ');
   if (await confirmSheet({ title: 'ปิดเวรและออกจากระบบ?', sub: 'ตรวจสรุปก่อนส่งต่อเวร', body: body, ok: 'ปิดเวร' })) doLogout(true);
 }
-function ckRow(t, l) { return '<div class="ck"><span class="ic" style="background:var(--grn-bg);color:var(--grn)">' + svg('tick', 16, 'currentColor', 2.4) + '</span><span><span style="display:block;font-size:15px;font-weight:600">' + esc(t) + '</span><span class="lbl">' + esc(l) + '</span></span></div>'; }
+function ckRow(t, l) { return '<div class="ck"><span class="ic" style="background:var(--ink);color:#fff">' + svg('tick', 16, 'currentColor', 2.4) + '</span><span><span style="display:block;font-size:15px;font-weight:600">' + esc(t) + '</span><span class="lbl">' + esc(l) + '</span></span></div>'; }
 
-const SUN_SVG = '<svg width="44" height="44" viewBox="0 0 64 64" aria-hidden="true"><g stroke="#E8A13A" stroke-width="3" stroke-linecap="round"><line x1="32" y1="4" x2="32" y2="12"/><line x1="32" y1="52" x2="32" y2="60"/><line x1="4" y1="32" x2="12" y2="32"/><line x1="52" y1="32" x2="60" y2="32"/><line x1="12" y1="12" x2="18" y2="18"/><line x1="46" y1="46" x2="52" y2="52"/><line x1="52" y1="12" x2="46" y2="18"/><line x1="12" y1="52" x2="18" y2="46"/></g><circle cx="32" cy="32" r="13" fill="#FFCB6B"/><circle cx="28" cy="31" r="1.5" fill="#1F1B14"/><circle cx="36" cy="31" r="1.5" fill="#1F1B14"/><path d="M28 36 Q32 39 36 36" stroke="#1F1B14" stroke-width="1.6" fill="none" stroke-linecap="round"/></svg>';
 
 /* ============================================================
    ตรวจ / เติมรถยา — ห้องยาเป็นคนเติม
-   ① นับยาที่เห็นในรถ (ค่าเริ่ม = ในระบบ) → ระบบคิดที่หาย
+   ① นับยาที่เห็นในรถ (ค่าเริ่ม = ในระบบ) → ระบบคิดที่ขาด (ยังไม่ตัดสินว่ามีใบสั่งหรือไม่ — ทำที่บันทึกเวร)
    ② เติมกลับ = ให้ครบเป้าหมาย · default ล็อตที่ RESTOCK ล่าสุด · หรือกรอก EXP ล็อตอื่น
    ============================================================ */
 const CC = { lots: {}, st: {}, done: {}, log: [], filter: 'all', q: '', open: null, inflight: {}, logOpen: false };
 
 PAGES.cart = {
   title: 'ตรวจ / เติมรถยา',
-  sub: () => 'แตะเฉพาะยาที่หายจากรถหรือใกล้หมดอายุ · ที่ไม่แตะ = ครบ',
+  sub: () => 'แตะเฉพาะยาที่ขาดหรือใกล้หมดอายุ · ที่ไม่แตะ = ครบ',
   render: (o) => {
     if (o.filter) CC.filter = o.filter;
     if (o.open) { CC.open = o.open; if (!ccVisible(drugById(o.open))) { CC.filter = 'all'; CC.q = ''; } ccLoad(o.open); }
     renderCart();
+    loadTodayLog();
     if (o.open) setTimeout(() => { const el = $('cc-' + o.open); if (el) el.scrollIntoView({ block: 'start', behavior: 'smooth' }); }, 60);
   },
 };
@@ -741,22 +834,22 @@ function renderCartList() {
   const list = APP.drugs.slice().sort(byPos).filter(ccVisible);
   if (CC.open && !list.find(d => d.id === CC.open)) { const od = drugById(CC.open); if (od) list.unshift(od); }
   if (!list.length) { $('cc-list').innerHTML = '<div class="empty">— ไม่มีรายการในตัวกรองนี้ —' + (CC.filter === 'need' ? '<br>ระบบไม่พบรายการที่ต้องดู — กด "ทั้งหมด" เพื่อตรวจตามชั้น' : '') + '</div>'; return; }
-  let h = '', last = null;
-  const groups = {};
-  list.forEach(d => { const k = shelfKey(d); groups[k] = (groups[k] || 0) + 1; });
+  let h = '', last = null, inGroup = false;
+  const closeG = () => { if (inGroup) { h += '</div>'; inGroup = false; } };
   list.forEach(d => {
     const k = shelfKey(d);
-    if (k !== last) { h += '<div class="shelf"><span>' + esc(shelfName(k)) + '</span><span>' + groups[k] + ' รายการ</span></div>'; last = k; }
-    h += CC.open === d.id ? ccCardOpen(d) : ccCardClosed(d);
+    if (k !== last) { closeG(); h += '<div class="shelf">' + esc(shelfName(k)) + '</div>'; last = k; }
+    if (CC.open === d.id) { closeG(); h += ccCardOpen(d); }
+    else { if (!inGroup) { h += '<div class="group">'; inGroup = true; } h += ccCardClosed(d); }
   });
+  closeG();
   $('cc-list').innerHTML = h;
 }
 function ccCardClosed(d) {
   const f = flags(d);
-  const line = f.done && CC.done[d.id].line ? CC.done[d.id].line : 'เป้าหมาย ' + d.target + ' ' + d.unit + ' · ในระบบ ' + d.cur;
-  return '<button id="cc-' + d.id + '" class="it' + (f.done ? ' done' : f.nurse ? ' alert' : '') + '" type="button" onclick="ccToggle(\'' + d.id + '\')">' +
-    '<span class="loc">' + esc(locLabel(d)) + '</span>' +
-    '<span class="grow"><span class="nm">' + esc(d.name) + '</span>' + hadTag(d) + '<span class="lbl" style="display:block">' + esc(line) + '</span></span>' +
+  return '<button id="cc-' + d.id + '" class="gr' + (f.done ? ' done' : '') + '" type="button" onclick="ccToggle(\'' + d.id + '\')">' +
+    '<span class="grow"><span class="nm">' + esc(d.name) + '</span>' + hadTag(d) + '<br>' + locPill(d, false) +
+    (f.done && CC.done[d.id].line ? '<span class="lbl" style="display:block;margin-top:2px">' + esc(CC.done[d.id].line) + '</span>' : '') + '</span>' +
     statusPill(d) + '</button>';
 }
 function ccToggle(id) {
@@ -808,66 +901,70 @@ function ccCalc(id) {
 }
 function ccCardOpen(d) {
   const st = CC.st[d.id] || {};
-  const head = '<button class="cc-hd" type="button" onclick="ccToggle(\'' + d.id + '\')" aria-expanded="true"><span class="loc">' + esc(locLabel(d)) + '</span>' +
-    '<span class="grow"><span class="nm" style="font-size:15px">' + esc(d.name) + '</span>' + hadTag(d) + '<span class="lbl" style="display:block">เป้าหมาย ' + d.target + ' ' + esc(d.unit) + ' · ในระบบ ' + d.cur +
-    pendingFor(d.id).map(p => ' · พยาบาลแจ้งขาด ' + esc(p.miss_qty)).join('') + '</span></span>' + statusPill(d, { ignoreDone: true }) + '</button>';
+  const head = '<button class="cc-hd" type="button" onclick="ccToggle(\'' + d.id + '\')" aria-expanded="true">' +
+    '<span class="grow"><span class="nm" style="font-size:15px">' + esc(d.name) + '</span>' + hadTag(d) + '<br>' + locPill(d, true) + '<span class="lbl" style="display:block;margin-top:2px">เป้า ' + d.target + ' ' + esc(d.unit) + ' · ในระบบ ' + d.cur +
+    pendingFor(d.id).map(p => ' · <span style="color:var(--red);font-weight:600">พยาบาลแจ้งขาด ' + esc(p.miss_qty) + '</span>').join('') + '</span></span></button>';
   if (st.err) return '<section id="cc-' + d.id + '" class="cc">' + head + '<div class="cc-in"><div class="note err">โหลดข้อมูลล็อตไม่ได้: ' + esc(st.err) + '</div><button class="btn2" type="button" onclick="CC.st[\'' + d.id + '\'].err=null;ccLoad(\'' + d.id + '\');renderCartList()">ลองใหม่</button></div></section>';
   if (!st.loaded) return '<section id="cc-' + d.id + '" class="cc">' + head + '<div class="cc-in"><div class="skel" style="height:96px"></div></div></section>';
   const c = ccCalc(d.id), lots = CC.lots[d.id] || [];
   const id = d.id;
-  let h = '<section id="cc-' + id + '" class="cc">' + head + '<div class="cc-in">';
+  let h = '<section id="cc-' + id + '" class="cc">' + head + '<div class="cc-in" style="gap:8px">';
 
-  h += '<div><div class="h2">① นับยาที่เห็นในรถ</div>';
-  if (!lots.length) h += '<div class="note info" style="margin-top:6px">ในระบบไม่มีล็อตคงเหลือ — เติมใหม่ได้เลยที่ ②</div>';
-  else {
-    h += '<div class="lbl">ค่าเริ่มต้น = จำนวนในระบบ · แก้เฉพาะล็อตที่ไม่ตรง</div>';
-    lots.forEach((l, i) => {
-      const cnt = Math.min(l.avail, Math.max(0, num(st.counts[l.exp])));
-      const miss = l.avail - cnt;
-      const days = daysBetween(bkkToday(), l.exp);
-      const expPill = days < 0 ? '<span class="pill p-red">หมดอายุแล้ว</span>' : days < 7 ? '<span class="pill p-amb">อีก ' + days + ' วัน</span>' : '';
-      const wdOn = !!st.wd[l.exp];
-      h += '<div class="lot"' + (i === 0 ? ' style="margin-top:6px"' : '') + '><span class="grow">' +
-        '<span class="nm" style="display:block">EXP ' + esc(expFull(l.exp)) + ' ' + expPill + '</span>' +
-        '<span class="lbl">ในระบบ ' + l.avail + ' ' + esc(d.unit) + '</span>' + (miss > 0 ? ' <span class="pill p-red">หาย ' + miss + '</span>' : '') +
-        (wdOn ? ' <span class="pill p-amb">ถอนออก ' + cnt + '</span>' : '') +
-        '<br><button class="lnk ' + (wdOn ? '' : 'muted') + '" type="button" onclick="ccWd(\'' + id + '\',\'' + l.exp + '\')">' + (wdOn ? 'ยกเลิกการถอนล็อตนี้' : 'ถอนล็อตนี้ออก (ใกล้หมดอายุ/ชำรุด)') + '</button></span>' +
-        qtyCtl(cnt, "ccCount('" + id + "','" + l.exp + "',-1)", "ccCount('" + id + "','" + l.exp + "',1)", { min: 0, max: l.avail }) + '</div>';
-    });
-  }
+  /* ล็อต: วันหมดอายุ + จำนวนที่เห็น (ค่าเริ่ม = ในระบบ) · แถวแดง = ขาด · แถวเหลือง = ถอน */
+  if (!lots.length) h += '<div class="lbl">ยังไม่มียานี้ในระบบ — กรอก EXP ของยาที่เติมด้านล่าง</div>';
+  h += '<div>';
+  lots.forEach((l) => {
+    const cnt = Math.min(l.avail, Math.max(0, num(st.counts[l.exp])));
+    const miss = l.avail - cnt;
+    const days = daysBetween(bkkToday(), l.exp);
+    const wdOn = !!st.wd[l.exp];
+    const expTag = days < 0 ? ' <span class="lbl" style="color:var(--red);font-weight:600">หมดอายุแล้ว</span>' : days < 7 ? ' <span class="lbl" style="color:var(--red);font-weight:600">อีก ' + days + ' วัน</span>' : '';
+    const tag = expTag + (wdOn ? '<br><span style="font-size:13px;color:var(--sub)">ถอนออก ' + cnt + '</span>'
+      : miss > 0 ? '<br><span style="font-size:13px;color:var(--red);font-weight:600">ขาด ' + miss + '</span>' : '');
+    const canWd = wdOn || days < 30;
+    h += '<div class="lotr' + (wdOn ? ' wd' : miss > 0 ? ' miss' : '') + '"><span class="grow"><span class="nm expd" style="font-size:15px">EXP ' + esc(expFull(l.exp)) + '</span>' + tag +
+      (canWd ? (wdOn ? ' · ' : '<br>') + '<button class="lnk muted" type="button" style="font-size:12px;min-height:28px" onclick="ccWd(\'' + id + '\',\'' + l.exp + '\')">' + (wdOn ? 'ยกเลิก' : 'ถอนล็อตนี้') + '</button>' : '') + '</span>' +
+      qtyCtl(cnt, "ccCount('" + id + "','" + l.exp + "',-1)", "ccCount('" + id + "','" + l.exp + "',1)", { min: 0, max: l.avail, unit: '/ ' + l.avail }) + '</div>';
+  });
   h += '</div>';
 
-  h += '<div style="display:flex;flex-direction:column;gap:8px"><div class="h2">② เติมกลับ</div>';
-  const edited = st.refill != null;
-  h += '<div class="sum"><span class="grow"><span style="font-size:15px;font-weight:700">เติม ' + c.refill + ' ' + esc(d.unit) + '</span>' +
-    '<span class="lbl" style="display:block">' + (c.out ? 'ออกจากรถ ' + c.out + (c.disp ? ' (หาย ' + c.disp + ')' : '') + (c.wd ? ' (ถอน ' + c.wd + ')' : '') + ' · ' : '') +
-    'หลังเติม ' + (c.after + c.refill) + '/' + d.target + (c.after + c.refill < d.target ? ' — ยังไม่ครบ' : ' — ครบ') + '</span></span>' +
-    (edited ? qtyCtl(c.refill, "ccRefill('" + id + "',-1)", "ccRefill('" + id + "',1)", { min: 0 }) : '<button class="lnk" type="button" onclick="ccRefill(\'' + id + '\',0)">เติมไม่ครบ?</button>') + '</div>';
-  if (c.refill > 0) {
-    if (c.latest) {
-      h += '<div class="seg" role="group" aria-label="ล็อตที่เติม">' +
-        '<button class="sg' + (c.mode === 'latest' ? ' on' : '') + '" type="button" onclick="ccMode(\'' + id + '\',\'latest\')">ล็อตล่าสุด<br><span style="font-size:12px">EXP ' + esc(expFull(c.latest.exp)) + '</span></button>' +
-        '<button class="sg' + (c.mode === 'other' ? ' on' : '') + '" type="button" onclick="ccMode(\'' + id + '\',\'other\')">ล็อตอื่น<br><span style="font-size:12px">กรอก EXP</span></button></div>';
+  /* เติมกลับ: แสดงเฉพาะเมื่อมีของออก/ต้องเติม */
+  const editing = !!st.editRefill;
+  if (c.refill > 0 || c.out > 0 || st.refill != null) {
+    const afterN = c.after + c.refill;
+    const lotTxt = c.mode === 'latest' && c.latest ? 'ล็อต ' + expFull(c.latest.exp) : 'ล็อตใหม่';
+    h += '<div class="refill row" style="border-top:1px solid #eef0f3;padding-top:10px"><span class="grow">เติม <b>' + c.refill + ' ' + esc(d.unit) + '</b> → ' + esc(lotTxt) +
+      (afterN < d.target ? '<span class="lbl" style="display:block;color:var(--red)">หลังเติม ' + afterN + '/' + d.target + ' ยังไม่ครบ</span>' : '') + '</span>' +
+      (editing ? '' : '<button class="lnk" type="button" onclick="ccEditRefill(\'' + id + '\')">แก้</button>') + '</div>';
+    if (editing) {
+      h += '<div class="row"><span class="lbl grow">จำนวนที่เติม</span>' + qtyCtl(c.refill, "ccRefill('" + id + "',-1)", "ccRefill('" + id + "',1)", { min: 0, unit: d.unit }) + '</div>';
+      if (c.latest) h += '<div class="seg" role="group" aria-label="ล็อตที่เติม">' +
+        '<button class="sg' + (c.mode === 'latest' ? ' on' : '') + '" type="button" onclick="ccMode(\'' + id + '\',\'latest\')">ล็อตล่าสุด</button>' +
+        '<button class="sg' + (c.mode === 'other' ? ' on' : '') + '" type="button" onclick="ccMode(\'' + id + '\',\'other\')">ล็อตอื่น</button></div>';
     }
-    if (c.mode === 'other') {
-      h += '<div><label class="lbl" for="cc-exp-' + id + '">EXP ล็อตที่เติม — พิมพ์ตามกล่องยาได้เลย ค.ศ. หรือ พ.ศ. ก็ได้</label>' +
-        '<input id="cc-exp-' + id + '" class="inp big" inputmode="numeric" autocomplete="off" placeholder="เช่น 31/08/2027 หรือ 08/2027" value="' + esc(st.expRaw) + '" oninput="ccExp(\'' + id + '\',this.value)" style="margin-top:6px">' +
-        '<div id="cc-expout-' + id + '">' + ccExpOut(c.parsed) + '</div></div>';
+    if (c.mode === 'other' && c.refill > 0) {
+        h += '<div><label class="lbl" for="cc-exp-' + id + '">EXP ล็อตที่เติม (ค.ศ. หรือ พ.ศ.)</label><div style="margin-top:6px">' +
+          expField('cc-exp-' + id, st.expRaw, "ccExp.bind(null,'" + id + "')") + '</div>' +
+          '<div id="cc-expout-' + id + '">' + ccExpOut(c.parsed) + '</div></div>';
     }
   }
-  h += '</div>';
 
   const blocked = ccBlocked(c);
-  h += '<div class="row" style="gap:8px"><button class="btn2" type="button" style="min-height:48px" onclick="ccToggle(\'' + id + '\')">ปิด</button>' +
-    '<button id="cc-save-' + id + '" class="btn" type="button" style="flex:1" onclick="ccSave(\'' + id + '\',this)"' + (blocked ? ' disabled' : '') + '>' + esc(ccSaveLabel(c)) + '</button></div>';
+  h += '<button id="cc-save-' + id + '" class="btn" type="button" style="margin-top:4px" onclick="ccSave(\'' + id + '\',this)"' + (blocked ? ' disabled' : '') + '>' + esc(ccSaveLabel(c)) + '</button>';
   h += '</div></section>';
   return h;
 }
+function ccEditRefill(id) { CC.st[id].editRefill = true; renderCartList(); }
+function leftText(days) {
+  if (days < 60) return 'อีก ' + days + ' วัน';
+  const m = Math.round(days / 30.44), y = Math.floor(m / 12), mm = m % 12;
+  return 'อีก ' + (y ? y + ' ปี' + (mm ? ' ' : '') : '') + (mm ? mm + ' เดือน' : '');
+}
 function ccExpOut(p) {
-  if (!p || p.empty) return '<div class="lbl" style="margin-top:6px">รูปแบบ: วว/ดด/ปปปป หรือ ดด/ปปปป (นับเป็นสิ้นเดือน)</div>';
+  if (!p || p.empty) return '';
   if (!p.ok) return '<div class="note err" style="margin-top:8px">' + esc(p.msg) + '</div>';
-  const cls = p.level === 'block' ? 'err' : p.level === 'warn' ? 'warn' : 'ok';
-  return '<div class="note ' + cls + '" style="margin-top:8px">' + (cls === 'ok' ? svg('tick', 16, 'currentColor', 2.4) : '') + '<span>' + expReadout(p) + (p.msg ? '<br>' + esc(p.msg) : '') + '</span></div>';
+  if (p.level === 'ok') return '<div style="font-size:13px;color:var(--sub);margin-top:6px">✓ อ่านว่า ' + expReadout(p) + '</div>';
+  return '<div class="note ' + (p.level === 'block' ? 'err' : 'warn') + '" style="margin-top:8px"><span>' + expReadout(p) + '<br>' + esc(p.msg) + '</span></div>';
 }
 function ccBlocked(c) {
   if (c.refill > 0 && c.mode === 'other') return !(c.parsed && c.parsed.ok && c.parsed.level !== 'block');
@@ -877,7 +974,7 @@ function ccBlocked(c) {
 function ccSaveLabel(c) {
   if (!c.out && !c.refill) return pendingFor(c.d.id).length ? 'ตรวจแล้ว ของครบ' : 'ตรวจแล้ว ครบ';
   const parts = [];
-  if (c.disp) parts.push('หาย ' + c.disp);
+  if (c.disp) parts.push('ขาด ' + c.disp);
   if (c.wd) parts.push('ถอน ' + c.wd);
   if (c.refill) parts.push('เติม ' + c.refill);
   return 'บันทึก · ' + parts.join(' · ');
@@ -911,24 +1008,151 @@ async function ccSave(id, btn) {
       for (const p of pendingFor(id)) await api('ackNurseAlert', { drug_id: id, nurse_shift_id: p.shift_id, pharmacist_name: who, resolution: 'verified', note: 'ตรวจในหน้าตรวจ/เติม v2' });
     }
     const parts = [];
-    if (c.disp) parts.push('หาย ' + c.disp); if (c.wd) parts.push('ถอน ' + c.wd); if (c.refill) parts.push('เติม ' + c.refill + (c.refillExp ? ' (EXP ' + expFull(c.refillExp) + ')' : ''));
+    if (c.disp) parts.push('ขาด ' + c.disp); if (c.wd) parts.push('ถอน ' + c.wd); if (c.refill) parts.push('เติม ' + c.refill + (c.refillExp ? ' (EXP ' + expFull(c.refillExp) + ')' : ''));
     CC.done[id] = { line: parts.length ? parts.join(' · ') : 'ตรวจแล้ว ครบ', at: bkkTime() };
     delete CC.st[id]; delete CC.lots[id];
     CC.open = null;
     toast('บันทึก ' + d.name + ' แล้ว');
   } catch (e) {
-    toast('บันทึกไม่สำเร็จ: ' + e.message + (wrote ? ' — บางรายการบันทึกไปแล้ว ดูใน "บันทึกในเวรนี้"' : ''), 'err');
+    toast('บันทึกไม่สำเร็จ: ' + e.message + (wrote ? ' — บางรายการบันทึกไปแล้ว ดูใน "บันทึกวันนี้"' : ''), 'err');
     if (wrote) { delete CC.st[id]; delete CC.lots[id]; CC.open = null; }
     else setBusy(btn, false);
   } finally { CC.inflight[id] = false; }
   try { await Promise.all([loadDrugs(), loadPending()]); } catch (e) {}
   if (APP.page === 'cart') renderCart();
   renderNav();
+  loadTodayLog();
 }
 
-/* ---------- บันทึกในเวรนี้ (แก้/ลบ stock log ที่เพิ่งบันทึก) ---------- */
-const ACT_TH = { RESTOCK: 'เติม', DISPENSE: 'จ่าย/หาย', WITHDRAW: 'ถอน' };
+/* ---------- บันทึกวันนี้ — ดึงจากฐานข้อมูล (getTodayStockLog) · แก้/ลบได้แม้รีเฟรชหรือเปลี่ยนเครื่อง ---------- */
+const ACT_ORDER = { DISPENSE: 0, WITHDRAW: 1, RESTOCK: 2 };
+const TL = { rows: null, err: null, unavailable: false, scope: 'mine', voided: [] };
+async function loadTodayLog() {
+  try {
+    const r = await api('getTodayStockLog', {});
+    if (Array.isArray(r)) { TL.rows = r; TL.unavailable = false; } else { TL.rows = []; TL.unavailable = true; }   // edge ยังไม่ deploy → ใช้รายการในหน้าเว็บแทน
+    TL.err = null;
+  } catch (e) { TL.err = e.message; }
+  if (APP.page === 'cart') renderCartLog();
+}
+function tlGroups() {
+  const rows = (TL.rows || []).filter(r => TL.scope === 'all' || r.pharmacist_name === APP.user);
+  const g = [];
+  rows.forEach(r => {
+    const t = Date.parse(String(r.timestamp).replace(' ', 'T')) || 0, last = g[g.length - 1];
+    if (last && last.drug_id === r.drug_id && last.by === r.pharmacist_name && Math.abs(t - last.t) <= 120000) { last.rows.push(r); last.t = t; }
+    else g.push({ key: 'g' + r.row_num, drug_id: r.drug_id, by: r.pharmacist_name, t: t, time: tsTime(r.timestamp), rows: [r] });
+  });
+  g.forEach(x => x.rows.sort((a, b) => ACT_ORDER[a.action] - ACT_ORDER[b.action]));
+  return g.reverse();
+}
+function tlLine(r) { return ACT_TH[r.action] + ' ' + r.qty + (r.exp_date ? ' · ล็อต ' + expFull(r.exp_date) : ''); }
 function renderCartLog() {
+  const el = $('cc-log'); if (!el) return;
+  if (TL.unavailable) { renderSessionLog(); return; }
+  if (TL.rows == null && !TL.err) { el.innerHTML = ''; return; }
+  const groups = tlGroups();
+  let h = '<section class="card" style="padding:0;gap:0"><div class="row" style="padding:12px 14px 8px"><span class="h grow">บันทึกวันนี้</span><span class="lbl">' + groups.length + ' รายการ</span></div>' +
+    '<div class="row" style="padding:0 14px 10px;gap:6px;flex-wrap:wrap">' +
+    '<button class="chip' + (TL.scope === 'mine' ? ' on' : '') + '" type="button" onclick="TL.scope=\'mine\';renderCartLog()">ของฉัน</button>' +
+    '<button class="chip' + (TL.scope === 'all' ? ' on' : '') + '" type="button" onclick="TL.scope=\'all\';renderCartLog()">ทุกคนวันนี้</button>' +
+    '<span class="lbl" style="margin-left:auto">ดึงจากระบบ · รีเฟรชไม่หาย</span></div>';
+  if (TL.err) h += '<div style="padding:0 14px 12px"><div class="note err">โหลดไม่ได้: ' + esc(TL.err) + '</div></div>';
+  else if (!groups.length && !TL.voided.length) h += '<div class="lbl" style="padding:4px 14px 14px">ยังไม่มีรายการวันนี้</div>';
+  groups.forEach(g => {
+    const d = drugById(g.drug_id) || { name: g.drug_id, location: '', cart_pos: '' };
+    const mine = g.by === APP.user;
+    h += '<div class="gr" style="align-items:flex-start;border-top:1px solid #eef0f3"><span class="lbl" style="width:40px;flex:none;font-size:13px;padding-top:1px">' + g.time + '</span>' +
+      '<span class="grow"><span class="nm">' + esc(d.name) + '</span>' + hadTag(d) + (d.cart_pos || d.location ? '<br>' + locPill(d, true) : '') +
+      g.rows.map(r => '<span style="display:block;font-size:13px;color:var(--sub);margin-top:4px">' + esc(tlLine(r)) + '</span>').join('') +
+      (TL.scope === 'all' && !mine ? '<span class="lbl" style="display:block;margin-top:2px">โดย ' + esc(g.by || '—') + '</span>' : '') + '</span>' +
+      (mine ? '<button class="go2" type="button" onclick="tlEdit(\'' + g.key + '\')">แก้</button>' : '') + '</div>';
+  });
+  TL.voided.forEach(v => {
+    h += '<div class="gr" style="align-items:flex-start;border-top:1px solid #eef0f3;color:#a0a4af"><span style="width:40px;flex:none;font-size:13px">' + v.time + '</span><span class="grow"><span style="text-decoration:line-through">' + esc(v.name) + '</span>' +
+      v.lines.map(l => '<span style="display:block;font-size:13px;margin-top:4px;text-decoration:line-through">' + esc(l) + '</span>').join('') + '<span class="lbl" style="display:block;margin-top:2px">ลบแล้ว ' + v.at + '</span></span></div>';
+  });
+  el.innerHTML = h + '</section>';
+}
+
+/* แก้รายการ (sheet) */
+let ED = null;
+function tlEdit(key) {
+  const g = tlGroups().find(x => x.key === key); if (!g) return;
+  const d = drugById(g.drug_id) || { name: g.drug_id, unit: '', location: '', cart_pos: '' };
+  ED = { g: g, d: d, rows: g.rows.map(r => { const p = isoParts(r.exp_date); return { r: r, qty: r.qty, expRaw: p.m ? pad2(p.d) + '/' + pad2(p.m) + '/' + p.y : '', del: false }; }) };
+  openSheet({ title: 'แก้รายการ ' + g.time, sub: d.name, body: '<div id="ed-body" style="display:flex;flex-direction:column;gap:12px"></div>',
+    actions: '<div style="display:flex;flex-direction:column;gap:6px;width:100%"><button class="btn" type="button" id="ed-save" onclick="tlSave(this)">บันทึกการแก้ไข</button>' +
+      '<button class="lnk red" type="button" style="align-self:center" onclick="tlDeleteAll()">ลบทั้งรายการ</button></div>' });
+  renderEd();
+}
+function renderEd() {
+  const d = ED.d;
+  let h = (d.cart_pos || d.location ? '<div>' + locPill(d, true) + '</div>' : '');
+  ED.rows.forEach((x, i) => {
+    const pr = parseExpInput(x.expRaw, bkkToday());
+    h += '<div class="ent" style="' + (x.del ? 'opacity:.5' : '') + '"><div class="row"><b class="grow" style="font-size:14px">' + ACT_TH[x.r.action] + '</b>' +
+      '<button class="lnk muted" type="button" onclick="ED.rows[' + i + '].del=!ED.rows[' + i + '].del;renderEd()">' + (x.del ? 'เลิกลบ' : 'ลบส่วนนี้') + '</button></div>' +
+      (x.del ? '<div class="lbl">จะลบส่วนนี้เมื่อกดบันทึก</div>' :
+      '<div class="row"><span class="lbl grow">จำนวน</span>' + qtyCtl(x.qty, 'ED.rows[' + i + '].qty=Math.max(1,ED.rows[' + i + '].qty-1);renderEd()', 'ED.rows[' + i + '].qty++;renderEd()', { min: 1, unit: d.unit }) + '</div>' +
+      '<div><label class="lbl" for="ed-exp-' + i + '">EXP (ค.ศ. หรือ พ.ศ.)</label><div style="margin-top:6px">' + expField('ed-exp-' + i, x.expRaw, 'edExp.bind(null,' + i + ')') + '</div><div id="ed-out-' + i + '">' + ccExpOut(pr) + '</div></div>') + '</div>';
+  });
+  h += '<div class="lbl">บันทึกผิดตัวยา? กด "ลบทั้งรายการ" แล้วไปบันทึกใหม่ที่การ์ดยาที่ถูก</div>';
+  $('ed-body').innerHTML = h;
+  edValid();
+}
+function edExp(i, v) { ED.rows[i].expRaw = v; $('ed-out-' + i).innerHTML = ccExpOut(parseExpInput(v, bkkToday())); edValid(); }
+function edValid() {
+  const ok = ED.rows.every(x => x.del || (x.qty >= 1 && (function () { const p = parseExpInput(x.expRaw, bkkToday()); return p.ok || (p.empty && !x.r.exp_date); })()));
+  const b = $('ed-save'); if (b) b.disabled = !ok;
+  return ok;
+}
+function tlVoidedEntry(rows) { return { time: ED.g.time, name: ED.d.name, lines: rows.map(x => tlLine(x.r)), at: bkkTime() }; }
+async function tlApply(btn, all) {
+  const who = APP.user;
+  setBusy(btn, true);
+  const removed = [];
+  try {
+    for (const x of ED.rows) {
+      const r = x.r;
+      if (all || x.del) {
+        const res = await api('voidStockLog', { timestamp: r.timestamp, drug_id: r.drug_id, row_num: r.row_num });
+        if (res && res.ok === false) throw new Error(res.error || 'ไม่พบรายการ');
+        removed.push(x);
+        continue;
+      }
+      const pr = parseExpInput(x.expRaw, bkkToday());
+      const exp = pr.ok ? pr.iso : r.exp_date;
+      if (x.qty !== r.qty || exp !== r.exp_date) {
+        const res = await api('editStockLog', { timestamp: r.timestamp, drug_id: r.drug_id, row_num: r.row_num, qty: x.qty, exp: exp, pharmacistName: who });
+        if (res && res.ok === false) throw new Error(res.error || 'ไม่พบรายการ');
+      }
+    }
+    if (removed.length) TL.voided.unshift(tlVoidedEntry(removed));
+    closeSheet(); toast(all ? 'ลบรายการแล้ว' : 'บันทึกการแก้ไขแล้ว');
+  } catch (e) {
+    if (removed.length) TL.voided.unshift(tlVoidedEntry(removed));
+    setBusy(btn, false); toast('ไม่สำเร็จ: ' + e.message, 'err');
+  }
+  try { await Promise.all([loadDrugs(), loadPending()]); } catch (e) {}
+  CC.lots = {}; CC.st = {};
+  if (APP.page === 'cart') renderCart();
+  loadTodayLog();
+}
+function tlSave(btn) { if (edValid()) tlApply(btn, false); }
+async function tlDeleteAll() {
+  const keep = ED;
+  closeSheet();
+  if (!(await confirmSheet({ title: 'ลบทั้งรายการ?', sub: keep.d.name + ' · ' + keep.rows.map(x => tlLine(x.r)).join(' / '), ok: 'ลบทั้งรายการ', danger: true }))) return;
+  ED = keep;
+  const b = document.createElement('button');
+  await tlApply(b, true);
+}
+
+/* ---------- fallback: รายการในหน้าเว็บนี้ (ใช้เมื่อ edge function ยังไม่มี getTodayStockLog) ---------- */
+/* ---------- บันทึกในเวรนี้ (แก้/ลบ stock log ที่เพิ่งบันทึก) ---------- */
+const ACT_TH = { RESTOCK: 'เติม', DISPENSE: 'ขาด', WITHDRAW: 'ถอน' };
+function renderSessionLog() {
   const el = $('cc-log'); if (!el) return;
   if (!CC.log.length) { el.innerHTML = ''; return; }
   const act = CC.log.filter(e => !e.voided).length;
@@ -1153,7 +1377,7 @@ function renderRecord() {
         '<div><div class="lbl" style="margin-bottom:6px">ลักษณะ (เลือกได้หลายข้อ)</div><div class="chips">' +
         (SUBTYPES[e.type] || []).map((s, i) => '<button class="chip' + (e.subtypes.indexOf(s) >= 0 ? ' on' : '') + '" type="button" aria-pressed="' + (e.subtypes.indexOf(s) >= 0) + '" onclick="recSub(\'' + e.id + '\',' + i + ')">' + esc(s) + '</button>').join('') + '</div></div>' +
         '<div><div class="lbl" style="margin-bottom:6px">ความรุนแรง' + (e.severity ? ' · <b style="color:var(--ink)">' + e.severity + ' — ' + esc(SEV[e.severity][1]) + '</b>' : '') + '</div><div class="sev" role="group" aria-label="ระดับความรุนแรง">' +
-        Object.keys(SEV).map(k => '<button class="sv' + (e.severity === k ? ' on' : '') + '" type="button" aria-pressed="' + (e.severity === k) + '" title="' + esc(SEV[k][1]) + '" style="' + (e.severity === k ? 'background:' + SEV[k][0] : '') + '" onclick="recSev(\'' + e.id + '\',\'' + k + '\')">' + k + '</button>').join('') + '</div></div>' +
+        Object.keys(SEV).map(k => '<button class="sv' + (e.severity === k ? ' on' + ('EFGHI'.indexOf(k) >= 0 ? ' hi' : '') : '') + '" type="button" aria-pressed="' + (e.severity === k) + '" title="' + esc(SEV[k][1]) + '" onclick="recSev(\'' + e.id + '\',\'' + k + '\')">' + k + '</button>').join('') + '</div></div>' +
         '<input class="inp" placeholder="รายละเอียด เช่น สั่ง ORS เด็ก แต่ ORS ผู้ใหญ่หายจากรถ" aria-label="รายละเอียด" value="' + esc(e.note) + '" oninput="recErrNote(\'' + e.id + '\',this.value)">' +
         '<button class="tog' + (e.had ? ' on' : '') + '" type="button" aria-pressed="' + !!e.had + '" onclick="recErrHad(\'' + e.id + '\')">เกี่ยวข้องกับยา HAD</button>' +
         (inc ? '<div class="note err">เลือกลักษณะและระดับความรุนแรงก่อนบันทึก</div>' : '') + '</div>';
@@ -1276,22 +1500,23 @@ function renderStockList() {
   order.forEach(g => {
     const items = list.filter(d => stkGroup(d) === g);
     if (!items.length) return;
-    h += '<div class="shelf"><span>' + g + '</span><span>' + items.length + '</span></div>';
+    h += '<div class="shelf">' + g + ' · ' + items.length + '</div><div class="group">';
     items.forEach(d => { h += STK.open === d.id ? stkOpen(d) : stkClosed(d); });
+    h += '</div>';
   });
   $('stk-list').innerHTML = h;
 }
 function stkQty(d) { return '<span class="qtxt"' + (d.cur < d.target ? ' style="color:var(--red)"' : '') + '>' + d.cur + '<span class="lbl">/' + d.target + ' ' + esc(d.unit) + '</span></span>'; }
 function stkClosed(d) {
   const p = statusPill(d, { ignoreDone: true });
-  return '<button class="it" type="button" onclick="STK.open=\'' + d.id + '\';renderStockList()" aria-expanded="false"><span class="loc">' + esc(locLabel(d)) + '</span>' +
-    '<span class="grow"><span class="nm">' + esc(d.name) + '</span>' + hadTag(d) + (p ? '<span style="display:block;margin-top:4px">' + p + '</span>' : '') + '</span>' + stkQty(d) + '</button>';
+  return '<button class="gr" type="button" onclick="STK.open=\'' + d.id + '\';renderStockList()" aria-expanded="false">' +
+    '<span class="grow"><span class="nm">' + esc(d.name) + '</span>' + hadTag(d) + '<br>' + locPill(d, true) + (p ? '<span style="display:block;margin-top:4px;text-align:left">' + p + '</span>' : '') + '</span>' + stkQty(d) + '</button>';
 }
 function stkOpen(d) {
   const p = statusPill(d, { ignoreDone: true });
-  return '<div class="it" style="flex-direction:column;align-items:stretch;border:2px solid var(--ink)">' +
-    '<button type="button" style="display:flex;align-items:center;gap:10px;border:0;background:none;text-align:left;padding:0" onclick="STK.open=null;renderStockList()" aria-expanded="true"><span class="loc">' + esc(locLabel(d)) + '</span>' +
-    '<span class="grow"><span class="nm">' + esc(d.name) + '</span>' + hadTag(d) + (p ? '<span style="display:block;margin-top:4px">' + p + '</span>' : '') + '</span>' + stkQty(d) + '</button>' +
+  return '<div class="gr" style="flex-direction:column;align-items:stretch;background:var(--soft)">' +
+    '<button type="button" style="display:flex;align-items:center;gap:10px;border:0;background:none;text-align:left;padding:0;color:inherit" onclick="STK.open=null;renderStockList()" aria-expanded="true">' +
+    '<span class="grow"><span class="nm">' + esc(d.name) + '</span>' + hadTag(d) + '<br>' + locPill(d, true) + (p ? '<span style="display:block;margin-top:4px">' + p + '</span>' : '') + '</span>' + stkQty(d) + '</button>' +
     '<div class="dl" style="margin-top:10px"><div><div class="lbl">EXP ใกล้สุด</div><div class="dv">' + esc(d.exp ? expFull(d.exp) : '—') + '</div></div>' +
     '<div><div class="lbl">ประเภท</div><div class="dv">' + esc(TYPE_TH[d.type] || d.type) + '</div></div>' +
     '<div><div class="lbl">' + (d.pack_size ? 'เม็ด/ซอง' : 'ที่เก็บ') + '</div><div class="dv">' + esc(d.pack_size ? d.pack_size + ' เม็ด' : d.location) + '</div></div></div>' +
@@ -1409,8 +1634,8 @@ function renderNurse() {
     h += '<div class="shelfbox"><div class="row"><span class="grow" style="font-size:14px;font-weight:700">' + esc(shelfName(s.key)) + '</span><span class="lbl">' + done + ' / ' + s.drugs.length + '</span></div>';
     s.drugs.forEach(d => {
       const st = NC.status[d.id];
-      h += '<div class="nrow' + (st ? ' ' + st : '') + '"><div class="row"><span class="loc">' + esc(locLabel(d)) + '</span>' +
-        '<span class="grow"><span class="nm">' + esc(d.name) + '</span>' + hadTag(d) + '<span class="lbl" style="display:block">ควรมี ' + d.target + ' ' + esc(d.unit) + (d.pack_size ? ' (' + d.target * d.pack_size + ' เม็ด)' : '') + '</span></span>' +
+      h += '<div class="nrow' + (st ? ' ' + st : '') + '"><div class="row">' +
+        '<span class="grow"><span class="nm">' + esc(d.name) + '</span>' + hadTag(d) + '<br>' + locPill(d, false) + '<span class="lbl" style="display:block;margin-top:2px">ควรมี ' + d.target + ' ' + esc(d.unit) + (d.pack_size ? ' (' + d.target * d.pack_size + ' เม็ด)' : '') + '</span></span>' +
         '<button class="okb' + (st === 'ok' ? ' on' : '') + '" type="button" aria-pressed="' + (st === 'ok') + '" onclick="ncSet(\'' + d.id + '\',\'ok\')">ครบ</button>' +
         '<button class="msb' + (st === 'miss' ? ' on' : '') + '" type="button" aria-pressed="' + (st === 'miss') + '" onclick="ncSet(\'' + d.id + '\',\'miss\')">ขาด</button></div>' +
         (st === 'miss' ? '<div class="row"><span class="lbl grow">ขาดกี่ ' + esc(d.unit) + '</span>' + qtyCtl(NC.qty[d.id] || 1, "ncQty('" + d.id + "',-1)", "ncQty('" + d.id + "',1)", { min: 1, max: Math.max(1, d.target) }) + '</div>' +
@@ -1421,7 +1646,7 @@ function renderNurse() {
 
   const misses = APP.drugs.filter(d => NC.status[d.id] === 'miss');
   h += '<section class="card"' + (misses.length ? ' style="border-color:var(--red-b)"' : '') + '><div class="h">รายการที่แจ้งขาด (' + misses.length + ') <span class="lbl" style="font-weight:400">· ส่งถึงเภสัชเมื่อยืนยัน</span></div>' +
-    (misses.length ? misses.map(d => '<div style="font-size:14px">• ' + esc(d.name) + hadTag(d) + ' <span class="lbl">' + esc(locLabel(d)) + ' · ขาด ' + (NC.qty[d.id] || 1) + ' ' + esc(d.unit) + '</span></div>').join('') : '<div class="lbl">ยังไม่มี</div>') +
+    (misses.length ? misses.map(d => '<div style="font-size:14px">• ' + esc(d.name) + hadTag(d) +  ' <span class="lbl">' + esc(locText(d, true)) + ' · ขาด ' + (NC.qty[d.id] || 1) + ' ' + esc(d.unit) + '</span></div>').join('') : '<div class="lbl">ยังไม่มี</div>') +
     '<label class="lbl" for="nc-note">หมายเหตุรวม (ถ้ามี)</label><textarea id="nc-note" class="inp" rows="2" placeholder="เช่น บรรจุภัณฑ์ชำรุด, อุณหภูมิตู้เย็นผิดปกติ" oninput="NC.gnote=this.value">' + esc(NC.gnote) + '</textarea></section>';
 
   const y = window.scrollY;
@@ -1563,7 +1788,7 @@ function rptOverview(m) {
     kpi('จ่ายยาจากรถ', m.dispRows, 'รายการ · HAD ' + m.hadRows) +
     kpi('ใบสั่งไม่ตรง', m.rxMis, 'จาก ' + m.rxTotal + ' ใบ · ' + pct + '%', m.rxMis ? 'var(--red)' : '') +
     kpi('ยาหายไม่มีใบสั่ง', m.missPharmQty, 'รายการ', m.missPharmQty ? 'var(--red)' : '') +
-    kpi('พยาบาลตรวจรถ', m.nurseRate + '%', m.days.filter(d => m.checkedDays.has(d)).length + ' จาก ' + m.days.length + ' วัน', m.nurseRate >= 90 ? 'var(--grn)' : 'var(--amb)') + '</div>';
+    kpi('พยาบาลตรวจรถ', m.nurseRate + '%', m.days.filter(d => m.checkedDays.has(d)).length + ' จาก ' + m.days.length + ' วัน', m.nurseRate >= 90 ? '' : 'var(--red)') + '</div>';
   const daily = {}; (m.D.daily_dispense || []).forEach(x => { daily[x.date] = num(x.count); });
   const vals = m.days.map(d => daily[d] || 0), mx = Math.max.apply(null, vals.concat([1]));
   h += '<div class="rgrid"><section class="card span2"><div class="row" style="align-items:baseline"><span class="h grow">จ่ายยารายวัน</span><span class="lbl">หน่วย: รายการ</span></div>' +
@@ -1624,7 +1849,7 @@ function rptSafety(m) {
       '</tbody></table></div>' + (ev.length > 60 ? '<span class="lbl">แสดง 60 จาก ' + ev.length + '</span>' : '') : '<div class="lbl">ไม่มีรายการ</div>') + '</section>';
   }
   if (f === 'all') {
-    h += '<section class="card"><span class="h">ความเสี่ยงอื่น</span>' + hbars(topEntries(countBy(m.otherRisks, r => RISK_LABEL[r.risk_type] || r.risk_type)), 'var(--amb-dot)') + '</section>';
+    h += '<section class="card"><span class="h">ความเสี่ยงอื่น</span>' + hbars(topEntries(countBy(m.otherRisks, r => RISK_LABEL[r.risk_type] || r.risk_type))) + '</section>';
   }
   h += '</div>';
   return h;
@@ -1648,13 +1873,13 @@ function rptWork(m) {
     (Object.keys(T).length ? Object.entries(T).sort((a, b) => b[1].shifts - a[1].shifts).map(([n, t]) => '<tr><td>' + esc(n) + '</td><td>' + t.shifts + '</td><td>' + t.days.size + '</td></tr>').join('') : '<tr><td colspan="3" class="l lbl">ไม่มีข้อมูล</td></tr>') + '</tbody></table></section>';
   const NN = {}; m.N.forEach(c => { const n = c.nurse_name || '—'; NN[n] = NN[n] || { n: 0, miss: 0 }; NN[n].n++; NN[n].miss += num(c.missing_cnt) > 0 ? 1 : 0; });
   const checked = m.days.filter(d => m.checkedDays.has(d)), missed = m.days.filter(d => !m.checkedDays.has(d));
-  h += '<section class="card"><div class="row" style="align-items:baseline"><span class="h grow">พยาบาลตรวจรับรถยา</span><span style="font-size:20px;font-weight:700;color:' + (m.nurseRate >= 90 ? 'var(--grn)' : 'var(--amb)') + '">' + m.nurseRate + '%</span></div>' +
+  h += '<section class="card"><div class="row" style="align-items:baseline"><span class="h grow">พยาบาลตรวจรับรถยา</span><span style="font-size:20px;font-weight:700;color:' + (m.nurseRate >= 90 ? '' : 'var(--red)') + '">' + m.nurseRate + '%</span></div>' +
     '<span class="lbl" style="margin-top:-6px">มีการตรวจ ' + checked.length + ' จาก ' + m.days.length + ' วัน · ครั้งที่พบยาขาด ' + m.N.filter(c => num(c.missing_cnt) > 0).length + ' จาก ' + m.N.length + ' ครั้ง</span>';
   if (m.days.length <= 62) {
     const first = new Date(m.days[0] + 'T00:00:00Z').getUTCDay();
     h += '<div class="cal">' + ['อา', 'จ', 'อ', 'พ', 'พฤ', 'ศ', 'ส'].map(x => '<span class="lbl" style="text-align:center">' + x + '</span>').join('') +
-      Array(first).fill('<div></div>').join('') + m.days.map(d => '<div title="' + esc(thDate(d)) + '" style="background:' + (m.checkedDays.has(d) ? '#cfe9da;color:#0f4a2a' : '#f6d7a8;color:#5a3a00') + '">' + isoParts(d).d + '</div>').join('') + '</div>' +
-      '<div class="legend"><span><span class="sw" style="background:#cfe9da"></span>มีการตรวจ</span><span><span class="sw" style="background:#f6d7a8"></span>ไม่มีการตรวจ</span></div>';
+      Array(first).fill('<div></div>').join('') + m.days.map(d => '<div title="' + esc(thDate(d)) + '" style="background:' + (m.checkedDays.has(d) ? '#e6e8ec;color:#14171f' : '#fdecef;color:#c4122f') + '">' + isoParts(d).d + '</div>').join('') + '</div>' +
+      '<div class="legend"><span><span class="sw" style="background:#e6e8ec"></span>มีการตรวจ</span><span><span class="sw" style="background:#fdecef"></span>ไม่มีการตรวจ</span></div>';
   }
   h += '<div style="border-top:1px solid rgba(13,21,53,.08);padding-top:8px"><span style="font-size:13px;font-weight:600">วันที่ไม่มีการตรวจ (' + missed.length + ')</span><div class="lbl">' + (missed.length ? esc(missed.map(thDateShort).join(' · ')) : '—') + '</div></div>' +
     '<table class="tbl"><thead><tr><th>พยาบาล</th><th>ตรวจ (ครั้ง)</th><th>แจ้งขาด (ครั้ง)</th></tr></thead><tbody>' +
