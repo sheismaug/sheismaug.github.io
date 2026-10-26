@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="theme-color" content="#ffffff">
 <title>รถยา ER v2</title>
-<!-- ER Med Cart v2 · build 2026-10-26 05:06 UTC · แหล่งข้อมูล: Supabase ermedcart-hub (เดียวกับ v1) -->
+<!-- ER Med Cart v2 · build 2026-10-26 05:19 UTC · แหล่งข้อมูล: Supabase ermedcart-hub (เดียวกับ v1) -->
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Google+Sans:wght@400;500;700&family=Noto+Sans+Thai:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -822,12 +822,10 @@ function renderCart() {
       .map(([k, l]) => '<button type="button" class="chip' + (CC.filter === k ? ' on' : '') + '" aria-pressed="' + (CC.filter === k) + '" onclick="CC.filter=\'' + k + '\';renderCart()">' + l + ' <b>' + cnt[k] + '</b></button>').join('') + '</div>';
 
   h += '<div id="cc-list" style="display:flex;flex-direction:column;gap:10px"></div>';
-  h += '<div id="cc-log"></div>';
   $('pg-cart').innerHTML = '<div class="wrap">' + h + '</div>';
   renderCartList();
-  renderCartLog();
-  setSticky('<div class="grow"><div style="font-size:14px;font-weight:700">บันทึกแล้ว ' + cnt.done + ' รายการ</div><div class="lbl">' +
-    (APP.shift.cartSubmitted ? 'ยืนยันแล้ว · ยืนยันซ้ำได้' : s.low ? 'ยังเติมไม่ครบ ' + s.low + ' รายการ' : 'พร้อมยืนยัน') + '</div></div>' +
+  setSticky('<button class="btn2" type="button" style="min-height:48px;flex:none" onclick="openTodayLog()">บันทึกวันนี้ <b id="tl-count">' + tlCount() + '</b></button>' +
+    '<div class="grow lbl" style="text-align:right">' + (APP.shift.cartSubmitted ? 'ยืนยันแล้ว · ยืนยันซ้ำได้' : s.low ? 'ยังเติมไม่ครบ ' + s.low : 'พร้อมยืนยัน') + '</div>' +
     '<button class="btn sm" type="button" onclick="confirmCartCheck(this)">ยืนยันการตรวจรถ</button>');
 }
 function renderCartList() {
@@ -1033,7 +1031,7 @@ async function loadTodayLog() {
     if (Array.isArray(r)) { TL.rows = r; TL.unavailable = false; } else { TL.rows = []; TL.unavailable = true; }   // edge ยังไม่ deploy → ใช้รายการในหน้าเว็บแทน
     TL.err = null;
   } catch (e) { TL.err = e.message; }
-  if (APP.page === 'cart') renderCartLog();
+  if (APP.page === 'cart') { renderCartLog(); const c = $('tl-count'); if (c) c.textContent = tlCount(); }
 }
 function tlGroups() {
   const rows = (TL.rows || []).filter(r => TL.scope === 'all' || r.pharmacist_name === APP.user);
@@ -1052,27 +1050,31 @@ function renderCartLog() {
   if (TL.unavailable) { renderSessionLog(); return; }
   if (TL.rows == null && !TL.err) { el.innerHTML = ''; return; }
   const groups = tlGroups();
-  let h = '<section class="card" style="padding:0;gap:0"><div class="row" style="padding:12px 14px 8px"><span class="h grow">บันทึกวันนี้</span><span class="lbl">' + groups.length + ' รายการ</span></div>' +
-    '<div class="row" style="padding:0 14px 10px;gap:6px;flex-wrap:wrap">' +
+  let h = '<div style="margin:0 -20px"><div class="row" style="padding:0 20px 10px;gap:6px;flex-wrap:wrap">' +
     '<button class="chip' + (TL.scope === 'mine' ? ' on' : '') + '" type="button" onclick="TL.scope=\'mine\';renderCartLog()">ของฉัน</button>' +
-    '<button class="chip' + (TL.scope === 'all' ? ' on' : '') + '" type="button" onclick="TL.scope=\'all\';renderCartLog()">ทุกคนวันนี้</button>' +
-    '<span class="lbl" style="margin-left:auto">ดึงจากระบบ · รีเฟรชไม่หาย</span></div>';
-  if (TL.err) h += '<div style="padding:0 14px 12px"><div class="note err">โหลดไม่ได้: ' + esc(TL.err) + '</div></div>';
-  else if (!groups.length && !TL.voided.length) h += '<div class="lbl" style="padding:4px 14px 14px">ยังไม่มีรายการวันนี้</div>';
+    '<button class="chip' + (TL.scope === 'all' ? ' on' : '') + '" type="button" onclick="TL.scope=\'all\';renderCartLog()">ทุกคนวันนี้</button></div>';
+  if (TL.err) h += '<div style="padding:0 20px 12px"><div class="note err">โหลดไม่ได้: ' + esc(TL.err) + '</div></div>';
+  else if (!groups.length && !TL.voided.length) h += '<div class="lbl" style="padding:4px 20px 14px">ยังไม่มีรายการวันนี้</div>';
   groups.forEach(g => {
     const d = drugById(g.drug_id) || { name: g.drug_id, location: '', cart_pos: '' };
     const mine = g.by === APP.user;
-    h += '<div class="gr" style="align-items:flex-start;border-top:1px solid #eef0f3"><span class="lbl" style="width:40px;flex:none;font-size:13px;padding-top:1px">' + g.time + '</span>' +
+    h += '<div class="gr" style="align-items:flex-start;border-top:1px solid #eef0f3;padding:12px 20px"><span class="lbl" style="width:40px;flex:none;font-size:13px;padding-top:1px">' + g.time + '</span>' +
       '<span class="grow"><span class="nm">' + esc(d.name) + '</span>' + hadTag(d) + (d.cart_pos || d.location ? '<br>' + locPill(d, true) : '') +
       g.rows.map(r => '<span style="display:block;font-size:13px;color:var(--sub);margin-top:4px">' + esc(tlLine(r)) + '</span>').join('') +
       (TL.scope === 'all' && !mine ? '<span class="lbl" style="display:block;margin-top:2px">โดย ' + esc(g.by || '—') + '</span>' : '') + '</span>' +
       (mine ? '<button class="go2" type="button" onclick="tlEdit(\'' + g.key + '\')">แก้</button>' : '') + '</div>';
   });
   TL.voided.forEach(v => {
-    h += '<div class="gr" style="align-items:flex-start;border-top:1px solid #eef0f3;color:#a0a4af"><span style="width:40px;flex:none;font-size:13px">' + v.time + '</span><span class="grow"><span style="text-decoration:line-through">' + esc(v.name) + '</span>' +
+    h += '<div class="gr" style="align-items:flex-start;border-top:1px solid #eef0f3;color:#a0a4af;padding:12px 20px"><span style="width:40px;flex:none;font-size:13px">' + v.time + '</span><span class="grow"><span style="text-decoration:line-through">' + esc(v.name) + '</span>' +
       v.lines.map(l => '<span style="display:block;font-size:13px;margin-top:4px;text-decoration:line-through">' + esc(l) + '</span>').join('') + '<span class="lbl" style="display:block;margin-top:2px">ลบแล้ว ' + v.at + '</span></span></div>';
   });
-  el.innerHTML = h + '</section>';
+  el.innerHTML = h + '</div>';
+}
+function tlCount() { return TL.unavailable ? CC.log.filter(e => !e.voided).length : TL.rows ? tlGroups().length : '…'; }
+function openTodayLog() {
+  openSheet({ title: 'บันทึกวันนี้', sub: 'แก้จำนวน/EXP หรือลบได้ตลอดเวร · รีเฟรชไม่หาย', body: '<div id="cc-log"></div>' });
+  renderCartLog();
+  loadTodayLog();
 }
 
 /* แก้รายการ (sheet) */
@@ -1082,6 +1084,7 @@ function tlEdit(key) {
   const d = drugById(g.drug_id) || { name: g.drug_id, unit: '', location: '', cart_pos: '' };
   ED = { g: g, d: d, rows: g.rows.map(r => { const p = isoParts(r.exp_date); return { r: r, qty: r.qty, expRaw: p.m ? pad2(p.d) + '/' + pad2(p.m) + '/' + p.y : '', del: false }; }) };
   openSheet({ title: 'แก้รายการ ' + g.time, sub: d.name, body: '<div id="ed-body" style="display:flex;flex-direction:column;gap:12px"></div>',
+    onClose: () => { if (!ED || !ED.busy) setTimeout(() => { if (APP.page === 'cart' && !document.querySelector('.scrim')) openTodayLog(); }, 0); },
     actions: '<div style="display:flex;flex-direction:column;gap:6px;width:100%"><button class="btn" type="button" id="ed-save" onclick="tlSave(this)">บันทึกการแก้ไข</button>' +
       '<button class="lnk red" type="button" style="align-self:center" onclick="tlDeleteAll()">ลบทั้งรายการ</button></div>' });
   renderEd();
@@ -1110,6 +1113,7 @@ function edValid() {
 function tlVoidedEntry(rows) { return { time: ED.g.time, name: ED.d.name, lines: rows.map(x => tlLine(x.r)), at: bkkTime() }; }
 async function tlApply(btn, all) {
   const who = APP.user;
+  ED.busy = true;
   setBusy(btn, true);
   const removed = [];
   try {
@@ -1137,13 +1141,15 @@ async function tlApply(btn, all) {
   try { await Promise.all([loadDrugs(), loadPending()]); } catch (e) {}
   CC.lots = {}; CC.st = {};
   if (APP.page === 'cart') renderCart();
-  loadTodayLog();
+  await loadTodayLog();
+  if (APP.page === 'cart' && !document.querySelector('.scrim')) openTodayLog();
 }
 function tlSave(btn) { if (edValid()) tlApply(btn, false); }
 async function tlDeleteAll() {
   const keep = ED;
+  keep.busy = true;
   closeSheet();
-  if (!(await confirmSheet({ title: 'ลบทั้งรายการ?', sub: keep.d.name + ' · ' + keep.rows.map(x => tlLine(x.r)).join(' / '), ok: 'ลบทั้งรายการ', danger: true }))) return;
+  if (!(await confirmSheet({ title: 'ลบทั้งรายการ?', sub: keep.d.name + ' · ' + keep.rows.map(x => tlLine(x.r)).join(' / '), ok: 'ลบทั้งรายการ', danger: true }))) { openTodayLog(); return; }
   ED = keep;
   const b = document.createElement('button');
   await tlApply(b, true);
@@ -1154,7 +1160,7 @@ async function tlDeleteAll() {
 const ACT_TH = { RESTOCK: 'เติม', DISPENSE: 'ขาด', WITHDRAW: 'ถอน' };
 function renderSessionLog() {
   const el = $('cc-log'); if (!el) return;
-  if (!CC.log.length) { el.innerHTML = ''; return; }
+  if (!CC.log.length) { el.innerHTML = '<div class="lbl">ยังไม่มีรายการในเวรนี้</div>'; return; }
   const act = CC.log.filter(e => !e.voided).length;
   el.innerHTML = '<section class="card" style="padding:4px 16px"><button class="step" type="button" style="border:0;justify-content:space-between" onclick="CC.logOpen=!CC.logOpen;renderCartLog()" aria-expanded="' + CC.logOpen + '">' +
     '<span style="font-size:14px;font-weight:600">บันทึกในเวรนี้ (' + act + ')</span><span class="lbl">' + (CC.logOpen ? 'ซ่อน' : 'แก้/ลบ') + ' ›</span></button>' +
