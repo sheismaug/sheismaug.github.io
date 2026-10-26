@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="theme-color" content="#ffffff">
 <title>รถยา ER v2</title>
-<!-- ER Med Cart v2 · build 2026-10-26 03:50 UTC · แหล่งข้อมูล: Supabase ermedcart-hub (เดียวกับ v1) -->
+<!-- ER Med Cart v2 · build 2026-10-26 03:59 UTC · แหล่งข้อมูล: Supabase ermedcart-hub (เดียวกับ v1) -->
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Google+Sans:wght@400;500;700&family=Noto+Sans+Thai:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -580,8 +580,7 @@ function hubGate() {
 
 function renderHub() {
   const s = cartStats();
-  const need = APP.drugs.filter(d => needsAction(d) || CC.done[d.id]);
-  const doneN = need.filter(d => CC.done[d.id]).length;
+  const doneN = Object.keys(CC.done).length;
   const left = hubGate();
   const pend = APP.pending;
 
@@ -620,7 +619,7 @@ function renderHub() {
   h += '<section class="card" style="padding-bottom:4px"><div class="h">งานในเวร</div>' +
     stepRow(1, step1, 'ตรวจ / เติมรถยา',
       APP.shift.cartSubmitted ? 'ยืนยันแล้ว' + (APP.shift.cartSummary && APP.shift.cartSummary.time ? ' ' + APP.shift.cartSummary.time : '') + (s.low ? ' · ยังเติมไม่ครบ ' + s.low : ' · เติมครบ')
-        : need.length ? 'จัดการแล้ว ' + doneN + ' จาก ' + need.length + (s.low ? ' · เติมไม่ครบ ' + s.low : '') : 'ไม่มีรายการต้องจัดการ · กดยืนยันได้เลย',
+        : (doneN ? 'บันทึกแล้ว ' + doneN + ' รายการ' : 'ตรวจของในรถตามชั้น') + (s.low ? ' · เติมไม่ครบ ' + s.low : '') + ' · แล้วกดยืนยัน',
       "go('cart')") +
     stepRow(2, step2, 'บันทึกเวร',
       APP.shift.saved ? 'บันทึกแล้ว' + (APP.shift.savedAt ? ' ' + APP.shift.savedAt : '') + ' · ใบสั่ง ' + (APP.shift.rxTotal != null ? APP.shift.rxTotal : '?') + ' · แก้ไขได้' : 'ใบสั่งยา · ยาหาย · ความเสี่ยง · Med error',
@@ -685,7 +684,7 @@ const SUN_SVG = '<svg width="44" height="44" viewBox="0 0 64 64" aria-hidden="tr
    ① นับยาที่เห็นในรถ (ค่าเริ่ม = ในระบบ) → ระบบคิดที่หาย
    ② เติมกลับ = ให้ครบเป้าหมาย · default ล็อตที่ RESTOCK ล่าสุด · หรือกรอก EXP ล็อตอื่น
    ============================================================ */
-const CC = { lots: {}, st: {}, done: {}, log: [], filter: 'need', q: '', open: null, inflight: {}, logOpen: false };
+const CC = { lots: {}, st: {}, done: {}, log: [], filter: 'all', q: '', open: null, inflight: {}, logOpen: false };
 
 PAGES.cart = {
   title: 'ตรวจ / เติมรถยา',
@@ -704,7 +703,7 @@ function ccVisible(d) {
   const f = flags(d);
   if (CC.q && !String(d.name).toLowerCase().includes(CC.q.toLowerCase())) return false;
   switch (CC.filter) {
-    case 'need': return needsAction(d) || f.done;
+    case 'need': return needsAction(d);
     case 'nurse': return f.nurse;
     case 'exp': return f.expired || f.near;
     case 'done': return f.done;
@@ -712,25 +711,21 @@ function ccVisible(d) {
   }
 }
 function renderCart() {
-  const need = ccNeedList();
-  const doneN = need.filter(d => CC.done[d.id]).length;
   const cnt = {
-    need: need.length, nurse: APP.drugs.filter(d => flags(d).nurse).length,
+    need: APP.drugs.filter(needsAction).length, nurse: APP.drugs.filter(d => flags(d).nurse).length,
     exp: APP.drugs.filter(d => { const f = flags(d); return f.expired || f.near; }).length,
     done: Object.keys(CC.done).length, all: APP.drugs.length,
   };
   const s = cartStats();
-  let h = '<section class="card" style="gap:8px"><div class="row" style="align-items:baseline"><span class="h grow">ต้องจัดการ ' + need.length + ' รายการ</span>' +
-    '<span style="font-size:15px;font-weight:700">' + doneN + '<span class="lbl"> / ' + need.length + ' เสร็จ</span></span></div>' +
-    '<div class="prog"><i style="width:' + (need.length ? Math.round(doneN / need.length * 100) : 100) + '%;background:var(--grn)"></i></div>' +
-    '<div class="lbl">ยาหมด ' + APP.drugs.filter(d => flags(d).empty).length + ' · ใกล้ EXP/หมดอายุ ' + cnt.exp + ' · พยาบาลแจ้ง ' + cnt.nurse + ' · เติมไม่ครบ ' + s.low + '</div></section>';
+  const flagged = APP.drugs.filter(needsAction).length;
+  let h = '<section class="card" style="gap:6px"><div class="lbl" style="font-size:13px">' + (flagged ? 'ระบบแจ้งให้ดู ' + flagged + ' รายการ (ยาหมด ' + APP.drugs.filter(d => flags(d).empty).length + ' · ใกล้ EXP/หมดอายุ ' + cnt.exp + ' · พยาบาลแจ้ง ' + cnt.nurse + ' · ไม่ครบ ' + s.low + ') — กดตัวกรอง "ระบบแจ้ง" เพื่อดูเฉพาะรายการนี้' : 'ระบบไม่พบรายการที่ต้องดูเป็นพิเศษ — ตรวจของจริงตามชั้นได้เลย') + '</div></section>';
 
   h += '<div style="position:relative"><label for="cc-q" class="sr">ค้นหาชื่อยา</label>' +
     '<input id="cc-q" class="inp" placeholder="ค้นหาชื่อยา" value="' + esc(CC.q) + '" oninput="CC.q=this.value;renderCartList()" style="padding-left:38px">' +
     '<span style="position:absolute;left:12px;top:12px">' + svg('search', 18, '#5b6280', 2) + '</span></div>';
 
   h += '<div class="chips" role="group" aria-label="ตัวกรอง">' +
-    [['need', 'ต้องจัดการ'], ['nurse', 'พยาบาลแจ้ง'], ['exp', 'ใกล้ EXP'], ['done', 'เสร็จแล้ว'], ['all', 'ทั้งหมด']]
+    [['all', 'ทั้งหมด'], ['need', 'ระบบแจ้ง'], ['nurse', 'พยาบาลแจ้ง'], ['exp', 'ใกล้ EXP'], ['done', 'บันทึกแล้ว']]
       .map(([k, l]) => '<button type="button" class="chip' + (CC.filter === k ? ' on' : '') + '" aria-pressed="' + (CC.filter === k) + '" onclick="CC.filter=\'' + k + '\';renderCart()">' + l + ' <b>' + cnt[k] + '</b></button>').join('') + '</div>';
 
   h += '<div id="cc-list" style="display:flex;flex-direction:column;gap:10px"></div>';
@@ -738,14 +733,14 @@ function renderCart() {
   $('pg-cart').innerHTML = '<div class="wrap">' + h + '</div>';
   renderCartList();
   renderCartLog();
-  setSticky('<div class="grow"><div style="font-size:14px;font-weight:700">เสร็จ ' + doneN + ' / ' + need.length + '</div><div class="lbl">' +
+  setSticky('<div class="grow"><div style="font-size:14px;font-weight:700">บันทึกแล้ว ' + cnt.done + ' รายการ</div><div class="lbl">' +
     (APP.shift.cartSubmitted ? 'ยืนยันแล้ว · ยืนยันซ้ำได้' : s.low ? 'ยังเติมไม่ครบ ' + s.low + ' รายการ' : 'พร้อมยืนยัน') + '</div></div>' +
     '<button class="btn sm" type="button" onclick="confirmCartCheck(this)">ยืนยันการตรวจรถ</button>');
 }
 function renderCartList() {
   const list = APP.drugs.slice().sort(byPos).filter(ccVisible);
   if (CC.open && !list.find(d => d.id === CC.open)) { const od = drugById(CC.open); if (od) list.unshift(od); }
-  if (!list.length) { $('cc-list').innerHTML = '<div class="empty">— ไม่มีรายการในตัวกรองนี้ —' + (CC.filter === 'need' ? '<br>ยาในรถครบทุกรายการ' : '') + '</div>'; return; }
+  if (!list.length) { $('cc-list').innerHTML = '<div class="empty">— ไม่มีรายการในตัวกรองนี้ —' + (CC.filter === 'need' ? '<br>ระบบไม่พบรายการที่ต้องดู — กด "ทั้งหมด" เพื่อตรวจตามชั้น' : '') + '</div>'; return; }
   let h = '', last = null;
   const groups = {};
   list.forEach(d => { const k = shelfKey(d); groups[k] = (groups[k] || 0) + 1; });
@@ -985,10 +980,9 @@ function logEdit(lid) {
 }
 
 async function confirmCartCheck(btn) {
-  const need = ccNeedList();
-  const done = need.filter(d => CC.done[d.id]).length;
+  const done = Object.keys(CC.done).length;
   const s = cartStats();
-  const body = '<div class="ck"><span class="ic" style="background:var(--grn-bg);color:var(--grn)">' + svg('tick', 16, 'currentColor', 2.4) + '</span><span><b>จัดการแล้ว ' + done + ' รายการ</b><br><span class="lbl">จากที่ต้องจัดการ ' + need.length + '</span></span></div>' +
+  const body = '<div class="ck"><span class="ic" style="background:var(--grn-bg);color:var(--grn)">' + svg('tick', 16, 'currentColor', 2.4) + '</span><span><b>บันทึกแล้ว ' + done + ' รายการ</b><br><span class="lbl">ยาที่ไม่ได้แตะ = ตรวจแล้วครบ</span></span></div>' +
     (s.low ? '<div class="note warn">ยังเติมไม่ครบ ' + s.low + ' รายการ — ยืนยันได้ แต่ยังปิดเวรไม่ได้จนกว่าจะเติมครบ</div>' : '<div class="note ok">' + svg('tick', 16, 'currentColor', 2.4) + 'เติมครบทุกรายการ</div>') +
     (s.pending ? '<div class="note warn">ยังมีแจ้งขาดจากพยาบาลค้าง ' + s.pending + ' รายการ</div>' : '');
   if (!(await confirmSheet({ title: 'ยืนยันการตรวจ / เติมรถ?', body: body, ok: 'ยืนยัน → ไปบันทึกเวร' }))) return;
