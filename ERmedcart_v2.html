@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="theme-color" content="#ffffff">
 <title>รถยา ER v2</title>
-<!-- ER Med Cart v2 · build 2026-10-26 05:28 UTC · แหล่งข้อมูล: Supabase ermedcart-hub (เดียวกับ v1) -->
+<!-- ER Med Cart v2 · build 2026-10-26 05:35 UTC · แหล่งข้อมูล: Supabase ermedcart-hub (เดียวกับ v1) -->
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Google+Sans:wght@400;500;700&family=Noto+Sans+Thai:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -928,25 +928,22 @@ function ccCardOpen(d) {
   });
   h += '</div>';
 
-  /* เติมกลับ: แสดงเฉพาะเมื่อมีของออก/ต้องเติม */
-  const editing = !!st.editRefill;
+  /* เติมกลับ: แสดงทันทีเมื่อมีของออก/ต้องเติม — จำนวน + ล็อต + EXP แก้ได้เลย ไม่ต้องกด "แก้" */
   if (c.refill > 0 || c.out > 0 || st.refill != null) {
     const afterN = c.after + c.refill;
-    const lotTxt = c.mode === 'latest' && c.latest ? 'ล็อต ' + expFull(c.latest.exp) : 'ล็อตใหม่';
-    h += '<div class="refill row" style="border-top:1px solid #eef0f3;padding-top:10px"><span class="grow">เติม <b>' + c.refill + ' ' + esc(d.unit) + '</b> → ' + esc(lotTxt) +
-      (afterN < d.target ? '<span class="lbl" style="display:block;color:var(--red)">หลังเติม ' + afterN + '/' + d.target + ' ยังไม่ครบ</span>' : '') + '</span>' +
-      (editing ? '' : '<button class="lnk" type="button" onclick="ccEditRefill(\'' + id + '\')">แก้</button>') + '</div>';
-    if (editing) {
-      h += '<div class="row"><span class="lbl grow">จำนวนที่เติม</span>' + qtyCtl(c.refill, "ccRefill('" + id + "',-1)", "ccRefill('" + id + "',1)", { min: 0, unit: d.unit }) + '</div>';
-      if (c.latest) h += '<div class="seg" role="group" aria-label="ล็อตที่เติม">' +
-        '<button class="sg' + (c.mode === 'latest' ? ' on' : '') + '" type="button" onclick="ccMode(\'' + id + '\',\'latest\')">ล็อตล่าสุด</button>' +
-        '<button class="sg' + (c.mode === 'other' ? ' on' : '') + '" type="button" onclick="ccMode(\'' + id + '\',\'other\')">ล็อตอื่น</button></div>';
-    }
+    h += '<div style="border-top:1px solid #eef0f3;padding-top:10px;display:flex;flex-direction:column;gap:10px">' +
+      '<div class="row"><span class="grow"><b style="font-size:14px">เติมกลับ</b>' +
+      (afterN < d.target ? '<span class="lbl" style="display:block;color:var(--red)">หลังเติม ' + afterN + '/' + d.target + ' ยังไม่ครบ</span>' : '<span class="lbl" style="display:block">หลังเติม ' + afterN + '/' + d.target + ' ครบ</span>') + '</span>' +
+      qtyCtl(c.refill, "ccRefill('" + id + "',-1)", "ccRefill('" + id + "',1)", { min: 0, unit: d.unit }) + '</div>';
+    if (c.refill > 0 && c.latest) h += '<div class="seg" role="group" aria-label="ล็อตที่เติม">' +
+      '<button class="sg' + (c.mode === 'latest' ? ' on' : '') + '" type="button" aria-pressed="' + (c.mode === 'latest') + '" onclick="ccMode(\'' + id + '\',\'latest\')">ล็อตล่าสุด<br><span style="font-size:12px;font-weight:400">EXP ' + esc(expFull(c.latest.exp)) + '</span></button>' +
+      '<button class="sg' + (c.mode === 'other' ? ' on' : '') + '" type="button" aria-pressed="' + (c.mode === 'other') + '" onclick="ccMode(\'' + id + '\',\'other\')">ล็อตอื่น<br><span style="font-size:12px;font-weight:400">กรอก EXP</span></button></div>';
     if (c.mode === 'other' && c.refill > 0) {
-        h += '<div><label class="lbl" for="cc-exp-' + id + '">EXP ล็อตที่เติม (ค.ศ. หรือ พ.ศ.)</label><div style="margin-top:6px">' +
-          expField('cc-exp-' + id, st.expRaw, "ccExp.bind(null,'" + id + "')") + '</div>' +
-          '<div id="cc-expout-' + id + '">' + ccExpOut(c.parsed) + '</div></div>';
+      h += '<div><label class="lbl" for="cc-exp-' + id + '">EXP ล็อตที่เติม (ค.ศ. หรือ พ.ศ.)</label><div style="margin-top:6px">' +
+        expField('cc-exp-' + id, st.expRaw, "ccExp.bind(null,'" + id + "')") + '</div>' +
+        '<div id="cc-expout-' + id + '">' + ccExpOut(c.parsed) + '</div></div>';
     }
+    h += '</div>';
   }
 
   const blocked = ccBlocked(c);
