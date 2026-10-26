@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="theme-color" content="#ffffff">
 <title>รถยา ER v2</title>
-<!-- ER Med Cart v2 · build 2026-10-26 06:39 UTC · แหล่งข้อมูล: Supabase ermedcart-hub (เดียวกับ v1) -->
+<!-- ER Med Cart v2 · build 2026-10-26 07:05 UTC · แหล่งข้อมูล: Supabase ermedcart-hub (เดียวกับ v1) -->
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Google+Sans:wght@400;500;700&family=Noto+Sans+Thai:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -288,6 +288,7 @@ body{color:var(--ink)}
 .dpo .nm b{font-weight:700;background:#fff3b0;border-radius:3px}
 .dpn{padding:12px;font-size:13px;color:var(--muted)}
 .dps{display:flex;align-items:center;gap:10px;border:1px solid var(--line2);border-radius:12px;padding:10px 12px;background:#fff}
+.mepair{display:flex;flex-direction:column;gap:10px;border:1px solid #eef0f3;border-radius:12px;padding:10px;background:#fff}
 
 </style>
 </head>
@@ -1324,7 +1325,7 @@ function loadDraft() {
     const raw = localStorage.getItem(draftKey()); if (!raw) return false;
     const d = JSON.parse(raw); if (!d) return false;
     REC.risks = (d.riskList || []).map(r => ({ id: r.id || uid(), type: r.type || '', drug: r.drug || '', drug_id: r.drug_id || drugIdByName(r.drug), note: r.note || '', had: !!r.had, qty: Math.max(1, num(r.qty) || 1) }));
-    REC.errs = (d.errList || []).map(e => ({ id: e.id || uid(), type: e.type, subtypes: Array.isArray(e.subtypes) ? e.subtypes : [], severity: e.severity || '', note: e.note || '', had: !!e.had, drug: e.drug || '', drug_id: e.drug_id || drugIdByName(e.drug) }));
+    REC.errs = (d.errList || []).map(e => ({ id: e.id || uid(), type: e.type, subtypes: Array.isArray(e.subtypes) ? e.subtypes : [], severity: e.severity || '', note: e.note || '', had: !!e.had, drug: e.drug || '', drug_id: e.drug_id || drugIdByName(e.drug), rx_drug: e.rx_drug || '', rx_drug_id: e.rx_drug_id || drugIdByName(e.rx_drug) }));
     REC.rx = num(d.rx); REC.match = num(d.match); REC.noDrug = !!d.noDrug;
     if (d.tech) APP.tech = d.tech;
     return true;
@@ -1355,7 +1356,7 @@ function rehydrate(st) {
     APP.shift.saved = true; APP.shift.id = st.shiftId || null; APP.shift.rxTotal = st.rxTotal;
     if (!hasDraft) {
       REC.risks = (st.riskList || []).map(r => { const p = parseRiskNote(r.type, r.note); return { id: uid(), type: r.type, drug: p.drug, drug_id: drugIdByName(p.drug), qty: p.qty, note: p.note, had: !!r.had }; });
-      REC.errs = (st.errList || []).map(e => { const p = errNoteIn(e.note); return { id: uid(), type: e.type, subtypes: e.subtypes || [], severity: e.severity || '', note: p.note, drug: p.drug, drug_id: drugIdByName(p.drug), had: !!e.had }; });
+      REC.errs = (st.errList || []).map(e => { const p = errNoteIn(e.note); return { id: uid(), type: e.type, subtypes: e.subtypes || [], severity: e.severity || '', note: p.note, drug: p.drug, drug_id: drugIdByName(p.drug), rx_drug: p.rx_drug, rx_drug_id: drugIdByName(p.rx_drug), had: !!e.had }; });
       REC.rx = num(st.rxTotal); REC.match = REC.rx; REC.matchUnknown = true;
     }
   }
@@ -1433,8 +1434,10 @@ function renderRecord() {
         (SUBTYPES[e.type] || []).map((s, i) => '<button class="chip' + (e.subtypes.indexOf(s) >= 0 ? ' on' : '') + '" type="button" aria-pressed="' + (e.subtypes.indexOf(s) >= 0) + '" onclick="recSub(\'' + e.id + '\',' + i + ')">' + esc(s) + '</button>').join('') + '</div></div>' +
         '<div><div class="lbl" style="margin-bottom:6px">ความรุนแรง' + (e.severity ? ' · <b style="color:var(--ink)">' + e.severity + ' — ' + esc(SEV[e.severity][1]) + '</b>' : '') + '</div><div class="sev" role="group" aria-label="ระดับความรุนแรง">' +
         Object.keys(SEV).map(k => '<button class="sv' + (e.severity === k ? ' on' + ('EFGHI'.indexOf(k) >= 0 ? ' hi' : '') : '') + '" type="button" aria-pressed="' + (e.severity === k) + '" title="' + esc(SEV[k][1]) + '" onclick="recSev(\'' + e.id + '\',\'' + k + '\')">' + k + '</button>').join('') + '</div></div>' +
-        drugPick(e.id, e.drug_id, e.drug && !e.drug_id ? e.drug : '', 'recErrDrug', 'ยาที่หายจากรถ (ไม่บังคับ) — พิมพ์ค้นหา') +
-        '<input class="inp" placeholder="รายละเอียด เช่น สั่ง ORS เด็ก แต่ ORS ผู้ใหญ่หายจากรถ" aria-label="รายละเอียด" value="' + esc(e.note) + '" oninput="recErrNote(\'' + e.id + '\',this.value)">' +
+        '<div class="mepair"><div><div class="lbl" style="margin-bottom:4px">ยาตามใบสั่ง <span style="font-weight:400">(ไม่บังคับ)</span></div>' + drugPick(e.id + 'r', e.rx_drug_id, e.rx_drug && !e.rx_drug_id ? e.rx_drug : '', 'recErrRx', 'พิมพ์ค้นหา เช่น hista') + '</div>' +
+        '<div><div class="lbl" style="margin-bottom:4px">ยาที่หายจากรถจริง <span style="font-weight:400">(ไม่บังคับ)</span></div>' + drugPick(e.id, e.drug_id, e.drug && !e.drug_id ? e.drug : '', 'recErrDrug', 'พิมพ์ค้นหา เช่น poly') + '</div>' +
+        '<div class="lbl">หยิบผิดตัว → กรอกทั้ง 2 ช่อง · ยาตัวเดียวกันแต่ผิดอย่างอื่น → กรอกแค่ยาที่หายจริง</div></div>' +
+        '<input class="inp" placeholder="รายละเอียดเพิ่มเติม (ไม่บังคับ)" aria-label="รายละเอียด" value="' + esc(e.note) + '" oninput="recErrNote(\'' + e.id + '\',this.value)">' +
         '<button class="tog' + (e.had ? ' on' : '') + '" type="button" aria-pressed="' + !!e.had + '" onclick="recErrHad(\'' + e.id + '\')">เกี่ยวข้องกับยา HAD</button>' +
         (inc ? '<div class="note err">เลือกลักษณะและระดับความรุนแรงก่อนบันทึก</div>' : '') + '</div>';
     }).join('') +
@@ -1468,24 +1471,34 @@ function recPickDrug(id, v) {
   if (r.type === MISS) r.had = !!(d && d.had); else if (d && d.had) r.had = true;
   recChanged();
 }
-function recErrDrug(id, v) {
+function recErrSet(id, field, v) {
   const e = REC.errs.find(x => x.id === id); if (!e) return;
-  const d = v ? drugById(v) : null; e.drug_id = d ? d.id : ''; e.drug = d ? d.name : '';
+  const d = v ? drugById(v) : null; e[field + '_id'] = d ? d.id : ''; e[field] = d ? d.name : '';
   if (d && d.had) e.had = true;
   recChanged();
 }
-/* ME ไม่มีคอลัมน์ยาใน DB → เก็บใน note รูปแบบ "ชื่อยา · รายละเอียด" (รายงานแสดง note อยู่แล้ว) */
-function errNoteOut(e) { return [e.drug || '', e.note || ''].map(x => String(x).trim()).filter(Boolean).join(' · '); }
+function recErrDrug(key, v) { recErrSet(key, 'drug', v); }
+function recErrRx(key, v) { recErrSet(key.slice(0, -1), 'rx_drug', v); }
+/* ME ไม่มีคอลัมน์ยาใน DB → เก็บใน note: "สั่ง X → หาย Y · รายละเอียด" (รายงานแสดง note อยู่แล้ว) */
+function errNoteOut(e) {
+  const a = String(e.rx_drug || '').trim(), b = String(e.drug || '').trim();
+  const head = a && b ? 'สั่ง ' + a + ' → หาย ' + b : a ? 'สั่ง ' + a : b ? 'หาย ' + b : '';
+  return [head, String(e.note || '').trim()].filter(Boolean).join(' · ');
+}
 function errNoteIn(note) {
-  const parts = String(note || '').split(' · ');
-  if (parts.length && drugIdByName(parts[0].trim())) return { drug: parts[0].trim(), note: parts.slice(1).join(' · ') };
-  return { drug: '', note: String(note || '') };
+  const parts = String(note || '').split(' · '), f = (parts[0] || '').trim(), rest = parts.slice(1).join(' · ');
+  let m;
+  if ((m = f.match(/^สั่ง (.+?) → หาย (.+)$/))) return { rx_drug: m[1], drug: m[2], note: rest };
+  if ((m = f.match(/^หาย (.+)$/))) return { rx_drug: '', drug: m[1], note: rest };
+  if ((m = f.match(/^สั่ง (.+)$/))) return { rx_drug: m[1], drug: '', note: rest };
+  if (f && drugIdByName(f)) return { rx_drug: '', drug: f, note: rest };
+  return { rx_drug: '', drug: '', note: String(note || '') };
 }
 function recQty(id, dlt) { const r = REC.risks.find(x => x.id === id); if (!r) return; r.qty = Math.max(1, num(r.qty) + dlt); recChanged(); }
 function recField(id, f, v) { const r = REC.risks.find(x => x.id === id); if (r) { r[f] = v; saveDraft(); } }
 function recHad(id) { const r = REC.risks.find(x => x.id === id); if (r) { r.had = !r.had; recChanged(); } }
 function recDel(id) { REC.risks = REC.risks.filter(x => x.id !== id); recChanged(); }
-function recAddErr(t) { REC.errs.push({ id: uid(), type: t, subtypes: [], severity: '', note: '', had: false, drug: '', drug_id: '' }); recChanged(); }
+function recAddErr(t) { REC.errs.push({ id: uid(), type: t, subtypes: [], severity: '', note: '', had: false, drug: '', drug_id: '', rx_drug: '', rx_drug_id: '' }); recChanged(); }
 function recDelErr(id) { REC.errs = REC.errs.filter(x => x.id !== id); recChanged(); }
 function recSub(id, i) { const e = REC.errs.find(x => x.id === id); if (!e) return; const s = (SUBTYPES[e.type] || [])[i]; const k = e.subtypes.indexOf(s); if (k >= 0) e.subtypes.splice(k, 1); else e.subtypes.push(s); recChanged(); }
 function recSev(id, k) { const e = REC.errs.find(x => x.id === id); if (e) { e.severity = e.severity === k ? '' : k; recChanged(); } }
