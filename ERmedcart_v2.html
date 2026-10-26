@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="theme-color" content="#ffffff">
 <title>รถยา ER v2</title>
-<!-- ER Med Cart v2 · build 2026-10-26 03:59 UTC · แหล่งข้อมูล: Supabase ermedcart-hub (เดียวกับ v1) -->
+<!-- ER Med Cart v2 · build 2026-10-26 04:12 UTC · แหล่งข้อมูล: Supabase ermedcart-hub (เดียวกับ v1) -->
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Google+Sans:wght@400;500;700&family=Noto+Sans+Thai:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -828,7 +828,7 @@ function ccCardOpen(d) {
       const expPill = days < 0 ? '<span class="pill p-red">หมดอายุแล้ว</span>' : days < 7 ? '<span class="pill p-amb">อีก ' + days + ' วัน</span>' : '';
       const wdOn = !!st.wd[l.exp];
       h += '<div class="lot"' + (i === 0 ? ' style="margin-top:6px"' : '') + '><span class="grow">' +
-        '<span class="nm" style="display:block">EXP ' + esc(expMonth(l.exp)) + ' ' + expPill + '</span>' +
+        '<span class="nm" style="display:block">EXP ' + esc(expFull(l.exp)) + ' ' + expPill + '</span>' +
         '<span class="lbl">ในระบบ ' + l.avail + ' ' + esc(d.unit) + '</span>' + (miss > 0 ? ' <span class="pill p-red">หาย ' + miss + '</span>' : '') +
         (wdOn ? ' <span class="pill p-amb">ถอนออก ' + cnt + '</span>' : '') +
         '<br><button class="lnk ' + (wdOn ? '' : 'muted') + '" type="button" onclick="ccWd(\'' + id + '\',\'' + l.exp + '\')">' + (wdOn ? 'ยกเลิกการถอนล็อตนี้' : 'ถอนล็อตนี้ออก (ใกล้หมดอายุ/ชำรุด)') + '</button></span>' +
@@ -846,7 +846,7 @@ function ccCardOpen(d) {
   if (c.refill > 0) {
     if (c.latest) {
       h += '<div class="seg" role="group" aria-label="ล็อตที่เติม">' +
-        '<button class="sg' + (c.mode === 'latest' ? ' on' : '') + '" type="button" onclick="ccMode(\'' + id + '\',\'latest\')">ล็อตล่าสุด<br><span style="font-size:12px">EXP ' + esc(expMonth(c.latest.exp)) + '</span></button>' +
+        '<button class="sg' + (c.mode === 'latest' ? ' on' : '') + '" type="button" onclick="ccMode(\'' + id + '\',\'latest\')">ล็อตล่าสุด<br><span style="font-size:12px">EXP ' + esc(expFull(c.latest.exp)) + '</span></button>' +
         '<button class="sg' + (c.mode === 'other' ? ' on' : '') + '" type="button" onclick="ccMode(\'' + id + '\',\'other\')">ล็อตอื่น<br><span style="font-size:12px">กรอก EXP</span></button></div>';
     }
     if (c.mode === 'other') {
@@ -911,7 +911,7 @@ async function ccSave(id, btn) {
       for (const p of pendingFor(id)) await api('ackNurseAlert', { drug_id: id, nurse_shift_id: p.shift_id, pharmacist_name: who, resolution: 'verified', note: 'ตรวจในหน้าตรวจ/เติม v2' });
     }
     const parts = [];
-    if (c.disp) parts.push('หาย ' + c.disp); if (c.wd) parts.push('ถอน ' + c.wd); if (c.refill) parts.push('เติม ' + c.refill + (c.refillExp ? ' (EXP ' + expMonth(c.refillExp) + ')' : ''));
+    if (c.disp) parts.push('หาย ' + c.disp); if (c.wd) parts.push('ถอน ' + c.wd); if (c.refill) parts.push('เติม ' + c.refill + (c.refillExp ? ' (EXP ' + expFull(c.refillExp) + ')' : ''));
     CC.done[id] = { line: parts.length ? parts.join(' · ') : 'ตรวจแล้ว ครบ', at: bkkTime() };
     delete CC.st[id]; delete CC.lots[id];
     CC.open = null;
@@ -936,7 +936,7 @@ function renderCartLog() {
     '<span style="font-size:14px;font-weight:600">บันทึกในเวรนี้ (' + act + ')</span><span class="lbl">' + (CC.logOpen ? 'ซ่อน' : 'แก้/ลบ') + ' ›</span></button>' +
     (CC.logOpen ? '<div style="display:flex;flex-direction:column;padding-bottom:10px">' + CC.log.map(e =>
       '<div class="lot" style="' + (e.voided ? 'opacity:.45' : '') + '"><span class="grow"><span class="nm" style="display:block' + (e.voided ? ';text-decoration:line-through' : '') + '">' + esc(e.name) + '</span>' +
-      '<span class="lbl">' + ACT_TH[e.action] + ' ' + e.qty + ' ' + esc(e.unit) + (e.exp ? ' · EXP ' + esc(expMonth(e.exp)) : '') + ' · ' + tsTime(e.ts) + (e.voided ? ' · ลบแล้ว' : '') + '</span></span>' +
+      '<span class="lbl">' + ACT_TH[e.action] + ' ' + e.qty + ' ' + esc(e.unit) + (e.exp ? ' · EXP ' + esc(expFull(e.exp)) : '') + ' · ' + tsTime(e.ts) + (e.voided ? ' · ลบแล้ว' : '') + '</span></span>' +
       (e.voided ? '' : '<button class="btn2" type="button" onclick="logEdit(\'' + e.id + '\')">แก้</button><button class="btn2 danger" type="button" onclick="logVoid(\'' + e.id + '\',this)">ลบ</button>') + '</div>').join('') + '</div>' : '') +
     '</section>';
 }
