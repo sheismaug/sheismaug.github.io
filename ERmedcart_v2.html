@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="theme-color" content="#ffffff">
 <title>รถยา ER v2</title>
-<!-- ER Med Cart v2 · build 2026-10-26 05:35 UTC · แหล่งข้อมูล: Supabase ermedcart-hub (เดียวกับ v1) -->
+<!-- ER Med Cart v2 · build 2026-10-26 06:39 UTC · แหล่งข้อมูล: Supabase ermedcart-hub (เดียวกับ v1) -->
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Google+Sans:wght@400;500;700&family=Noto+Sans+Thai:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -276,6 +276,18 @@ body{color:var(--ink)}
 .expf .calp{position:absolute;right:6px;top:6px;width:36px;height:36px;opacity:0;border:0;padding:0;cursor:pointer}
 /* toast */
 .toast svg{stroke:#fff}
+/* drug picker (combobox) */
+.dpk{position:relative}
+.dpk .inp{padding-left:38px}
+.dpi{position:absolute;left:12px;top:13px;pointer-events:none}
+.dpl{margin-top:6px;border:1px solid var(--line2);border-radius:12px;background:#fff;overflow:hidden;box-shadow:0 8px 20px rgba(20,23,31,.08)}
+.dpl[hidden]{display:none}
+.dpo{display:flex;align-items:center;gap:10px;width:100%;padding:10px 12px;border:0;border-top:1px solid #eef0f3;background:#fff;text-align:left;color:var(--ink);min-height:48px}
+.dpo:first-child{border-top:0}
+.dpo:hover,.dpo:focus{background:#f7f8fa}
+.dpo .nm b{font-weight:700;background:#fff3b0;border-radius:3px}
+.dpn{padding:12px;font-size:13px;color:var(--muted)}
+.dps{display:flex;align-items:center;gap:10px;border:1px solid var(--line2);border-radius:12px;padding:10px 12px;background:#fff}
 
 </style>
 </head>
@@ -655,6 +667,46 @@ async function doLogin() {
 async function doLogout(skipConfirm) {
   if (!skipConfirm && !(await confirmSheet({ title: 'ออกจากระบบ?', sub: 'ข้อมูลที่ยังไม่บันทึกในหน้าบันทึกเวรเก็บเป็นร่างไว้ในเครื่องนี้', ok: 'ออกจากระบบ' }))) return;
   location.reload();
+}
+
+/* ---------- ช่องเลือกยา: พิมพ์ค้นหา → เลือกจากยาในรถเท่านั้น (ชื่อตรงกันทุกครั้ง) ----------
+   drugPick(key, drugId, legacyName, cb) · cb = ชื่อฟังก์ชัน global รับ (key, drugId) — drugId '' = ล้าง */
+const PICK = {};
+function dpkHits(q) {
+  q = String(q || '').trim().toLowerCase(); if (!q) return [];
+  return APP.drugs.map(d => ({ d: d, i: String(d.name).toLowerCase().indexOf(q) })).filter(x => x.i >= 0)
+    .sort((a, b) => (a.i === 0 ? 0 : 1) - (b.i === 0 ? 0 : 1) || String(a.d.name).localeCompare(String(b.d.name)))
+    .slice(0, 8).map(x => ({ d: x.d, i: x.i, n: q.length }));
+}
+function dpkList(key, cb) {
+  const q = String(PICK[key] || '').trim(); if (!q) return '';
+  const hits = dpkHits(q);
+  if (!hits.length) return '<div class="dpn">ไม่พบ "' + esc(q) + '" ในรายการยาในรถ — ตรวจตัวสะกด หรือค้นด้วยชื่อสามัญ</div>';
+  return hits.map(x => { const nm = String(x.d.name);
+    return '<button class="dpo" type="button" role="option" onmousedown="event.preventDefault()" onclick="dpkPick(\'' + key + '\',\'' + cb + '\',\'' + esc(x.d.id) + '\')">' +
+      '<span class="grow"><span class="nm">' + esc(nm.slice(0, x.i)) + '<b>' + esc(nm.slice(x.i, x.i + x.n)) + '</b>' + esc(nm.slice(x.i + x.n)) + '</span>' + hadTag(x.d) + '<br>' + locPill(x.d, true) + '</span></button>'; }).join('');
+}
+function drugPick(key, sel, legacyName, cb, ph) {
+  const d = sel ? drugById(sel) : null;
+  if (d) return '<div class="dps"><span class="grow"><span class="nm" style="font-weight:600">' + esc(d.name) + '</span>' + hadTag(d) + '<br>' + locPill(d, true) + '</span>' +
+    '<button class="lnk muted" type="button" onclick="dpkPick(\'' + key + '\',\'' + cb + '\',\'\')">เปลี่ยน</button></div>';
+  const list = dpkList(key, cb);
+  return '<div class="dpk"><label class="sr" for="dpk-' + key + '">' + esc(ph || 'พิมพ์ชื่อยา') + '</label>' +
+    '<input id="dpk-' + key + '" class="inp" role="combobox" aria-autocomplete="list" aria-controls="dpl-' + key + '" aria-expanded="' + !!list + '" autocomplete="off" placeholder="' + esc(ph || 'พิมพ์ชื่อยา เช่น cef') + '" value="' + esc(PICK[key] || '') + '"' +
+    ' oninput="dpkInput(\'' + key + '\',\'' + cb + '\',this.value)" onkeydown="if(event.key===\'Enter\'){event.preventDefault();dpkFirst(\'' + key + '\',\'' + cb + '\')}">' +
+    '<span class="dpi" aria-hidden="true">' + svg('search', 18, '#8a8f9c', 2) + '</span>' +
+    '<div id="dpl-' + key + '" class="dpl" role="listbox"' + (list ? '' : ' hidden') + '>' + list + '</div>' +
+    (legacyName ? '<div class="lbl" style="margin-top:4px">ชื่อเดิม: ' + esc(legacyName) + ' · พิมพ์เพื่อเลือกใหม่จากรายการ</div>' : '') + '</div>';
+}
+function dpkInput(key, cb, v) {
+  PICK[key] = v; const el = $('dpl-' + key), inp = $('dpk-' + key); if (!el) return;
+  const h = dpkList(key, cb); el.innerHTML = h; el.hidden = !h; if (inp) inp.setAttribute('aria-expanded', String(!!h));
+}
+function dpkFirst(key, cb) { const h = dpkHits(PICK[key]); if (h.length) dpkPick(key, cb, h[0].d.id); }
+function dpkPick(key, cb, id) {
+  delete PICK[key];
+  if (typeof window[cb] === 'function') window[cb](key, id);
+  if (!id) setTimeout(() => { const i = $('dpk-' + key); if (i) i.focus(); }, 0);
 }
 
 /* ============================================================
@@ -1272,7 +1324,7 @@ function loadDraft() {
     const raw = localStorage.getItem(draftKey()); if (!raw) return false;
     const d = JSON.parse(raw); if (!d) return false;
     REC.risks = (d.riskList || []).map(r => ({ id: r.id || uid(), type: r.type || '', drug: r.drug || '', drug_id: r.drug_id || drugIdByName(r.drug), note: r.note || '', had: !!r.had, qty: Math.max(1, num(r.qty) || 1) }));
-    REC.errs = (d.errList || []).map(e => ({ id: e.id || uid(), type: e.type, subtypes: Array.isArray(e.subtypes) ? e.subtypes : [], severity: e.severity || '', note: e.note || '', had: !!e.had }));
+    REC.errs = (d.errList || []).map(e => ({ id: e.id || uid(), type: e.type, subtypes: Array.isArray(e.subtypes) ? e.subtypes : [], severity: e.severity || '', note: e.note || '', had: !!e.had, drug: e.drug || '', drug_id: e.drug_id || drugIdByName(e.drug) }));
     REC.rx = num(d.rx); REC.match = num(d.match); REC.noDrug = !!d.noDrug;
     if (d.tech) APP.tech = d.tech;
     return true;
@@ -1303,7 +1355,7 @@ function rehydrate(st) {
     APP.shift.saved = true; APP.shift.id = st.shiftId || null; APP.shift.rxTotal = st.rxTotal;
     if (!hasDraft) {
       REC.risks = (st.riskList || []).map(r => { const p = parseRiskNote(r.type, r.note); return { id: uid(), type: r.type, drug: p.drug, drug_id: drugIdByName(p.drug), qty: p.qty, note: p.note, had: !!r.had }; });
-      REC.errs = (st.errList || []).map(e => ({ id: uid(), type: e.type, subtypes: e.subtypes || [], severity: e.severity || '', note: e.note || '', had: !!e.had }));
+      REC.errs = (st.errList || []).map(e => { const p = errNoteIn(e.note); return { id: uid(), type: e.type, subtypes: e.subtypes || [], severity: e.severity || '', note: p.note, drug: p.drug, drug_id: drugIdByName(p.drug), had: !!e.had }; });
       REC.rx = num(st.rxTotal); REC.match = REC.rx; REC.matchUnknown = true;
     }
   }
@@ -1350,15 +1402,13 @@ function renderRecord() {
     '<div class="lbl" style="margin-top:-6px">ยาหายจากรถแต่ไม่พบใบสั่งเลย · ถ้าเจอใบสั่งภายหลังให้ลบรายการ</div>' +
     miss.map(r => {
       const d = drugById(r.drug_id);
-      return '<div class="ent"' + (!r.drug ? ' style="border-color:var(--red-b)"' : '') + '><div class="row"><label class="sr" for="mi-' + r.id + '">เลือกยา</label>' +
-        '<select id="mi-' + r.id + '" class="inp grow" onchange="recMissDrug(\'' + r.id + '\',this.value)"><option value="">— เลือกยาที่หาย —</option>' +
-        drugOptions(r.drug_id) + (r.drug && !r.drug_id ? '<option value="__keep" selected>' + esc(r.drug) + '</option>' : '') + '</select>' +
+      return '<div class="ent"' + (!r.drug ? ' style="border-color:var(--red-b)"' : '') + '><div class="row" style="align-items:flex-start"><div class="grow" style="min-width:0">' +
+        drugPick(r.id, r.drug_id, r.drug && !r.drug_id ? r.drug : '', 'recPickDrug', 'ยาที่หาย — พิมพ์ชื่อ เช่น cef') + '</div>' +
         '<button class="x" type="button" aria-label="ลบรายการ" onclick="recDel(\'' + r.id + '\')">' + svg('x', 16) + '</button></div>' +
-        (d && d.had ? '<div><span class="had" style="margin:0">HAD</span></div>' : '') +
         '<div class="row"><span class="lbl grow">จำนวน</span>' + qtyCtl(r.qty, "recQty('" + r.id + "',-1)", "recQty('" + r.id + "',1)", { min: 1, unit: d ? d.unit : '' }) + '</div>' +
         '<input class="inp" placeholder="รายละเอียด (ไม่บังคับ)" aria-label="รายละเอียด" value="' + esc(r.note) + '" oninput="recField(\'' + r.id + '\',\'note\',this.value)"></div>';
     }).join('') +
-    '<button class="chip add" type="button" style="align-self:flex-start" onclick="recAddMiss()">+ เพิ่มยาที่หาย (เลือกจากยาในรถ)</button></section>';
+    '<button class="chip add" type="button" style="align-self:flex-start" onclick="recAddMiss()">+ เพิ่มยาที่หาย</button></section>';
 
   /* ③ ความเสี่ยงอื่น */
   const others = REC.risks.filter(r => r.type !== MISS);
@@ -1367,7 +1417,7 @@ function renderRecord() {
     others.map(r => '<div class="ent"><div class="row"><span class="pill p-amb">' + esc(RISK_LABEL[r.type] || r.type) + '</span><span class="grow"></span>' +
       qtyCtl(r.qty, "recQty('" + r.id + "',-1)", "recQty('" + r.id + "',1)", { min: 1 }) +
       '<button class="x" type="button" aria-label="ลบรายการ" onclick="recDel(\'' + r.id + '\')">' + svg('x', 16) + '</button></div>' +
-      '<input class="inp" placeholder="ชื่อยา (ไม่บังคับ)" aria-label="ชื่อยา" list="dl-drugs" value="' + esc(r.drug) + '" oninput="recField(\'' + r.id + '\',\'drug\',this.value)">' +
+      drugPick(r.id, r.drug_id, r.drug && !r.drug_id ? r.drug : '', 'recPickDrug', 'ชื่อยา (ไม่บังคับ) — พิมพ์ค้นหา') +
       '<input class="inp" placeholder="รายละเอียด (ไม่บังคับ)" aria-label="รายละเอียด" value="' + esc(r.note) + '" oninput="recField(\'' + r.id + '\',\'note\',this.value)">' +
       '<button class="tog' + (r.had ? ' on' : '') + '" type="button" aria-pressed="' + !!r.had + '" onclick="recHad(\'' + r.id + '\')">เกี่ยวข้องกับยา HAD</button></div>').join('') +
     '<div class="chips">' + RISK_TYPES.map(t => '<button class="chip add" type="button" onclick="recAddRisk(\'' + t + '\')">+ ' + esc(RISK_LABEL[t] || t) + '</button>').join('') + '</div></section>';
@@ -1383,6 +1433,7 @@ function renderRecord() {
         (SUBTYPES[e.type] || []).map((s, i) => '<button class="chip' + (e.subtypes.indexOf(s) >= 0 ? ' on' : '') + '" type="button" aria-pressed="' + (e.subtypes.indexOf(s) >= 0) + '" onclick="recSub(\'' + e.id + '\',' + i + ')">' + esc(s) + '</button>').join('') + '</div></div>' +
         '<div><div class="lbl" style="margin-bottom:6px">ความรุนแรง' + (e.severity ? ' · <b style="color:var(--ink)">' + e.severity + ' — ' + esc(SEV[e.severity][1]) + '</b>' : '') + '</div><div class="sev" role="group" aria-label="ระดับความรุนแรง">' +
         Object.keys(SEV).map(k => '<button class="sv' + (e.severity === k ? ' on' + ('EFGHI'.indexOf(k) >= 0 ? ' hi' : '') : '') + '" type="button" aria-pressed="' + (e.severity === k) + '" title="' + esc(SEV[k][1]) + '" onclick="recSev(\'' + e.id + '\',\'' + k + '\')">' + k + '</button>').join('') + '</div></div>' +
+        drugPick(e.id, e.drug_id, e.drug && !e.drug_id ? e.drug : '', 'recErrDrug', 'ยาที่หายจากรถ (ไม่บังคับ) — พิมพ์ค้นหา') +
         '<input class="inp" placeholder="รายละเอียด เช่น สั่ง ORS เด็ก แต่ ORS ผู้ใหญ่หายจากรถ" aria-label="รายละเอียด" value="' + esc(e.note) + '" oninput="recErrNote(\'' + e.id + '\',this.value)">' +
         '<button class="tog' + (e.had ? ' on' : '') + '" type="button" aria-pressed="' + !!e.had + '" onclick="recErrHad(\'' + e.id + '\')">เกี่ยวข้องกับยา HAD</button>' +
         (inc ? '<div class="note err">เลือกลักษณะและระดับความรุนแรงก่อนบันทึก</div>' : '') + '</div>';
@@ -1392,7 +1443,6 @@ function renderRecord() {
   if (issues.block.length || issues.warn.length) {
     h += '<div class="card" style="gap:6px">' + issues.block.map(m => '<div class="note err">' + esc(m) + '</div>').join('') + issues.warn.map(m => '<div class="note warn">' + esc(m) + '</div>').join('') + '</div>';
   }
-  h += '<datalist id="dl-drugs">' + APP.drugs.map(d => '<option value="' + esc(d.name) + '">').join('') + '</datalist>';
 
   const y = window.scrollY;
   $('pg-record').innerHTML = '<div class="wrap">' + h + '</div>';
@@ -1400,9 +1450,6 @@ function renderRecord() {
   setSticky('<div class="lbl" style="font-size:13px">' + (REC.noDrug ? 'ไม่มีใบสั่งยา' : 'ใบสั่ง <b style="color:var(--ink)">' + REC.rx + '</b> · ไม่ตรง <b style="color:' + (mm ? 'var(--red)' : 'var(--ink)') + '">' + mm + '</b>') +
     ' · ยาหาย <b style="color:' + (mt ? 'var(--red)' : 'var(--ink)') + '">' + mt + '</b> · ความเสี่ยง <b style="color:var(--ink)">' + others.length + '</b> · ME <b style="color:' + (REC.errs.length ? 'var(--red)' : 'var(--ink)') + '">' + REC.errs.length + '</b></div>' +
     '<button class="btn" type="button" onclick="submitRecord(this)">' + (APP.shift.saved ? 'บันทึกการแก้ไข' : 'บันทึกเวร') + '</button>', true);
-}
-function drugOptions(sel) {
-  return APP.drugs.slice().sort((a, b) => String(a.name).localeCompare(String(b.name))).map(d => '<option value="' + esc(d.id) + '"' + (d.id === sel ? ' selected' : '') + '>' + esc(d.name) + '</option>').join('');
 }
 function recChanged() { saveDraft(); renderRecord(); setTop('record'); }
 function recAdj(k, dlt) {
@@ -1414,15 +1461,31 @@ function recAdj(k, dlt) {
 }
 function recAddMiss() { REC.risks.push({ id: uid(), type: MISS, drug: '', drug_id: '', qty: 1, note: '', had: false }); recChanged(); }
 function recAddRisk(t) { REC.risks.push({ id: uid(), type: t, drug: '', drug_id: '', qty: 1, note: '', had: false }); recChanged(); }
-function recMissDrug(id, v) {
-  const r = REC.risks.find(x => x.id === id); if (!r || v === '__keep') return;
-  const d = drugById(v); r.drug_id = v; r.drug = d ? d.name : ''; r.had = !!(d && d.had); recChanged();
+/* เลือกยาจากช่องค้นหา · ยา HAD → ติด HAD ให้อัตโนมัติ (ความเสี่ยงอื่นยังกดปิดเองได้) */
+function recPickDrug(id, v) {
+  const r = REC.risks.find(x => x.id === id); if (!r) return;
+  const d = v ? drugById(v) : null; r.drug_id = d ? d.id : ''; r.drug = d ? d.name : '';
+  if (r.type === MISS) r.had = !!(d && d.had); else if (d && d.had) r.had = true;
+  recChanged();
+}
+function recErrDrug(id, v) {
+  const e = REC.errs.find(x => x.id === id); if (!e) return;
+  const d = v ? drugById(v) : null; e.drug_id = d ? d.id : ''; e.drug = d ? d.name : '';
+  if (d && d.had) e.had = true;
+  recChanged();
+}
+/* ME ไม่มีคอลัมน์ยาใน DB → เก็บใน note รูปแบบ "ชื่อยา · รายละเอียด" (รายงานแสดง note อยู่แล้ว) */
+function errNoteOut(e) { return [e.drug || '', e.note || ''].map(x => String(x).trim()).filter(Boolean).join(' · '); }
+function errNoteIn(note) {
+  const parts = String(note || '').split(' · ');
+  if (parts.length && drugIdByName(parts[0].trim())) return { drug: parts[0].trim(), note: parts.slice(1).join(' · ') };
+  return { drug: '', note: String(note || '') };
 }
 function recQty(id, dlt) { const r = REC.risks.find(x => x.id === id); if (!r) return; r.qty = Math.max(1, num(r.qty) + dlt); recChanged(); }
 function recField(id, f, v) { const r = REC.risks.find(x => x.id === id); if (r) { r[f] = v; saveDraft(); } }
 function recHad(id) { const r = REC.risks.find(x => x.id === id); if (r) { r.had = !r.had; recChanged(); } }
 function recDel(id) { REC.risks = REC.risks.filter(x => x.id !== id); recChanged(); }
-function recAddErr(t) { REC.errs.push({ id: uid(), type: t, subtypes: [], severity: '', note: '', had: false }); recChanged(); }
+function recAddErr(t) { REC.errs.push({ id: uid(), type: t, subtypes: [], severity: '', note: '', had: false, drug: '', drug_id: '' }); recChanged(); }
 function recDelErr(id) { REC.errs = REC.errs.filter(x => x.id !== id); recChanged(); }
 function recSub(id, i) { const e = REC.errs.find(x => x.id === id); if (!e) return; const s = (SUBTYPES[e.type] || [])[i]; const k = e.subtypes.indexOf(s); if (k >= 0) e.subtypes.splice(k, 1); else e.subtypes.push(s); recChanged(); }
 function recSev(id, k) { const e = REC.errs.find(x => x.id === id); if (e) { e.severity = e.severity === k ? '' : k; recChanged(); } }
@@ -1439,7 +1502,7 @@ async function submitRecord(btn) {
     pharmacistName: APP.user, techName: APP.tech || '', noDrug: REC.noDrug, shiftDate: bkkToday(), shift_id: APP.shift.id,
     rx_total: REC.noDrug ? 0 : REC.rx, rx_matched: REC.noDrug ? 0 : REC.match, drug_missing: missingTotal(),
     risks: risks, risk_had: risks.some(r => r.had), risk_note: '',
-    med_errors: REC.errs.map(e => ({ type: e.type, subtypes: e.subtypes, severity: e.severity, note: e.note || '', had: !!e.had })),
+    med_errors: REC.errs.map(e => ({ type: e.type, subtypes: e.subtypes, severity: e.severity, note: errNoteOut(e), had: !!e.had })),
     is_update: !!APP.shift.saved,
   };
   setBusy(btn, true);
@@ -1462,7 +1525,7 @@ const UNITS = ['amp', 'vial', 'ซอง', 'ขวด', 'หลอด', 'ชิ�
 
 PAGES.stock = {
   title: 'Stock รถยา',
-  sub: () => APP.drugs.length + ' รายการ',
+  sub: () => APP.drugs.length + ' รายการ · เรียงตามชั้น',
   topAction: () => APP.role === 'pharm' ? '<button class="btn sm" type="button" onclick="openDrugSheet()">+ เพิ่มยา</button>' : (APP.role === 'nurse' ? '<button class="chip" type="button" onclick="doLogout()">ออกจากระบบ</button>' : ''),
   render: (o) => {
     if (o.filter) STK.filter = o.filter;
@@ -1496,32 +1559,27 @@ function renderStock() {
   $('pg-stock').innerHTML = '<div class="wrap">' + h + '</div>';
   renderStockList();
 }
-function stkGroup(d) { return d.location === FRIDGE ? 'ตู้เย็น ER' : 'รถยา · ' + (TYPE_TH[d.type] || 'อื่นๆ'); }
 function renderStockList() {
-  const order = ['รถยา · ยาฉีด', 'รถยา · ยากิน', 'รถยา · อื่นๆ', 'ตู้เย็น ER'];
-  const list = APP.drugs.filter(stkMatch).sort(byPos);
+  const list = APP.drugs.filter(stkMatch).sort(byPos);   // byPos: ชั้น → กล่อง → ช่อง · ตู้เย็นท้ายสุด
   if (!list.length) { $('stk-list').innerHTML = '<div class="empty">— ไม่มีรายการ —</div>'; return; }
-  let h = '';
-  order.forEach(g => {
-    const items = list.filter(d => stkGroup(d) === g);
-    if (!items.length) return;
-    h += '<div class="shelf">' + g + ' · ' + items.length + '</div><div class="group">';
-    items.forEach(d => { h += STK.open === d.id ? stkOpen(d) : stkClosed(d); });
-    h += '</div>';
-  });
-  $('stk-list').innerHTML = h;
+  const groups = [];
+  list.forEach(d => { const k = shelfKey(d), g = groups[groups.length - 1]; if (g && g.k === k) g.items.push(d); else groups.push({ k: k, items: [d] }); });
+  $('stk-list').innerHTML = groups.map(g => '<div class="shelf">' + esc(shelfName(g.k)) + ' · ' + g.items.length + ' รายการ</div><div class="group">' +
+    g.items.map(d => STK.open === d.id ? stkOpen(d) : stkClosed(d)).join('') + '</div>').join('');
 }
+/* ในกลุ่มชั้นแล้ว ป้ายแสดงแค่ กล่อง · ช่อง · ตู้เย็นไม่ต้องมีป้าย */
+function stkLoc(d) { return d.location === FRIDGE ? '' : '<br>' + locPill(d, false); }
 function stkQty(d) { return '<span class="qtxt"' + (d.cur < d.target ? ' style="color:var(--red)"' : '') + '>' + d.cur + '<span class="lbl">/' + d.target + ' ' + esc(d.unit) + '</span></span>'; }
 function stkClosed(d) {
   const p = statusPill(d, { ignoreDone: true });
   return '<button class="gr" type="button" onclick="STK.open=\'' + d.id + '\';renderStockList()" aria-expanded="false">' +
-    '<span class="grow"><span class="nm">' + esc(d.name) + '</span>' + hadTag(d) + '<br>' + locPill(d, true) + (p ? '<span style="display:block;margin-top:4px;text-align:left">' + p + '</span>' : '') + '</span>' + stkQty(d) + '</button>';
+    '<span class="grow"><span class="nm">' + esc(d.name) + '</span>' + hadTag(d) + stkLoc(d) + (p ? '<span style="display:block;margin-top:4px;text-align:left">' + p + '</span>' : '') + '</span>' + stkQty(d) + '</button>';
 }
 function stkOpen(d) {
   const p = statusPill(d, { ignoreDone: true });
   return '<div class="gr" style="flex-direction:column;align-items:stretch;background:var(--soft)">' +
     '<button type="button" style="display:flex;align-items:center;gap:10px;border:0;background:none;text-align:left;padding:0;color:inherit" onclick="STK.open=null;renderStockList()" aria-expanded="true">' +
-    '<span class="grow"><span class="nm">' + esc(d.name) + '</span>' + hadTag(d) + '<br>' + locPill(d, true) + (p ? '<span style="display:block;margin-top:4px">' + p + '</span>' : '') + '</span>' + stkQty(d) + '</button>' +
+    '<span class="grow"><span class="nm">' + esc(d.name) + '</span>' + hadTag(d) + stkLoc(d) + (p ? '<span style="display:block;margin-top:4px">' + p + '</span>' : '') + '</span>' + stkQty(d) + '</button>' +
     '<div class="dl" style="margin-top:10px"><div><div class="lbl">EXP ใกล้สุด</div><div class="dv">' + esc(d.exp ? expFull(d.exp) : '—') + '</div></div>' +
     '<div><div class="lbl">ประเภท</div><div class="dv">' + esc(TYPE_TH[d.type] || d.type) + '</div></div>' +
     '<div><div class="lbl">' + (d.pack_size ? 'เม็ด/ซอง' : 'ที่เก็บ') + '</div><div class="dv">' + esc(d.pack_size ? d.pack_size + ' เม็ด' : d.location) + '</div></div></div>' +
