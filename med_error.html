@@ -730,7 +730,7 @@ body.light .img-upload-wrap{background:#FAFAFA;border-color:#D0D0D0;}
         <button class="src-btn" id="src-pharmacy" onclick="setErrorSource('pharmacy')">ห้องยา</button>
       </div>
       <div id="error-source-input" style="display:none;margin-top:4px;">
-        <select id="f-error-source-select" class="light-aware-input" style="width:100%;padding:13px 40px 13px 16px;border:1.5px solid var(--border2);border-radius:var(--r);font-size:16px;font-family:'Google Sans',sans-serif;outline:none;display:none;appearance:none;-webkit-appearance:none;background-image:url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%23666' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E\");background-repeat:no-repeat;background-position:right 12px center;">
+        <select id="f-error-source-select" class="light-aware-input" onchange="onErrorSourceSelectChange()" style="width:100%;padding:13px 40px 13px 16px;border:1.5px solid var(--border2);border-radius:var(--r);font-size:16px;font-family:'Google Sans',sans-serif;outline:none;display:none;appearance:none;-webkit-appearance:none;background-image:url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%23666' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E\");background-repeat:no-repeat;background-position:right 12px center;">
         <option value="">— เลือก —</option>
         </select>
         <input type="text" id="f-error-source-text" placeholder="กรอกชื่อพยาบาล..." class="light-aware-input"
@@ -1455,6 +1455,7 @@ function selectDrugPill(el, type) {
 
 // ─── Error Source Picker (Feature 4) ───
 const DOCTOR_LIST = ['นพ.ปฐมพงศ์','พญ.ธัญญาภรณ์','พญ.วรรณี','พญ.กาญจนาภรณ์'];
+const OTHER_DOCTOR_VALUE = '__other_doctor__';
 const PHARMACY_LIST_PHARM = ['ภญ.นัยนา','ภญ.วนิดา','ภญ.อัญชลี','ภญ.ยุพิน','ภญ.กรรณิกา'];
 const PHARMACY_LIST_TECH = ['จพ.วิภารัตน์','จพ.ปุญญพัฒน์','จพ.ธนารักษ์','จพ.สรัล'];
 
@@ -1469,18 +1470,31 @@ function setErrorSource(type) {
   if (type === 'none') { inputWrap.style.display='none'; return; }
   inputWrap.style.display = 'block';
   if (type === 'nurse') {
+    txt.placeholder = 'กรอกชื่อพยาบาล...'; txt.style.marginTop='';
     sel.style.display='none'; txt.style.display='block'; txt.value='';
   } else {
-    txt.style.display='none'; sel.style.display='block';
+    txt.style.display='none'; txt.value=''; sel.style.display='block';
     const opts = type === 'doctor' ? DOCTOR_LIST :
       [...PHARMACY_LIST_PHARM.map(n=>`<option>${n}</option>`), ...PHARMACY_LIST_TECH.map(n=>`<option>${n}</option>`)].join('');
     if (type === 'doctor') {
-      sel.innerHTML = '<option value="">— เลือกแพทย์ —</option>' + DOCTOR_LIST.map(n=>`<option>${n}</option>`).join('');
+      sel.innerHTML = '<option value="">— เลือกแพทย์ —</option>' + DOCTOR_LIST.map(n=>`<option>${n}</option>`).join('') +
+        `<option value="${OTHER_DOCTOR_VALUE}">แพทย์ท่านอื่น (ระบุชื่อ)</option>`;
     } else {
       sel.innerHTML = '<option value="">— เลือกห้องยา —</option>' +
         '<optgroup label="เภสัชกร">' + PHARMACY_LIST_PHARM.map(n=>`<option>${n}</option>`).join('') + '</optgroup>' +
         '<optgroup label="จพ.">' + PHARMACY_LIST_TECH.map(n=>`<option>${n}</option>`).join('') + '</optgroup>';
     }
+  }
+}
+
+function onErrorSourceSelectChange() {
+  const sel = document.getElementById('f-error-source-select');
+  const txt = document.getElementById('f-error-source-text');
+  if (selectedErrorSource === 'doctor' && sel.value === OTHER_DOCTOR_VALUE) {
+    txt.placeholder = 'กรอกชื่อแพทย์ เช่น นพ.สมชาย';
+    txt.style.display = 'block'; txt.style.marginTop = '8px'; txt.value = ''; txt.focus();
+  } else if (selectedErrorSource !== 'nurse') {
+    txt.style.display = 'none'; txt.style.marginTop = ''; txt.value = '';
   }
 }
 
@@ -2265,9 +2279,14 @@ async function submitForm(){
   if(!_checkSupa()) return;
 
   const subLabel = sub.options[sub.selectedIndex].textContent;
-  const errorSourceName = selectedErrorSource === 'nurse'
-    ? (document.getElementById('f-error-source-text').value.trim())
-    : (document.getElementById('f-error-source-select').value.trim());
+  const _srcSelVal = document.getElementById('f-error-source-select').value.trim();
+  const _srcTxtVal = document.getElementById('f-error-source-text').value.trim();
+  if (selectedErrorSource === 'doctor' && _srcSelVal === OTHER_DOCTOR_VALUE && !_srcTxtVal) {
+    alert('กรุณากรอกชื่อแพทย์ หรือเปลี่ยนเป็น "ไม่ระบุ"'); return;
+  }
+  const errorSourceName = selectedErrorSource === 'nurse' ? _srcTxtVal
+    : (selectedErrorSource === 'doctor' && _srcSelVal === OTHER_DOCTOR_VALUE) ? _srcTxtVal
+    : _srcSelVal;
 
   const entryId = Date.now();
   const entry={
