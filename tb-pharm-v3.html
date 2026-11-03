@@ -7076,8 +7076,6 @@ function useDemoCatalog() {
     { drug_id:'D0005', name:'Ethambutol',   abbr:'E',   strength_mg:500, unit:'เม็ด', active:true, min_stock:200, max_stock:1000, balance:0 },
     { drug_id:'D0006', name:'Pyrazinamide', abbr:'Z',   strength_mg:500, unit:'เม็ด', active:true, min_stock:300, max_stock:1500, balance:0 },
     { drug_id:'D0007', name:'Levofloxacin', abbr:'Lfx', strength_mg:500, unit:'เม็ด', active:true, min_stock:100, max_stock:1000, balance:0 },
-    { drug_id:'D0008', name:'Amikacin',     abbr:'Am',  strength_mg:500, unit:'vial', active:true, min_stock:50,  max_stock:500,  balance:0  },
-    { drug_id:'D0009', name:'Pyridoxine',   abbr:'B6',  strength_mg:50,  unit:'เม็ด', active:true, min_stock:200, max_stock:2000, balance:0 },
   ];
 }
 
@@ -7317,7 +7315,7 @@ function renderStock() {
   // populate drug select
   const sel = document.getElementById('txn-drug'); if (!sel) return;
   sel.innerHTML = '<option value="">— เลือกยา —</option>' +
-    S.catalog.map(d=>`<option value="${d.drug_id}">${d.name} ${d.strength_mg}mg (${d.abbr})</option>`).join('');
+    S.catalog.filter(d=>d.active).map(d=>`<option value="${d.drug_id}">${d.name} ${d.strength_mg}mg (${d.abbr})</option>`).join('');
 }
 
 function renderCatalog() {
@@ -7370,7 +7368,13 @@ function openEditDrug(id) {
 function toggleDrug(id, active) {
   S.catalog = S.catalog.map(d => d.drug_id===id ? {...d, active} : d);
   renderCatalog(); renderStock();
-  toast(active ? 'เปิดใช้งานยาแล้ว' : 'ปิดใช้งานยาแล้ว');
+  if (APPS_SCRIPT_URL && !APPS_SCRIPT_URL.includes('YOUR_APPS')) {
+    api('saveDrug', { drug_id: id, active })
+      .then(() => toast(active ? '✅ เปิดใช้งานยาแล้ว — sync สำเร็จ' : '✅ ปิดใช้งานยาแล้ว — sync สำเร็จ'))
+      .catch(e => toast('⚠️ sync ไม่สำเร็จ — จะกลับมาเมื่อ reload: '+(e.message||e), 6000));
+  } else {
+    toast(active ? 'เปิดใช้งานยาแล้ว' : 'ปิดใช้งานยาแล้ว');
+  }
 }
 
 /* ─── MODAL ───────────────────────────────── */
