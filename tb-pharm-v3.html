@@ -1604,7 +1604,7 @@ async function refreshCurrentPage() {
           api('getStockLedger', {}),
         ]);
         if (catalog?.length) S.catalog = catalog;
-        if (ledger?.length) { calcBalanceFromLedger(ledger); }
+        if (ledger?.length) { calcBalanceFromLedger(ledger); window.S_txLog = ledgerToTxLog(ledger); }
       }
       renderStock();
       renderStockTxLog();
@@ -3577,23 +3577,7 @@ function buildPharmPage(key) {
           if (ledger?.length) {
             calcBalanceFromLedger(ledger);
             // Also populate S_txLog for local log display
-            window.S_txLog = ledger
-              .sort((a,b) => (b.txn_date||'').localeCompare(a.txn_date||''))
-              .map(t => {
-                const d = S.catalog.find(x => x.drug_id === t.drug_id);
-                return {
-                  date:     t.txn_date || '',
-                  time:     '',
-                  drugId:   t.drug_id,
-                  drugName: d ? d.name+' '+d.strength_mg+' mg' : t.drug_id,
-                  abbr:     d ? d.abbr : '',
-                  type:     t.txn_type === 'IN' ? 'รับเข้า' : t.txn_type === 'OUT' ? 'จ่ายออก' : 'ตั้งยอด',
-                  qty:      Math.abs(parseFloat(t.qty)||0),
-                  lot:      t.lot_no || '',
-                  expiry:   t.exp_date || '',
-                  note:     t.source || t.notes || '',
-                };
-              });
+            window.S_txLog = ledgerToTxLog(ledger);
           }
           renderStock();
           renderStockTxLog();
@@ -3702,14 +3686,14 @@ function submitEditBalance(drugId) {
   const note= document.getElementById('edit-bal-note')?.value || 'ปรับยอดจากหน้าคลัง';
   const prev= d.balance || 0;
   d.balance = qty;
-  recordStockTx('ตั้งยอด', drugId, qty, '', '', note);
+  const adjEntry = recordStockTx('ตั้งยอด', drugId, qty, '', '', note);
   renderStock();
   renderStockTxLog();
   if (APPS_SCRIPT_URL && !APPS_SCRIPT_URL.includes('YOUR_APPS')) {
     api('saveStockTxn', {
       drug_id: drugId, txn_type: 'ADJUST', qty,
       source: note, txn_date: new Date().toISOString().slice(0,10)
-    }).then(() => toast('✅ ปรับยอดแล้ว '+prev+' → '+qty+' '+d.unit))
+    }).then(res => { if (res?.saved) adjEntry.ledgerId = res.saved; toast('✅ ปรับยอดแล้ว '+prev+' → '+qty+' '+d.unit); })
       .catch(e => toast('⚠️ sync ไม่สำเร็จ — ข้อมูลจะหายเมื่อ reload: '+(e.message||e), 6000));
   } else {
     toast('💾 ปรับยอด '+d.abbr+' : '+prev+' → '+qty+' '+d.unit);
@@ -7097,13 +7081,71 @@ function useDemoCatalog() {
   ];
 }
 
+/* ─── VOID linkage ─────────────────────────
+   VOID row เก็บ ledger_id ต้นฉบับใน notes = 'VOID_OF:<ledger_id>'
+   VOID เก่าที่ไม่มี link → จับคู่จาก drug + lot + ประเภท + จำนวน (ใน source)
+   กับรายการล่าสุดที่ยังไม่ถูก void และเกิดก่อน VOID
+────────────────────────────────────────── */
+function ledgerSeq(t) { const m = String(t?.ledger_id||'').match(/(\d+)/); return m ? parseInt(m[1]) : 0; }
+
+function getVoidedLedgerIds(ledger) {
+  const voided = new Set();
+  const rows = [...(ledger||[])].sort((a,b) => (a.txn_date||'').localeCompare(b.txn_date||'') || ledgerSeq(a) - ledgerSeq(b));
+  const typeTH = { 'รับเข้า':'IN', 'จ่ายออก':'OUT', 'ตั้งยอด':'ADJUST' };
+  rows.forEach((v, idx) => {
+    if ((v.txn_type||'').toUpperCase() !== 'VOID') return;
+    const link = String(v.notes||'').match(/VOID_OF:\s*([A-Za-z]*\d+)/);
+    if (link) { voided.add(link[1]); return; }
+    // legacy: "VOID: เหตุผล (ยกเลิก จ่ายออก 100 R)"
+    const m = String(v.source||'').match(/ยกเลิก\s+(รับเข้า|จ่ายออก|ตั้งยอด)\s+([\d.]+)/);
+    if (!m) return;
+    const wantType = typeTH[m[1]], wantQty = parseFloat(m[2]);
+    for (let i = idx - 1; i >= 0; i--) {
+      const o = rows[i];
+      if (voided.has(o.ledger_id)) continue;
+      if (o.drug_id !== v.drug_id) continue;
+      if ((o.txn_type||'').toUpperCase() !== wantType) continue;
+      if ((o.lot_no||'') !== (v.lot_no||'')) continue;
+      if (Math.abs(parseFloat(o.qty)||0) !== wantQty) continue;
+      voided.add(o.ledger_id); break;
+    }
+  });
+  return voided;
+}
+
+function ledgerToTxLog(ledger) {
+  const voided = getVoidedLedgerIds(ledger);
+  return [...ledger]
+    .sort((a,b) => (b.txn_date||'').localeCompare(a.txn_date||'') || ledgerSeq(b) - ledgerSeq(a)) // newest first
+    .map(t => {
+      const d = S.catalog.find(x => x.drug_id === t.drug_id);
+      const tt = (t.txn_type||'').toUpperCase();
+      return {
+        ledgerId: t.ledger_id || '',
+        date:     t.txn_date || '',
+        time:     '',
+        drugId:   t.drug_id,
+        drugName: d ? d.name+' '+d.strength_mg+' mg' : t.drug_id,
+        abbr:     d ? d.abbr : '',
+        type:     tt === 'IN' ? 'รับเข้า' : tt === 'OUT' ? 'จ่ายออก' : tt === 'VOID' ? 'VOID' : 'ตั้งยอด',
+        qty:      Math.abs(parseFloat(t.qty)||0),
+        lot:      t.lot_no || '',
+        expiry:   t.exp_date || '',
+        note:     t.source || t.notes || '',
+        voided:   voided.has(t.ledger_id),
+      };
+    });
+}
+
 function calcBalanceFromLedger(ledger) {
   if (!ledger?.length) return;
   // Reset all balances to 0 first
   S.catalog.forEach(d => { d.balance = 0; });
+  const voided = getVoidedLedgerIds(ledger);
   // Sort by date ascending so ADJUST applies in order
-  const sorted = [...ledger].sort((a,b) => (a.txn_date||'').localeCompare(b.txn_date||''));
+  const sorted = [...ledger].sort((a,b) => (a.txn_date||'').localeCompare(b.txn_date||'') || ledgerSeq(a) - ledgerSeq(b));
   sorted.forEach(t => {
+    if (voided.has(t.ledger_id)) return; // รายการที่ถูก VOID แล้ว ไม่นับ
     const d = S.catalog.find(x => x.drug_id === t.drug_id);
     if (!d) {
       console.warn('Drug not found in catalog:', t.drug_id, '- available:', S.catalog.map(x=>x.drug_id));
@@ -7170,8 +7212,11 @@ function getLotSnapshot() {
   const txLog = window.S_txLog || [];
   const drugMap = {}; // drugId → { lots: { lotKey: { lot, expiry, qty } } }
 
-  // Sort by date asc so we process chronologically
-  const sorted = [...txLog].sort((a,b) => (a.date||'').localeCompare(b.date||''));
+  // Sort by date asc so we process chronologically.
+  // S_txLog เรียง newest-first → วันเดียวกันให้ index มากก่อน (= เกิดก่อน) กัน OUT ถูกประมวลผลก่อน IN ของวันเดียวกัน
+  const sorted = txLog.map((t,i) => [t,i])
+    .sort(([a,ia],[b,ib]) => (a.date||'').localeCompare(b.date||'') || (ib - ia))
+    .map(([t]) => t);
 
   sorted.forEach(t => {
     if (!t.drugId) return;
@@ -7187,8 +7232,19 @@ function getLotSnapshot() {
     }
 
     if (t.type === 'จ่ายออก') {
-      // FEFO: deduct from earliest expiry first
       let remaining = q;
+      // 1) ตัดจาก Lot ที่ผู้ใช้เลือกไว้ก่อน (match lot+expiry, ถ้าไม่เจอ match ด้วยเลข lot)
+      if (t.lot) {
+        const exact = dm.lots[t.lot + '|' + (t.expiry || '')];
+        const target = (exact && exact.qty > 0) ? exact
+          : Object.values(dm.lots).find(v => v.lot === t.lot && v.qty > 0);
+        if (target) {
+          const take = Math.min(target.qty, remaining);
+          target.qty -= take;
+          remaining -= take;
+        }
+      }
+      // 2) ส่วนที่เหลือ (หรือไม่ได้ระบุ Lot) → FEFO: earliest expiry first
       const lotsSorted = Object.entries(dm.lots)
         .filter(([,v]) => v.qty > 0)
         .sort(([,a],[,b]) => {
@@ -7865,7 +7921,7 @@ function saveStockTxn() {
   if (type === 'จ่ายออก')  d.balance = Math.max(0, (d.balance || 0) - q);
 
   // Log transaction
-  recordStockTx(type, drugId, q, lot, expiry, note);
+  const txEntry = recordStockTx(type, drugId, q, lot, expiry, note);
 
   // Re-render
   renderStock();
@@ -7890,7 +7946,7 @@ function saveStockTxn() {
       exp_date:   expiry || null,
       source:     note,
       txn_date:   new Date().toISOString().slice(0,10)
-    }).then(() => toast('✅ บันทึก '+type+' — sync สำเร็จ'))
+    }).then(res => { if (res?.saved) txEntry.ledgerId = res.saved; toast('✅ บันทึก '+type+' — sync สำเร็จ'); })
       .catch(e => toast('⚠️ sync ไม่สำเร็จ — ข้อมูลจะหายเมื่อ reload: '+(e.message||e), 6000));
   } else {
     toast('💾 บันทึก '+type+' : '+d.abbr+' '+q+' '+d.unit);
@@ -7900,7 +7956,7 @@ function saveStockTxn() {
 function recordStockTx(type, drugId, qty, lot, expiry, note) {
   if (!window.S_txLog) window.S_txLog = [];
   const d = S.catalog.find(x=>x.drug_id===drugId);
-  window.S_txLog.unshift({   // unshift = newest first
+  const entry = {
     date:     new Date().toISOString().slice(0,10),
     time:     new Date().toLocaleTimeString('th-TH',{hour:'2-digit',minute:'2-digit'}),
     drugId,   qty: parseInt(qty)||0,
@@ -7908,7 +7964,9 @@ function recordStockTx(type, drugId, qty, lot, expiry, note) {
     abbr:     d ? d.abbr : '',
     type, lot: lot||'', expiry: expiry||'', note: note||'',
     balanceAfter: d ? (d.balance||0) : 0
-  });
+  };
+  window.S_txLog.unshift(entry);   // unshift = newest first
+  return entry;
 }
 
 function renderStockTxLog() {
@@ -7919,8 +7977,8 @@ function renderStockTxLog() {
     el.innerHTML = '<div style="padding:14px;text-align:center;color:var(--tx3);font-size:13px">ยังไม่มีรายการ</div>';
     return;
   }
-  const typeColor = { 'รับเข้า':'var(--g3)', 'จ่ายออก':'var(--red)', 'ตั้งยอด':'var(--blue)' };
-  const typePill  = { 'รับเข้า':'pill-g', 'จ่ายออก':'pill-rd', 'ตั้งยอด':'pill-bl' };
+  const typeColor = { 'รับเข้า':'var(--g3)', 'จ่ายออก':'var(--red)', 'ตั้งยอด':'var(--blue)', 'VOID':'var(--tx3)' };
+  const typePill  = { 'รับเข้า':'pill-g', 'จ่ายออก':'pill-rd', 'ตั้งยอด':'pill-bl', 'VOID':'pill-mu' };
   el.innerHTML = log.slice(0,30).map((t,i) => `
     <div style="display:flex;align-items:center;gap:10px;padding:10px 14px;border-bottom:1px solid var(--bd);${t.voided?'opacity:.4;text-decoration:line-through':''}">
       <div style="flex-shrink:0;text-align:center;min-width:52px">
@@ -7934,11 +7992,11 @@ function renderStockTxLog() {
       <div style="text-align:right;flex-shrink:0;display:flex;align-items:center;gap:8px">
         <div>
           <div style="font-family:var(--font-en);font-size:15px;font-weight:700;color:${typeColor[t.type]||'var(--tx)'}">
-            ${t.type==='จ่ายออก'?'-':'+'} ${t.qty.toLocaleString()}
+            ${t.type==='VOID'?'':t.type==='จ่ายออก'?'- ':t.type==='ตั้งยอด'?'= ':'+ '}${t.qty.toLocaleString()}
           </div>
           <div style="margin-top:2px"><span class="pill ${typePill[t.type]||'pill-mu'}" style="font-size:10px">${t.type}</span></div>
         </div>
-        ${!t.voided && !t.fromSheets ? `<button class="btn btn-sm" style="padding:3px 8px;font-size:10.5px;min-height:26px;background:var(--red1);color:var(--red);border:1px solid var(--red2)"
+        ${!t.voided && !t.fromSheets && t.type!=='VOID' ? `<button class="btn btn-sm" style="padding:3px 8px;font-size:10.5px;min-height:26px;background:var(--red1);color:var(--red);border:1px solid var(--red2)"
           onclick="confirmVoid(${(window.S_txLog||[]).indexOf(t)})">ยกเลิก</button>` : ''}
       </div>
     </div>`).join('');
@@ -8003,13 +8061,16 @@ async function voidStockTxn(idx) {
     d.balance = dm ? Object.values(dm.lots).reduce((s,l)=>s+(l.qty||0),0) : 0;
   }
 
-  // Save void to backend
+  // Save void to backend — notes ผูก ledger_id ต้นฉบับ, qty = ยอดหักล้าง (ให้ sum(qty) ฝั่ง backend ถูกด้วย)
   if (APPS_SCRIPT_URL && !APPS_SCRIPT_URL.includes('YOUR_APPS')) {
+    const reverseQty = t.type === 'จ่ายออก' ? Math.abs(t.qty) : t.type === 'รับเข้า' ? -Math.abs(t.qty) : 0;
     api('saveStockTxn', {
-      drug_id: t.drugId, txn_type: 'VOID', qty: 0,
-      lot_no: t.lot, source: voidEntry.note,
+      drug_id: t.drugId, txn_type: 'VOID', qty: reverseQty,
+      lot_no: t.lot, exp_date: t.expiry || null, source: voidEntry.note,
+      notes: t.ledgerId ? 'VOID_OF:' + t.ledgerId : '',
       txn_date: voidEntry.date,
-    }).catch(e => toast('⚠️ บันทึก VOID ไม่สำเร็จ: ' + e.message, 'error'));
+    }).then(res => { if (res?.saved) voidEntry.ledgerId = res.saved; })
+      .catch(e => toast('⚠️ บันทึก VOID ไม่สำเร็จ: ' + e.message, 6000));
   }
 
   closeModal();
