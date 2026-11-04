@@ -1,0 +1,746 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>คลังยา TB · sheisphere</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Google+Sans:wght@400;500;700&family=Noto+Sans+Thai:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --ink:#2B2340; --ink2:#6B6585; --line:#ECE8F7; --card:#FFFFFF; --soft:#F6F4FD;
+  --warn:#E8590C; --warn-bg:#FFE4D4; --warn-ink:#A13A06;
+  --bad:#D63A5A;  --bad-bg:#FFECEF;  --bad-ink:#B21F3B;
+  --exp:#7B4FD0;  --exp-bg:#F1EBFF;  --exp-ink:#5B34A8;
+  --ok-bg:#DDF5E7; --ok-ink:#1B6B40;
+  --font:'Google Sans','Noto Sans Thai',sans-serif;
+}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{font-family:var(--font);color:var(--ink);background:linear-gradient(180deg,#EAF1FF 0%,#F4EEFF 55%,#FFF0F4 100%) fixed;min-height:100vh;-webkit-font-smoothing:antialiased}
+button,input{font:inherit;color:inherit}
+button{cursor:pointer}
+a{color:#3B2F8F}
+.wrap{max-width:1060px;margin:0 auto;padding:32px 24px 140px;display:flex;flex-direction:column;gap:24px}
+.top{display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:12px;padding:0 6px}
+.top .date{font-size:14px;font-weight:700;color:#7A6FD0}
+.top h1{margin:4px 0 0;font-size:32px;font-weight:700;letter-spacing:-.03em;line-height:1.15}
+.top h1 em{font-style:normal;color:var(--warn)}
+.top-links{display:flex;gap:8px}
+.chip-btn{height:44px;padding:0 16px;border-radius:99px;border:0;background:rgba(255,255,255,.8);box-shadow:0 1px 3px rgba(43,35,64,.08);font-size:15px;font-weight:600;display:inline-flex;align-items:center;gap:8px}
+.card{background:var(--card);border-radius:32px;box-shadow:0 10px 30px rgba(59,47,143,.08)}
+.shelf{padding:26px 30px 30px}
+.shelf-h{display:flex;justify-content:space-between;align-items:baseline;gap:12px;flex-wrap:wrap}
+.shelf-h h2{margin:0;font-size:22px;font-weight:700;letter-spacing:-.02em}
+.muted{color:var(--ink2)}
+.bottles{display:grid;grid-template-columns:repeat(auto-fit,minmax(112px,1fr));gap:6px;align-items:end;padding-top:12px}
+.bottle{all:unset;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:8px;padding:6px 0;border-radius:20px;transition:transform .15s}
+.bottle:hover{transform:translateY(-4px)}
+.bottle:focus-visible{outline:3px solid #7A6FD0;outline-offset:2px}
+.badge-slot{height:30px;display:flex;align-items:flex-end}
+.badge{padding:5px 11px;border-radius:99px;color:#fff;font-size:12px;font-weight:700;white-space:nowrap;box-shadow:0 4px 10px rgba(43,35,64,.18)}
+.tag{padding:4px 12px;border-radius:99px;font-size:14px;font-weight:700}
+.total{font-size:20px;font-weight:700;letter-spacing:-.02em;font-variant-numeric:tabular-nums}
+.plank{display:flex;flex-direction:column;margin-top:-2px}
+.plank span:first-child{height:10px;border-radius:10px 10px 0 0;background:#EDE7FF}
+.plank span:last-child{height:12px;border-radius:0 0 10px 10px;background:linear-gradient(180deg,#D6CAFA,#C4B5F2);box-shadow:0 10px 18px rgba(91,52,168,.18)}
+.dock{position:fixed;left:50%;bottom:calc(20px + env(safe-area-inset-bottom));transform:translateX(-50%);display:flex;align-items:center;gap:6px;padding:7px;border-radius:999px;background:rgba(255,255,255,.75);backdrop-filter:blur(24px) saturate(180%);-webkit-backdrop-filter:blur(24px) saturate(180%);border:.5px solid rgba(255,255,255,.9);box-shadow:0 12px 40px rgba(59,47,143,.18),inset 0 1px 0 rgba(255,255,255,.95);z-index:20}
+.dock button{height:54px;padding:0 22px;border-radius:999px;border:0;background:transparent;font-size:16px;font-weight:700;display:inline-flex;align-items:center;gap:9px;white-space:nowrap}
+.dock .primary{background:var(--ink);color:#fff;padding:0 26px}
+.ov{position:fixed;inset:0;background:rgba(43,35,64,.32);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);display:none;align-items:flex-end;justify-content:center;padding:0 16px 16px;z-index:30}
+.ov.on{display:flex}
+.sheet{width:100%;max-width:680px;max-height:calc(100vh - 32px);overflow:auto;background:#F7F5FF;border-radius:34px;box-shadow:0 24px 60px rgba(43,35,64,.3);padding:10px 24px 24px;animation:up .22s ease-out}
+.sheet.wide{max-width:920px;background:#fff}
+@keyframes up{from{transform:translateY(24px);opacity:0}to{transform:none;opacity:1}}
+.grab{display:flex;justify-content:center;padding:2px 0 6px}.grab span{width:40px;height:5px;border-radius:99px;background:#DDD8EE}
+.sh-top{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:12px}
+.sh-top h2{margin:0;font-size:20px;font-weight:700;letter-spacing:-.02em}
+.x{width:44px;height:44px;border-radius:50%;border:0;background:#ECE8F7;display:inline-flex;align-items:center;justify-content:center;flex-shrink:0}
+.lbl{display:block;margin:18px 6px 8px;font-size:13px;font-weight:700;color:var(--ink2)}
+.minis{display:grid;grid-template-columns:repeat(auto-fit,minmax(60px,1fr));gap:4px}
+.mini{all:unset;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:4px;padding:6px 0 8px;border-radius:16px}
+.mini:focus-visible{outline:3px solid #7A6FD0}
+.mini span{font-size:13px;font-weight:700}
+.group{background:#fff;border-radius:22px;padding:6px}
+.lotbtn{all:unset;box-sizing:border-box;width:100%;display:flex;flex-direction:column;gap:8px;padding:12px 14px;border-radius:16px;cursor:pointer}
+.lotbtn:focus-visible{outline:3px solid #7A6FD0}
+.lot-row{display:flex;align-items:center;gap:10px}
+.radio{width:20px;height:20px;border-radius:50%;border:2px solid #C7C2DA;display:inline-flex;align-items:center;justify-content:center;flex-shrink:0}
+.lot-bar{position:relative;height:6px;border-radius:99px;background:#EFEDF6;overflow:hidden}
+.lot-bar i{position:absolute;top:0;bottom:0;border-radius:99px}
+.qty-box{background:#fff;border-radius:22px;padding:16px;display:flex;flex-direction:column;align-items:center;gap:8px}
+.qty-line{display:flex;align-items:center;gap:16px}
+.round{width:52px;height:52px;border-radius:50%;border:0;background:#ECE8F7;font-size:26px}
+.qty-in{width:200px;border:0;outline:none;background:transparent;font-size:68px;font-weight:700;letter-spacing:-.05em;text-align:center;font-variant-numeric:tabular-nums}
+input[type=number]::-webkit-inner-spin-button,input[type=number]::-webkit-outer-spin-button{-webkit-appearance:none;margin:0}
+input[type=number]{-moz-appearance:textfield}
+.quick{display:flex;gap:8px;flex-wrap:wrap;justify-content:center}
+.quick button{height:38px;min-width:58px;padding:0 12px;border-radius:99px;border:0;background:#ECE8F7;font-size:15px;font-weight:600}
+.quick button.on{background:var(--ink);color:#fff}
+.note{margin:10px 6px 0;font-size:14px;line-height:1.5}
+.field{display:flex;align-items:center;gap:12px;min-height:56px;padding:0 16px;border-bottom:.5px solid #ECE8F7}
+.field:last-child{border-bottom:0}
+.field label{width:110px;font-size:15px;color:var(--ink2);flex-shrink:0}
+.field input{flex:1;min-width:0;border:0;outline:none;background:transparent;font-size:17px;font-weight:700;text-align:right}
+.field input::placeholder{color:#B9B3CF;font-weight:500}
+.save{width:100%;height:58px;border-radius:999px;border:0;background:var(--ink);color:#fff;font-size:17px;font-weight:700;margin-top:20px}
+.save:disabled{opacity:.45;cursor:not-allowed}
+.sugs{display:flex;gap:8px;flex-wrap:wrap;margin:8px 6px 0}
+.sugs button{height:36px;padding:0 14px;border-radius:99px;border:0;background:#ECE8F7;font-size:14px;font-weight:600}
+.info{display:flex;gap:10px;align-items:flex-start;margin-top:12px;padding:12px 14px;border-radius:16px;font-size:14px;line-height:1.5}
+.tl{position:relative;height:230px;margin:30px 34px 6px}
+.tl .track{position:absolute;left:0;right:0;top:96px;height:8px;border-radius:99px;background:#EEEAFB}
+.tl .tick{position:absolute;top:206px;transform:translateX(-50%);font-size:12px;font-weight:600;color:var(--ink2);white-space:nowrap}
+.tl .now{position:absolute;left:0;top:89px;transform:translateX(-50%);width:22px;height:22px;border-radius:50%;background:var(--ink);border:5px solid #fff;box-shadow:0 0 0 2px var(--ink)}
+.tl .now-l{position:absolute;left:0;top:116px;transform:translateX(-50%);font-size:13px;font-weight:700}
+.tl .pin{position:absolute;transform:translateX(-50%);display:flex;flex-direction:column;align-items:center;gap:3px;text-align:center}
+.tl .pin b{font-size:13px;white-space:nowrap}
+.tl .pin small{font-size:12px;color:var(--ink2);white-space:nowrap}
+.first{padding:2px 9px;border-radius:99px;background:var(--ink);color:#fff;font-size:11px;font-weight:700;white-space:nowrap}
+.tbl{width:100%;border-collapse:collapse;font-size:15px}
+.tbl th{text-align:left;font-size:12px;color:var(--ink2);font-weight:700;padding:8px 10px;border-bottom:1px solid var(--line)}
+.tbl td{padding:12px 10px;border-bottom:1px solid var(--line);font-variant-numeric:tabular-nums}
+.r{text-align:right}
+.hist{display:flex;flex-direction:column;gap:8px}
+.h-row{display:flex;align-items:center;gap:12px;background:var(--soft);border-radius:18px;padding:12px 14px}
+.h-row.void{opacity:.45;text-decoration:line-through}
+.h-qty{font-size:18px;font-weight:700;font-variant-numeric:tabular-nums;min-width:64px;text-align:right}
+.mini-btn{height:36px;padding:0 14px;border-radius:99px;border:0;font-size:14px;font-weight:700;background:var(--bad-bg);color:var(--bad-ink)}
+.switch{display:flex;align-items:center;justify-content:space-between;gap:12px;min-height:56px;padding:0 16px;border-bottom:.5px solid #ECE8F7;font-size:16px;font-weight:500;cursor:pointer}
+.switch:last-child{border-bottom:0}
+.switch input{appearance:none;-webkit-appearance:none;width:51px;height:31px;border-radius:99px;background:#DCD8E8;position:relative;transition:background .15s;cursor:pointer;flex-shrink:0;margin:0}
+.switch input::after{content:'';position:absolute;top:2px;left:2px;width:27px;height:27px;border-radius:50%;background:#fff;box-shadow:0 2px 4px rgba(0,0,0,.2);transition:left .15s}
+.switch input:checked{background:#5BC489}.switch input:checked::after{left:22px}
+.btn2{width:100%;height:56px;border-radius:999px;border:0;background:#fff;font-size:17px;font-weight:600;margin-top:10px;box-shadow:0 1px 3px rgba(43,35,64,.08)}
+.toast{position:fixed;left:50%;top:20px;transform:translate(-50%,-80px);background:var(--ink);color:#fff;padding:12px 20px;border-radius:99px;font-size:15px;font-weight:600;box-shadow:0 10px 30px rgba(43,35,64,.3);transition:transform .25s;z-index:50;max-width:calc(100vw - 32px)}
+.toast.on{transform:translate(-50%,0)}
+.loading{padding:60px 0;text-align:center;color:var(--ink2);font-size:16px}
+.err{padding:24px;border-radius:20px;background:var(--bad-bg);color:var(--bad-ink);font-size:15px;line-height:1.5}
+@media (max-width:640px){
+  .wrap{padding:22px 14px 130px}
+  .top h1{font-size:26px}
+  .shelf{padding:20px 14px 22px}
+  .bottles{grid-template-columns:repeat(4,minmax(0,1fr))}
+  .bottle svg{width:70px;height:98px}
+  .badge-slot{height:auto;min-height:30px}
+  .badge{font-size:11px;padding:4px 8px;white-space:normal;text-align:center;line-height:1.25;max-width:84px}
+  .dock button{padding:0 14px;height:50px;font-size:15px}
+  .dock .primary{padding:0 18px}
+  .tl{margin:30px 26px 6px}
+  .qty-in{width:150px;font-size:56px}
+  .sheet{padding:8px 16px 20px}
+}
+@media print{.dock,.top-links{display:none}}
+</style>
+</head>
+<body>
+
+<main class="wrap">
+  <header class="top">
+    <div>
+      <div class="date" id="today"></div>
+      <h1 id="headline">กำลังโหลด…</h1>
+    </div>
+    <div class="top-links">
+      <button class="chip-btn" type="button" onclick="openHistory()">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><path d="M3 3v5h5M12 7v5l3 2"/></svg>ประวัติ
+      </button>
+      <button class="chip-btn" type="button" onclick="load()" aria-label="โหลดข้อมูลใหม่">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12a9 9 0 1 1-3-6.7L21 8"/><path d="M21 3v5h-5"/></svg>
+      </button>
+    </div>
+  </header>
+
+  <section class="card shelf" aria-labelledby="shelf-h">
+    <div class="shelf-h">
+      <h2 id="shelf-h">ชั้นยา TB</h2>
+      <span class="muted" style="font-size:14px">แตะขวดเพื่อดู Lot</span>
+    </div>
+    <div id="shelf"><div class="loading">กำลังโหลดข้อมูลคลัง…</div></div>
+  </section>
+</main>
+
+<nav class="dock" aria-label="งานหลัก">
+  <button class="primary" type="button" onclick="openDispense()">
+    <svg width="22" height="14" viewBox="0 0 60 30" aria-hidden="true"><rect x="2" y="2" width="56" height="26" rx="13" fill="#fff"/><path d="M30 2h15a13 13 0 0 1 0 26H30z" fill="#FF8A4C"/></svg>จ่ายออก
+  </button>
+  <button type="button" onclick="openReceive()">
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round" aria-hidden="true"><path d="M3 8l9-4 9 4v9l-9 4-9-4z"/><path d="M3 8l9 4 9-4M12 12v9"/></svg>รับเข้า
+  </button>
+  <button type="button" onclick="openReport()">
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="3" width="14" height="18" rx="3"/><path d="M9 8h6M9 12h6M9 16h3"/></svg>รายงาน
+  </button>
+</nav>
+
+<div class="ov" id="ov" onclick="if(event.target===this)closeSheet()">
+  <div class="sheet" id="sheet" role="dialog" aria-modal="true"></div>
+</div>
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<script>
+/* ═══ CONFIG — Supabase edge function เดียวกับ tb-pharm-v3 ═══ */
+const API_URL = 'https://qvtlekphxsubuklyirlz.supabase.co/functions/v1/tb-hub';
+const API_KEY = 'sb_publishable_dPhW0DORMGlSTc1hzvT4Cw_9ChOlZ0H';
+
+const COLORS = { R:'#FF8A4C', H:'#5BC489', E:'#6AA9FF', Z:'#B48CF2', Lfx:'#F5C04A' };
+const TAGS   = { R:['#FFE4D4','#A13A06'], H:['#DDF5E7','#1B6B40'], E:['#E1EEFF','#1D58A8'], Z:['#EEE5FF','#5B34A8'], Lfx:['#FFF1CC','#7A5300'] };
+const FALLBACK = ['#F28DB2','#7FD1C7','#C9B37E'];
+const EXPIRY_WARN_DAYS = 90;   // ใกล้หมดอายุ
+const COVER_WARN_MONTHS = 1;   // พอใช้ < 1 เดือน → เบิกเพิ่ม
+const RATE_MONTHS = 3;         // ยอดใช้เฉลี่ยย้อนหลัง
+const COUNT_TAG = 'นับสต๊อก';    // source ของรายการปรับยอดจากการนับจริง (ไม่นับเป็นยอดใช้)
+const isCount = t => String(t.source||'').startsWith(COUNT_TAG);
+
+const S = { catalog:[], ledger:[], drugs:[], loaded:false, ui:{} };
+
+/* ═══ UTIL ═══ */
+const $ = id => document.getElementById(id);
+const esc = v => String(v ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const fmt = n => Math.round(n || 0).toLocaleString('en-US');
+const pad = n => String(n).padStart(2, '0');
+const TH_M = ['ม.ค.','ก.พ.','มี.ค.','เม.ย.','พ.ค.','มิ.ย.','ก.ค.','ส.ค.','ก.ย.','ต.ค.','พ.ย.','ธ.ค.'];
+const TH_D = ['อาทิตย์','จันทร์','อังคาร','พุธ','พฤหัสบดี','ศุกร์','เสาร์'];
+function todayISO(){ const d = new Date(); return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`; }
+function isoToTH(iso){ if(!iso) return '—'; const p = String(iso).slice(0,10).split('-'); return p.length===3 ? `${p[2]}/${p[1]}/${+p[0]+543}` : iso; }
+function parseTH(s){
+  const p = String(s||'').trim().split('/'); if (p.length !== 3 || p[2].length < 4) return null;
+  let y = parseInt(p[2]), m = parseInt(p[1]), d = parseInt(p[0]); if (y > 2400) y -= 543;
+  const dt = new Date(y, m-1, d); if (isNaN(dt) || dt.getDate() !== d || dt.getMonth() !== m-1) return null;
+  return `${y}-${pad(m)}-${pad(d)}`;
+}
+function daysUntil(iso){ return Math.round((new Date(iso+'T00:00:00') - new Date(todayISO()+'T00:00:00')) / 86400000); }
+function monthsUntil(iso){ return daysUntil(iso) / 30.44; }
+function seq(t){ const m = String(t?.ledger_id||'').match(/(\d+)/); return m ? parseInt(m[1]) : 0; }
+function isActive(d){ return d.active === true || d.active === 'TRUE' || d.active === 'true'; }
+function toast(msg, ms=2600){ const t=$('toast'); t.textContent=msg; t.classList.add('on'); clearTimeout(toast._t); toast._t=setTimeout(()=>t.classList.remove('on'), ms); }
+
+async function api(action, data={}){
+  const res = await fetch(API_URL, { method:'POST', headers:{'Content-Type':'application/json','apikey':API_KEY,'Authorization':'Bearer '+API_KEY}, body:JSON.stringify({action, data}) });
+  const json = await res.json();
+  if (!json.ok) throw new Error(json.error || 'API error');
+  return json.data;
+}
+
+/* ═══ CORE: VOID linkage + lot snapshot (ยกมาจาก v3 ที่แก้แล้ว) ═══ */
+function getVoidedIds(ledger){
+  const voided = new Set();
+  const rows = [...ledger].sort((a,b) => (a.txn_date||'').localeCompare(b.txn_date||'') || seq(a)-seq(b));
+  const typeTH = { 'รับเข้า':'IN', 'จ่ายออก':'OUT', 'ตั้งยอด':'ADJUST' };
+  rows.forEach((v, idx) => {
+    if ((v.txn_type||'').toUpperCase() !== 'VOID') return;
+    const link = String(v.notes||'').match(/VOID_OF:\s*([A-Za-z]*\d+)/);
+    if (link) { voided.add(link[1]); return; }
+    const m = String(v.source||'').match(/ยกเลิก\s+(รับเข้า|จ่ายออก|ตั้งยอด)\s+([\d.]+)/);
+    if (!m) return;
+    for (let i = idx-1; i >= 0; i--) {
+      const o = rows[i];
+      if (voided.has(o.ledger_id) || o.drug_id !== v.drug_id) continue;
+      if ((o.txn_type||'').toUpperCase() !== typeTH[m[1]]) continue;
+      if ((o.lot_no||'') !== (v.lot_no||'')) continue;
+      if (Math.abs(parseFloat(o.qty)||0) !== parseFloat(m[2])) continue;
+      voided.add(o.ledger_id); break;
+    }
+  });
+  return voided;
+}
+
+function computeDrugs(catalog, ledger){
+  const voided = getVoidedIds(ledger);
+  const rows = [...ledger]
+    .filter(t => !voided.has(t.ledger_id) && (t.txn_type||'').toUpperCase() !== 'VOID')
+    .sort((a,b) => (a.txn_date||'').localeCompare(b.txn_date||'') || seq(a)-seq(b));
+  const lotsBy = {};
+  rows.forEach(t => {
+    const lots = lotsBy[t.drug_id] ||= {};
+    const type = (t.txn_type||'').toUpperCase();
+    const q = Math.abs(parseFloat(t.qty)||0);
+    const lot = t.lot_no || '', exp = (t.exp_date||'').slice(0,10);
+    if (type === 'IN') {
+      const k = lot + '|' + exp;
+      (lots[k] ||= { lot, exp, qty:0 }).qty += q;
+    } else if (type === 'OUT') {
+      let rem = q;
+      if (lot) {
+        const exact = lots[lot + '|' + exp];
+        const target = (exact && exact.qty > 0) ? exact : Object.values(lots).find(v => v.lot === lot && v.qty > 0);
+        if (target) { const take = Math.min(target.qty, rem); target.qty -= take; rem -= take; }
+      }
+      const fefo = Object.values(lots).filter(v => v.qty > 0).sort((a,b) => !a.exp ? 1 : !b.exp ? -1 : a.exp.localeCompare(b.exp));
+      for (const v of fefo) { if (rem <= 0) break; const take = Math.min(v.qty, rem); v.qty -= take; rem -= take; }
+    } else if (type === 'ADJUST') {
+      for (const k in lots) delete lots[k];
+      lots[(lot||'ตั้งยอด') + '|' + exp] = { lot: lot || 'ตั้งยอด', exp, qty:q };
+    }
+  });
+
+  const cut = new Date(); cut.setMonth(cut.getMonth() - RATE_MONTHS);
+  const cutISO = `${cut.getFullYear()}-${pad(cut.getMonth()+1)}-${pad(cut.getDate())}`;
+  let fb = 0;
+
+  return catalog.filter(isActive).map(c => {
+    const lots = Object.values(lotsBy[c.drug_id] || {}).filter(l => l.qty > 0)
+      .sort((a,b) => !a.exp ? 1 : !b.exp ? -1 : a.exp.localeCompare(b.exp));
+    const total = lots.reduce((s,l) => s + l.qty, 0);
+    const used = rows.filter(t => t.drug_id === c.drug_id && (t.txn_type||'').toUpperCase() === 'OUT' && !isCount(t) && (t.txn_date||'') >= cutISO)
+      .reduce((s,t) => s + Math.abs(parseFloat(t.qty)||0), 0);
+    const avg = used / RATE_MONTHS;
+    const cover = avg > 0 ? total / avg : null;
+    const min = parseFloat(c.min_stock) || 0, max = parseFloat(c.max_stock) || 0;
+    const color = COLORS[c.abbr] || FALLBACK[fb++ % FALLBACK.length];
+    const lastCount = rows.filter(t => t.drug_id === c.drug_id && isCount(t)).reduce((m,t) => (t.txn_date||'') > m ? t.txn_date : m, '');
+
+    const alerts = [];
+    const expired = lots.filter(l => l.exp && daysUntil(l.exp) < 0);
+    const soon = lots.filter(l => l.exp && daysUntil(l.exp) >= 0 && daysUntil(l.exp) <= EXPIRY_WARN_DAYS);
+    if (total <= 0) alerts.push({ k:'out', t:'หมดคลัง', c:'var(--bad)' });
+    else if (min && total < min) alerts.push({ k:'low', t:'ต่ำกว่า min', c:'var(--bad)' });
+    if (expired.length) alerts.push({ k:'expd', t:'มี Lot หมดอายุ', c:'var(--bad)' });
+    if (total > 0 && cover !== null && cover < COVER_WARN_MONTHS) alerts.push({ k:'cover', t:'เบิกเพิ่ม', c:'var(--warn)' });
+    if (soon.length) alerts.push({ k:'soon', t:'ใกล้หมดอายุ', c:'var(--exp)' });
+
+    return { id:c.drug_id, name:c.name, abbr:c.abbr, strength:c.strength_mg, unit:c.unit||'เม็ด', min, max,
+      color, tag: TAGS[c.abbr] || ['#F1EEFA','#4A4366'], lots, total, avg, cover, alerts, expired, soon, lastCount };
+  });
+}
+
+/* ═══ LOAD ═══ */
+async function load(){
+  $('shelf').innerHTML = '<div class="loading">กำลังโหลดข้อมูลคลัง…</div>';
+  try {
+    const [catalog, ledger] = await Promise.all([ api('getDrugCatalog', {}), api('getStockLedger', {}) ]);
+    S.catalog = catalog || []; S.ledger = ledger || []; S.loaded = true;
+    refresh();
+  } catch (e) {
+    $('headline').textContent = 'โหลดข้อมูลไม่สำเร็จ';
+    $('shelf').innerHTML = `<div class="err">เชื่อมต่อฐานข้อมูลไม่ได้ (${esc(e.message||e)})<br>ลองกดปุ่มโหลดใหม่มุมขวาบน</div>`;
+  }
+}
+function refresh(){ S.drugs = computeDrugs(S.catalog, S.ledger); renderHome(); }
+
+/* ═══ BOTTLE SVG ═══ */
+function bottleSVG(color, pct, w=92, h=128, sw=5, id=''){
+  const y = 132 - 102 * Math.max(0, Math.min(1, pct));
+  const cid = 'c' + (id || Math.random().toString(36).slice(2,8));
+  return `<svg width="${w}" height="${h}" viewBox="0 0 100 140" aria-hidden="true">
+    <defs><clipPath id="${cid}"><rect x="12" y="30" width="76" height="102" rx="24"/></clipPath></defs>
+    <rect x="28" y="6" width="44" height="20" rx="7" fill="${color}" stroke="#2B2340" stroke-width="${sw}"/>
+    <rect x="12" y="30" width="76" height="102" rx="24" fill="#fff"/>
+    <rect x="0" y="${y}" width="100" height="140" fill="${color}" clip-path="url(#${cid})"/>
+    <circle cx="40" cy="68" r="6" fill="#2B2340"/><circle cx="60" cy="68" r="6" fill="#2B2340"/>
+    <rect x="12" y="30" width="76" height="102" rx="24" fill="none" stroke="#2B2340" stroke-width="${sw}"/>
+  </svg>`;
+}
+const miniSVG = c => `<svg width="40" height="54" viewBox="0 0 100 140" aria-hidden="true"><rect x="28" y="6" width="44" height="20" rx="7" fill="${c}" stroke="#2B2340" stroke-width="6"/><rect x="12" y="30" width="76" height="102" rx="24" fill="#fff" stroke="#2B2340" stroke-width="6"/><path d="M15 90h70v18a21 21 0 0 1-21 21H36a21 21 0 0 1-21-21z" fill="${c}"/><circle cx="40" cy="68" r="6" fill="#2B2340"/><circle cx="60" cy="68" r="6" fill="#2B2340"/></svg>`;
+
+/* ═══ HOME ═══ */
+function renderHome(){
+  const now = new Date();
+  $('today').textContent = `${TH_D[now.getDay()]} ${now.getDate()} ${TH_M[now.getMonth()]} ${now.getFullYear()+543}`;
+  const n = S.drugs.reduce((s,d) => s + d.alerts.length, 0);
+  $('headline').innerHTML = n ? `วันนี้มี <em>${n} เรื่อง</em>ต้องดู` : 'วันนี้ยาพร้อมทุกตัว';
+  if (!S.drugs.length) { $('shelf').innerHTML = '<div class="loading">ยังไม่มีรายการยาที่เปิดใช้งาน</div>'; return; }
+  $('shelf').innerHTML = `<div class="bottles">${S.drugs.map(d => {
+    const a = d.alerts[0];
+    const pct = d.max ? d.total / d.max : (d.total ? 1 : 0);
+    const label = `${d.name} ${d.strength} mg คงเหลือ ${fmt(d.total)} ${d.unit}${d.alerts.length ? ' · ' + d.alerts.map(x=>x.t).join(', ') : ''}`;
+    return `<button class="bottle" type="button" onclick="openLots('${esc(d.id)}')" aria-label="${esc(label)}">
+      <span class="badge-slot">${a ? `<span class="badge" style="background:${a.c}">${esc(a.t)}${d.alerts.length>1?' +'+(d.alerts.length-1):''}</span>` : ''}</span>
+      ${bottleSVG(d.color, pct, 92, 128, 5, d.id)}
+      <span class="tag" style="background:${d.tag[0]};color:${d.tag[1]}">${esc(d.abbr)} ${esc(d.strength)}</span>
+      <span class="total">${fmt(d.total)}</span>
+    </button>`; }).join('')}</div><div class="plank" aria-hidden="true"><span></span><span></span></div>`;
+}
+
+/* ═══ SHEET ═══ */
+function openSheet(html, wide=false){
+  const s = $('sheet'), wasOpen = $('ov').classList.contains('on'), keep = s.scrollTop;
+  s.className = 'sheet' + (wide ? ' wide' : ''); s.innerHTML = '<div class="grab"><span></span></div>' + html;
+  $('ov').classList.add('on'); document.body.style.overflow = 'hidden';
+  if (wasOpen) s.scrollTop = keep;                       // re-render ภายใน sheet เดิม: ไม่ดึงโฟกัส/คีย์บอร์ด
+  else setTimeout(() => s.querySelector('[autofocus]')?.focus(), 60);
+}
+function closeSheet(){ $('ov').classList.remove('on'); document.body.style.overflow=''; S.ui={}; }
+document.addEventListener('keydown', e => { if (e.key === 'Escape' && $('ov').classList.contains('on')) closeSheet(); });
+const xBtn = `<button class="x" type="button" onclick="closeSheet()" aria-label="ปิด"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#2B2340" stroke-width="3" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></button>`;
+function needData(){ if (!S.loaded) { toast('รอโหลดข้อมูลก่อน'); return true; } return false; }
+const coverText = d => d.cover === null ? 'ยังไม่มียอดจ่าย 3 เดือน' : d.cover < 1 ? `พออีก ~${Math.max(1, Math.round(d.cover*4.3))} สัปดาห์` : `พออีก ~${d.cover.toFixed(1)} เดือน`;
+
+/* ── Lot detail ── */
+function openLots(id){
+  if (needData()) return;
+  const d = S.drugs.find(x => x.id === id); if (!d) return;
+  const withExp = d.lots.filter(l => l.exp);
+  const span = Math.max(12, Math.ceil(Math.max(0, ...withExp.map(l => monthsUntil(l.exp)))) + 2);
+  const pos = l => Math.max(0, Math.min(100, monthsUntil(l.exp) / span * 100));
+  const maxQ = Math.max(1, ...d.lots.map(l => l.qty));
+  const now = new Date(); const ticks = [];
+  for (let y = now.getFullYear()+1; ; y++) { const m = (new Date(y,0,1) - now) / 86400000 / 30.44; if (m > span) break; ticks.push({ l: m/span*100, t: 'ม.ค. ' + (y+543) }); }
+  const pins = withExp.map((l,i) => {
+    const days = daysUntil(l.exp);
+    const col = days < 0 ? 'var(--bad-ink)' : days <= EXPIRY_WARN_DAYS ? 'var(--exp-ink)' : 'var(--ink2)';
+    const top = i % 2 === 0 ? (i === 0 ? -26 : 2) : 110;
+    const w = Math.round(40 + 30 * l.qty / maxQ);
+    return `<div class="pin" style="left:${pos(l)}%;top:${top}px">
+      ${i===0 ? '<span class="first">ใช้ก่อน</span>' : ''}
+      <svg width="${w}" height="30" viewBox="0 0 60 30" preserveAspectRatio="none" aria-hidden="true"><rect x="1.5" y="1.5" width="57" height="27" rx="13.5" fill="#fff" stroke="#2B2340" stroke-width="3"/><path d="M30 1.5h15a13.5 13.5 0 0 1 0 27H30z" fill="${d.color}" stroke="#2B2340" stroke-width="3"/></svg>
+      <b>${esc(l.lot)} · ${fmt(l.qty)}</b><small style="color:${col}">${isoToTH(l.exp)}${days<0?' (หมดแล้ว)':''}</small></div>`;
+  }).join('');
+  const coverTone = d.cover !== null && d.cover < COVER_WARN_MONTHS ? ['var(--warn-bg)','var(--warn-ink)'] : d.cover !== null ? ['var(--ok-bg)','var(--ok-ink)'] : ['#F1EEFA','var(--ink2)'];
+  openSheet(`
+    <div class="sh-top"><div style="display:flex;align-items:center;gap:12px">${miniSVG(d.color)}<div><h2>${esc(d.name)} ${esc(d.strength)} mg</h2><div class="muted" style="font-size:14px">คงเหลือ <b style="color:var(--ink)">${fmt(d.total)}</b> ${esc(d.unit)} · min ${fmt(d.min)}${d.avg ? ' · ใช้ ~' + fmt(d.avg) + '/เดือน' : ''}</div></div></div>${xBtn}</div>
+    <div style="display:flex;flex-wrap:wrap;gap:8px;align-items:center"><span class="tag" style="background:${coverTone[0]};color:${coverTone[1]}">${coverText(d)}</span>
+    <span class="tag" style="background:#F1EEFA;color:var(--ink2)">${d.lastCount ? 'นับจริงล่าสุด ' + isoToTH(d.lastCount) + ' (' + Math.max(0, -daysUntil(d.lastCount)) + ' วันก่อน)' : 'ยังไม่เคยนับสต๊อกจริง'}</span></div>
+    ${withExp.length ? `<div class="tl" role="img" aria-label="เส้นเวลาวันหมดอายุของแต่ละ Lot">
+      <div class="track"></div>${ticks.map(t => `<span class="tick" style="left:${t.l}%">${t.t}</span>`).join('')}
+      <span class="now"></span><span class="now-l">วันนี้</span>${pins}</div>` : ''}
+    ${d.lots.length ? `<table class="tbl" style="margin-top:8px"><thead><tr><th>Lot</th><th>หมดอายุ</th><th class="r">คงเหลือ</th></tr></thead><tbody>
+      ${d.lots.map(l => `<tr><td><b>${esc(l.lot||'—')}</b></td><td>${isoToTH(l.exp)}</td><td class="r"><b>${fmt(l.qty)}</b></td></tr>`).join('')}</tbody></table>`
+      : '<div class="loading" style="padding:30px 0">ยังไม่มี Lot คงเหลือ — บันทึก "รับเข้า" เพื่อเพิ่ม</div>'}
+    <div style="display:flex;gap:10px">
+      <button class="save" type="button" onclick="openDispense('${esc(d.id)}')" ${d.total?'':'disabled'}>จ่ายออกยานี้</button>
+      <button class="save" type="button" style="background:#fff;color:var(--ink);box-shadow:0 1px 3px rgba(43,35,64,.1)" onclick="openReceive('${esc(d.id)}')">รับเข้ายานี้</button>
+    </div>
+    <button class="btn2" type="button" onclick="openCount('${esc(d.id)}')">นับสต๊อกจริง / ปรับยอด</button>`, true);
+}
+
+/* ── จ่ายออก ── */
+function openDispense(id){
+  if (needData()) return;
+  const first = id || (S.drugs.find(d => d.total > 0) || S.drugs[0])?.id;
+  S.ui = { mode:'out', drug:first, lot:0, qty:0, note:'' };
+  renderDispense();
+}
+function planOut(d, lotIdx, q){
+  // ตัดจาก Lot ที่เลือกก่อน ส่วนที่เกินตัดตาม FEFO
+  const plan = []; let rem = q;
+  const order = [lotIdx, ...d.lots.map((_,i) => i).filter(i => i !== lotIdx)];
+  for (const i of order) { const l = d.lots[i]; if (!l || rem <= 0) continue; const take = Math.min(l.qty, rem); if (take > 0) { plan.push({ ...l, take }); rem -= take; } }
+  return { plan, short: rem };
+}
+function renderDispense(){
+  const u = S.ui, d = S.drugs.find(x => x.id === u.drug);
+  const q = Math.max(0, parseInt(u.qty) || 0);
+  const { plan, short } = d ? planOut(d, u.lot, q) : { plan:[], short:q };
+  const takeOf = i => (plan.find(p => p.lot === d.lots[i].lot && p.exp === d.lots[i].exp) || {}).take || 0;
+  let msg = '', tone = 'var(--ink2)';
+  if (!d || !d.lots.length) msg = 'ยานี้ไม่มีของในคลัง';
+  else if (!q) msg = 'ใส่จำนวนที่จ่าย';
+  else if (short > 0) { msg = `ในคลังมีแค่ ${fmt(d.total)} — ขาดอีก ${fmt(short)} เม็ด บันทึกไม่ได้`; tone = 'var(--bad-ink)'; }
+  else if (plan.length > 1) { msg = 'Lot ที่เลือกไม่พอ — จะบันทึกแยก ' + plan.map(p => `${p.lot} ${fmt(p.take)}`).join(' + '); tone = 'var(--warn-ink)'; }
+  else msg = `หลังจ่าย Lot ${plan[0].lot} จะเหลือ ${fmt(plan[0].qty - plan[0].take)}`;
+  const ok = d && q > 0 && short === 0 && !u.saving;
+  openSheet(`
+    <div class="sh-top"><h2>จ่ายออก</h2>${xBtn}</div>
+    <div class="minis" role="radiogroup" aria-label="ยา">${S.drugs.map(x => { const on = x.id === u.drug; return `<button class="mini" type="button" role="radio" aria-checked="${on}" style="background:${on?x.tag[0]:'transparent'}" onclick="S.ui.drug='${esc(x.id)}';S.ui.lot=0;renderDispense()">${miniSVG(x.color)}<span style="color:${on?x.tag[1]:'var(--ink)'}">${esc(x.abbr)} ${esc(x.strength)}</span></button>`; }).join('')}</div>
+    <div class="qty-box" style="margin-top:14px">
+      <span style="font-size:14px;font-weight:700;color:${d?d.tag[1]:'inherit'}">${d ? esc(d.name+' '+d.strength+' mg') : ''}</span>
+      <div class="qty-line">
+        <button class="round" type="button" aria-label="ลด 10" onclick="S.ui.qty=Math.max(0,(parseInt(S.ui.qty)||0)-10);renderDispense()">−</button>
+        <input class="qty-in" id="qty" type="number" inputmode="numeric" min="0" value="${q || ''}" placeholder="0" aria-label="จำนวน" autofocus oninput="S.ui.qty=this.value;updateDispenseMsg()" onchange="renderDispense()">
+        <button class="round" type="button" aria-label="เพิ่ม 10" onclick="S.ui.qty=(parseInt(S.ui.qty)||0)+10;renderDispense()">+</button>
+      </div>
+      <span class="muted" style="font-size:14px">${d ? esc(d.unit) : ''}</span>
+      <div class="quick">${[30,60,90,100].map(n => `<button type="button" class="${n===q?'on':''}" onclick="S.ui.qty=${n};renderDispense()">${n}</button>`).join('')}</div>
+    </div>
+    <span class="lbl">ตัดจาก Lot (เลือก Lot ที่หมดก่อนไว้ให้แล้ว)</span>
+    <div class="group">${d && d.lots.length ? d.lots.map((l,i) => { const on = i === u.lot, take = takeOf(i);
+      return `<button class="lotbtn" type="button" aria-pressed="${on}" style="background:${on?d.tag[0]:'transparent'}" onclick="S.ui.lot=${i};renderDispense()">
+        <span class="lot-row"><span class="radio" style="${on?`border-color:${d.tag[1]};background:${d.tag[1]}`:''}">${on?'<svg width="10" height="8" viewBox="0 0 10 8" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 4l3 3 5-6"/></svg>':''}</span>
+        <span style="flex:1;display:flex;flex-direction:column;line-height:1.3"><b style="font-size:15px">${esc(l.lot||'ไม่ระบุ Lot')}</b><span class="muted" style="font-size:12px">หมด ${isoToTH(l.exp)}${i===0?' · หมดก่อน':''}${l.exp&&daysUntil(l.exp)<0?' · หมดอายุแล้ว':''}</span></span>
+        <b style="font-variant-numeric:tabular-nums">${take ? fmt(l.qty)+' → '+fmt(l.qty-take) : fmt(l.qty)}</b></span>
+        <span class="lot-bar" aria-hidden="true"><i style="left:0;width:${(l.qty-take)/l.qty*100}%;background:${d.color}"></i><i style="left:${(l.qty-take)/l.qty*100}%;width:${take/l.qty*100}%;background:${d.color};opacity:.28"></i></span>
+      </button>`; }).join('') : '<div style="padding:14px" class="muted">ไม่มี Lot คงเหลือ</div>'}</div>
+    <p class="note" id="out-msg" style="color:${tone}">${esc(msg)}</p>
+    <span class="lbl">หมายเหตุ</span>
+    <div class="group" style="padding:0"><div class="field"><label for="out-note">ไม่บังคับ</label><input id="out-note" type="text" placeholder="เช่น HN" value="${esc(u.note)}" oninput="S.ui.note=this.value"></div></div>
+    <button class="save" id="out-save" type="button" ${ok?'':'disabled'} onclick="saveDispense()">${u.saving ? 'กำลังบันทึก…' : 'บันทึกจ่ายออก' + (q ? ' · ' + fmt(q) : '')}</button>`);
+  const inp = $('qty'); if (inp && document.activeElement !== inp && u.focusQty) { inp.focus(); }
+}
+function updateDispenseMsg(){
+  // พิมพ์ตัวเลข → re-render ตอน change; ระหว่างพิมพ์แค่เปิด/ปิดปุ่ม
+  const u = S.ui, d = S.drugs.find(x => x.id === u.drug), q = parseInt(u.qty) || 0;
+  const btn = $('out-save'); if (!btn || !d) return;
+  const { short } = planOut(d, u.lot, q);
+  btn.disabled = !(q > 0 && short === 0);
+  btn.textContent = 'บันทึกจ่ายออก' + (q ? ' · ' + fmt(q) : '');
+}
+async function saveDispense(){
+  const u = S.ui, d = S.drugs.find(x => x.id === u.drug), q = parseInt(u.qty) || 0;
+  if (!d || q <= 0) return;
+  const { plan, short } = planOut(d, u.lot, q);
+  if (short > 0) { toast('จำนวนเกินของในคลัง'); return; }
+  u.saving = true; renderDispense();
+  const saved = [];
+  try {
+    for (const p of plan) {
+      const row = { drug_id:d.id, txn_type:'OUT', qty:-p.take, lot_no:p.lot, exp_date:p.exp||null, source:u.note||'', txn_date:todayISO() };
+      const res = await api('saveStockTxn', row);
+      S.ledger.push({ ...row, ledger_id: res?.saved || ('tmp' + Date.now()) });
+      saved.push(p);
+    }
+    closeSheet(); refresh();
+    toast(`✓ จ่ายออก ${d.abbr} ${d.strength} · ${fmt(q)} ${d.unit}`);
+  } catch (e) {
+    u.saving = false; refresh(); renderDispense();
+    toast('บันทึกไม่สำเร็จ' + (saved.length ? ` (บันทึกไปแล้ว ${saved.length}/${plan.length} Lot)` : '') + ': ' + (e.message||e), 6000);
+  }
+}
+
+/* ── รับเข้า ── */
+function openReceive(id){
+  if (needData()) return;
+  S.ui = { mode:'in', drug: id || S.drugs[0]?.id, lot:'', exp:'', qty:'', src:'' };
+  renderReceive();
+}
+function knownLot(d, lot){ return lot ? d?.lots.find(l => l.lot.toLowerCase() === lot.trim().toLowerCase()) : null; }
+function recentSources(){
+  const seen = new Map();
+  [...S.ledger].filter(t => (t.txn_type||'').toUpperCase() === 'IN' && t.source).sort((a,b) => seq(b)-seq(a))
+    .forEach(t => { const s = String(t.source).trim(); if (s && !seen.has(s)) seen.set(s, 1); });
+  return [...seen.keys()].slice(0, 4);
+}
+function onLotInput(v){
+  S.ui.lot = v;
+  const d = S.drugs.find(x => x.id === S.ui.drug), k = knownLot(d, v);
+  if (k && k.exp) { S.ui.exp = isoToTH(k.exp); $('in-exp').value = S.ui.exp; }
+  renderReceiveInfo();
+}
+function autoSlash(el){
+  let v = el.value.replace(/[^\d]/g, '').slice(0, 8);
+  if (v.length > 4) v = v.slice(0,2) + '/' + v.slice(2,4) + '/' + v.slice(4);
+  else if (v.length > 2) v = v.slice(0,2) + '/' + v.slice(2);
+  el.value = v; S.ui.exp = v; renderReceiveInfo();
+}
+function renderReceiveInfo(){
+  const u = S.ui, d = S.drugs.find(x => x.id === u.drug), k = knownLot(d, u.lot), q = parseInt(u.qty) || 0;
+  const iso = parseTH(u.exp);
+  let html = '', ok = !!(d && u.lot.trim() && iso && q > 0);
+  if (u.exp.length >= 10 && !iso) html = `<div class="info" style="background:var(--bad-bg);color:var(--bad-ink)">วันหมดอายุไม่ถูกต้อง ใช้รูปแบบ วว/ดด/ปปปป (พ.ศ.)</div>`;
+  else if (iso && daysUntil(iso) < 0) { html = `<div class="info" style="background:var(--bad-bg);color:var(--bad-ink)">วันหมดอายุผ่านไปแล้ว — ตรวจสอบอีกครั้ง</div>`; ok = false; }
+  else if (k) html = `<div class="info" style="background:${d.tag[0]};color:${d.tag[1]}">Lot นี้มีอยู่แล้ว ${fmt(k.qty)} ${esc(d.unit)}${q ? ` — รับเข้าแล้วจะรวมเป็น <b>${fmt(k.qty + q)}</b>` : ''}${k.exp && iso && k.exp !== iso ? '<br>⚠ วันหมดอายุไม่ตรงกับ Lot เดิม (' + isoToTH(k.exp) + ')' : ''}</div>`;
+  $('in-info').innerHTML = html;
+  const b = $('in-save'); if (b) { b.disabled = !ok || u.saving; }
+}
+function renderReceive(){
+  const u = S.ui, d = S.drugs.find(x => x.id === u.drug), srcs = recentSources();
+  openSheet(`
+    <div class="sh-top"><h2>รับเข้า</h2>${xBtn}</div>
+    <div class="minis" role="radiogroup" aria-label="ยา">${S.drugs.map(x => { const on = x.id === u.drug; return `<button class="mini" type="button" role="radio" aria-checked="${on}" style="background:${on?x.tag[0]:'transparent'}" onclick="S.ui.drug='${esc(x.id)}';renderReceive()">${miniSVG(x.color)}<span style="color:${on?x.tag[1]:'var(--ink)'}">${esc(x.abbr)} ${esc(x.strength)}</span></button>`; }).join('')}</div>
+    <span class="lbl">${d ? esc(d.name + ' ' + d.strength + ' mg') : ''}</span>
+    <div class="group" style="padding:0">
+      <div class="field"><label for="in-lot">Lot No.</label><input id="in-lot" type="text" list="lot-list" autocomplete="off" value="${esc(u.lot)}" placeholder="เช่น K695023" oninput="onLotInput(this.value)" autofocus></div>
+      <div class="field"><label for="in-exp">หมดอายุ</label><input id="in-exp" type="text" inputmode="numeric" value="${esc(u.exp)}" placeholder="วว/ดด/2572" oninput="autoSlash(this)"></div>
+      <div class="field"><label for="in-qty">จำนวน</label><input id="in-qty" type="number" inputmode="numeric" min="1" value="${esc(u.qty)}" placeholder="0" oninput="S.ui.qty=this.value;renderReceiveInfo()"><span class="muted">${d ? esc(d.unit) : ''}</span></div>
+      <div class="field"><label for="in-src">รับจาก</label><input id="in-src" type="text" value="${esc(u.src)}" placeholder="ไม่บังคับ" oninput="S.ui.src=this.value"></div>
+    </div>
+    <datalist id="lot-list">${(d?.lots||[]).map(l => `<option value="${esc(l.lot)}">`).join('')}</datalist>
+    ${srcs.length ? `<div class="sugs">${srcs.map(s => `<button type="button" onclick="S.ui.src=this.textContent;$('in-src').value=S.ui.src">${esc(s)}</button>`).join('')}</div>` : ''}
+    <div id="in-info"></div>
+    <button class="save" id="in-save" type="button" disabled onclick="saveReceive()">บันทึกรับเข้า</button>`);
+  renderReceiveInfo();
+}
+async function saveReceive(){
+  const u = S.ui, d = S.drugs.find(x => x.id === u.drug), q = parseInt(u.qty) || 0, iso = parseTH(u.exp);
+  if (!d || !u.lot.trim() || !iso || q <= 0) return;
+  u.saving = true; const b = $('in-save'); b.disabled = true; b.textContent = 'กำลังบันทึก…';
+  const row = { drug_id:d.id, txn_type:'IN', qty:q, lot_no:u.lot.trim(), exp_date:iso, source:u.src.trim(), txn_date:todayISO() };
+  try {
+    const res = await api('saveStockTxn', row);
+    S.ledger.push({ ...row, ledger_id: res?.saved || ('tmp' + Date.now()) });
+    closeSheet(); refresh();
+    toast(`✓ รับเข้า ${d.abbr} ${d.strength} · ${fmt(q)} ${d.unit}`);
+  } catch (e) {
+    u.saving = false; b.textContent = 'บันทึกรับเข้า'; renderReceiveInfo();
+    toast('บันทึกไม่สำเร็จ: ' + (e.message||e), 6000);
+  }
+}
+
+/* ── นับสต๊อกจริง ──
+   บันทึกส่วนต่างราย Lot เป็น IN/OUT (source ขึ้นต้น "นับสต๊อก") เพื่อไม่ทำลายข้อมูล Lot
+   + แถว marker qty 0 หนึ่งแถว ไว้จำวันที่นับล่าสุด */
+function openCount(id){
+  if (needData()) return;
+  const d = S.drugs.find(x => x.id === id); if (!d) return;
+  S.ui = { mode:'count', drug:id, counts: d.lots.map(l => String(l.qty)), extra: [] };
+  renderCount();
+}
+function countPlan(){
+  const u = S.ui, d = S.drugs.find(x => x.id === u.drug); const plan = []; let bad = '';
+  d.lots.forEach((l,i) => { const v = u.counts[i]; if (v === '' || isNaN(+v) || +v < 0) { bad = 'ใส่จำนวนที่นับได้ให้ครบทุก Lot'; return; } const diff = Math.round(+v) - l.qty; if (diff) plan.push({ lot:l.lot, exp:l.exp, diff, from:l.qty, to:Math.round(+v) }); });
+  u.extra.forEach(x => { if (!x.lot && !x.exp && !x.qty) return; const iso = parseTH(x.exp), q = parseInt(x.qty) || 0;
+    if (!x.lot.trim() || !iso || q <= 0) { bad = bad || 'Lot ที่เพิ่ม ต้องมีเลข Lot วันหมดอายุ และจำนวน'; return; }
+    plan.push({ lot:x.lot.trim(), exp:iso, diff:q, from:0, to:q, isNew:true }); });
+  return { d, plan, bad };
+}
+function renderCountInfo(){
+  const { d, plan, bad } = countPlan();
+  const before = d.total, after = before + plan.reduce((s,p) => s + p.diff, 0);
+  $('cnt-info').innerHTML = bad ? `<div class="info" style="background:var(--bad-bg);color:var(--bad-ink)">${esc(bad)}</div>`
+    : plan.length ? `<div class="info" style="background:var(--warn-bg);color:var(--warn-ink)">ยอดรวม ${fmt(before)} → <b>${fmt(after)}</b> · ปรับ ${plan.length} Lot: ${plan.map(p => `${esc(p.lot)} ${p.diff>0?'+':'−'}${fmt(Math.abs(p.diff))}`).join(', ')}</div>`
+    : `<div class="info" style="background:var(--ok-bg);color:var(--ok-ink)">ยอดตรงกับระบบ ${fmt(before)} ${esc(d.unit)} — กดบันทึกเพื่อเก็บวันที่นับ</div>`;
+  d.lots.forEach((l,i) => { const el = $('cd-'+i); if (!el) return; const v = S.ui.counts[i], diff = v === '' ? 0 : Math.round(+v) - l.qty;
+    el.textContent = diff ? (diff > 0 ? '+' : '−') + fmt(Math.abs(diff)) : 'ตรง'; el.style.color = diff ? 'var(--warn-ink)' : 'var(--ok-ink)'; });
+  const b = $('cnt-save'); if (b) b.disabled = !!bad || S.ui.saving;
+}
+function renderCount(){
+  const u = S.ui, d = S.drugs.find(x => x.id === u.drug);
+  openSheet(`
+    <div class="sh-top"><div style="display:flex;align-items:center;gap:12px">${miniSVG(d.color)}<div><h2>นับสต๊อกจริง</h2><div class="muted" style="font-size:14px">${esc(d.name)} ${esc(d.strength)} mg · ในระบบ ${fmt(d.total)} ${esc(d.unit)}</div></div></div>${xBtn}</div>
+    <p class="note muted" style="margin-top:0">นับของจริงบนชั้นแล้วใส่จำนวนราย Lot ช่องที่ตรงกับระบบไม่ต้องแก้</p>
+    <div class="group" style="padding:0">${d.lots.length ? d.lots.map((l,i) => `
+      <div class="field" style="gap:10px">
+        <span style="flex:1;display:flex;flex-direction:column;line-height:1.3;min-width:0"><b style="font-size:15px">${esc(l.lot||'ไม่ระบุ Lot')}</b><span class="muted" style="font-size:12px">หมด ${isoToTH(l.exp)} · ระบบ ${fmt(l.qty)}</span></span>
+        <span id="cd-${i}" style="font-size:13px;font-weight:700;min-width:52px;text-align:right">ตรง</span>
+        <input type="number" inputmode="numeric" min="0" aria-label="นับได้ Lot ${esc(l.lot)}" value="${esc(u.counts[i])}" style="flex:0 0 96px;height:44px;border-radius:12px;background:#F6F4FD;padding:0 12px" oninput="S.ui.counts[${i}]=this.value;renderCountInfo()">
+      </div>`).join('') : '<div class="field muted">ยังไม่มี Lot ในระบบ</div>'}</div>
+    <span class="lbl">Lot ที่เจอบนชั้นแต่ไม่มีในระบบ</span>
+    <div class="group" style="padding:0">${u.extra.map((x,i) => `
+      <div class="field"><label for="cx-lot-${i}">Lot No.</label><input id="cx-lot-${i}" type="text" value="${esc(x.lot)}" placeholder="เช่น K695023" oninput="S.ui.extra[${i}].lot=this.value;renderCountInfo()"></div>
+      <div class="field"><label for="cx-exp-${i}">หมดอายุ</label><input id="cx-exp-${i}" type="text" inputmode="numeric" value="${esc(x.exp)}" placeholder="วว/ดด/2572" oninput="autoSlashTo(this,S.ui.extra[${i}]);renderCountInfo()"></div>
+      <div class="field"><label for="cx-qty-${i}">จำนวน</label><input id="cx-qty-${i}" type="number" inputmode="numeric" min="1" value="${esc(x.qty)}" placeholder="0" oninput="S.ui.extra[${i}].qty=this.value;renderCountInfo()"></div>`).join('')}
+      <div class="field" style="justify-content:center"><button type="button" style="all:unset;cursor:pointer;font-size:15px;font-weight:700;color:#3B2F8F;padding:12px" onclick="S.ui.extra.push({lot:'',exp:'',qty:''});renderCount()">+ เพิ่ม Lot</button></div>
+    </div>
+    <div id="cnt-info"></div>
+    <button class="save" id="cnt-save" type="button" onclick="saveCount()">บันทึกผลนับ</button>`, true);
+  renderCountInfo();
+}
+function autoSlashTo(el, obj){
+  let v = el.value.replace(/[^\d]/g, '').slice(0, 8);
+  if (v.length > 4) v = v.slice(0,2) + '/' + v.slice(2,4) + '/' + v.slice(4); else if (v.length > 2) v = v.slice(0,2) + '/' + v.slice(2);
+  el.value = v; obj.exp = v;
+}
+async function saveCount(){
+  const { d, plan, bad } = countPlan(); if (bad) return;
+  S.ui.saving = true; const b = $('cnt-save'); b.disabled = true; b.textContent = 'กำลังบันทึก…';
+  const today = todayISO(), done = [];
+  const rows = plan.map(p => ({ drug_id:d.id, txn_type: p.diff > 0 ? 'IN' : 'OUT', qty: p.diff, lot_no:p.lot, exp_date:p.exp || null,
+    source: `${COUNT_TAG}: ${p.isNew ? 'พบ Lot ใหม่' : 'ระบบ ' + p.from + ' → นับได้ ' + p.to}`, txn_date:today }));
+  rows.push({ drug_id:d.id, txn_type:'IN', qty:0, lot_no:'', exp_date:null, source:`${COUNT_TAG}: ${plan.length ? 'ปรับ ' + plan.length + ' Lot' : 'ตรงกับระบบ'} (รวม ${d.total + plan.reduce((s,p)=>s+p.diff,0)})`, txn_date:today });
+  try {
+    for (const r of rows) { const res = await api('saveStockTxn', r); S.ledger.push({ ...r, ledger_id: res?.saved || ('tmp' + Date.now()) }); done.push(r); }
+    refresh(); openLots(d.id); toast(plan.length ? `✓ ปรับยอด ${d.abbr} ${d.strength} แล้ว` : '✓ บันทึกผลนับแล้ว — ยอดตรง');
+  } catch (e) {
+    S.ui.saving = false; refresh(); b.disabled = false; b.textContent = 'บันทึกผลนับ';
+    toast('บันทึกไม่สำเร็จ' + (done.length ? ` (บันทึกไปแล้ว ${done.length}/${rows.length})` : '') + ': ' + (e.message||e), 6000);
+  }
+}
+
+/* ── ประวัติ + ยกเลิก ── */
+function openHistory(){
+  if (needData()) return;
+  const voided = getVoidedIds(S.ledger);
+  const nameOf = id => { const d = S.drugs.find(x => x.id === id) || S.catalog.find(x => x.drug_id === id); return d ? `${d.name} ${d.strength ?? d.strength_mg}` : id; };
+  const rows = [...S.ledger].filter(t => (t.txn_type||'').toUpperCase() !== 'VOID')
+    .sort((a,b) => (b.txn_date||'').localeCompare(a.txn_date||'') || seq(b)-seq(a)).slice(0, 80);
+  const TY = { IN:['รับเข้า','+','var(--ok-ink)'], OUT:['จ่ายออก','−','var(--ink)'], ADJUST:['ตั้งยอด','=','#1D58A8'] };
+  openSheet(`
+    <div class="sh-top"><h2>ประวัติรับ–จ่าย</h2>${xBtn}</div>
+    <div class="hist">${rows.length ? rows.map(t => { const ty = TY[(t.txn_type||'').toUpperCase()] || ['—','','var(--ink)']; const v = voided.has(t.ledger_id);
+      const cnt = isCount(t), zero = cnt && !(parseFloat(t.qty)||0);
+      return `<div class="h-row${v?' void':''}">
+        <div style="flex:1;display:flex;flex-direction:column;line-height:1.35"><b style="font-size:15px">${cnt ? (zero ? 'นับสต๊อก' : 'ปรับยอด') : esc(ty[0])} ${esc(nameOf(t.drug_id))}</b>
+        <span class="muted" style="font-size:13px">${isoToTH(t.txn_date)}${t.lot_no ? ' · Lot ' + esc(t.lot_no) : ''}${t.source ? ' · ' + esc(t.source) : ''}${v ? ' · ยกเลิกแล้ว' : ''}</span></div>
+        <span class="h-qty" style="color:${ty[2]}">${zero ? '✓' : ty[1] + fmt(Math.abs(parseFloat(t.qty)||0))}</span>
+        ${v || zero ? '' : `<button class="mini-btn" type="button" onclick="askVoid('${esc(t.ledger_id)}')">ยกเลิก</button>`}
+      </div>`; }).join('') : '<div class="loading">ยังไม่มีรายการ</div>'}</div>`, true);
+}
+function askVoid(lid){
+  const t = S.ledger.find(x => x.ledger_id === lid); if (!t) return;
+  const d = S.catalog.find(x => x.drug_id === t.drug_id);
+  const ty = { IN:'รับเข้า', OUT:'จ่ายออก', ADJUST:'ตั้งยอด' }[(t.txn_type||'').toUpperCase()] || t.txn_type;
+  openSheet(`
+    <div class="sh-top"><h2>ยกเลิกรายการ</h2>${xBtn}</div>
+    <div class="group" style="padding:16px 18px;line-height:1.6;font-size:15px">
+      <b>${esc(ty)} ${esc(d ? d.name + ' ' + d.strength_mg + ' mg' : t.drug_id)}</b> · ${fmt(Math.abs(parseFloat(t.qty)||0))}<br>
+      <span class="muted">${isoToTH(t.txn_date)}${t.lot_no ? ' · Lot ' + esc(t.lot_no) : ''}</span>
+    </div>
+    <span class="lbl">เหตุผล</span>
+    <div class="group" style="padding:0"><div class="field"><label for="void-r">เหตุผล</label><input id="void-r" type="text" placeholder="เช่น คีย์จำนวนผิด" autofocus></div></div>
+    <p class="note muted">รายการเดิมจะถูกขีดฆ่า ยอดคงเหลือคำนวณใหม่ทันที (เก็บประวัติไว้ตรวจสอบย้อนหลัง)</p>
+    <button class="save" id="void-go" type="button" style="background:var(--bad)" onclick="doVoid('${esc(lid)}')">ยืนยันยกเลิก</button>
+    <button class="btn2" type="button" onclick="openHistory()">กลับ</button>`, true);
+}
+async function doVoid(lid){
+  const t = S.ledger.find(x => x.ledger_id === lid); if (!t) return;
+  const d = S.catalog.find(x => x.drug_id === t.drug_id);
+  const type = (t.txn_type||'').toUpperCase(), q = Math.abs(parseFloat(t.qty)||0);
+  const ty = { IN:'รับเข้า', OUT:'จ่ายออก', ADJUST:'ตั้งยอด' }[type] || type;
+  const reason = $('void-r').value.trim() || 'ไม่ระบุ';
+  const b = $('void-go'); b.disabled = true; b.textContent = 'กำลังบันทึก…';
+  const row = { drug_id:t.drug_id, txn_type:'VOID', qty: type==='OUT' ? q : type==='IN' ? -q : 0, lot_no:t.lot_no||'', exp_date:t.exp_date||null,
+    source:`VOID: ${reason} (ยกเลิก ${ty} ${q} ${d?.abbr||''})`, notes:'VOID_OF:' + lid, txn_date:todayISO() };
+  try {
+    const res = await api('saveStockTxn', row);
+    S.ledger.push({ ...row, ledger_id: res?.saved || ('tmp' + Date.now()) });
+    refresh(); openHistory(); toast('✓ ยกเลิกรายการแล้ว');
+  } catch (e) { b.disabled = false; b.textContent = 'ยืนยันยกเลิก'; toast('ยกเลิกไม่สำเร็จ: ' + (e.message||e), 6000); }
+}
+
+/* ── รายงาน ── */
+function openReport(){
+  if (needData()) return;
+  const o = S.report ||= { cover:true, lot:true, sign:true };
+  openSheet(`
+    <div class="sh-top"><h2>รายงานส่งหัวหน้า</h2>${xBtn}</div>
+    <p class="muted" style="margin:0 6px 4px;font-size:15px">ยอดคงคลังยาวัณโรค ณ ตอนนี้ · ${S.drugs.length} รายการ</p>
+    <span class="lbl">ใส่ในรายงาน</span>
+    <div class="group" style="padding:0">
+      <label class="switch">พอใช้อีกกี่เดือน<input type="checkbox" ${o.cover?'checked':''} onchange="S.report.cover=this.checked"></label>
+      <label class="switch">Lot ที่หมดก่อน<input type="checkbox" ${o.lot?'checked':''} onchange="S.report.lot=this.checked"></label>
+      <label class="switch">ช่องลงชื่อ<input type="checkbox" ${o.sign?'checked':''} onchange="S.report.sign=this.checked"></label>
+    </div>
+    <button class="save" type="button" onclick="printReport()">พิมพ์ / บันทึก PDF</button>
+    <button class="btn2" type="button" onclick="exportExcel()">ดาวน์โหลด Excel</button>`);
+}
+function reportRows(){
+  const rank = d => d.alerts.some(a => a.k==='out'||a.k==='low'||a.k==='expd') ? 0 : d.alerts.some(a => a.k==='cover') ? 1 : 2;
+  return [...S.drugs].sort((a,b) => rank(a)-rank(b));
+}
+const statusOf = d => d.alerts.length ? d.alerts.map(a => a.t).join(', ') : 'ปกติ';
+const coverShort = d => d.cover === null ? '—' : d.cover.toFixed(1) + ' ด.';
+function printReport(){
+  const o = S.report, now = new Date(), rows = reportRows();
+  const dateTH = `${now.getDate()} ${TH_M[now.getMonth()]} ${now.getFullYear()+543}`, time = `${pad(now.getHours())}:${pad(now.getMinutes())}`;
+  const need = rows.filter(d => d.alerts.length);
+  const verdict = need.length ? `<div class="vd warn">ต้องดู ${need.length} รายการ: ${need.map(d => esc(d.name+' '+d.strength)).join(', ')}</div>` : `<div class="vd ok">ยาเพียงพอครบทุกรายการ (${rows.length} รายการ)</div>`;
+  const html = `<!DOCTYPE html><html lang="th"><head><meta charset="UTF-8"><title>ยอดคงคลังยาวัณโรค ${dateTH}</title>
+<link href="https://fonts.googleapis.com/css2?family=Google+Sans:wght@400;500;700&family=Noto+Sans+Thai:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>*{box-sizing:border-box;margin:0;padding:0;font-family:'Google Sans','Noto Sans Thai',sans-serif}body{background:#EEEAF7;color:#2B2340;padding:24px 0;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+.bar{max-width:794px;margin:0 auto 14px;display:flex;justify-content:flex-end}.bar button{height:44px;padding:0 22px;border:0;border-radius:99px;background:#2B2340;color:#fff;font-size:15px;font-weight:700;cursor:pointer}
+.a4{width:210mm;min-height:297mm;background:#fff;margin:0 auto;padding:16mm;box-shadow:0 10px 30px rgba(43,35,64,.12);font-size:11pt}
+.hd{display:flex;justify-content:space-between;align-items:flex-end;border-bottom:2px solid #2B2340;padding-bottom:10px;margin-bottom:14px}.hd h1{font-size:19pt}.hd .s{font-size:9.5pt;color:#6B6585;margin-top:2px}.hd .r{text-align:right;font-size:9pt;color:#6B6585}.hd .r b{display:block;font-size:14pt;color:#2B2340}
+.vd{border-radius:10px;padding:10px 14px;font-weight:700;margin-bottom:14px}.vd.ok{background:#DDF5E7;color:#1B6B40}.vd.warn{background:#FFE4D4;color:#A13A06}
+table{width:100%;border-collapse:collapse}th{text-align:left;font-size:9pt;padding:8px;border-bottom:2px solid #2B2340}td{padding:10px 8px;border-bottom:1px solid #ECE8F7;font-size:11pt}.n{text-align:right;font-variant-numeric:tabular-nums}.q{font-weight:700;font-size:13pt}
+tr.alert td{background:#FFF6EF}.st{font-weight:700}tr.alert .st{color:#A13A06}.no{color:#6B6585;width:28px}
+.note{font-size:8.5pt;color:#6B6585;margin-top:8px}.sg{display:grid;grid-template-columns:1fr 1fr;gap:24px;margin-top:48px;text-align:center;font-size:10pt;line-height:2}
+@media print{body{background:#fff;padding:0}.bar{display:none}.a4{box-shadow:none;width:auto;min-height:auto;padding:0}tr{break-inside:avoid}@page{size:A4;margin:14mm}}</style></head><body>
+<div class="bar"><button onclick="(document.fonts?document.fonts.ready:Promise.resolve()).then(()=>print())">พิมพ์ / บันทึก PDF</button></div>
+<div class="a4"><div class="hd"><div><h1>ยอดคงคลังยาวัณโรค</h1><div class="s">คลินิกวัณโรค · กลุ่มงานเภสัชกรรม · รพ.ห้วยผึ้ง</div></div><div class="r">ข้อมูล ณ วันที่<b>${dateTH}</b>เวลา ${time} น.</div></div>
+${verdict}<table><thead><tr><th>#</th><th>รายการยา</th><th class="n">คงเหลือ</th><th class="n">Min</th>${o.cover?'<th class="n">พอใช้</th>':''}${o.lot?'<th>Lot ที่หมดก่อน</th>':''}<th>สถานะ</th></tr></thead><tbody>
+${rows.map((d,i) => `<tr class="${d.alerts.length?'alert':''}"><td class="no">${i+1}</td><td><b>${esc(d.name)} ${esc(d.strength)} mg</b></td><td class="n q">${fmt(d.total)}</td><td class="n">${fmt(d.min)}</td>${o.cover?`<td class="n">${coverShort(d)}</td>`:''}${o.lot?`<td>${d.lots[0]?esc(d.lots[0].lot)+' · '+isoToTH(d.lots[0].exp):'—'}</td>`:''}<td class="st">${esc(statusOf(d))}</td></tr>`).join('')}
+</tbody></table><div class="note">ยอดจากบัญชีรับ–จ่ายในระบบ ณ เวลาที่พิมพ์${o.cover?' · พอใช้ = คงเหลือ ÷ ยอดจ่ายเฉลี่ย 3 เดือน':''}</div>
+${o.sign?'<div class="sg"><div>ลงชื่อ ........................................<br>(........................................)<br>เภสัชกรผู้จัดทำ</div><div>ลงชื่อ ........................................<br>(........................................)<br>หัวหน้ากลุ่มงานเภสัชกรรมฯ</div></div>':''}
+</div></body></html>`;
+  const w = window.open('', 'tbStockReport');
+  if (!w) { toast('เบราว์เซอร์บล็อก popup — อนุญาต popup ก่อน', 5000); return; }
+  w.document.open(); w.document.write(html); w.document.close();
+}
+function loadXLSX(){ return window.XLSX ? Promise.resolve() : new Promise((ok, no) => { const s = document.createElement('script'); s.src = 'https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js'; s.onload = ok; s.onerror = no; document.head.appendChild(s); }); }
+async function exportExcel(){
+  try { toast('กำลังเตรียมไฟล์…'); await loadXLSX(); } catch { toast('โหลดตัวสร้าง Excel ไม่ได้', 5000); return; }
+  const rows = reportRows(), X = window.XLSX, wb = X.utils.book_new();
+  const s1 = [['รายการยา','คงเหลือ','หน่วย','Min','ใช้เฉลี่ย/เดือน','พอใช้ (เดือน)','สถานะ']]
+    .concat(rows.map(d => [`${d.name} ${d.strength} mg`, d.total, d.unit, d.min, Math.round(d.avg), d.cover===null?'':+d.cover.toFixed(1), statusOf(d)]));
+  const s2 = [['รายการยา','Lot','หมดอายุ (พ.ศ.)','เหลืออีก (วัน)','คงเหลือ']];
+  rows.forEach(d => d.lots.forEach(l => s2.push([`${d.name} ${d.strength} mg`, l.lot, isoToTH(l.exp), l.exp?daysUntil(l.exp):'', l.qty])));
+  const w1 = X.utils.aoa_to_sheet(s1); w1['!cols'] = [{wch:26},{wch:10},{wch:8},{wch:8},{wch:14},{wch:12},{wch:28}];
+  const w2 = X.utils.aoa_to_sheet(s2); w2['!cols'] = [{wch:26},{wch:12},{wch:14},{wch:12},{wch:10}];
+  X.utils.book_append_sheet(wb, w1, 'ยอดคงคลัง'); X.utils.book_append_sheet(wb, w2, 'Lot');
+  const d = new Date(); X.writeFile(wb, `คลังยาTB_${d.getDate()}-${d.getMonth()+1}-${d.getFullYear()+543}.xlsx`);
+}
+
+load();
+</script>
+</body>
+</html>
