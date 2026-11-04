@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>คลังยา TB · sheisphere</title>
+<title>TB Stock · sheisphere</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Google+Sans:wght@400;500;700&family=Noto+Sans+Thai:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -152,7 +152,7 @@ input[type=number]{-moz-appearance:textfield}
 <div class="lock" id="lock" role="dialog" aria-modal="true" aria-labelledby="lock-h">
   <div class="lock-box">
     <svg width="64" height="90" viewBox="0 0 100 140" aria-hidden="true"><rect x="28" y="6" width="44" height="20" rx="7" fill="#FF8A4C" stroke="#2B2340" stroke-width="5"/><rect x="12" y="30" width="76" height="102" rx="24" fill="#fff" stroke="#2B2340" stroke-width="5"/><path d="M15 90h70v18a21 21 0 0 1-21 21H36a21 21 0 0 1-21-21z" fill="#FF8A4C"/><circle cx="40" cy="68" r="6" fill="#2B2340"/><circle cx="60" cy="68" r="6" fill="#2B2340"/></svg>
-    <h1 id="lock-h">คลังยา TB</h1>
+    <h1 id="lock-h">TB Stock</h1>
     <div class="muted" id="lock-msg" style="font-size:15px">ใส่รหัส 4 หลักเพื่อเข้าใช้งาน</div>
     <div class="dots" id="dots" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
     <div class="pad" id="pad"></div>
@@ -402,10 +402,9 @@ function openLots(id){
   const pins = withExp.map((l,i) => {
     const days = daysUntil(l.exp);
     const col = days < 0 ? 'var(--bad-ink)' : days <= EXPIRY_WARN_DAYS ? 'var(--exp-ink)' : 'var(--ink2)';
-    const top = i % 2 === 0 ? (i === 0 ? -26 : 2) : 110;
     const w = Math.round(40 + 30 * l.qty / maxQ);
-    return `<div class="pin" style="left:${pos(l)}%;top:${top}px">
-      ${i===0 ? '<span class="first">ใช้ก่อน</span>' : ''}
+    return `<div class="pin" data-x="${pos(l)}" style="left:${pos(l)}%;top:0">
+      ${i===0 ? '<span class="first" style="position:absolute;top:-20px">ใช้ก่อน</span>' : ''}
       <svg width="${w}" height="30" viewBox="0 0 60 30" preserveAspectRatio="none" aria-hidden="true"><rect x="1.5" y="1.5" width="57" height="27" rx="13.5" fill="#fff" stroke="#2B2340" stroke-width="3"/><path d="M30 1.5h15a13.5 13.5 0 0 1 0 27H30z" fill="${d.color}" stroke="#2B2340" stroke-width="3"/></svg>
       <b>${esc(l.lot)} · ${fmt(l.qty)}</b><small style="color:${col}">${isoToTH(l.exp)}${days<0?' (หมดแล้ว)':''}</small></div>`;
   }).join('');
@@ -413,7 +412,8 @@ function openLots(id){
   openSheet(`
     <div class="sh-top"><div style="display:flex;align-items:center;gap:12px">${miniSVG(d.color)}<div><h2>${esc(d.name)} ${esc(d.strength)} mg</h2><div class="muted" style="font-size:14px">คงเหลือ <b style="color:var(--ink)">${fmt(d.total)}</b> ${esc(d.unit)} · min ${fmt(d.min)}${d.avg ? ' · ใช้ ~' + fmt(d.avg) + '/เดือน' : ''}</div></div></div>${xBtn}</div>
     <div style="display:flex;flex-wrap:wrap;gap:8px;align-items:center"><span class="tag" style="background:${coverTone[0]};color:${coverTone[1]}">${coverText(d)}</span>
-    <span class="tag" style="background:#F1EEFA;color:var(--ink2)">${d.lastCount ? 'นับจริงล่าสุด ' + isoToTH(d.lastCount) + (daysUntil(d.lastCount) < 0 ? ' (' + (-daysUntil(d.lastCount)) + ' วันก่อน)' : ' (วันนี้)') : 'ยังไม่เคยนับสต๊อกจริง'}</span></div>
+    ${d.lastCount ? `<span class="tag" style="background:#F1EEFA;color:var(--ink2)">นับจริงล่าสุด ${isoToTH(d.lastCount)}${daysUntil(d.lastCount) < 0 ? ' (' + (-daysUntil(d.lastCount)) + ' วันก่อน)' : ' (วันนี้)'}</span>`
+      : `<button type="button" class="tag" style="border:0;cursor:pointer;background:#F1EEFA;color:#3B2F8F" onclick="openCount('${esc(d.id)}')">ยังไม่มีวันที่นับ · ยืนยันยอด ›</button>`}</div>
     ${withExp.length ? `<div class="tl" role="img" aria-label="เส้นเวลาวันหมดอายุของแต่ละ Lot">
       <div class="track"></div>${ticks.map(t => `<span class="tick" style="left:${t.l}%">${t.t}</span>`).join('')}
       <span class="now"></span><span class="now-l">วันนี้</span>${pins}</div>` : ''}
@@ -425,7 +425,38 @@ function openLots(id){
       <button class="save" type="button" style="background:#fff;color:var(--ink);box-shadow:0 1px 3px rgba(43,35,64,.1)" onclick="openReceive('${esc(d.id)}')">รับเข้ายานี้</button>
     </div>
     <button class="btn2" type="button" onclick="openCount('${esc(d.id)}')">นับสต๊อกจริง / ปรับยอด</button>`, true);
+  requestAnimationFrame(layoutTimeline);
 }
+/* จัดป้าย Lot บนเส้นเวลาไม่ให้ทับกัน: วางทีละอันเรียงตามวันหมดอายุ ลงช่องบน/ล่างที่ยังว่าง ช่องเต็มก็เพิ่มแถว */
+function layoutTimeline(){
+  const tl = document.querySelector('.tl'); if (!tl) return;
+  const W = tl.clientWidth, GAP = 10, H = 74, BADGE = 22;
+  const pins = [...tl.querySelectorAll('.pin')].sort((a,b) => a.dataset.x - b.dataset.x);
+  const lanes = []; // {side:'a'|'b', k, right}
+  const order = k => [{side:'a',k},{side:'b',k}];
+  pins.forEach((p, i) => {
+    const half = p.offsetWidth / 2, M = 24, cx = Math.max(half - M, Math.min(W - half + M, +p.dataset.x / 100 * W)), left = cx - half;
+    p.style.left = cx + 'px';
+    let lane = null;
+    for (let k = 0; !lane; k++) for (const c of order(k)) {
+      let L = lanes.find(x => x.side === c.side && x.k === c.k);
+      if (!L) { L = { ...c, right: -Infinity }; lanes.push(L); }
+      if (left > L.right + GAP) { lane = L; break; }
+    }
+    lane.right = cx + half; p._lane = lane;
+  });
+  const na = Math.max(1, ...lanes.filter(l => l.side === 'a' && isFinite(l.right)).map(l => l.k + 1));
+  const nb = Math.max(0, ...lanes.filter(l => l.side === 'b' && isFinite(l.right)).map(l => l.k + 1));
+  const trackY = BADGE + na * H;
+  pins.forEach(p => { const L = p._lane; p.style.top = (L.side === 'a' ? trackY - 10 - (L.k + 1) * H + 6 : trackY + 34 + L.k * H) + 'px'; });
+  tl.querySelector('.track').style.top = trackY + 'px';
+  tl.querySelector('.now').style.top = (trackY - 7) + 'px';
+  tl.querySelector('.now-l').style.top = (trackY + 20) + 'px';
+  const tickY = trackY + 34 + nb * H + 4;
+  tl.querySelectorAll('.tick').forEach(t => t.style.top = tickY + 'px');
+  tl.style.height = (tickY + 22) + 'px';
+}
+window.addEventListener('resize', () => requestAnimationFrame(layoutTimeline));
 
 /* ── จ่ายออก ── */
 function openDispense(id){
