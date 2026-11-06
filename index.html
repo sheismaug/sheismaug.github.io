@@ -577,40 +577,47 @@ body{
 </div>
 
 <script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script data-cfasync="false">
-const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxTtFx4xqqYE-qUULiIoZL7QXOtn92zv6fx_um6ZMsPZKlva5ot-wgm7VRiC5DDR28J/exec';
+/* ── VIEW COUNTER (Supabase RPC: get_clicks / add_click) ── */
+const SB_URL = 'https://qvtlekphxsubuklyirlz.supabase.co/rest/v1/rpc/';
+const SB_KEY = 'sb_publishable_dPhW0DORMGlSTc1hzvT4Cw_9ChOlZ0H';
+const SB_HEADERS = {'Content-Type':'application/json','apikey':SB_KEY,'Authorization':'Bearer '+SB_KEY};
+
+// href → key ในตาราง app_clicks (ต้องตรงกับ id="v-<key>" ในการ์ด)
+const CLICK_APPS = {
+  'iv_calculator.html':'iv',
+  'large-print-label.html':'largeprint',
+  'amikacin_calendar.html':'amikacin',
+  'shift-swap-excel-diff.html':'shiftswap',
+  'date-counter-demo.html':'datecounter',
+  'narcotic_log_sheets.html':'narcotic',
+  'med_error.html':'mederr',
+  'med_reconciliation.html':'medrecon',
+  'emergency_box.html':'emergency',
+  'had_round_app.html':'hadround',
+  'ipd_pharm_hub.html':'ipdhub',
+  'ERmedcart.html':'ermedcart',
+  'tb-pharm-stock.html':'tbpharm'
+};
 
 function showClicks(d){
-  if(d.ok){
-    const ids=['iv','narcotic','mederr','emergency','ermedcart','tbpharm','shiftswap','largeprint','medrecon','amikacin','datecounter'];
-    ids.forEach(app=>{
-      const el=document.getElementById('v-'+app);
-      if(el) el.textContent=(d[app]||0).toLocaleString();
-    });
-  }
+  Object.values(CLICK_APPS).forEach(app=>{
+    const el=document.getElementById('v-'+app);
+    if(el) el.textContent=(d[app]||0).toLocaleString();
+  });
 }
-function loadClicks(){
-  const s=document.createElement('script');
-  s.src=SCRIPT_URL+'?action=getClicks&callback=showClicks&t='+Date.now();
-  document.head.appendChild(s);
+async function loadClicks(){
+  try{
+    const r=await fetch(SB_URL+'get_clicks',{method:'POST',headers:SB_HEADERS,body:'{}'});
+    if(r.ok) showClicks(await r.json());
+  }catch(e){ console.warn('loadClicks',e); }
 }
 function recordClick(app){
-  const s=document.createElement('script');
-  s.src=SCRIPT_URL+'?action=addClick&app='+app+'&callback=showClicks&t='+Date.now();
-  document.head.appendChild(s);
+  // keepalive ให้ request ส่งสำเร็จแม้หน้าเปลี่ยนไปแอปแล้ว
+  fetch(SB_URL+'add_click',{method:'POST',headers:SB_HEADERS,body:JSON.stringify({p_app:app}),keepalive:true}).catch(()=>{});
 }
-
-document.querySelector('[href="iv_calculator.html"]')?.addEventListener('click',()=>recordClick('iv'));
-document.querySelector('[href="narcotic_log_sheets.html"]')?.addEventListener('click',()=>recordClick('narcotic'));
-document.querySelector('[href="med_error.html"]')?.addEventListener('click',()=>recordClick('mederr'));
-document.querySelector('[href="emergency_box.html"]')?.addEventListener('click',()=>recordClick('emergency'));
-document.querySelector('[href="ERmedcart.html"]')?.addEventListener('click',()=>recordClick('ermedcart'));
-document.querySelector('[href="tb-pharm-stock.html"]')?.addEventListener('click',()=>recordClick('tbpharm'));
-document.querySelector('[href="shift-swap-excel-diff.html"]')?.addEventListener('click',()=>recordClick('shiftswap'));
-document.querySelector('[href="large-print-label.html"]')?.addEventListener('click',()=>recordClick('largeprint'));
-document.querySelector('[href="med_reconciliation.html"]')?.addEventListener('click',()=>recordClick('medrecon'));
-document.querySelector('[href="had_round_app.html"]')?.addEventListener('click',()=>recordClick('hadround'));
-document.querySelector('[href="amikacin_calendar.html"]')?.addEventListener('click',()=>recordClick('amikacin'));
-document.querySelector('[href="date-counter-demo.html"]')?.addEventListener('click',()=>recordClick('datecounter'));
+Object.entries(CLICK_APPS).forEach(([href,app])=>{
+  document.querySelector('[href="'+href+'"]')?.addEventListener('click',()=>recordClick(app));
+});
 
 loadClicks();
 
