@@ -1,0 +1,689 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<title>IPD Pharm Hub · รพ.ห้วยผึ้ง</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Google+Sans:wght@400;500;700&family=Montserrat:wght@600;700;800&display=swap" rel="stylesheet">
+<script defer src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<style>
+:root{
+  --ink:#111111; --mute:#5f5f5f; --faint:#8b8b86; --cream:#FBF8F1; --line:#efebe2;
+  --lime:#C6F135; --limed:#B5DD3C; --limec:#F1FBD0; --limee:#DCEFA0; --deep:#7FA314;
+  --lav:#EFEBFC; --lavd:#D9D1F5; --lavt:#5B4BB0; --sage:#EEF3EA; --saged:#D7E2CF;
+  --peach:#FCE9DE; --red:#C0202A; --bad:#B3372B; --badbg:#FDECEA;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--cream);color:var(--ink);font-family:'Google Sans',sans-serif;font-size:14px}
+button,input{font-family:inherit;font-size:inherit;color:inherit}
+button{cursor:pointer}
+.mont{font-family:Montserrat,sans-serif}
+.wrap{max-width:1240px;margin:0 auto;padding:18px 24px 60px}
+.soft{border-radius:24px;box-shadow:0 5px 0 rgba(0,0,0,.06);background:#fff}
+.hide{display:none!important}
+/* nav */
+.nav{display:flex;align-items:center;gap:16px;padding:10px 12px 10px 18px;border-radius:999px;background:#fff;box-shadow:0 5px 0 rgba(0,0,0,.06)}
+.brand{display:flex;align-items:center;gap:8px}
+.brand b{font-family:Montserrat,sans-serif;font-weight:800;font-size:16px}
+.brand small{display:block;font-size:11px;color:var(--mute)}
+.navit{display:inline-flex;align-items:center;gap:8px;height:42px;padding:0 16px 0 5px;border-radius:999px;border:none;background:transparent;color:var(--mute);font-size:14px}
+.navit .c{width:32px;height:32px;border-radius:50%;background:#f4f2ec;display:flex;align-items:center;justify-content:center}
+.navit.on{background:var(--lime);color:var(--ink);font-weight:700;box-shadow:0 4px 0 var(--limed)}
+.navit.on .c{background:#fff}
+/* hero */
+.hello{display:inline-flex;align-items:center;gap:8px;font-size:13px;color:var(--mute)}
+.hello i{width:8px;height:8px;border-radius:50%;background:var(--deep);display:inline-block}
+h1{margin:6px 0 8px;font-size:42px;font-weight:700;line-height:1.25;letter-spacing:-.5px}
+.mark{display:inline-block;background:var(--lime);padding:0 14px;border-radius:14px;box-shadow:0 5px 0 var(--limed);transform:rotate(-1.5deg)}
+.prog{display:flex;align-items:center;gap:12px;font-size:13px;color:var(--mute);flex-wrap:wrap}
+.bar{width:160px;height:8px;border-radius:4px;background:#efebe2;overflow:hidden}
+.bar span{display:block;height:100%;background:var(--ink);border-radius:4px}
+/* layout */
+.main{display:flex;flex-wrap:wrap;gap:24px;align-items:flex-start;padding-top:28px}
+.left{flex:999 1 600px;min-width:0;display:flex;flex-direction:column;gap:18px}
+.right{flex:1 1 360px;max-width:400px;position:sticky;top:16px}
+.tools{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.search{display:flex;align-items:center;gap:6px;height:40px;padding:0 14px;border-radius:999px;background:#fff;box-shadow:0 3px 0 rgba(0,0,0,.05);color:var(--mute);flex:1;max-width:260px}
+.search input{border:none;outline:none;background:transparent;width:100%;font-size:13px}
+.ghost{height:40px;padding:0 14px;border-radius:999px;border:none;background:transparent;color:var(--mute);font-size:13px}
+.ghost.on{background:#fff;color:var(--ink);font-weight:700;box-shadow:0 3px 0 rgba(0,0,0,.06)}
+.black{height:40px;padding:0 18px;border-radius:999px;border:none;background:var(--ink);color:#fff;font-size:13px;font-weight:700;box-shadow:0 4px 0 #000;display:inline-flex;align-items:center;gap:6px}
+/* groups */
+.grp{border-radius:28px;padding:18px 16px 16px;display:flex;flex-direction:column;gap:10px}
+.grp.todo{background:var(--limec);box-shadow:0 5px 0 var(--limee)}
+.grp.wait{background:var(--lav);box-shadow:0 5px 0 var(--lavd)}
+.grph{display:flex;align-items:flex-start;gap:12px;padding:0 4px}
+.grph .t{font-size:20px;font-weight:700}
+.grph .t span{font-family:Montserrat,sans-serif;font-weight:800;color:var(--mute);font-size:17px}
+.grph .s{font-size:13px;color:var(--mute)}
+.badge{width:48px;height:48px;border-radius:50%;background:#fff;display:flex;align-items:center;justify-content:center;box-shadow:0 3px 0 rgba(0,0,0,.08);flex:none;margin-left:auto}
+.rows{display:flex;flex-direction:column;gap:8px}
+.row{display:flex;align-items:center;gap:12px;padding:8px 10px 8px 8px;border-radius:18px;background:#fff;box-shadow:0 5px 0 rgba(0,0,0,.07);cursor:pointer}
+.row.sel{outline:2px solid var(--ink);outline-offset:-2px}
+.lead{width:38px;height:38px;border-radius:13px;display:flex;align-items:center;justify-content:center;flex:none}
+.hn{font-family:Montserrat,sans-serif;font-size:17px;font-weight:800;min-width:64px}
+.nm{color:var(--mute);flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.devs{display:flex;gap:4px}
+.dev{width:28px;height:28px;border-radius:10px;background:#f6f4ee;display:flex;align-items:center;justify-content:center}
+.go{height:36px;padding:0 16px;border-radius:14px;border:none;background:var(--lime);font-size:13px;font-weight:700;box-shadow:0 4px 0 var(--limed);display:inline-flex;align-items:center;gap:6px}
+.waittag{display:inline-flex;align-items:center;gap:5px;height:30px;padding:0 12px;border-radius:999px;background:var(--lav);color:var(--lavt);font-size:12px;font-weight:600}
+.dc{height:32px;padding:0 11px;border-radius:12px;border:none;background:#f4f2ec;color:var(--mute);font-family:Montserrat,sans-serif;font-size:11px;font-weight:700;box-shadow:0 3px 0 #e2ded4}
+.closure{margin:-2px 6px 6px 56px;padding:14px 16px;border-radius:16px;background:#fff;outline:2px solid var(--ink);outline-offset:-2px;display:flex;flex-direction:column;gap:10px}
+.closure .it{display:flex;align-items:center;gap:10px;font-size:13px}
+.closure .it em{margin-left:auto;font-style:normal;font-size:12px;color:var(--mute)}
+.done{display:flex;align-items:center;gap:12px;padding:12px 18px 12px 10px;border:none;border-radius:24px;background:var(--sage);box-shadow:0 5px 0 var(--saged);text-align:left;width:100%}
+.empty{padding:28px;text-align:center;color:var(--mute)}
+/* panel */
+.panel{background:#fff;border-radius:28px;box-shadow:0 5px 0 rgba(0,0,0,.07);padding:22px;display:flex;flex-direction:column;gap:18px}
+.ph{display:flex;align-items:flex-start;gap:10px}
+.ph .h{font-family:Montserrat,sans-serif;font-size:28px;font-weight:800;line-height:1.05}
+.ph .s{font-size:13px;color:var(--mute)}
+.saved{font-size:11px;color:var(--mute);display:inline-flex;align-items:center;gap:4px;padding-top:6px;white-space:nowrap}
+.saved.err{color:var(--bad);cursor:pointer}
+.tabs{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+.tab{display:flex;flex-direction:column;align-items:flex-start;gap:6px;padding:12px;border-radius:18px;border:none;background:#fff;box-shadow:0 4px 0 #ebe7dd;outline:1px solid #efece5;outline-offset:-1px;text-align:left}
+.tab.on{background:var(--limec);box-shadow:0 4px 0 var(--limee);outline:2px solid var(--ink);outline-offset:-2px}
+.tab .ic{width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center}
+.tab b{font-size:13px}
+.tab span{font-size:11px;color:var(--mute)}
+.q{display:flex;flex-direction:column;gap:8px}
+.q>b{font-size:15px}
+.q>b small{font-weight:400;font-size:12px;color:var(--mute)}
+.grid2,.grid3{display:grid;gap:10px}
+.grid2{grid-template-columns:repeat(2,minmax(0,1fr))}
+.grid3{grid-template-columns:repeat(3,minmax(0,1fr))}
+.opt{position:relative;display:flex;flex-direction:column;align-items:center;gap:5px;padding:13px 4px;border-radius:18px;border:none;background:#f8f6f0;box-shadow:0 4px 0 #e9e5db;min-width:0}
+.opt span{font-size:13px}
+.opt small{font-size:10px}
+.opt.on{background:var(--limec);box-shadow:0 4px 0 var(--limed);outline:2px solid var(--ink);outline-offset:-2px}
+.opt.on span{font-weight:700}
+.chip{display:inline-flex;align-items:center;gap:6px;height:34px;padding:0 12px 0 4px;border-radius:999px;border:none;background:#f6f4ee;box-shadow:0 3px 0 #e6e2d8;font-size:13px}
+.av{width:26px;height:26px;border-radius:50%;background:var(--lime);display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700}
+.staff{display:flex;flex-direction:column;gap:8px;padding:12px;border-radius:16px;background:#faf8f3}
+.staff small{font-size:11px;color:var(--mute)}
+.staff .l{display:flex;flex-wrap:wrap;gap:6px}
+.sp{display:inline-flex;align-items:center;gap:6px;height:32px;padding:0 12px 0 4px;border-radius:999px;border:none;background:#fff;font-size:12px}
+.sp .av{width:24px;height:24px;background:#f1efe9}
+.sp.on{background:var(--ink);color:#fff}
+.sp.on .av{background:var(--lime);color:var(--ink)}
+.datechip{display:inline-flex;align-items:center;gap:6px;height:30px;padding:0 10px;border-radius:999px;background:#f3f1ea;font-size:12px;position:relative}
+.datechip input{border:none;background:transparent;font-size:12px;outline:none;width:118px}
+.banner{display:flex;align-items:center;gap:12px;padding:12px 14px;border-radius:16px;background:var(--limec)}
+.banner.bad{background:var(--badbg)}
+.banner b{font-size:15px;display:block}
+.banner span{font-size:12px;color:var(--mute)}
+.lnk{border:none;background:transparent;padding:0;color:var(--mute);font-size:12px;text-decoration:underline}
+.pill{display:inline-flex;align-items:center;gap:6px;height:32px;padding:0 12px;border-radius:999px;border:1px dashed #cfccc4;background:#fff;color:var(--mute);font-size:12px}
+.pill.on{border-style:solid;border-color:var(--ink);color:var(--ink);font-weight:700}
+.strip{display:flex;flex-direction:column;gap:8px;padding:14px;border-radius:16px;background:#faf8f3}
+.cells{display:flex;gap:6px}
+.cell{flex:1;display:flex;flex-direction:column;align-items:center;gap:4px;font-size:11px;color:var(--mute)}
+.cell span{width:100%;height:36px;border-radius:12px;display:flex;align-items:center;justify-content:center;background:#efece4}
+.cell.mr span{background:var(--ink)}
+.cell.md span{background:var(--lav);outline:2px solid var(--lavt);outline-offset:-2px}
+.hist{display:flex;align-items:center;gap:10px;padding:8px 10px;border-radius:12px;background:#faf8f3}
+.hist span{flex:1;font-size:13px}
+.hist em{font-style:normal;font-size:12px;color:var(--mute)}
+.inp{display:flex;flex-direction:column;gap:6px;font-size:12px;color:var(--mute)}
+.inp input{height:46px;border:1px solid #e3e0d8;border-radius:14px;padding:0 14px;font-size:15px;color:var(--ink);background:#fff}
+.inp input.big{border:2px solid var(--ink);font-family:Montserrat,sans-serif;font-size:20px;font-weight:700}
+.warn{display:flex;align-items:center;gap:8px;padding:10px 12px;border-radius:12px;background:#faf8f3;color:var(--mute);font-size:12px}
+.primary{height:48px;border-radius:999px;border:none;background:var(--ink);color:#fff;font-size:15px;font-weight:700;box-shadow:0 4px 0 #000}
+.err{color:var(--bad);font-size:12px}
+/* report */
+.rtools{display:flex;align-items:center;gap:8px;flex-wrap:wrap;padding-top:28px}
+.kpis{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px}
+.kpi{background:#fff;border-radius:24px;box-shadow:0 5px 0 rgba(0,0,0,.06);padding:20px;display:flex;flex-direction:column;gap:14px}
+.kh{display:flex;align-items:center;gap:10px}
+.kh .ib{width:42px;height:42px;border-radius:14px;display:flex;align-items:center;justify-content:center}
+.kh b{font-size:14px}
+.kh small{display:block;font-size:11px;color:var(--mute)}
+.kr{display:flex;align-items:center;gap:16px}
+.kr .n{font-family:Montserrat,sans-serif;font-size:18px;font-weight:700}
+.kr .n small{color:var(--mute);font-weight:600}
+.minibars{display:flex;align-items:flex-end;gap:4px;height:44px}
+.minibars span{flex:1;border-radius:4px;background:#e6efcf;min-height:2px}
+.minibars span.last{background:var(--ink)}
+.row2{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
+.hb{display:grid;grid-template-columns:78px minmax(0,1fr) 40px;align-items:center;gap:8px;font-size:12px}
+.hb i{height:12px;border-radius:6px;display:block}
+.devgrid{display:flex;gap:8px;flex-wrap:wrap}
+.devc{flex:1 1 90px;display:flex;flex-direction:column;align-items:center;gap:8px;padding:14px 8px;border-radius:18px;background:#f8f6f0}
+.devc b{font-family:Montserrat,sans-serif;font-size:24px;font-weight:800;line-height:1}
+.devc span{font-size:12px;color:var(--mute)}
+table.mon{border-collapse:collapse;font-size:12px;margin-top:8px;background:#fff;border-radius:12px;overflow:hidden}
+table.mon th,table.mon td{padding:6px 12px;border-bottom:1px solid var(--line);text-align:right;white-space:nowrap}
+table.mon th:first-child,table.mon td:first-child{text-align:left}
+details summary{cursor:pointer;font-size:13px;font-weight:700}
+#toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%) translateY(20px);display:flex;align-items:center;gap:14px;height:48px;padding:0 8px 0 18px;border-radius:999px;background:var(--ink);color:#fff;font-size:14px;opacity:0;pointer-events:none;transition:all .2s;z-index:20}
+#toast.show{opacity:1;transform:translateX(-50%);pointer-events:auto}
+#toast button{height:34px;padding:0 14px;border-radius:999px;border:none;background:var(--lime);color:var(--ink);font-size:13px;font-weight:700}
+#toast.noact{padding-right:18px}
+@media (max-width:900px){.right{position:static;max-width:none}.kpis,.row2{grid-template-columns:1fr}h1{font-size:32px}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="nav">
+    <div class="brand"><span id="logoM"></span><div><b>IPD <span style="color:var(--red)">●</span> Pharm Hub</b><small>รพ.ห้วยผึ้ง</small></div></div>
+    <nav style="display:flex;gap:6px;margin:0 auto">
+      <button class="navit on" id="navEntry" onclick="showView('entry')"><span class="c" data-ic="clip"></span>วันนี้</button>
+      <button class="navit" id="navReport" onclick="showView('report')"><span class="c" data-ic="chart"></span>รายงาน</button>
+    </nav>
+    <span id="today" style="font-size:13px;color:var(--mute);padding-right:8px"></span>
+  </div>
+
+  <!-- ═══ ลงข้อมูล ═══ -->
+  <section id="vEntry">
+    <div class="main">
+      <div class="left">
+        <div id="hero"></div>
+        <div class="tools">
+          <label class="search"><span data-ic="search"></span><input id="qHN" placeholder="ค้น HN" inputmode="numeric" aria-label="ค้น HN"></label>
+          <button class="ghost on" id="tActive" onclick="setList('active')">กำลังนอน</button>
+          <button class="ghost" id="tDC" onclick="setList('dc')">D/C แล้ว</button>
+          <span id="dcRange" class="hide" style="display:inline-flex;gap:6px;align-items:center;font-size:12px;color:var(--mute)">D/C <input type="date" id="dcFrom"> – <input type="date" id="dcTo"></span>
+          <button class="black" style="margin-left:auto" onclick="openRegister()"><span data-ic="plus"></span>ลงทะเบียน</button>
+        </div>
+        <div id="list"><div class="empty">กำลังโหลด…</div></div>
+      </div>
+      <div class="right"><div class="panel" id="panel"></div></div>
+    </div>
+  </section>
+
+  <!-- ═══ รายงาน ═══ -->
+  <section id="vReport" class="hide">
+    <div class="rtools">
+      <button class="ghost" data-rp="thism" onclick="setRp('thism')">เดือนนี้</button>
+      <button class="ghost" data-rp="lastm" onclick="setRp('lastm')">เดือนที่แล้ว</button>
+      <button class="ghost on" data-rp="fy" onclick="setRp('fy')">ปีงบนี้</button>
+      <button class="ghost" data-rp="lastfy" onclick="setRp('lastfy')">ปีงบที่แล้ว</button>
+      <span style="display:inline-flex;gap:6px;align-items:center;font-size:12px;color:var(--mute)"><input type="date" id="rpFrom"> – <input type="date" id="rpTo"><button class="ghost" onclick="setRp('custom')">ดู</button></span>
+      <button class="black" style="margin-left:auto" onclick="exportReport()">Export Excel</button>
+    </div>
+    <div id="rpBody" style="display:flex;flex-direction:column;gap:16px;padding-top:18px"><div class="empty">กำลังคำนวณ…</div></div>
+  </section>
+</div>
+<div id="toast"><span id="toastMsg"></span><button id="toastBtn">ยกเลิก</button></div>
+
+<script>
+// ── Supabase Edge Function ─────────────────────────
+const API = 'https://qvtlekphxsubuklyirlz.supabase.co/functions/v1/ipd-hub';
+const KEY = 'sb_publishable_dPhW0DORMGlSTc1hzvT4Cw_9ChOlZ0H';
+const TH_M = ['ม.ค.','ก.พ.','มี.ค.','เม.ย.','พ.ค.','มิ.ย.','ก.ค.','ส.ค.','ก.ย.','ต.ค.','พ.ย.','ธ.ค.'];
+const TH_D = ['อา.','จ.','อ.','พ.','พฤ.','ศ.','ส.'];
+const SH = { 'ดึก': 0, 'เช้า': 1, 'บ่าย': 2 };
+const SH_IC = { 'ดึก': 'moon', 'เช้า': 'sun', 'บ่าย': 'sunset' };
+const COUN = [['Syringe','syringe','Syringe'],['Penfill','pen','Penfill'],['Evohaler','mdi','Evohaler'],['Accuhaler','disc','Accuhaler'],['อื่นๆ','dots','อื่นๆ']];
+
+// ── icons: line (ui) + duotone (cute) ──────────────
+const K = '#2b2b2b';
+const LINE = {
+  clip:'<rect x="5" y="4" width="14" height="17" rx="2.5"></rect><path d="M9 4h6v3H9z"></path><path d="M9 12h6M9 16h4"></path>',
+  chart:'<path d="M4 20V10M10 20V4M16 20v-7M22 20H2"></path>',
+  search:'<circle cx="11" cy="11" r="7"></circle><path d="M20 20l-3.5-3.5"></path>',
+  plus:'<path d="M12 5v14M5 12h14"></path>', check:'<path d="M5 12.5l4.5 4.5L19 7"></path>',
+  clock:'<circle cx="12" cy="12" r="9"></circle><path d="M12 7v5l3 2"></path>',
+  x:'<path d="M6 6l12 12M18 6L6 18"></path>', dots:'<circle cx="12" cy="12" r="1.3"></circle><circle cx="6" cy="12" r="1.3"></circle><circle cx="18" cy="12" r="1.3"></circle>'
+};
+const DUO = {
+  clip:`<rect x="5" y="4.5" width="14" height="16.5" rx="3" fill="#FFE98A" stroke="${K}" stroke-width="1.6"></rect><rect x="8.5" y="3" width="7" height="3.6" rx="1.4" fill="#FF9F6B" stroke="${K}" stroke-width="1.6"></rect><path d="M8.5 11h7M8.5 14.5h5" stroke="${K}" stroke-width="1.6" stroke-linecap="round"></path><circle cx="16.5" cy="17.5" r="2.6" fill="#9BE07A" stroke="${K}" stroke-width="1.4"></circle><path d="M15.4 17.5l.8.8 1.5-1.6" stroke="${K}" stroke-width="1.2" fill="none" stroke-linecap="round"></path>`,
+  steth:`<path d="M6 3.5v5a4 4 0 0 0 8 0v-5" stroke="${K}" stroke-width="1.7" fill="none" stroke-linecap="round"></path><path d="M10 12.5v2.5a5 5 0 0 0 10 0v-1.5" stroke="${K}" stroke-width="1.7" fill="none" stroke-linecap="round"></path><circle cx="20" cy="11.5" r="2.8" fill="#B9A6FF" stroke="${K}" stroke-width="1.6"></circle><circle cx="6" cy="3.5" r="1.3" fill="${K}"></circle><circle cx="14" cy="3.5" r="1.3" fill="${K}"></circle>`,
+  mdi:`<rect x="9.5" y="2.5" width="6" height="12" rx="2" fill="#8FD3FF" stroke="${K}" stroke-width="1.6"></rect><path d="M9.5 14.5H6a2 2 0 0 0-2 2v4.5h11.5v-6.5z" fill="#ffffff" stroke="${K}" stroke-width="1.6" stroke-linejoin="round"></path>`,
+  pen:`<path d="M15.5 4l4.5 4.5L9.5 19 5 14.5z" fill="#FFB8CB" stroke="${K}" stroke-width="1.6" stroke-linejoin="round"></path><path d="M5 14.5L3 21l6.5-2" fill="#ffffff" stroke="${K}" stroke-width="1.6" stroke-linejoin="round"></path><path d="M13 6.5l4.5 4.5" stroke="${K}" stroke-width="1.6"></path>`,
+  syringe:`<path d="M8.5 15.5l7-7 3 3-7 7z" fill="#C9F0FF" stroke="${K}" stroke-width="1.6" stroke-linejoin="round"></path><path d="M17 3.5l3.5 3.5M18.7 5.3l-2.4 2.4M8.5 15.5L4 20M11 10l3 3" stroke="${K}" stroke-width="1.6" stroke-linecap="round"></path>`,
+  disc:`<circle cx="12" cy="12" r="8.5" fill="#BDECB0" stroke="${K}" stroke-width="1.6"></circle><circle cx="12" cy="12" r="3" fill="#ffffff" stroke="${K}" stroke-width="1.6"></circle><path d="M12 3.5V6" stroke="${K}" stroke-width="1.6" stroke-linecap="round"></path>`,
+  dots:`<circle cx="12" cy="12" r="8.5" fill="#F3EEE4" stroke="${K}" stroke-width="1.6"></circle><circle cx="8" cy="12" r="1.3" fill="${K}"></circle><circle cx="12" cy="12" r="1.3" fill="${K}"></circle><circle cx="16" cy="12" r="1.3" fill="${K}"></circle>`,
+  moon:`<path d="M20 14.5A8 8 0 1 1 9.5 4a6.5 6.5 0 0 0 10.5 10.5z" fill="#FFE07A" stroke="${K}" stroke-width="1.6" stroke-linejoin="round"></path><circle cx="18" cy="5" r="1" fill="${K}"></circle>`,
+  sun:`<circle cx="12" cy="12" r="4.6" fill="#FFB547" stroke="${K}" stroke-width="1.6"></circle><path d="M12 2.5v2.2M12 19.3v2.2M4.9 4.9l1.5 1.5M17.6 17.6l1.5 1.5M2.5 12h2.2M19.3 12h2.2M4.9 19.1l1.5-1.5M17.6 6.4l1.5-1.5" stroke="${K}" stroke-width="1.6" stroke-linecap="round"></path>`,
+  sunset:`<path d="M6.5 16.5a5.5 5.5 0 0 1 11 0z" fill="#FF9B7A" stroke="${K}" stroke-width="1.6" stroke-linejoin="round"></path><path d="M3 16.5h18M7 20h10M12 5v3M5.6 9.5l1.4 1.4M18.4 9.5L17 10.9" stroke="${K}" stroke-width="1.6" stroke-linecap="round"></path>`,
+  hosp:`<path d="M5 21V7l7-3.5L19 7v14z" fill="#E4EEFF" stroke="${K}" stroke-width="1.6" stroke-linejoin="round"></path><path d="M12 8.5v5M9.5 11h5" stroke="#E5484D" stroke-width="2" stroke-linecap="round"></path><path d="M3 21h18M10 21v-4h4v4" stroke="${K}" stroke-width="1.6"></path>`,
+  hosp2:`<path d="M2.5 21V9.5l5-2 5 2V21z" fill="#E4EEFF" stroke="${K}" stroke-width="1.5" stroke-linejoin="round"></path><path d="M12.5 21v-8l4.5-2 4.5 2v8z" fill="#FFE3D3" stroke="${K}" stroke-width="1.5" stroke-linejoin="round"></path><path d="M7.5 11.5v4M5.5 13.5h4" stroke="#E5484D" stroke-width="1.8" stroke-linecap="round"></path><path d="M1.5 21h21" stroke="${K}" stroke-width="1.5"></path>`,
+  list:`<rect x="4" y="3.5" width="16" height="17" rx="3" fill="#E9FBC4" stroke="${K}" stroke-width="1.6"></rect><path d="M7.5 8.5l1.2 1.2 2-2M7.5 13l1.2 1.2 2-2M12.5 9h4M12.5 13.5h4M7.5 17.5h9" stroke="${K}" stroke-width="1.5" stroke-linecap="round" fill="none"></path>`,
+  empty:`<path d="M4 9l8-4 8 4v9l-8 4-8-4z" fill="#F3EEE4" stroke="${K}" stroke-width="1.6" stroke-linejoin="round"></path><path d="M4 9l8 4 8-4M12 13v9" stroke="${K}" stroke-width="1.6"></path>`,
+  xc:`<circle cx="12" cy="12" r="8.5" fill="#FFD4D4" stroke="${K}" stroke-width="1.6"></circle><path d="M9 9l6 6M15 9l-6 6" stroke="${K}" stroke-width="1.7" stroke-linecap="round"></path>`,
+  house:`<path d="M4 11l8-7 8 7v9H4z" fill="#FFE98A" stroke="${K}" stroke-width="1.6" stroke-linejoin="round"></path><path d="M10 20v-5h4v5" fill="#ffffff" stroke="${K}" stroke-width="1.6"></path>`
+};
+function li(n, s) { return `<svg width="${s||16}" height="${s||16}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${LINE[n]}</svg>`; }
+function du(n, s) { return `<svg width="${s||24}" height="${s||24}" viewBox="0 0 24 24" fill="none" aria-hidden="true">${DUO[n]}</svg>`; }
+function mascot(s, mood) {
+  const I = '#111111', L = '#C6F135';
+  let eyes = `<circle cx="30.5" cy="36.5" r="2.6" fill="${I}"></circle><circle cx="39.5" cy="31.5" r="2.6" fill="${I}"></circle>`;
+  let mouth = `<path d="M31.5 42.5c2.8 2.4 7.4 1.6 9.6-1.8" stroke="${I}" stroke-width="2.3" fill="none" stroke-linecap="round"></path>`;
+  if (mood === 'star') {
+    const st = (cx, cy) => `<path d="M${cx} ${cy-3.6}l1.1 2.4 2.6.3-1.9 1.8.5 2.6-2.3-1.3-2.3 1.3.5-2.6-1.9-1.8 2.6-.3z" fill="${I}"></path>`;
+    eyes = st(30.5, 36.5) + st(39.5, 31.5);
+    mouth = `<path d="M30.5 41.5c2.6 4.4 9.4 3.4 11.4-2.2z" fill="${I}"></path>`;
+  }
+  return `<svg width="${s}" height="${s}" viewBox="0 0 72 72" aria-hidden="true"><g transform="rotate(-30 36 36)"><rect x="12" y="22" width="48" height="28" rx="14" fill="#ffffff" stroke="${I}" stroke-width="2.5"></rect><path d="M36 22h10a14 14 0 0 1 0 28H36z" fill="${L}" stroke="${I}" stroke-width="2.5"></path></g>${eyes}${mouth}<circle cx="26.5" cy="42.5" r="2.4" fill="#ff9fb0" opacity=".85"></circle></svg>`;
+}
+
+// ── helpers ─────────────────────────────────────────
+function api(action, data, ms) {
+  const ctrl = new AbortController(); const t = setTimeout(() => ctrl.abort(), ms || 30000);
+  return fetch(API, { method: 'POST', signal: ctrl.signal,
+    headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + KEY, 'apikey': KEY },
+    body: JSON.stringify({ action, data: data || {} }) })
+    .then(r => r.json()).catch(e => ({ ok: false, error: e.name === 'AbortError' ? 'timeout' : String(e.message || e) }))
+    .finally(() => clearTimeout(t));
+}
+const $ = id => document.getElementById(id);
+function esc(v) { return String(v == null ? '' : v).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+function iso(d) { return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0'); }
+function todayIso() { return iso(new Date()); }
+function addDays(s, n) { const d = new Date(s + 'T00:00:00'); d.setDate(d.getDate() + n); return iso(d); }
+function thd(s, year) {           // "10 พ.ย." (+ ปีถ้าไม่ใช่ปีนี้ หรือขอ)
+  const m = /^(\d{4})-(\d{2})-(\d{2})/.exec(s || ''); if (!m) return '—';
+  const y = +m[1], showY = year || y !== new Date().getFullYear();
+  return (+m[3]) + ' ' + TH_M[+m[2]-1] + (showY ? ' ' + String(y + 543).slice(year === 'full' ? 0 : -2) : '');
+}
+function sIdx(date, shift) { if (!date || SH[shift] === undefined) return null; return Math.round(new Date(date + 'T00:00:00Z').getTime() / 86400000) * 3 + SH[shift]; }
+function curShift() { const h = new Date().getHours(); return h < 8 ? 'ดึก' : (h < 16 ? 'เช้า' : 'บ่าย'); }
+function fillIcons(root) { (root || document).querySelectorAll('[data-ic]').forEach(el => { el.innerHTML = li(el.dataset.ic, +el.dataset.s || 16); }); }
+
+// ── state ───────────────────────────────────────────
+let EPS = [], LISTMODE = 'active', SEL = null, PTAB = 'mr', PMODE = 'ep', CLOSE_ID = null, SHOW_DONE = false;
+let STAFF = [], STAFF_OPEN = false, REPORT = null, RP = 'fy';
+function staffSaved() { try { return localStorage.getItem('liteStaff') || ''; } catch (e) { return ''; } }
+function staffSet(n) { try { localStorage.setItem('liteStaff', n); } catch (e) {} }
+function initials(n) { const b = String(n).replace(/^(ภญ\.|ภก\.|จพ\.|นาง|นาย)\s*/, ''); const c = b.replace(/[^ก-ฮ]/g, ''); return (c.slice(0, 2) || b.slice(0, 2)); }
+function shortName(n) { return String(n).replace(/^(ภญ\.|ภก\.|จพ\.)\s*/, ''); }
+
+// ── episode logic ───────────────────────────────────
+function srcOf(e) { return (e.data_source === 'รพ.อื่น' || String(e.med_category || '').includes('นอก')) ? 'รพ.อื่น' : 'รพ.ห้วยผึ้ง'; }
+function onTimeOf(e) {
+  if (e.mr_status === 'ไม่พบรายการยาเดิม') return 'ผ่าน (ไม่พบยา)';
+  if (e.mr_status !== 'มีรายการ MR') return e.mr_status ? '—' : '';
+  const a = sIdx(e.admit_date, e.admit_shift), m = sIdx(e.mr_done_date, e.mr_done_shift);
+  if (a === null || m === null) return '';
+  const d = m - a; return (e.data_source === 'รพ.อื่น' ? (d >= 0 && d <= 3) : d === 0) ? 'ผ่าน' : 'ไม่ผ่าน';
+}
+function mrDone(e) { return !!e.mr_status && (e.mr_status !== 'มีรายการ MR' || !!e.mr_done_shift); }
+function needMR(e) { return !mrDone(e); }
+function needMD(e) { return e.mr_status === 'มีรายการ MR' && !!e.mr_done_shift && !e.md_review_shift && e.md_status !== 'none'; }
+function complete(e) { return mrDone(e) && !needMD(e); }
+function mdGap(e) { const a = sIdx(e.mr_done_date || e.admit_date, e.mr_done_shift), b = sIdx(e.md_review_date, e.md_review_shift); return (a === null || b === null) ? null : b - a; }
+function waitShifts(e) { const a = sIdx(e.mr_done_date || e.admit_date, e.mr_done_shift), n = sIdx(todayIso(), curShift()); return (a === null) ? null : Math.max(0, n - a); }
+function find(id) { return EPS.find(e => e.mr_id === id); }
+function adoptId(e, nid) { const old = e.mr_id; e.mr_id = nid; e._new = false; if (SEL === old) SEL = nid; if (CLOSE_ID === old) CLOSE_ID = nid; if (timers[old]) { clearTimeout(timers[old]); delete timers[old]; } }
+
+// ── load ────────────────────────────────────────────
+async function loadList() {
+  const q = $('qHN').value.trim();
+  const params = q ? { q } : (LISTMODE === 'dc' ? { mode: 'dc', from: $('dcFrom').value, to: $('dcTo').value } : { mode: 'active' });
+  $('list').innerHTML = '<div class="empty">กำลังโหลด…</div>';
+  const r = await api('listEpisodes', params, 40000);
+  if (!r.ok) {
+    const m = r.error || '';
+    $('list').innerHTML = `<div class="empty err">โหลดไม่สำเร็จ (${esc(m)})${/Unknown action/.test(m) ? '<br>ยังไม่ได้ deploy Edge Function เวอร์ชันใหม่' : ''}${/dc_date|md_status|mr_done_date|column/.test(m) ? '<br>ยังไม่ได้รัน SQL lite_migration_20261110.sql' : ''}</div>`;
+    return;
+  }
+  EPS = (r.episodes || []).map(e => Object.assign(e, { data_source: srcOf(e), md_status: e.md_status || '', _new: !e.mr_id, mr_id: e.mr_id || ('NEW:' + e.hn + ':' + (e.admit_date || '')) }));
+  if (SEL && !find(SEL)) SEL = null;
+  renderAll();
+}
+function setList(m) {
+  LISTMODE = m; $('tActive').classList.toggle('on', m === 'active'); $('tDC').classList.toggle('on', m === 'dc');
+  $('dcRange').classList.toggle('hide', m !== 'dc'); $('qHN').value = ''; SEL = null; PMODE = 'ep'; loadList();
+}
+
+// ── render list ─────────────────────────────────────
+function renderAll() { renderHero(); renderList(); renderPanel(); }
+function renderHero() {
+  const act = LISTMODE === 'active' && !$('qHN').value.trim();
+  const nMR = EPS.filter(needMR).length, nMD = EPS.filter(needMD).length, nDone = EPS.filter(complete).length, tot = EPS.length;
+  const sh = curShift();
+  if (!act) { $('hero').innerHTML = `<span class="hello"><i></i>${LISTMODE === 'dc' ? 'ผู้ป่วยที่ D/C แล้ว · แก้ไขหรือลงย้อนหลังได้' : 'ผลการค้นหา'}</span><h1 style="font-size:32px">${LISTMODE === 'dc' ? 'D/C แล้ว ' + tot + ' ราย' : 'HN ' + esc($('qHN').value)}</h1>`; return; }
+  const pct = tot ? Math.round(nDone / tot * 100) : 0;
+  $('hero').innerHTML = `<span class="hello"><i></i>สวัสดีเวร${sh}</span>
+    <h1>${nMR ? `วันนี้เหลือ <span class="mark">${nMR} MR</span> ต้องทำ` : `MR <span class="mark">ครบแล้ว</span>`}</h1>
+    <div class="prog">${du(SH_IC[sh], 20)}<span>ครบแล้ว <b style="color:var(--ink)">${nDone}</b> / ${tot} ราย</span><span class="bar"><span style="width:${pct}%"></span></span>${nMD ? `<span>· รอหมอสั่งยาเดิม ${nMD} ราย</span>` : ''}</div>`;
+}
+function devIcons(e) {
+  const seen = {}; return (e.counseling || []).filter(c => !seen[c.type] && (seen[c.type] = 1))
+    .map(c => { const k = (COUN.find(x => x[0] === c.type) || COUN[4]); return `<span class="dev" title="${esc(c.type)}">${du(k[1], 18)}</span>`; }).join('');
+}
+function rowHTML(e, kind) {
+  const id = esc(e.mr_id), sel = SEL === e.mr_id ? ' sel' : '';
+  let lead = '', right = '';
+  if (kind === 'todo') { lead = `<span class="lead" style="background:#FFF6CC">${du('clip', 24)}</span>`; right = `<button class="go" onclick="event.stopPropagation();openEp('${id}','mr')">ทำ MR <span aria-hidden="true">→</span></button>`; }
+  else if (kind === 'wait') { const w = waitShifts(e); lead = `<span class="lead" style="background:#F1ECFF">${du('steth', 24)}</span>`; right = `<span class="waittag">${li('clock', 14)}${w === null ? 'รอหมอ' : (w === 0 ? 'เวรนี้' : (w > 9 ? 'รอ ' + Math.round(w / 3) + ' วัน' : 'รอ ' + w + ' เวร'))}</span>`; }
+  else { lead = `<span class="lead" style="background:#EEF3EA">${li('check', 18)}</span>`; right = `<span style="font-size:12px;color:var(--mute)">${e.dc_date ? 'D/C ' + thd(e.dc_date) : 'ครบ'}</span>`; }
+  const dcBtn = e.dc_date ? `<button class="dc" onclick="event.stopPropagation();undoDC('${id}')">ยกเลิก D/C</button>` : `<button class="dc" onclick="event.stopPropagation();askDC('${id}')">D/C</button>`;
+  let h = `<div class="row${sel}" onclick="openEp('${id}')"><span>${lead}</span><span class="hn">${esc(e.hn)}</span><span class="nm">${esc(e.patient_name || '')}</span><span class="devs">${devIcons(e)}</span>${right}${dcBtn}</div>`;
+  if (CLOSE_ID === e.mr_id) h += closureHTML(e);
+  return h;
+}
+function closureHTML(e) {
+  const id = esc(e.mr_id), items = [];
+  if (needMR(e)) items.push(`<div class="it"><span>${du('clip', 22)}</span>ยังไม่ได้ลง MR<em>→ บันทึกเป็น “ไม่ได้ทำ MR”</em></div>`);
+  else items.push(`<div class="it"><span style="color:var(--deep)">${li('check', 18)}</span>MR · ${esc(e.mr_status === 'มีรายการ MR' ? (onTimeOf(e) === 'ผ่าน' ? 'ทันเวลา' : 'ลงแล้ว') : e.mr_status)}</div>`);
+  if (needMD(e)) items.push(`<div class="it"><span>${du('steth', 22)}</span>หมอยังไม่สั่งยาเดิม<em>→ บันทึกเป็น “หมอไม่ได้สั่ง”</em></div>`);
+  return `<div class="closure"><b style="font-size:15px">D/C ${esc(e.hn)} ตอนนี้?</b>${items.join('')}
+    <div style="display:flex;gap:8px;justify-content:flex-end"><button class="pill on" onclick="CLOSE_ID=null;openEp('${id}')">ลงข้อมูลก่อน</button><button class="black" style="height:36px" onclick="doDC('${id}')">ยืนยัน D/C</button></div></div>`;
+}
+function grp(kind, title, sub, icon, rows) {
+  return `<section class="grp ${kind}"><div class="grph"><div style="display:flex;flex-direction:column;gap:2px"><span class="t">${title} <span>${rows.length}</span></span><span class="s">${sub}</span></div><span class="badge">${du(icon, 28)}</span></div><div class="rows">${rows.join('')}</div></section>`;
+}
+function renderList() {
+  const L = $('list');
+  if (!EPS.length) { L.innerHTML = `<div class="empty">${LISTMODE === 'dc' ? 'ไม่มีผู้ป่วย D/C ในช่วงนี้' : 'ยังไม่มีผู้ป่วยในระบบ — กด “ลงทะเบียน” ด้านบน'}</div>`; return; }
+  if (LISTMODE === 'dc' || $('qHN').value.trim()) {
+    L.innerHTML = `<div class="rows">${EPS.map(e => rowHTML(e, needMR(e) ? 'todo' : (needMD(e) ? 'wait' : 'done'))).join('')}</div>`; return;
+  }
+  const todo = EPS.filter(needMR), wait = EPS.filter(needMD), done = EPS.filter(complete);
+  let h = '';
+  if (todo.length) h += grp('todo', 'ต้องทำ MR', 'งานของเรา · admit ใหม่', 'clip', todo.map(e => rowHTML(e, 'todo')));
+  if (wait.length) h += grp('wait', 'รอหมอสั่งยาเดิม', 'MR เสร็จแล้ว รอแพทย์', 'steth', wait.map(e => rowHTML(e, 'wait')));
+  if (done.length) {
+    h += `<button class="done" onclick="SHOW_DONE=!SHOW_DONE;renderList()">${mascot(46, 'star')}<span style="display:flex;flex-direction:column"><b style="font-size:15px">ครบแล้ว ${done.length} ราย</b><span style="font-size:12px;color:var(--mute)">MR และหมอสั่งยาเดิมเรียบร้อย · รอ D/C</span></span><span style="margin-left:auto;font-size:13px;color:var(--mute)">${SHOW_DONE ? 'ซ่อน ▴' : 'แสดง ▾'}</span></button>`;
+    if (SHOW_DONE) h += `<div class="rows">${done.map(e => rowHTML(e, 'done')).join('')}</div>`;
+  }
+  if (!todo.length && !wait.length && !done.length) h = '<div class="empty">ไม่มีผู้ป่วย</div>';
+  L.innerHTML = h;
+}
+
+// ── panel ───────────────────────────────────────────
+function openEp(id, tab) {
+  const e = find(id); if (!e) return;
+  SEL = id; PMODE = 'ep'; STAFF_OPEN = false;
+  PTAB = tab || (needMR(e) ? 'mr' : (needMD(e) ? 'md' : 'mr'));
+  renderList(); renderPanel();
+  if (window.innerWidth < 900) $('panel').scrollIntoView({ behavior: 'smooth' });
+}
+function openRegister() { PMODE = 'reg'; SEL = null; renderList(); renderPanel(); setTimeout(() => { const i = $('regHN'); if (i) i.focus(); }, 30); }
+function renderPanel() {
+  const P = $('panel');
+  if (PMODE === 'reg') { P.innerHTML = regHTML(); bindReg(); return; }
+  const e = SEL && find(SEL);
+  if (!e) { P.innerHTML = `<div style="display:flex;flex-direction:column;align-items:center;gap:10px;padding:40px 10px;text-align:center;color:var(--mute)">${mascot(72)}<b style="color:var(--ink);font-size:16px">เลือกผู้ป่วยจากรายชื่อ</b><span style="font-size:13px">หรือกด “ลงทะเบียน” เพื่อเพิ่มผู้ป่วยใหม่</span></div>`; return; }
+  const ot = onTimeOf(e);
+  const mrSt = needMR(e) ? 'ยังไม่ลง' : (e.mr_status === 'มีรายการ MR' ? (ot === 'ผ่าน' ? 'ทันเวลา ✓' : 'เกินเวลา') : e.mr_status);
+  const mdSt = e.md_status === 'none' ? 'หมอไม่ได้สั่ง' : (e.md_review_shift ? (mdGap(e) === null ? 'สั่งแล้ว ✓' : (mdGap(e) <= 0 ? 'เวรเดียวกัน ✓' : '+' + mdGap(e) + ' เวร ✓')) : (e.mr_status === 'มีรายการ MR' && e.mr_done_shift ? 'รอ' : (e.mr_status && e.mr_status !== 'มีรายการ MR' ? 'ไม่ต้อง' : 'หลังทำ MR')));
+  const coSt = (e.counseling || []).length ? 'สอนแล้ว ' + e.counseling.length : '+ เพิ่มได้';
+  const tab = (k, ic, lab, st, bg) => `<button class="tab${PTAB === k ? ' on' : ''}" onclick="PTAB='${k}';STAFF_OPEN=false;renderPanel()"><span class="ic" style="background:${bg}">${du(ic, 22)}</span><b>${lab}</b><span>${st}</span></button>`;
+  let body = PTAB === 'mr' ? mrHTML(e) : (PTAB === 'md' ? mdHTML(e) : coHTML(e));
+  P.innerHTML = `<div class="ph"><div style="display:flex;flex-direction:column;flex:1;min-width:0"><span class="h">${esc(e.hn)}</span><span class="s">${esc(e.patient_name || '')}${e.patient_name ? ' · ' : ''}admit ${thd(e.admit_date)} · เวร${esc(e.admit_shift || '?')}</span></div><span class="saved" id="sv">${li('check', 12)}บันทึกอัตโนมัติ</span></div>
+    <div class="tabs">${tab('mr', 'clip', 'MR', mrSt, '#fff')}${tab('md', 'steth', 'หมอสั่งยาเดิม', mdSt, '#F1ECFF')}${tab('co', 'mdi', 'สอนยา', coSt, '#FCE9DE')}</div>
+    ${body}
+    <div style="display:flex;align-items:center;gap:10px;border-top:1px solid var(--line);padding-top:14px;font-size:12px;color:var(--mute)">
+      <button class="lnk" onclick="editAdmit()">แก้วัน/เวร admit</button><span style="flex:1"></span>
+      ${e.dc_date ? `<span>D/C ${thd(e.dc_date)}</span><button class="dc" onclick="undoDC('${esc(e.mr_id)}')">ยกเลิก D/C</button>` : `<button class="dc" onclick="askDC('${esc(e.mr_id)}')">D/C</button>`}
+    </div>`;
+}
+function opt(ic, lab, on, onclick, sub) { return `<button class="opt${on ? ' on' : ''}" onclick="${onclick}">${du(ic, 30)}<span>${lab}</span>${sub ? `<small>${sub}</small>` : ''}</button>`; }
+function staffHTML(e) {
+  const cur = e.pharmacist || staffSaved();
+  const chip = `<div style="display:flex;align-items:center;gap:10px"><span style="font-size:13px;color:var(--mute)">ทำโดย</span><button class="chip" onclick="STAFF_OPEN=!STAFF_OPEN;renderPanel()"><span class="av">${esc(cur ? initials(cur) : '?')}</span>${esc(cur || 'เลือกผู้ทำ MR')} ▾</button></div>`;
+  if (!STAFF_OPEN) return chip;
+  const ph = STAFF.filter(n => !/^จพ\./.test(n)), te = STAFF.filter(n => /^จพ\./.test(n));
+  const grpH = (t, arr) => arr.length ? `<small>${t}</small><div class="l">${arr.map(n => `<button class="sp${n === cur ? ' on' : ''}" onclick="pickStaff('${esc(n)}')"><span class="av">${esc(initials(n))}</span>${esc(shortName(n))}</button>`).join('')}</div>` : '';
+  return chip + `<div class="staff">${grpH('เภสัชกร', ph)}${grpH('จพ.เภสัชกรรม', te)}${!STAFF.length ? '<small>ไม่พบรายชื่อใน settings</small>' : ''}</div>`;
+}
+function mrHTML(e) {
+  const id = esc(e.mr_id), st = e.mr_status, ot = onTimeOf(e);
+  let h = staffHTML(e);
+  if (!e.admit_shift) h += `<div class="q"><b>Admit เวรไหน <small>· ยังไม่มีข้อมูล ใส่เพื่อคำนวณเวลา</small></b><div class="grid3">${['ดึก','เช้า','บ่าย'].map(s => opt(SH_IC[s], s, false, `setF('${id}','admit_shift','${s}')`)).join('')}</div></div>`;
+  h += `<div class="q"><b>ผล MR</b><div class="grid3">${opt('list', 'มียาเดิม', st === 'มีรายการ MR', `setF('${id}','mr_status','มีรายการ MR')`)}${opt('empty', 'ไม่พบยาเดิม', st === 'ไม่พบรายการยาเดิม', `setF('${id}','mr_status','ไม่พบรายการยาเดิม')`)}${opt('xc', 'ไม่ได้ทำ', st === 'ไม่ได้ทำ MR', `setF('${id}','mr_status','ไม่ได้ทำ MR')`)}</div>
+    <button class="pill${st === 'ติดตามไม่ได้' ? ' on' : ''}" style="align-self:flex-start" onclick="setF('${id}','mr_status','ติดตามไม่ได้')">ติดตามประวัติไม่ได้</button></div>`;
+  if (st === 'มีรายการ MR') {
+    h += `<div class="q"><b>ยาเดิมมาจาก</b><div class="grid2">${opt('hosp', 'ห้วยผึ้งที่เดียว', e.data_source !== 'รพ.อื่น', `setF('${id}','data_source','รพ.ห้วยผึ้ง')`)}${opt('hosp2', 'มียานอก รพ.', e.data_source === 'รพ.อื่น', `setF('${id}','data_source','รพ.อื่น')`)}</div></div>`;
+    const okSub = (s) => (e.mr_done_shift === s && ot) ? (ot === 'ผ่าน' ? 'ทันเวลา ✓' : 'เกินเวลา') : '';
+    h += `<div class="q"><b>เสร็จเวรไหน</b><label class="datechip">${li('clock', 13)}<input type="date" value="${esc(e.mr_done_date || todayIso())}" onchange="setF('${id}','mr_done_date',this.value)" aria-label="วันที่ทำ MR เสร็จ"></label>
+      <div class="grid3">${['ดึก','เช้า','บ่าย'].map(s => opt(SH_IC[s], s, e.mr_done_shift === s, `setF('${id}','mr_done_shift','${s}')`, okSub(s))).join('')}</div></div>`;
+    if (ot === 'ผ่าน' || ot === 'ไม่ผ่าน') h += `<div class="banner${ot === 'ผ่าน' ? '' : ' bad'}">${ot === 'ผ่าน' ? mascot(40) : du('clip', 32)}<div><b>${ot === 'ผ่าน' ? 'ทันเวลา!' : 'เกินเวลา'}</b><span>${e.data_source === 'รพ.อื่น' ? 'เกณฑ์ ≤ 3 เวร (24 ชม.)' : 'เกณฑ์ เสร็จในเวรที่ admit'}</span></div></div>`;
+  }
+  return h;
+}
+function mdHTML(e) {
+  const id = esc(e.mr_id);
+  if (e.mr_status && e.mr_status !== 'มีรายการ MR') return `<div class="warn">${du('empty', 22)}ผล MR “${esc(e.mr_status)}” ไม่ต้องให้หมอสั่งยาเดิม</div>`;
+  if (!(e.mr_status === 'มีรายการ MR' && e.mr_done_shift)) return `<div class="warn">${du('clip', 22)}ต้องลง MR ให้เสร็จก่อน <button class="lnk" style="margin-left:auto" onclick="PTAB='mr';renderPanel()">ไปที่ MR</button></div>`;
+  const g = mdGap(e);
+  let h = `<div class="q"><b>หมอสั่งยาเดิมเวรไหน</b><label class="datechip">${li('clock', 13)}<input type="date" value="${esc(e.md_review_date || todayIso())}" onchange="setF('${id}','md_review_date',this.value)" aria-label="วันที่หมอสั่ง"></label>
+    <div class="grid3">${['ดึก','เช้า','บ่าย'].map(s => opt(SH_IC[s], s, e.md_review_shift === s, `setF('${id}','md_review_shift','${s}')`)).join('')}</div></div>`;
+  if (g !== null) {
+    const a = sIdx(e.mr_done_date || e.admit_date, e.mr_done_shift), n = Math.min(Math.max(g, 0), 5);
+    const names = ['ดึก','เช้า','บ่าย'];
+    let cells = '';
+    for (let i = 0; i <= n; i++) {
+      const idx = a + i, s = names[((idx % 3) + 3) % 3], d = new Date((Math.floor(idx / 3)) * 86400000);
+      const cls = i === 0 ? 'mr' : (i === n ? 'md' : '');
+      cells += `<div class="cell ${cls}"><span>${du(SH_IC[s], 18)}</span>${s} ${d.getUTCDate()}</div>`;
+    }
+    if (g === 0) cells = `<div class="cell mr" style="flex:1"><span>${du(SH_IC[e.mr_done_shift], 18)}</span>MR + หมอ เวรเดียวกัน</div>`;
+    h += `<div class="strip"><div class="cells">${cells}</div><div style="display:flex;justify-content:space-between;font-size:12px"><span>MR เสร็จ</span><b>${g <= 0 ? 'เวรเดียวกัน' : 'ห่าง ' + g + ' เวร'}</b><span style="color:var(--lavt)">หมอสั่งยาเดิม</span></div></div>`;
+  }
+  h += `<div style="display:flex;gap:8px;flex-wrap:wrap"><button class="pill${e.md_status === 'none' ? ' on' : ''}" onclick="setNone('${id}')">${li('x', 13)}หมอไม่ได้สั่งยาเดิม</button>${(e.md_review_shift || e.md_status === 'none') ? `<button class="lnk" onclick="clearMD('${id}')">ล้างค่า</button>` : ''}</div>`;
+  return h;
+}
+function coHTML(e) {
+  const id = esc(e.mr_id), t = todayIso();
+  const defDate = (t >= e.admit_date && (!e.dc_date || t <= e.dc_date)) ? t : (e.dc_date || e.mr_done_date || e.admit_date);
+  let h = `<div class="q"><b>สอนอะไร <small>· แตะเพื่อบันทึก</small></b><label class="datechip">${li('clock', 13)}<input type="date" id="coDate" value="${esc(defDate)}" aria-label="วันที่สอน"></label>
+    <div class="grid3">${COUN.map(c => opt(c[1], c[2], false, `addCoun('${id}','${c[0]}')`)).join('')}</div></div>`;
+  const list = (e.counseling || []).slice().sort((a, b) => String(a.date).localeCompare(String(b.date)));
+  h += `<div class="q"><b style="font-size:13px;color:var(--mute);font-weight:400">สอนไปแล้ว</b>${list.length ? list.map(c => { const k = (COUN.find(x => x[0] === c.type) || COUN[4]); return `<div class="hist">${du(k[1], 22)}<span>${esc(c.type)}${c.freeText ? ' · ' + esc(c.freeText) : ''}</span><em>${thd(c.date)}</em><button class="lnk" aria-label="ลบ" onclick="delCoun('${id}','${esc(c.id)}')">${li('x', 14)}</button></div>`; }).join('') : '<span style="font-size:12px;color:var(--faint)">ยังไม่มี</span>'}</div>`;
+  return h;
+}
+
+// ── register ────────────────────────────────────────
+let REG_SHIFT = curShift();
+function regHTML() {
+  return `<div style="display:flex;align-items:center;gap:12px">${mascot(52)}<div style="display:flex;flex-direction:column;flex:1"><b style="font-size:18px">ผู้ป่วยใหม่</b><span style="font-size:12px;color:var(--mute)">ลงย้อนหลังได้</span></div><button class="lnk" onclick="PMODE='ep';renderPanel()">ปิด</button></div>
+    <label class="inp">HN<input id="regHN" class="big" inputmode="numeric" placeholder="6810"></label>
+    <label class="inp">ชื่อ (ไม่บังคับ)<input id="regName" placeholder="นาง ก."></label>
+    <div class="q"><b>Admit เวรไหน</b><label class="datechip">${li('clock', 13)}<input type="date" id="regDate" value="${todayIso()}" aria-label="วันที่ admit"></label>
+      <div class="grid3">${['ดึก','เช้า','บ่าย'].map(s => opt(SH_IC[s], s, REG_SHIFT === s, `REG_SHIFT='${s}';regKeep()`)).join('')}</div></div>
+    <div id="regMsg"></div>
+    <button class="primary" onclick="register()">ลงทะเบียน</button>`;
+}
+function regKeep() { const v = { hn: $('regHN').value, nm: $('regName').value, d: $('regDate').value }; renderPanel(); $('regHN').value = v.hn; $('regName').value = v.nm; $('regDate').value = v.d; }
+function bindReg() { ['regHN', 'regName'].forEach(i => $(i).addEventListener('keydown', ev => { if (ev.key === 'Enter') register(); })); }
+async function register() {
+  const hn = $('regHN').value.trim(), name = $('regName').value.trim(), d = $('regDate').value, msg = $('regMsg');
+  if (!hn || !d) { msg.innerHTML = '<span class="err">ใส่ HN และวันที่ admit</span>'; return; }
+  msg.innerHTML = '<span style="font-size:12px;color:var(--mute)">กำลังบันทึก…</span>';
+  const r = await api('saveEpisode', { hn, name, admitDate: d, admitShift: REG_SHIFT, source: 'รพ.ห้วยผึ้ง' });
+  if (!r.ok && r.error === 'exists') { msg.innerHTML = '<span class="err">HN นี้ลงทะเบียนวันนี้แล้ว — เปิดรายการเดิมให้</span>'; $('qHN').value = hn; await loadList(); openEp(r.mrId); return; }
+  if (!r.ok) { msg.innerHTML = `<span class="err">บันทึกไม่สำเร็จ: ${esc(r.error || '')}</span>`; return; }
+  toast(`ลงทะเบียน HN ${hn} แล้ว`);
+  if (LISTMODE !== 'active') setList('active'); else await loadList();
+  openEp(r.mrId, 'mr');
+}
+function editAdmit() {
+  const e = find(SEL); if (!e) return;
+  const d = prompt('วันที่ admit (ปี ค.ศ. YYYY-MM-DD)', e.admit_date); if (!d) return;
+  const s = prompt('เวร admit (ดึก / เช้า / บ่าย)', e.admit_shift || curShift()); if (!s || SH[s.trim()] === undefined) return;
+  e.admit_date = d.trim(); e.admit_shift = s.trim(); renderAll(); queueSave(e.mr_id);
+}
+
+// ── edits + autosave ────────────────────────────────
+function setF(id, f, v) {
+  const e = find(id); if (!e) return;
+  e[f] = v;
+  if (f === 'mr_status') {
+    if (v === 'มีรายการ MR') { if (!e.mr_done_date) e.mr_done_date = todayIso() < e.admit_date ? e.admit_date : todayIso(); }
+    else { e.mr_done_shift = ''; e.md_review_shift = ''; e.md_review_date = null; e.md_status = ''; }
+    if (!e.pharmacist) e.pharmacist = staffSaved();
+  }
+  if (f === 'mr_done_shift' && !e.mr_done_date) e.mr_done_date = todayIso();
+  if (f === 'md_review_shift') { if (!e.md_review_date) e.md_review_date = todayIso(); e.md_status = ''; }
+  e.on_time = onTimeOf(e);
+  renderAll(); queueSave(id);
+}
+function setNone(id) { const e = find(id); if (!e) return; e.md_status = e.md_status === 'none' ? '' : 'none'; e.md_review_shift = ''; e.md_review_date = null; renderAll(); queueSave(id); }
+function clearMD(id) { const e = find(id); if (!e) return; e.md_status = ''; e.md_review_shift = ''; e.md_review_date = null; renderAll(); queueSave(id); }
+function pickStaff(n) { staffSet(n); STAFF_OPEN = false; const e = find(SEL); if (e) { e.pharmacist = n; renderPanel(); queueSave(e.mr_id); } }
+const timers = {};
+function setSaved(txt, err) { const el = $('sv'); if (!el) return; el.className = 'saved' + (err ? ' err' : ''); el.innerHTML = (err ? '' : li('check', 12)) + txt; }
+function queueSave(id) { setSaved('กำลังบันทึก…'); clearTimeout(timers[id]); timers[id] = setTimeout(() => doSave(id), 450); }
+function payload(e) {
+  return { mrId: e._new ? '' : e.mr_id, hn: e.hn, name: e.patient_name, admitDate: e.admit_date, admitShift: e.admit_shift, source: e.data_source,
+    pharmacist: e.pharmacist || (e.mr_status ? staffSaved() : ''), mrStatus: e.mr_status,
+    mrDate: e.mr_status === 'มีรายการ MR' ? e.mr_done_date : null, mrShift: e.mr_done_shift,
+    mdDate: e.md_review_shift ? e.md_review_date : null, mdShift: e.md_review_shift, mdStatus: e.md_status || '',
+    dcDate: e.dc_date || null, onTime: onTimeOf(e) };
+}
+async function doSave(id, silent) {
+  const e = find(id); if (!e) return { ok: false };
+  let r = await api('saveEpisode', payload(e));
+  if (!r.ok && r.error === 'exists' && r.mrId) { adoptId(e, r.mrId); r = await api('saveEpisode', payload(e)); }
+  if (r.ok && e._new && r.mrId) adoptId(e, r.mrId);
+  REPORT = null;
+  if (r.ok) { if (SEL === id) setSaved('บันทึกแล้ว ' + new Date().toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit' })); }
+  else { if (SEL === id) { setSaved('⚠ บันทึกไม่สำเร็จ · แตะเพื่อลองใหม่', true); const el = $('sv'); if (el) el.onclick = () => queueSave(id); } if (!silent) toast('บันทึกไม่สำเร็จ — ลองใหม่อีกครั้ง', null); }
+  return r;
+}
+
+// ── D/C ─────────────────────────────────────────────
+function askDC(id) { const e = find(id); if (!e) return; if (complete(e)) { doDC(id); return; } CLOSE_ID = CLOSE_ID === id ? null : id; renderList(); }
+async function doDC(id) {
+  const e = find(id); if (!e) return;
+  const snap = JSON.parse(JSON.stringify(e));
+  if (needMR(e)) { e.mr_status = 'ไม่ได้ทำ MR'; e.mr_done_shift = ''; }
+  if (needMD(e)) e.md_status = 'none';
+  e.dc_date = todayIso(); e.on_time = onTimeOf(e);
+  CLOSE_ID = null; if (SEL === id) SEL = null;
+  const keep = EPS; if (LISTMODE === 'active') EPS = EPS.filter(x => x.mr_id !== id);
+  renderAll();
+  let r = await api('saveEpisode', payload(e));
+  if (!r.ok && r.error === 'exists' && r.mrId) { adoptId(e, r.mrId); r = await api('saveEpisode', payload(e)); }
+  if (r.ok && e._new && r.mrId) adoptId(e, r.mrId);
+  if (!r.ok) { EPS = keep; Object.assign(e, snap); renderAll(); toast('D/C ไม่สำเร็จ — ลองใหม่', null); return; }
+  snap.mr_id = e.mr_id; snap._new = false;
+  REPORT = null;
+  toast(`D/C ${e.hn} แล้ว`, async () => {
+    Object.assign(e, snap); const r2 = await api('saveEpisode', payload(e));
+    if (r2.ok) { toast(`ยกเลิก D/C ${e.hn} แล้ว`); loadList(); } else toast('ยกเลิกไม่สำเร็จ', null);
+  });
+}
+async function undoDC(id) {
+  const e = find(id); if (!e) return; e.dc_date = null;
+  const r = await api('saveEpisode', payload(e));
+  if (r.ok) { toast(`ยกเลิก D/C ${e.hn} แล้ว — กลับไปอยู่ในรายชื่อกำลังนอน`); REPORT = null; loadList(); } else toast('ยกเลิกไม่สำเร็จ', null);
+}
+
+// ── counseling ──────────────────────────────────────
+async function addCoun(id, type) {
+  const e = find(id); if (!e) return;
+  let freeText = '';
+  if (type === 'อื่นๆ') { freeText = (prompt('สอนยาอะไร?') || '').trim(); if (!freeText) return; }
+  const date = ($('coDate') && $('coDate').value) || todayIso();
+  const tmp = { id: null, date, type, freeText };
+  e.counseling = e.counseling || []; e.counseling.push(tmp); renderAll(); setSaved('กำลังบันทึก…');
+  const r = await api('saveCounseling', { hn: e.hn, date, type, count: 1, freeText });
+  if (!r.ok || !r.id) { e.counseling = e.counseling.filter(x => x !== tmp); renderAll(); toast('บันทึกการสอนไม่สำเร็จ', null); return; }
+  tmp.id = r.id; REPORT = null; setSaved('บันทึกแล้ว'); toast(`บันทึกสอน ${type} แล้ว`);
+}
+async function delCoun(id, cid) {
+  const e = find(id); if (!e) return; const c = (e.counseling || []).find(x => String(x.id) === String(cid)); if (!c) return;
+  e.counseling = e.counseling.filter(x => x !== c); renderAll();
+  const r = await api('deleteCounseling', { id: cid });
+  if (!r.ok) { e.counseling.push(c); renderAll(); toast('ลบไม่สำเร็จ', null); } else { REPORT = null; toast('ลบรายการสอนแล้ว'); }
+}
+
+// ── toast ───────────────────────────────────────────
+let toastT;
+function toast(msg, undo) {
+  const t = $('toast'), b = $('toastBtn'); $('toastMsg').textContent = msg;
+  if (typeof undo === 'function') { b.classList.remove('hide'); t.classList.remove('noact'); b.onclick = () => { t.classList.remove('show'); undo(); }; }
+  else { b.classList.add('hide'); t.classList.add('noact'); }
+  t.classList.add('show'); clearTimeout(toastT); toastT = setTimeout(() => t.classList.remove('show'), typeof undo === 'function' ? 6000 : 2600);
+}
+
+// ── report ──────────────────────────────────────────
+function showView(v) {
+  $('vEntry').classList.toggle('hide', v !== 'entry'); $('vReport').classList.toggle('hide', v !== 'report');
+  $('navEntry').classList.toggle('on', v === 'entry'); $('navReport').classList.toggle('on', v === 'report');
+  if (v === 'report' && !REPORT) loadReport();
+}
+function rpRange() {
+  const t = new Date(), fy = t.getMonth() >= 9 ? t.getFullYear() : t.getFullYear() - 1;
+  if (RP === 'custom') return { from: $('rpFrom').value, to: $('rpTo').value };
+  if (RP === 'thism') return { from: iso(new Date(t.getFullYear(), t.getMonth(), 1)), to: iso(new Date(t.getFullYear(), t.getMonth() + 1, 0)) };
+  if (RP === 'lastm') return { from: iso(new Date(t.getFullYear(), t.getMonth() - 1, 1)), to: iso(new Date(t.getFullYear(), t.getMonth(), 0)) };
+  if (RP === 'lastfy') return { from: (fy - 1) + '-10-01', to: fy + '-09-30' };
+  return { from: fy + '-10-01', to: (fy + 1) + '-09-30' };
+}
+function setRp(k) { RP = k; document.querySelectorAll('[data-rp]').forEach(b => b.classList.toggle('on', b.dataset.rp === k)); REPORT = null; loadReport(); }
+async function loadReport() {
+  const rg = rpRange(); $('rpFrom').value = rg.from; $('rpTo').value = rg.to;
+  $('rpBody').innerHTML = '<div class="empty">กำลังคำนวณ…</div>';
+  const r = await api('getMRReport', rg, 60000);
+  if (!r.ok) { $('rpBody').innerHTML = `<div class="empty err">โหลดรายงานไม่สำเร็จ (${esc(r.error)})</div>`; return; }
+  REPORT = r; renderReport(r);
+}
+function ring(p, size, stroke, color, center) {
+  const r = (size - stroke) / 2, c = 2 * Math.PI * r, d = c * Math.max(0, Math.min(1, (p || 0) / 100));
+  return `<div style="position:relative;width:${size}px;height:${size}px;flex:none"><svg width="${size}" height="${size}" viewBox="0 0 ${size} ${size}" aria-hidden="true"><circle cx="${size/2}" cy="${size/2}" r="${r}" fill="none" stroke="#efece4" stroke-width="${stroke}"></circle><circle cx="${size/2}" cy="${size/2}" r="${r}" fill="none" stroke="${color}" stroke-width="${stroke}" stroke-linecap="round" stroke-dasharray="${d} ${c}" transform="rotate(-90 ${size/2} ${size/2})"></circle></svg><div style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center">${center}</div></div>`;
+}
+function pctTxt(v) { return (v === null || v === undefined) ? '—' : (Math.round(v * 10) / 10) + '%'; }
+function monLab(k) { const m = /^(\d{4})-(\d{2})/.exec(k || ''); return m ? TH_M[+m[2]-1] + ' ' + String(+m[1] + 543).slice(-2) : k; }
+function renderReport(r) {
+  const s = r.summary, md = r.mdReview || {}, cn = r.counseling || { total: 0, byType: {} }, mon = r.monthly || [];
+  const kpi = (icon, bg, title, sub, p, n, d, key) => {
+    const bars = mon.map((m, i) => `<span class="${i === mon.length - 1 ? 'last' : ''}" style="height:${Math.max(4, m[key] || 0)}%" title="${monLab(m.month)} ${pctTxt(m[key])}"></span>`).join('');
+    return `<div class="kpi"><div class="kh"><span class="ib" style="background:${bg}">${du(icon, 26)}</span><div><b>${title}</b><small>${sub}</small></div></div>
+      <div class="kr">${ring(p, 108, 12, '#7FA314', `<span class="mont" style="font-size:24px;font-weight:800;line-height:1">${p === null || p === undefined ? '—' : Math.round(p * 10) / 10}<span style="font-size:13px">%</span></span>`)}<span class="n">${(n || 0).toLocaleString()}<small> / ${(d || 0).toLocaleString()}</small><br><small style="font-size:12px;font-weight:400">ราย</small></span></div>
+      ${mon.length > 1 ? `<div class="minibars">${bars}</div>` : ''}</div>`;
+  };
+  const elig = md.eligible || 0, pS = elig ? md.same / elig * 100 : 0, p1 = elig ? (md.le1 - md.same) / elig * 100 : 0, pL = elig ? 100 - pS - p1 - (md.pending || 0) / elig * 100 : 0;
+  const devs = COUN.map(c => `<div class="devc">${du(c[1], 30)}<b>${cn.byType[c[0]] || 0}</b><span>${c[2]}</span></div>`).join('');
+  let h = `<div style="display:flex;align-items:center;gap:16px;padding:16px 22px;border-radius:24px;background:var(--limec);box-shadow:0 5px 0 var(--limee)">${mascot(60)}<div><b style="font-size:20px">ทำ MR ไปแล้ว ${(s.done + s.nomed).toLocaleString()} ราย</b><div style="font-size:13px;color:var(--mute)">admit ${thd(r.from, 'full')} – ${thd(r.to, 'full')} · สอนยา ${cn.total} ครั้ง</div></div></div>
+    <div class="kpis">${kpi('clip', '#FFF6CC', 'ความครอบคลุม MR', 'ทำ MR / ผู้ป่วยที่มียาเดิม', s.coveragePct, s.done, s.need, 'coveragePct')}
+      ${kpi('hosp', '#E8F0FF', 'ใน รพ. ภายใน 8 ชม.', 'รับยา รพ.ห้วยผึ้งที่เดียว', s.in8hPct, s.inPass, s.inN, 'in8hPct')}
+      ${kpi('hosp2', '#FFEDE2', 'นอก รพ. ภายใน 24 ชม.', 'มีประวัติยานอก รพ.', s.out24hPct, s.outPass, s.outN, 'out24hPct')}</div>
+    <div class="row2">
+      <div class="kpi"><div class="kh"><span class="ib" style="background:#F1ECFF">${du('steth', 26)}</span><div><b>แพทย์สั่งยาเดิมเร็วแค่ไหน</b><small>นับจากเวรที่ MR เสร็จ · เฉพาะรายที่ลงผ่านหน้านี้</small></div></div>
+        <div class="kr">${ring(md.le1Pct, 104, 12, '#5B4BB0', `<span class="mont" style="font-size:22px;font-weight:800;line-height:1">${md.le1Pct === null || md.le1Pct === undefined ? '—' : Math.round(md.le1Pct)}<span style="font-size:12px">%</span></span><span style="font-size:10px;color:var(--mute)">≤ 1 เวร</span>`)}
+          <div style="flex:1;display:flex;flex-direction:column;gap:8px">
+            <div class="hb"><span>เวรเดียวกัน</span><i style="background:#111;width:${pS}%"></i><b>${pctTxt(pS)}</b></div>
+            <div class="hb"><span>+1 เวร</span><i style="background:#B9A6FF;width:${p1}%"></i><b>${pctTxt(p1)}</b></div>
+            <div class="hb"><span>นานกว่า/ไม่สั่ง</span><i style="background:#ddd8cc;width:${Math.max(0, pL)}%"></i><b>${pctTxt(Math.max(0, pL))}</b></div>
+          </div></div>
+        <div style="display:flex;gap:8px;font-size:12px;color:var(--mute);border-top:1px dashed var(--line);padding-top:10px">${li('clock', 14)}ยังรอแพทย์ ${md.pending || 0} ราย · หมอไม่ได้สั่ง ${md.none || 0} ราย<span style="margin-left:auto">ตัวหาร ${elig}</span></div></div>
+      <div class="kpi"><div class="kh"><span class="ib" style="background:#E3F4FF">${du('mdi', 26)}</span><div><b>สอนยาเทคนิคพิเศษ</b><small>ตามวันที่สอน</small></div><span class="mont" style="margin-left:auto;font-size:24px;font-weight:800">${cn.total}</span><span style="font-size:12px;color:var(--mute)">ครั้ง</span></div><div class="devgrid">${devs}</div></div>
+    </div>`;
+  if (mon.length) h += `<details><summary>รายเดือน & นิยาม</summary><table class="mon"><tr><th>เดือน</th><th>Admit</th><th>ครอบคลุม</th><th>ใน รพ. ≤8 ชม.</th><th>นอก รพ. ≤24 ชม.</th></tr>${mon.map(m => `<tr><td>${monLab(m.month)}</td><td>${m.total}</td><td title="${m.done}/${m.need}">${pctTxt(m.coveragePct)}</td><td title="${m.inPass}/${m.inN}">${pctTxt(m.in8hPct)}</td><td title="${m.outPass}/${m.outN}">${pctTxt(m.out24hPct)}</td></tr>`).join('')}</table>
+    <p style="font-size:12px;color:var(--mute);line-height:1.7">ครอบคลุม = มีรายการ MR / (admit − ไม่พบยาเดิม) · ใน/นอก รพ. = ผ่านเกณฑ์เวลา / กลุ่มนั้น · ไม่ได้ทำ MR / ติดตามไม่ได้ / ไม่ได้ลงเวร = ไม่ทันเวลา · ตัด record ซ้ำ ${r.duplicatesRemoved || 0} แถว</p></details>`;
+  $('rpBody').innerHTML = h;
+}
+function exportReport() {
+  const r = REPORT; if (!r) { toast('รอโหลดรายงานก่อน'); return; }
+  if (typeof XLSX === 'undefined') { toast('กำลังโหลดไลบรารี Excel ลองใหม่อีกครั้ง'); return; }
+  const s = r.summary, md = r.mdReview || {}, cn = r.counseling || { total: 0, byType: {} };
+  const sum = [['รายงาน IPD Pharm Hub — รพ.ห้วยผึ้ง'], ['ช่วง admit', thd(r.from, 'full') + ' – ' + thd(r.to, 'full')], [],
+    ['ตัวชี้วัด', 'ตัวตั้ง', 'ตัวหาร', 'อัตรา (%)'],
+    ['1. ความครอบคลุมของการทำ MR', s.done, s.need, s.coveragePct],
+    ['2. MR ในโรงพยาบาล ภายใน 8 ชม.', s.inPass, s.inN, s.in8hPct],
+    ['3. MR นอกโรงพยาบาล ภายใน 24 ชม.', s.outPass, s.outN, s.out24hPct],
+    ['แพทย์สั่งยาเดิม ภายใน 1 เวร', md.le1 || 0, md.eligible || 0, md.le1Pct],
+    ['แพทย์สั่งยาเดิม ภายในเวรเดียวกัน', md.same || 0, md.eligible || 0, md.samePct],
+    ['แพทย์ไม่ได้สั่งยาเดิม (ราย)', md.none || 0], ['ยังรอแพทย์ (ราย)', md.pending || 0], [],
+    ['สอนยาเทคนิคพิเศษ (ครั้ง)', cn.total]].concat(Object.keys(cn.byType).map(k => ['  ' + k, cn.byType[k]]));
+  const mon = [['เดือน', 'Admit', 'ไม่พบยาเดิม', 'ต้องทำ MR', 'มีรายการ MR', '① %', 'ใน รพ. ผ่าน', 'ใน รพ. ทั้งหมด', '② %', 'นอก รพ. ผ่าน', 'นอก รพ. ทั้งหมด', '③ %']]
+    .concat((r.monthly || []).map(m => [monLab(m.month), m.total, m.nomed, m.need, m.done, m.coveragePct, m.inPass, m.inN, m.in8hPct, m.outPass, m.outN, m.out24hPct]));
+  const wb = XLSX.utils.book_new();
+  const w1 = XLSX.utils.aoa_to_sheet(sum); w1['!cols'] = [{ wch: 34 }, { wch: 22 }, { wch: 10 }, { wch: 10 }];
+  const w2 = XLSX.utils.aoa_to_sheet(mon); w2['!cols'] = [{ wch: 10 }].concat(new Array(11).fill({ wch: 12 }));
+  XLSX.utils.book_append_sheet(wb, w1, 'สรุป'); XLSX.utils.book_append_sheet(wb, w2, 'รายเดือน');
+  XLSX.writeFile(wb, 'IPD_Report_' + r.from + '_' + r.to + '.xlsx');
+}
+
+// ── init ────────────────────────────────────────────
+(function init() {
+  $('logoM').innerHTML = mascot(34); fillIcons();
+  const d = new Date(); $('today').textContent = TH_D[d.getDay()] + ' ' + d.getDate() + ' ' + TH_M[d.getMonth()] + ' ' + (d.getFullYear() + 543);
+  $('dcFrom').value = addDays(todayIso(), -30); $('dcTo').value = todayIso();
+  ['dcFrom', 'dcTo'].forEach(i => $(i).addEventListener('change', loadList));
+  let qt; $('qHN').addEventListener('input', () => { clearTimeout(qt); qt = setTimeout(loadList, 400); });
+  api('getSettings', {}).then(r => { STAFF = ((r && r.settings && r.settings['รายชื่อเภสัชกร']) || []).filter(Boolean); if (SEL) renderPanel(); });
+  renderPanel(); loadList();
+})();
+</script>
+</body>
+</html>
