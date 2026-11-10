@@ -110,7 +110,9 @@ h1{margin:6px 0 8px;font-size:42px;font-weight:700;line-height:1.25;letter-spaci
 .sp.on{background:var(--ink);color:#fff}
 .sp.on .av{background:var(--lime);color:var(--ink)}
 .datechip{display:inline-flex;align-items:center;gap:6px;height:30px;padding:0 10px;border-radius:999px;background:#f3f1ea;font-size:12px;position:relative}
-.datechip input{border:none;background:transparent;font-size:12px;outline:none;width:118px}
+.datechip{cursor:pointer}
+.datechip b{font-weight:500}
+.datechip input{position:absolute;inset:0;opacity:0;width:100%;height:100%;border:none;cursor:pointer}
 .banner{display:flex;align-items:center;gap:12px;padding:12px 14px;border-radius:16px;background:var(--limec)}
 .banner.bad{background:var(--badbg)}
 .banner b{font-size:15px;display:block}
@@ -129,6 +131,7 @@ h1{margin:6px 0 8px;font-size:42px;font-weight:700;line-height:1.25;letter-spaci
 .hist em{font-style:normal;font-size:12px;color:var(--mute)}
 .inp{display:flex;flex-direction:column;gap:6px;font-size:12px;color:var(--mute)}
 .inp input{height:46px;border:1px solid #e3e0d8;border-radius:14px;padding:0 14px;font-size:15px;color:var(--ink);background:#fff}
+.inp input::placeholder{color:#c9c6bd;font-weight:400}
 .inp input.big{border:2px solid var(--ink);font-family:Montserrat,sans-serif;font-size:20px;font-weight:700}
 .warn{display:flex;align-items:center;gap:8px;padding:10px 12px;border-radius:12px;background:#faf8f3;color:var(--mute);font-size:12px}
 .primary{height:48px;border-radius:999px;border:none;background:var(--ink);color:#fff;font-size:15px;font-weight:700;box-shadow:0 4px 0 #000}
@@ -162,6 +165,20 @@ details summary{cursor:pointer;font-size:13px;font-weight:700}
 #toast.show{opacity:1;transform:translateX(-50%);pointer-events:auto}
 #toast button{height:34px;padding:0 14px;border-radius:999px;border:none;background:var(--lime);color:var(--ink);font-size:13px;font-weight:700}
 #toast.noact{padding-right:18px}
+
+/* PIN */
+#pin{position:fixed;inset:0;z-index:50;background:var(--cream);display:flex;align-items:center;justify-content:center}
+.pinbox{width:320px;max-width:calc(100vw - 32px);background:#fff;border-radius:28px;box-shadow:0 5px 0 rgba(0,0,0,.07);padding:28px 24px;display:flex;flex-direction:column;align-items:center;gap:14px}
+.pinbox h2{margin:0;font-size:18px}
+.pslots{display:flex;gap:10px}
+.pslot{width:46px;height:54px;border-radius:16px;background:#f6f4ee;box-shadow:0 4px 0 #e6e2d8;display:flex;align-items:center;justify-content:center;font-family:Montserrat,sans-serif;font-size:22px;font-weight:800}
+.pslot.on{background:var(--limec);box-shadow:0 4px 0 var(--limed)}
+.pslots.shake{animation:shk .35s}
+@keyframes shk{20%,60%{transform:translateX(-6px)}40%,80%{transform:translateX(6px)}}
+.pad{display:grid;grid-template-columns:repeat(3,64px);gap:10px}
+.pad button{height:56px;border-radius:18px;border:none;background:#f8f6f0;box-shadow:0 4px 0 #e9e5db;font-family:Montserrat,sans-serif;font-size:20px;font-weight:700}
+.pad button:active{transform:translateY(2px);box-shadow:0 2px 0 #e9e5db}
+#pinIn{position:absolute;opacity:0;width:1px;height:1px}
 @media (max-width:900px){.right{position:static;max-width:none}.kpis,.row2{grid-template-columns:1fr}h1{font-size:32px}}
 </style>
 </head>
@@ -206,6 +223,16 @@ details summary{cursor:pointer;font-size:13px;font-weight:700}
     </div>
     <div id="rpBody" style="display:flex;flex-direction:column;gap:16px;padding-top:18px"><div class="empty">กำลังคำนวณ…</div></div>
   </section>
+</div>
+<div id="pin" class="hide">
+  <div class="pinbox">
+    <span id="pinM"></span>
+    <h2>ใส่รหัส 4 หลัก</h2>
+    <div class="pslots" id="pslots" onclick="$('pinIn').focus()"><span class="pslot"></span><span class="pslot"></span><span class="pslot"></span><span class="pslot"></span></div>
+    <input id="pinIn" type="tel" inputmode="numeric" maxlength="4" autocomplete="off" aria-label="รหัส PIN">
+    <span id="pinErr" class="err" style="min-height:16px"></span>
+    <div class="pad">${[1,2,3,4,5,6,7,8,9].map(n=>`<button onclick="pinKey('${n}')">${n}</button>`).join('')}<span></span><button onclick="pinKey('0')">0</button><button aria-label="ลบ" onclick="pinKey('del')">⌫</button></div>
+  </div>
 </div>
 <div id="toast"><span id="toastMsg"></span><button id="toastBtn">ยกเลิก</button></div>
 
@@ -394,7 +421,7 @@ function openEp(id, tab) {
   renderList(); renderPanel();
   if (window.innerWidth < 900) $('panel').scrollIntoView({ behavior: 'smooth' });
 }
-function openRegister() { PMODE = 'reg'; SEL = null; renderList(); renderPanel(); setTimeout(() => { const i = $('regHN'); if (i) i.focus(); }, 30); }
+function openRegister() { REG_DATE = todayIso(); REG_SHIFT = curShift(); PMODE = 'reg'; SEL = null; renderList(); renderPanel(); setTimeout(() => { const i = $('regHN'); if (i) i.focus(); }, 30); }
 function renderPanel() {
   const P = $('panel');
   if (PMODE === 'reg') { P.innerHTML = regHTML(); bindReg(); return; }
@@ -414,6 +441,9 @@ function renderPanel() {
       ${e.dc_date ? `<span>D/C ${thd(e.dc_date)}</span><button class="dc" onclick="undoDC('${esc(e.mr_id)}')">ยกเลิก D/C</button>` : `<button class="dc" onclick="askDC('${esc(e.mr_id)}')">D/C</button>`}
     </div>`;
 }
+function dchip(id, value, onchange, label) {
+  return `<label class="datechip">${li('clock', 13)}<b>${thd(value, 'full')}</b> ▾<input type="date" ${id ? 'id="' + id + '"' : ''} value="${esc(value)}" onchange="${onchange}" onclick="try{this.showPicker()}catch(e){}" aria-label="${label}"></label>`;
+}
 function opt(ic, lab, on, onclick, sub) { return `<button class="opt${on ? ' on' : ''}" onclick="${onclick}">${du(ic, 30)}<span>${lab}</span>${sub ? `<small>${sub}</small>` : ''}</button>`; }
 function staffHTML(e) {
   const cur = e.pharmacist || staffSaved();
@@ -432,7 +462,7 @@ function mrHTML(e) {
   if (st === 'มีรายการ MR') {
     h += `<div class="q"><b>ยาเดิมมาจาก</b><div class="grid2">${opt('hosp', 'ห้วยผึ้งที่เดียว', e.data_source !== 'รพ.อื่น', `setF('${id}','data_source','รพ.ห้วยผึ้ง')`)}${opt('hosp2', 'มียานอก รพ.', e.data_source === 'รพ.อื่น', `setF('${id}','data_source','รพ.อื่น')`)}</div></div>`;
     const okSub = (s) => (e.mr_done_shift === s && ot) ? (ot === 'ผ่าน' ? 'ทันเวลา ✓' : 'เกินเวลา') : '';
-    h += `<div class="q"><b>เสร็จเวรไหน</b><label class="datechip">${li('clock', 13)}<input type="date" value="${esc(e.mr_done_date || todayIso())}" onchange="setF('${id}','mr_done_date',this.value)" aria-label="วันที่ทำ MR เสร็จ"></label>
+    h += `<div class="q"><b>เสร็จเวรไหน</b>${dchip('', e.mr_done_date || e.admit_date, `setF('${id}','mr_done_date',this.value)`, 'วันที่ทำ MR เสร็จ')}
       <div class="grid3">${['ดึก','เช้า','บ่าย'].map(s => opt(SH_IC[s], s, e.mr_done_shift === s, `setF('${id}','mr_done_shift','${s}')`, okSub(s))).join('')}</div></div>`;
     if (ot === 'ผ่าน' || ot === 'ไม่ผ่าน') h += `<div class="banner${ot === 'ผ่าน' ? '' : ' bad'}">${ot === 'ผ่าน' ? mascot(40) : du('clip', 32)}<div><b>${ot === 'ผ่าน' ? 'ทันเวลา!' : 'เกินเวลา'}</b><span>${e.data_source === 'รพ.อื่น' ? 'เกณฑ์ ≤ 3 เวร (24 ชม.)' : 'เกณฑ์ เสร็จในเวรที่ admit'}</span></div></div>`;
   }
@@ -443,7 +473,7 @@ function mdHTML(e) {
   if (e.mr_status && e.mr_status !== 'มีรายการ MR') return `<div class="warn">${du('empty', 22)}ผล MR “${esc(e.mr_status)}” ไม่ต้องให้หมอสั่งยาเดิม</div>`;
   if (!(e.mr_status === 'มีรายการ MR' && e.mr_done_shift)) return `<div class="warn">${du('clip', 22)}ต้องลง MR ให้เสร็จก่อน <button class="lnk" style="margin-left:auto" onclick="PTAB='mr';renderPanel()">ไปที่ MR</button></div>`;
   const g = mdGap(e);
-  let h = `<div class="q"><b>หมอสั่งยาเดิมเวรไหน</b><label class="datechip">${li('clock', 13)}<input type="date" value="${esc(e.md_review_date || todayIso())}" onchange="setF('${id}','md_review_date',this.value)" aria-label="วันที่หมอสั่ง"></label>
+  let h = `<div class="q"><b>หมอสั่งยาเดิมเวรไหน</b>${dchip('', e.md_review_date || e.mr_done_date || e.admit_date, `setF('${id}','md_review_date',this.value)`, 'วันที่หมอสั่ง')}
     <div class="grid3">${['ดึก','เช้า','บ่าย'].map(s => opt(SH_IC[s], s, e.md_review_shift === s, `setF('${id}','md_review_shift','${s}')`)).join('')}</div></div>`;
   if (g !== null) {
     const a = sIdx(e.mr_done_date || e.admit_date, e.mr_done_shift), n = Math.min(Math.max(g, 0), 5);
@@ -463,7 +493,7 @@ function mdHTML(e) {
 function coHTML(e) {
   const id = esc(e.mr_id), t = todayIso();
   const defDate = (t >= e.admit_date && (!e.dc_date || t <= e.dc_date)) ? t : (e.dc_date || e.mr_done_date || e.admit_date);
-  let h = `<div class="q"><b>สอนอะไร <small>· แตะเพื่อบันทึก</small></b><label class="datechip">${li('clock', 13)}<input type="date" id="coDate" value="${esc(defDate)}" aria-label="วันที่สอน"></label>
+  let h = `<div class="q"><b>สอนอะไร <small>· แตะเพื่อบันทึก</small></b>${dchip('coDate', defDate, `this.previousElementSibling.textContent=thd(this.value,'full')`, 'วันที่สอน')}
     <div class="grid3">${COUN.map(c => opt(c[1], c[2], false, `addCoun('${id}','${c[0]}')`)).join('')}</div></div>`;
   const list = (e.counseling || []).slice().sort((a, b) => String(a.date).localeCompare(String(b.date)));
   h += `<div class="q"><b style="font-size:13px;color:var(--mute);font-weight:400">สอนไปแล้ว</b>${list.length ? list.map(c => { const k = (COUN.find(x => x[0] === c.type) || COUN[4]); return `<div class="hist">${du(k[1], 22)}<span>${esc(c.type)}${c.freeText ? ' · ' + esc(c.freeText) : ''}</span><em>${thd(c.date)}</em><button class="lnk" aria-label="ลบ" onclick="delCoun('${id}','${esc(c.id)}')">${li('x', 14)}</button></div>`; }).join('') : '<span style="font-size:12px;color:var(--faint)">ยังไม่มี</span>'}</div>`;
@@ -471,20 +501,20 @@ function coHTML(e) {
 }
 
 // ── register ────────────────────────────────────────
-let REG_SHIFT = curShift();
+let REG_SHIFT = curShift(), REG_DATE = todayIso();
 function regHTML() {
   return `<div style="display:flex;align-items:center;gap:12px">${mascot(52)}<div style="display:flex;flex-direction:column;flex:1"><b style="font-size:18px">ผู้ป่วยใหม่</b><span style="font-size:12px;color:var(--mute)">ลงย้อนหลังได้</span></div><button class="lnk" onclick="PMODE='ep';renderPanel()">ปิด</button></div>
     <label class="inp">HN<input id="regHN" class="big" inputmode="numeric" placeholder="6810"></label>
     <label class="inp">ชื่อ (ไม่บังคับ)<input id="regName" placeholder="นาง ก."></label>
-    <div class="q"><b>Admit เวรไหน</b><label class="datechip">${li('clock', 13)}<input type="date" id="regDate" value="${todayIso()}" aria-label="วันที่ admit"></label>
+    <div class="q"><b>Admit เวรไหน</b>${dchip('regDate', REG_DATE, `REG_DATE=this.value;this.previousElementSibling.textContent=thd(this.value,'full')`, 'วันที่ admit')}
       <div class="grid3">${['ดึก','เช้า','บ่าย'].map(s => opt(SH_IC[s], s, REG_SHIFT === s, `REG_SHIFT='${s}';regKeep()`)).join('')}</div></div>
     <div id="regMsg"></div>
     <button class="primary" onclick="register()">ลงทะเบียน</button>`;
 }
-function regKeep() { const v = { hn: $('regHN').value, nm: $('regName').value, d: $('regDate').value }; renderPanel(); $('regHN').value = v.hn; $('regName').value = v.nm; $('regDate').value = v.d; }
+function regKeep() { const v = { hn: $('regHN').value, nm: $('regName').value }; renderPanel(); $('regHN').value = v.hn; $('regName').value = v.nm; }
 function bindReg() { ['regHN', 'regName'].forEach(i => $(i).addEventListener('keydown', ev => { if (ev.key === 'Enter') register(); })); }
 async function register() {
-  const hn = $('regHN').value.trim(), name = $('regName').value.trim(), d = $('regDate').value, msg = $('regMsg');
+  const hn = $('regHN').value.trim(), name = $('regName').value.trim(), d = REG_DATE, msg = $('regMsg');
   if (!hn || !d) { msg.innerHTML = '<span class="err">ใส่ HN และวันที่ admit</span>'; return; }
   msg.innerHTML = '<span style="font-size:12px;color:var(--mute)">กำลังบันทึก…</span>';
   const r = await api('saveEpisode', { hn, name, admitDate: d, admitShift: REG_SHIFT, source: 'รพ.ห้วยผึ้ง' });
@@ -506,12 +536,12 @@ function setF(id, f, v) {
   const e = find(id); if (!e) return;
   e[f] = v;
   if (f === 'mr_status') {
-    if (v === 'มีรายการ MR') { if (!e.mr_done_date) e.mr_done_date = todayIso() < e.admit_date ? e.admit_date : todayIso(); }
+    if (v === 'มีรายการ MR') { if (!e.mr_done_date) e.mr_done_date = e.admit_date; }
     else { e.mr_done_shift = ''; e.md_review_shift = ''; e.md_review_date = null; e.md_status = ''; }
     if (!e.pharmacist) e.pharmacist = staffSaved();
   }
-  if (f === 'mr_done_shift' && !e.mr_done_date) e.mr_done_date = todayIso();
-  if (f === 'md_review_shift') { if (!e.md_review_date) e.md_review_date = todayIso(); e.md_status = ''; }
+  if (f === 'mr_done_shift' && !e.mr_done_date) e.mr_done_date = e.admit_date;
+  if (f === 'md_review_shift') { if (!e.md_review_date) e.md_review_date = e.mr_done_date || e.admit_date; e.md_status = ''; }
   e.on_time = onTimeOf(e);
   renderAll(); queueSave(id);
 }
@@ -674,6 +704,21 @@ function exportReport() {
   XLSX.writeFile(wb, 'IPD_Report_' + r.from + '_' + r.to + '.xlsx');
 }
 
+
+// ── PIN (เหมือน hub เดิม: 8624 · จำใน sessionStorage) ─────
+const PIN_CORRECT = '8624';
+function pinOk() { try { return sessionStorage.getItem('ipdLitePin') === 'ok'; } catch (e) { return false; } }
+function pinRender() { const v = $('pinIn').value; document.querySelectorAll('.pslot').forEach((el, i) => { el.textContent = i < v.length ? '●' : ''; el.classList.toggle('on', i < v.length); }); }
+function pinKey(k) { const el = $('pinIn'); el.value = k === 'del' ? el.value.slice(0, -1) : (el.value + k).slice(0, 4); pinInput(); }
+function pinInput() {
+  const el = $('pinIn'); el.value = el.value.replace(/\D/g, '').slice(0, 4); $('pinErr').textContent = ''; pinRender();
+  if (el.value.length === 4) setTimeout(() => {
+    if (el.value === PIN_CORRECT) { try { sessionStorage.setItem('ipdLitePin', 'ok'); } catch (e) {} $('pin').classList.add('hide'); start(); }
+    else { $('pinErr').textContent = 'รหัสไม่ถูกต้อง'; el.value = ''; pinRender(); const p = $('pslots'); p.classList.remove('shake'); void p.offsetWidth; p.classList.add('shake'); }
+  }, 180);
+}
+
+var _started = false;
 // ── init ────────────────────────────────────────────
 (function init() {
   $('logoM').innerHTML = mascot(34); fillIcons();
@@ -682,8 +727,14 @@ function exportReport() {
   ['dcFrom', 'dcTo'].forEach(i => $(i).addEventListener('change', loadList));
   let qt; $('qHN').addEventListener('input', () => { clearTimeout(qt); qt = setTimeout(loadList, 400); });
   api('getSettings', {}).then(r => { STAFF = ((r && r.settings && r.settings['รายชื่อเภสัชกร']) || []).filter(Boolean); if (SEL) renderPanel(); });
-  renderPanel(); loadList();
+  if (pinOk()) start();
+  else {
+    $('pin').classList.remove('hide'); $('pinM').innerHTML = mascot(64);
+    const box = $('pin').querySelector('.pad'); box.innerHTML = [1,2,3,4,5,6,7,8,9].map(n => `<button onclick="pinKey('${n}')">${n}</button>`).join('') + '<span></span><button onclick="pinKey(\'0\')">0</button><button aria-label="ลบ" onclick="pinKey(\'del\')">⌫</button>';
+    $('pinIn').addEventListener('input', pinInput); setTimeout(() => $('pinIn').focus(), 50);
+  }
 })();
+function start() { if (_started) return; _started = true; renderPanel(); loadList(); }
 </script>
 </body>
 </html>
