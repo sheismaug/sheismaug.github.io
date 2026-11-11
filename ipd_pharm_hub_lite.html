@@ -294,7 +294,19 @@ function mascot(s, mood) {
 }
 
 // ── helpers ─────────────────────────────────────────
-function api(action, data, ms) {
+// Supabase บางครั้งเวลาเซิร์ฟเวอร์คลาดกันเล็กน้อย → "JWT issued at future" (ชั่วคราว) → ลองใหม่อัตโนมัติ
+function api(action, data, ms, tries) {
+  tries = tries || 0;
+  return api1(action, data, ms).then(r => {
+    const msg = String((r && (r.error || r.message || r.msg)) || '');
+    if (r && r.ok === false || msg) {
+      if (/issued at future|clock|PGRST303/i.test(msg) && tries < 4)
+        return new Promise(ok => setTimeout(ok, 1200 * (tries + 1))).then(() => api(action, data, ms, tries + 1));
+    }
+    return r;
+  });
+}
+function api1(action, data, ms) {
   const ctrl = new AbortController(); const t = setTimeout(() => ctrl.abort(), ms || 30000);
   return fetch(API, { method: 'POST', signal: ctrl.signal,
     headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + KEY, 'apikey': KEY },
@@ -478,7 +490,7 @@ function staffHTML(e) {
 }
 function mrHTML(e) {
   const id = esc(e.mr_id), st = e.mr_status, ot = onTimeOf(e);
-  let h = staffHTML(e);
+  let h = st === 'ไม่ได้ทำ MR' ? '' : staffHTML(e);
   if (!e.admit_shift) h += `<div class="q"><b>Admit เวรไหน <small>· ยังไม่มีข้อมูล ใส่เพื่อคำนวณเวลา</small></b><div class="grid3">${['ดึก','เช้า','บ่าย'].map(s => opt(SH_IC[s], s, false, `setF('${id}','admit_shift','${s}')`)).join('')}</div></div>`;
   h += `<div class="q"><b>ผล MR</b><div class="grid3">${opt('list', 'มียาเดิม', st === 'มีรายการ MR', `setF('${id}','mr_status','มีรายการ MR')`)}${opt('empty', 'ไม่พบยาเดิม', st === 'ไม่พบรายการยาเดิม', `setF('${id}','mr_status','ไม่พบรายการยาเดิม')`)}${opt('xc', 'ไม่ได้ทำ', st === 'ไม่ได้ทำ MR', `setF('${id}','mr_status','ไม่ได้ทำ MR')`)}</div>
     <button class="pill${st === 'ติดตามไม่ได้' ? ' on' : ''}" style="align-self:flex-start" onclick="setF('${id}','mr_status','ติดตามไม่ได้')">ติดตามประวัติไม่ได้</button></div>`;
@@ -571,7 +583,7 @@ function setF(id, f, v) {
   if (f === 'mr_status') {
     if (v === 'มีรายการ MR') { if (!e.mr_done_date) e.mr_done_date = e.admit_date; }
     else { e.mr_done_shift = ''; e.md_review_shift = ''; e.md_review_date = null; e.md_status = ''; }
-    if (!e.pharmacist) e.pharmacist = staffSaved();
+    if (v === 'ไม่ได้ทำ MR') { e.pharmacist = ''; STAFF_OPEN = false; } else if (!e.pharmacist) e.pharmacist = staffSaved();
   }
   if (f === 'mr_done_shift' && !e.mr_done_date) e.mr_done_date = e.admit_date;
   if (f === 'md_review_shift') { if (!e.md_review_date) e.md_review_date = e.mr_done_date || e.admit_date; e.md_status = ''; }
@@ -587,7 +599,7 @@ function setSaved(txt, err) { const el = $('sv'); if (!el) return; el.className 
 function queueSave(id) { setSaved('กำลังบันทึก…'); clearTimeout(timers[id]); timers[id] = setTimeout(() => doSave(id), 450); }
 function payload(e) {
   return { mrId: e._new ? '' : e.mr_id, hn: e.hn, name: e.patient_name, admitDate: e.admit_date, admitShift: e.admit_shift, source: e.data_source,
-    pharmacist: e.pharmacist || (e.mr_status ? staffSaved() : ''), mrStatus: e.mr_status,
+    pharmacist: e.mr_status === 'ไม่ได้ทำ MR' ? '' : (e.pharmacist || (e.mr_status ? staffSaved() : '')), mrStatus: e.mr_status,
     mrDate: e.mr_status === 'มีรายการ MR' ? e.mr_done_date : null, mrShift: e.mr_done_shift,
     mdDate: e.md_review_shift ? e.md_review_date : null, mdShift: e.md_review_shift, mdStatus: e.md_status || '',
     dcDate: e.dc_date || null, onTime: (onTimeOf(e) === 'ก่อน admit' ? '' : onTimeOf(e)) };
