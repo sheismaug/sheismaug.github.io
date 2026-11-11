@@ -70,6 +70,10 @@ h1{margin:6px 0 8px;font-size:42px;font-weight:700;line-height:1.25;letter-spaci
 .dev{width:28px;height:28px;border-radius:10px;background:#f6f4ee;display:flex;align-items:center;justify-content:center}
 .go{height:36px;padding:0 16px;border-radius:14px;border:none;background:var(--lime);font-size:13px;font-weight:700;box-shadow:0 4px 0 var(--limed);display:inline-flex;align-items:center;gap:6px}
 .waittag{display:inline-flex;align-items:center;gap:5px;height:30px;padding:0 12px;border-radius:999px;background:var(--lav);color:var(--lavt);font-size:12px;font-weight:600}
+.vdate{display:inline-flex;align-items:center;gap:6px;height:28px;padding:0 10px;border-radius:999px;background:#f6f4ee;font-size:12px;white-space:nowrap}
+.vdate.latest{background:var(--limec);font-weight:700}
+.row.old{opacity:.6}
+.stt{font-size:12px;color:var(--mute);white-space:nowrap}
 .dc{height:32px;padding:0 11px;border-radius:12px;border:none;background:#f4f2ec;color:var(--mute);font-family:Montserrat,sans-serif;font-size:11px;font-weight:700;box-shadow:0 3px 0 #e2ded4}
 .closure{margin:-2px 6px 6px 56px;padding:14px 16px;border-radius:16px;background:#fff;outline:2px solid var(--ink);outline-offset:-2px;display:flex;flex-direction:column;gap:10px}
 .closure .it{display:flex;align-items:center;gap:10px;font-size:13px}
@@ -115,6 +119,7 @@ h1{margin:6px 0 8px;font-size:42px;font-weight:700;line-height:1.25;letter-spaci
 .datechip input{position:absolute;inset:0;opacity:0;width:100%;height:100%;border:none;cursor:pointer}
 .banner{display:flex;align-items:center;gap:12px;padding:12px 14px;border-radius:16px;background:var(--limec)}
 .banner.bad{background:var(--badbg)}
+.banner.warn{background:#FFF4D6}
 .banner b{font-size:15px;display:block}
 .banner span{font-size:12px;color:var(--mute)}
 .lnk{border:none;background:transparent;padding:0;color:var(--mute);font-size:12px;text-decoration:underline}
@@ -326,11 +331,12 @@ function onTimeOf(e) {
   if (e.mr_status !== 'มีรายการ MR') return e.mr_status ? '—' : '';
   const a = sIdx(e.admit_date, e.admit_shift), m = sIdx(e.mr_done_date, e.mr_done_shift);
   if (a === null || m === null) return '';
-  const d = m - a; return (e.data_source === 'รพ.อื่น' ? (d >= 0 && d <= 3) : d === 0) ? 'ผ่าน' : 'ไม่ผ่าน';
+  const d = m - a; if (d < 0) return 'ก่อน admit';
+  return (e.data_source === 'รพ.อื่น' ? d <= 3 : d === 0) ? 'ผ่าน' : 'ไม่ผ่าน';
 }
-function mrDone(e) { return !!e.mr_status && (e.mr_status !== 'มีรายการ MR' || !!e.mr_done_shift); }
+function mrDone(e) { return !!e.mr_status && (e.mr_status !== 'มีรายการ MR' || (!!e.mr_done_shift && onTimeOf(e) !== 'ก่อน admit')); }
 function needMR(e) { return !mrDone(e); }
-function needMD(e) { return e.mr_status === 'มีรายการ MR' && !!e.mr_done_shift && !e.md_review_shift && e.md_status !== 'none'; }
+function needMD(e) { return e.mr_status === 'มีรายการ MR' && mrDone(e) && !e.md_review_shift && e.md_status !== 'none'; }
 function complete(e) { return mrDone(e) && !needMD(e); }
 function mdGap(e) { const a = sIdx(e.mr_done_date || e.admit_date, e.mr_done_shift), b = sIdx(e.md_review_date, e.md_review_shift); return (a === null || b === null) ? null : b - a; }
 function waitShifts(e) { const a = sIdx(e.mr_done_date || e.admit_date, e.mr_done_shift), n = sIdx(todayIso(), curShift()); return (a === null) ? null : Math.max(0, n - a); }
@@ -384,6 +390,19 @@ function rowHTML(e, kind) {
   if (CLOSE_ID === e.mr_id) h += closureHTML(e);
   return h;
 }
+function visitRow(e, isLatest, multi) {
+  const id = esc(e.mr_id), sel = SEL === e.mr_id ? ' sel' : '';
+  const old = multi && !isLatest && !e.dc_date ? ' old' : '';
+  const st = needMR(e) ? 'ต้องทำ MR' : (needMD(e) ? 'รอหมอ' : (e.mr_status === 'ไม่ได้ทำ MR' ? 'ไม่ได้ทำ MR' : 'ครบ'));
+  const date = `<span class="vdate${isLatest && multi ? ' latest' : ''}">${li('clock', 12)}admit ${thd(e.admit_date, true)}${e.dc_date ? ' → D/C ' + thd(e.dc_date) : ''}${isLatest && multi ? ' · ล่าสุด' : ''}</span>`;
+  let btn = '';
+  if (e.dc_date) btn = `<button class="dc" onclick="event.stopPropagation();undoDC('${id}')">ยกเลิก D/C</button>`;
+  else if (isLatest || !multi) btn = `<button class="dc" onclick="event.stopPropagation();askDC('${id}')">D/C</button>`;
+  const lead = needMR(e) ? `<span class="lead" style="background:#FFF6CC">${du('clip', 24)}</span>` : (needMD(e) ? `<span class="lead" style="background:#F1ECFF">${du('steth', 24)}</span>` : `<span class="lead" style="background:#EEF3EA">${li('check', 18)}</span>`);
+  let h = `<div class="row${sel}${old}" onclick="openEp('${id}')"><span>${lead}</span><span class="hn">${esc(e.hn)}</span><span class="nm">${esc(e.patient_name || '')}</span>${date}<span class="devs">${devIcons(e)}</span><span class="stt">${st}</span>${btn}</div>`;
+  if (CLOSE_ID === e.mr_id) h += closureHTML(e);
+  return h;
+}
 function closureHTML(e) {
   const id = esc(e.mr_id), items = [];
   if (needMR(e)) items.push(`<div class="it"><span>${du('clip', 22)}</span>ยังไม่ได้ลง MR<em>→ บันทึกเป็น “ไม่ได้ทำ MR”</em></div>`);
@@ -399,7 +418,11 @@ function renderList() {
   const L = $('list');
   if (!EPS.length) { L.innerHTML = `<div class="empty">${LISTMODE === 'dc' ? 'ไม่มีผู้ป่วย D/C ในช่วงนี้' : 'ยังไม่มีผู้ป่วยในระบบ — กด “ลงทะเบียน” ด้านบน'}</div>`; return; }
   if (LISTMODE === 'dc' || $('qHN').value.trim()) {
-    L.innerHTML = `<div class="rows">${EPS.map(e => rowHTML(e, needMR(e) ? 'todo' : (needMD(e) ? 'wait' : 'done'))).join('')}</div>`; return;
+    const latest = {};
+    EPS.forEach(e => { const k = String(e.hn); if (!latest[k] || String(e.admit_date) > String(latest[k].admit_date)) latest[k] = e; });
+    const multi = {}; EPS.forEach(e => { multi[e.hn] = (multi[e.hn] || 0) + 1; });
+    const sorted = EPS.slice().sort((a, b) => String(b.admit_date || '').localeCompare(String(a.admit_date || '')));
+    L.innerHTML = `<div class="rows">${sorted.map(e => visitRow(e, latest[String(e.hn)] === e, multi[e.hn] > 1)).join('')}</div>`; return;
   }
   const todo = EPS.filter(needMR), wait = EPS.filter(needMD), done = EPS.filter(complete);
   let h = '';
@@ -416,7 +439,7 @@ function renderList() {
 // ── panel ───────────────────────────────────────────
 function openEp(id, tab) {
   const e = find(id); if (!e) return;
-  SEL = id; PMODE = 'ep'; STAFF_OPEN = false;
+  SEL = id; PMODE = 'ep'; STAFF_OPEN = false; ADMIT_EDIT = false;
   PTAB = tab || (needMR(e) ? 'mr' : (needMD(e) ? 'md' : 'mr'));
   renderList(); renderPanel();
   if (window.innerWidth < 900) $('panel').scrollIntoView({ behavior: 'smooth' });
@@ -428,16 +451,16 @@ function renderPanel() {
   const e = SEL && find(SEL);
   if (!e) { P.innerHTML = `<div style="display:flex;flex-direction:column;align-items:center;gap:10px;padding:40px 10px;text-align:center;color:var(--mute)">${mascot(72)}<b style="color:var(--ink);font-size:16px">เลือกผู้ป่วยจากรายชื่อ</b><span style="font-size:13px">หรือกด “ลงทะเบียน” เพื่อเพิ่มผู้ป่วยใหม่</span></div>`; return; }
   const ot = onTimeOf(e);
-  const mrSt = needMR(e) ? 'ยังไม่ลง' : (e.mr_status === 'มีรายการ MR' ? (ot === 'ผ่าน' ? 'ทันเวลา ✓' : 'เกินเวลา') : e.mr_status);
+  const mrSt = needMR(e) ? 'ยังไม่ลง' : (e.mr_status === 'มีรายการ MR' ? (ot === 'ผ่าน' ? 'ทันเวลา ✓' : (ot === 'ก่อน admit' ? '⚠ ตรวจเวลา' : 'เกินเวลา')) : e.mr_status);
   const mdSt = e.md_status === 'none' ? 'หมอไม่ได้สั่ง' : (e.md_review_shift ? (mdGap(e) === null ? 'สั่งแล้ว ✓' : (mdGap(e) <= 0 ? 'เวรเดียวกัน ✓' : '+' + mdGap(e) + ' เวร ✓')) : (e.mr_status === 'มีรายการ MR' && e.mr_done_shift ? 'รอ' : (e.mr_status && e.mr_status !== 'มีรายการ MR' ? 'ไม่ต้อง' : 'หลังทำ MR')));
   const coSt = (e.counseling || []).length ? 'สอนแล้ว ' + e.counseling.length : '+ เพิ่มได้';
-  const tab = (k, ic, lab, st, bg) => `<button class="tab${PTAB === k ? ' on' : ''}" onclick="PTAB='${k}';STAFF_OPEN=false;renderPanel()"><span class="ic" style="background:${bg}">${du(ic, 22)}</span><b>${lab}</b><span>${st}</span></button>`;
+  const tab = (k, ic, lab, st, bg) => `<button class="tab${PTAB === k ? ' on' : ''}" onclick="PTAB='${k}';STAFF_OPEN=false;ADMIT_EDIT=false;renderPanel()"><span class="ic" style="background:${bg}">${du(ic, 22)}</span><b>${lab}</b><span>${st}</span></button>`;
   let body = PTAB === 'mr' ? mrHTML(e) : (PTAB === 'md' ? mdHTML(e) : coHTML(e));
-  P.innerHTML = `<div class="ph"><div style="display:flex;flex-direction:column;flex:1;min-width:0"><span class="h">${esc(e.hn)}</span><span class="s">${esc(e.patient_name || '')}${e.patient_name ? ' · ' : ''}admit ${thd(e.admit_date)} · เวร${esc(e.admit_shift || '?')}</span></div><span class="saved" id="sv">${li('check', 12)}บันทึกอัตโนมัติ</span></div>
+  P.innerHTML = `<div class="ph"><div style="display:flex;flex-direction:column;flex:1;min-width:0"><span class="h">${esc(e.hn)}</span><span class="s">${esc(e.patient_name || '')}${e.patient_name ? ' · ' : ''}<button class="lnk" style="text-decoration:none;color:inherit" onclick="editAdmit()">admit ${thd(e.admit_date)} · เวร${esc(e.admit_shift || '?')} ✎</button></span></div><span class="saved" id="sv">${li('check', 12)}บันทึกอัตโนมัติ</span></div>
     <div class="tabs">${tab('mr', 'clip', 'MR', mrSt, '#fff')}${tab('md', 'steth', 'หมอสั่งยาเดิม', mdSt, '#F1ECFF')}${tab('co', 'mdi', 'สอนยา', coSt, '#FCE9DE')}</div>
-    ${body}
+    ${ADMIT_EDIT ? admitHTML(e) : body}
     <div style="display:flex;align-items:center;gap:10px;border-top:1px solid var(--line);padding-top:14px;font-size:12px;color:var(--mute)">
-      <button class="lnk" onclick="editAdmit()">แก้วัน/เวร admit</button><span style="flex:1"></span>
+      <button class="lnk" onclick="editAdmit()">${ADMIT_EDIT ? 'ปิดการแก้ไข admit' : 'แก้ชื่อ / วัน / เวร admit'}</button><span style="flex:1"></span>
       ${e.dc_date ? `<span>D/C ${thd(e.dc_date)}</span><button class="dc" onclick="undoDC('${esc(e.mr_id)}')">ยกเลิก D/C</button>` : `<button class="dc" onclick="askDC('${esc(e.mr_id)}')">D/C</button>`}
     </div>`;
 }
@@ -461,9 +484,10 @@ function mrHTML(e) {
     <button class="pill${st === 'ติดตามไม่ได้' ? ' on' : ''}" style="align-self:flex-start" onclick="setF('${id}','mr_status','ติดตามไม่ได้')">ติดตามประวัติไม่ได้</button></div>`;
   if (st === 'มีรายการ MR') {
     h += `<div class="q"><b>ยาเดิมมาจาก</b><div class="grid2">${opt('hosp', 'ห้วยผึ้งที่เดียว', e.data_source !== 'รพ.อื่น', `setF('${id}','data_source','รพ.ห้วยผึ้ง')`)}${opt('hosp2', 'มียานอก รพ.', e.data_source === 'รพ.อื่น', `setF('${id}','data_source','รพ.อื่น')`)}</div></div>`;
-    const okSub = (s) => (e.mr_done_shift === s && ot) ? (ot === 'ผ่าน' ? 'ทันเวลา ✓' : 'เกินเวลา') : '';
+    const okSub = (s) => (e.mr_done_shift === s && ot) ? (ot === 'ผ่าน' ? 'ทันเวลา ✓' : (ot === 'ก่อน admit' ? 'ก่อน admit ?' : 'เกินเวลา')) : '';
     h += `<div class="q"><b>เสร็จเวรไหน</b>${dchip('', e.mr_done_date || e.admit_date, `setF('${id}','mr_done_date',this.value)`, 'วันที่ทำ MR เสร็จ')}
       <div class="grid3">${['ดึก','เช้า','บ่าย'].map(s => opt(SH_IC[s], s, e.mr_done_shift === s, `setF('${id}','mr_done_shift','${s}')`, okSub(s))).join('')}</div></div>`;
+    if (ot === 'ก่อน admit') h += `<div class="banner warn">${du('clip', 32)}<div style="flex:1"><b>เวลา MR อยู่ก่อน admit</b><span>admit ${thd(e.admit_date)} เวร${esc(e.admit_shift)} · ตรวจวันที่อีกครั้ง</span></div><button class="go" style="height:34px;padding:0 12px" onclick="bumpDay('${id}','mr_done_date')">ใช้ ${thd(addDays(e.mr_done_date || e.admit_date, 1))} เวร${esc(e.mr_done_shift)}</button></div>`;
     if (ot === 'ผ่าน' || ot === 'ไม่ผ่าน') h += `<div class="banner${ot === 'ผ่าน' ? '' : ' bad'}">${ot === 'ผ่าน' ? mascot(40) : du('clip', 32)}<div><b>${ot === 'ผ่าน' ? 'ทันเวลา!' : 'เกินเวลา'}</b><span>${e.data_source === 'รพ.อื่น' ? 'เกณฑ์ ≤ 3 เวร (24 ชม.)' : 'เกณฑ์ เสร็จในเวรที่ admit'}</span></div></div>`;
   }
   return h;
@@ -475,7 +499,9 @@ function mdHTML(e) {
   const g = mdGap(e);
   let h = `<div class="q"><b>หมอสั่งยาเดิมเวรไหน</b>${dchip('', e.md_review_date || e.mr_done_date || e.admit_date, `setF('${id}','md_review_date',this.value)`, 'วันที่หมอสั่ง')}
     <div class="grid3">${['ดึก','เช้า','บ่าย'].map(s => opt(SH_IC[s], s, e.md_review_shift === s, `setF('${id}','md_review_shift','${s}')`)).join('')}</div></div>`;
-  if (g !== null) {
+  if (g !== null && g < 0) {
+    h += `<div class="banner warn">${du('steth', 32)}<div style="flex:1"><b>เวลาที่หมอสั่ง อยู่ก่อนทำ MR</b><span>MR เสร็จ ${thd(e.mr_done_date || e.admit_date)} เวร${esc(e.mr_done_shift)}</span></div><button class="go" style="height:34px;padding:0 12px" onclick="bumpDay('${id}','md_review_date')">ใช้ ${thd(addDays(e.md_review_date || e.mr_done_date || e.admit_date, 1))} เวร${esc(e.md_review_shift)}</button></div>`;
+  } else if (g !== null) {
     const a = sIdx(e.mr_done_date || e.admit_date, e.mr_done_shift), n = Math.min(Math.max(g, 0), 5);
     const names = ['ดึก','เช้า','บ่าย'];
     let cells = '';
@@ -524,11 +550,18 @@ async function register() {
   if (LISTMODE !== 'active') setList('active'); else await loadList();
   openEp(r.mrId, 'mr');
 }
-function editAdmit() {
-  const e = find(SEL); if (!e) return;
-  const d = prompt('วันที่ admit (ปี ค.ศ. YYYY-MM-DD)', e.admit_date); if (!d) return;
-  const s = prompt('เวร admit (ดึก / เช้า / บ่าย)', e.admit_shift || curShift()); if (!s || SH[s.trim()] === undefined) return;
-  e.admit_date = d.trim(); e.admit_shift = s.trim(); renderAll(); queueSave(e.mr_id);
+let ADMIT_EDIT = false;
+function editAdmit() { ADMIT_EDIT = !ADMIT_EDIT; renderPanel(); }
+function setName(id, v) { const e = find(id); if (!e) return; e.patient_name = v.trim(); renderList(); queueSave(id); }
+function admitHTML(e) {
+  const id = esc(e.mr_id);
+  return `<div class="q" style="padding:14px;border-radius:18px;background:#faf8f3">
+    <b>แก้ข้อมูล admit</b>
+    <label class="inp">ชื่อ<input value="${esc(e.patient_name || '')}" placeholder="ไม่บังคับ" onchange="setName('${id}',this.value)"></label>
+    ${dchip('', e.admit_date, `setF('${id}','admit_date',this.value)`, 'วันที่ admit')}
+    <div class="grid3">${['ดึก','เช้า','บ่าย'].map(s => opt(SH_IC[s], s, e.admit_shift === s, `setF('${id}','admit_shift','${s}')`)).join('')}</div>
+    <button class="black" style="align-self:flex-end;height:36px" onclick="ADMIT_EDIT=false;renderPanel()">เสร็จ</button>
+  </div>`;
 }
 
 // ── edits + autosave ────────────────────────────────
@@ -545,6 +578,7 @@ function setF(id, f, v) {
   e.on_time = onTimeOf(e);
   renderAll(); queueSave(id);
 }
+function bumpDay(id, f) { const e = find(id); if (!e) return; e[f] = addDays(e[f] || e.admit_date, 1); e.on_time = onTimeOf(e); renderAll(); queueSave(id); }
 function setNone(id) { const e = find(id); if (!e) return; e.md_status = e.md_status === 'none' ? '' : 'none'; e.md_review_shift = ''; e.md_review_date = null; renderAll(); queueSave(id); }
 function clearMD(id) { const e = find(id); if (!e) return; e.md_status = ''; e.md_review_shift = ''; e.md_review_date = null; renderAll(); queueSave(id); }
 function pickStaff(n) { staffSet(n); STAFF_OPEN = false; const e = find(SEL); if (e) { e.pharmacist = n; renderPanel(); queueSave(e.mr_id); } }
@@ -556,7 +590,7 @@ function payload(e) {
     pharmacist: e.pharmacist || (e.mr_status ? staffSaved() : ''), mrStatus: e.mr_status,
     mrDate: e.mr_status === 'มีรายการ MR' ? e.mr_done_date : null, mrShift: e.mr_done_shift,
     mdDate: e.md_review_shift ? e.md_review_date : null, mdShift: e.md_review_shift, mdStatus: e.md_status || '',
-    dcDate: e.dc_date || null, onTime: onTimeOf(e) };
+    dcDate: e.dc_date || null, onTime: (onTimeOf(e) === 'ก่อน admit' ? '' : onTimeOf(e)) };
 }
 async function doSave(id, silent) {
   const e = find(id); if (!e) return { ok: false };
