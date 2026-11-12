@@ -43,6 +43,14 @@ nav.tabs button.on{background:var(--sel);color:var(--selInk);font-weight:700}
 .wide{grid-column:1/-1}
 .status{display:flex;align-items:center;gap:8px;font-size:14px;padding:6px 2px 0}
 .dot{width:10px;height:10px;border-radius:50%;flex-shrink:0}
+.unfitbar{margin:14px 20px 0;padding:12px 14px;border-radius:14px;border:2px solid #E9A21B;background:#FFF4DC;display:flex;align-items:center;gap:12px}
+.unfitbar.big{border-color:#D63B3B;background:#FDE8E8}
+.unfitbar img{width:30px;height:30px;flex:none}
+.unfitbar>div{flex:1;display:flex;flex-direction:column;gap:2px}
+.unfitbar b{font-size:16px;color:#9A5B00}.unfitbar.big b{color:#B42323}
+.unfitbar span{font-size:13px;color:var(--soft)}
+.unfitbar button{flex:none;border:0;border-radius:12px;padding:8px 14px;background:var(--blue);color:#fff;font-weight:700;font-size:14px;box-shadow:0 3px 0 #1F55C4;cursor:pointer}
+.answer.unfit .big,.answer.unfit .sub1{opacity:.35;text-decoration:line-through;text-decoration-thickness:2px}
 .warnbox{background:#FFF8E6;border-radius:14px;padding:10px 12px;display:flex;gap:8px;align-items:flex-start;font-size:14px;color:#6B4600}
 .warnbox img{width:22px;height:22px;flex-shrink:0}
 .dangerbox{background:#FFE9E9;border-radius:14px;padding:10px 12px;display:flex;gap:8px;align-items:flex-start;font-size:14px;color:#7A1414}
@@ -1271,19 +1279,23 @@ function drugCard(tab, di) {
     else if (A.kind === 'tab') { big = `${fmt(A.n)} <small>${f.k === 'cap' ? 'แคปซูล' : 'เม็ด'}</small>`; s1 = esc(drug.n) + ' ' + esc(f.label.replace(/^(เม็ด|แคปซูล) /, '')) + ' = ' + fmt(A.mg) + ' ' + T.unit; }
     else { big = `${rng(A.lo, A.hi)} <small>${T.unit === 'U' ? 'U' : T.unit}</small>`; s1 = 'ปริมาตรหลังผสม: ตามวิธีผสมของรพ.'; }
     if (T.unit === 'U' && A.kind === 'mg') { big = `${rng(A.lo / 1e6, A.hi / 1e6, 2)} <small>MU</small>`; }
-    h += `<div class="answer"><img src="${I(f.k === 'liq' ? 'spoon' : f.k === 'tab' || f.k === 'cap' ? 'pill' : drug.ic)}" alt=""><div>
+    const unfit = A.kind === 'tab' && !A.fits;
+    if (unfit) {
+      const alt = recI >= 0 && recI !== fi ? drug.forms[recI] : null;
+      h += `<div class="unfitbar ${A.tooBig ? 'big' : ''}"><img src="${I(A.tooBig ? 'prohibited' : 'warning')}" alt=""><div><b>${A.tooBig ? 'ความแรงนี้ใหญ่เกินขนาดที่ต้องการ' : 'จำนวนเม็ดไม่ลงตัวกับช่วงขนาด'}</b><span>${A.tooBig ? `1 ${f.k === 'cap' ? 'แคปซูล' : 'เม็ด'} = ${fmt(f.mg)} ${T.unit} แต่ควรได้ไม่เกิน ${fmt(T.hi)} ${T.unit}/ครั้ง` : `ควรได้ ${rng(T.lo, T.hi)} ${T.unit}/ครั้ง`}</span></div>${alt ? `<button data-form="${recI}">ใช้ ${esc(alt.label)}</button>` : ''}</div>`;
+    }
+    h += `<div class="answer${unfit ? ' unfit' : ''}"><img src="${I(f.k === 'liq' ? 'spoon' : f.k === 'tab' || f.k === 'cap' ? 'pill' : drug.ic)}" alt=""><div>
       <div class="big">${big}</div><div class="sub1">${s1}</div>
       <div class="sub2">${row.freqTxt ? esc(qs(row.freqTxt)) : perDayTxt(T.perDay)}${row.days ? ' · <b>' + row.days + ' วัน</b>' : ''}</div>
       <div class="minor">ช่วงขนาด: ${esc(qs(T.rangeTxt || ''))}${isFinite(T.max1) ? ' · max ' + fmt(T.max1) + ' ' + T.unit + '/ครั้ง' : ''}${row.maxTxt ? ' · ' + esc(qs(row.maxTxt)) : ''}</div>
       ${T.load ? `<div class="minor" style="color:var(--selInk);font-weight:700">วันแรก: ${fmt(T.load)} ${T.unit}/ครั้ง${f.mgml ? ' = ' + fmt(T.load / f.mgml, 1) + ' ml' : f.mg ? ' = ' + fmt(T.load / f.mg, 1) + ' ' + (f.k === 'cap' ? 'แคปซูล' : 'เม็ด') : ''}</div>` : ''}
-      ${A.kind === 'tab' && !A.fits ? `<div class="minor" style="color:#A86400;font-weight:700">${A.tooBig ? 'เม็ดใหญ่เกินขนาดที่ต้องการ — ใช้ยาน้ำ/ความแรงอื่น' : 'จำนวนเม็ดไม่ลงตัวกับช่วงขนาด'}</div>` : ''}
     </div></div>`;
   }
   T.danger.forEach(t => h += `<div class="dangerbox" style="margin:0 20px 12px"><img src="${I('prohibited')}" alt="">${esc(t)}</div>`);
   T.warn.forEach(t => h += `<div class="warnbox" style="margin:0 20px 12px"><img src="${I('warning')}" alt="">${esc(t)}</div>`);
   if (T.notes.length) h += `<div class="minor" style="margin:-4px 20px 14px">หมายเหตุ: ${esc(qs(T.notes.join(' · ')))}</div>`;
   // dispense (anti-infectives only)
-  if (drug.g === 'abx' && tab === 'oral' && A && (A.kind === 'ml' || A.kind === 'tab')) {
+  if (drug.g === 'abx' && tab === 'oral' && A && (A.kind === 'ml' || (A.kind === 'tab' && A.fits))) {
     const days = num(st.days) || row.days || null;
     let v = '—', calc = 'ใส่จำนวนวันเพื่อคำนวณ';
     if (days) {
