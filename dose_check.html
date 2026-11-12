@@ -381,7 +381,10 @@ const RENAL = [
  {name:'Enoxaparin', r:'inj', rt:'ฉีด (รักษา)', n:['1 mg/kg','q 12 h'], a:[[15,30,{f:'q 24 h', x:'ป้องกัน: 30 mg วันละครั้ง'}],[0,15,{avoid:'หลีกเลี่ยง · ใช้ UFH'}]]},
  {name:'Gabapentin', r:'oral', rt:'กิน', n:['300 – 1,200 mg','วันละ 3 ครั้ง'], a:[[30,60,{d:'200 – 700 mg', f:'วันละ 2 ครั้ง'}],[15,30,{d:'200 – 700 mg', f:'วันละครั้ง'}],[0,15,{d:'100 – 300 mg', f:'วันละครั้ง', x:'HD: ให้เสริมหลังฟอก'}]]},
  {name:'Gentamicin', r:'inj', rt:'ฉีด', n:['5 – 7 mg/kg','q 24 h'], a:[[15,50,{f:'ยืดระยะตาม TDM'}],[0,15,{d:'ตามระดับยา', f:'ตามระดับยา'}]]},
+ {name:'Levofloxacin', r:'oral', rt:'กิน (500 mg)', n:['500 mg','q 24 h'], a:[[20,50,{d:'250 mg', x:'ครั้งแรก 500 mg'}],[10,20,{d:'250 mg', f:'q 48 h', x:'ครั้งแรก 500 mg'}],[0,10,{d:'250 mg', f:'q 48 h', x:'ครั้งแรก 500 mg · HD: ไม่ต้องเสริมหลังฟอก'}]]},
  {name:'Metformin', r:'oral', rt:'กิน', n:['500 – 1,000 mg','วันละ 2 ครั้ง'], a:[[30,45,{d:'≤ 500 mg', x:'ไม่เริ่มใหม่ · max 1 g/วัน'}],[0,30,{avoid:'ห้ามใช้'}]]},
+ {name:'Norfloxacin', r:'oral', rt:'กิน (400 mg)', n:['400 mg','q 12 h'], a:[[0,31,{f:'q 24 h'}]]},
+ {name:'Ofloxacin', r:'oral', rt:'กิน (200 mg)', n:['200 – 400 mg','q 12 h'], a:[[20,51,{f:'q 24 h'}],[0,20,{d:'100 – 200 mg', f:'q 24 h', x:'50% ของขนาดปกติ'}]]},
  {name:'Penicillin G sodium', r:'inj', rt:'ฉีด', n:['2 – 4 MU','q 4 – 6 h'], a:[[10,51,{d:'1.5 – 3 MU', x:'75% ของขนาดปกติ'}],[0,10,{d:'0.4 – 2 MU', x:'20 – 50% ของขนาดปกติ'}]]}
 ];
 const RENAL_NOADJ = 'Ceftriaxone · Clindamycin · Cloxacillin · Azithromycin';
@@ -1373,7 +1376,7 @@ function renalOut() {
   return top;
 }
 function adjFor(x, v) { const r = x.a.find(a => v >= a[0] && v < a[1]); return r ? r[2] : null; }
-function rangeLbl(a) { return a[0] === 0 ? '< ' + a[1] : a[0] + ' – ' + (a[1] - 1); }
+function rangeLbl(a) { return a[0] === 0 ? '≤ ' + (a[1] - 1) : a[0] + ' – ' + (a[1] - 1); }
 function cellHTML(val, base, changed) {
   return changed ? `<div class="cell chg"><div class="v">${esc(val)}</div><div class="was">จาก ${esc(base)}</div></div>` : `<div class="cell"><div class="v">${esc(val || '–')}</div></div>`;
 }
