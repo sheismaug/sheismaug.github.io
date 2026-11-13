@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="theme-color" content="#ffffff">
 <title>รถยา ER v2</title>
-<!-- ER Med Cart v2 · build 2026-11-13 03:19 UTC · แหล่งข้อมูล: Supabase ermedcart-hub (เดียวกับ v1) -->
+<!-- ER Med Cart v2 · build 2026-11-13 03:40 UTC · แหล่งข้อมูล: Supabase ermedcart-hub (เดียวกับ v1) -->
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Google+Sans:wght@400;500;700&family=Noto+Sans+Thai:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -528,13 +528,12 @@ function mapDrug(d) {
     id: d.drug_id, name: d.name, location: d.location || 'รถยา', type: d.type || 'inject',
     cart_pos: d.cart_pos || '', unit: d.unit || 'amp', pack_size: num(d.pack_size),
     cur: num(d.current_qty), target: num(d.target_qty), lot: d.lot, exp: d.exp_date || '',
-    status: d.exp_status || 'ok', min: d.min_qty == null ? 0 : num(d.min_qty),
+    status: d.exp_status || 'ok',
     had: d.had_alert === true || d.had_alert === 'TRUE' || d.had_alert === 1 || d.had_alert === 'true' || d.had_alert === 'Yes',
   };
 }
 async function loadDrugs() {
   const s = await api('getStockSummary');
-  APP.hasMin = (s || []).some(d => Object.prototype.hasOwnProperty.call(d, 'min_qty'));   // มีคอลัมน์ min_qty แล้ว (รัน migration แล้ว)
   APP.drugs = (s || []).map(mapDrug); return APP.drugs;
 }
 async function loadPending() {
@@ -1656,8 +1655,8 @@ let DS = null;
 function openDrugSheet(id) {
   const d = id ? drugById(id) : null;
   const pp = d ? posParts(d.cart_pos) : [null, null, null];
-  DS = d ? { id: d.id, name: d.name, location: d.location, type: d.type, unit: d.unit, target: d.target || 1, min: d.min || 0, pack: d.pack_size || 0, shelf: pp[0] < 99 ? pp[0] : '', box: pp[1] < 99 ? pp[1] : '', slot: pp[2] < 99 ? pp[2] : '', had: d.had }
-         : { id: null, name: '', location: 'รถยา', type: 'inject', unit: '', target: 1, min: 0, pack: 0, shelf: '', box: '', slot: '', had: false };
+  DS = d ? { id: d.id, name: d.name, location: d.location, type: d.type, unit: d.unit, target: d.target || 1, pack: d.pack_size || 0, shelf: pp[0] < 99 ? pp[0] : '', box: pp[1] < 99 ? pp[1] : '', slot: pp[2] < 99 ? pp[2] : '', had: d.had }
+         : { id: null, name: '', location: 'รถยา', type: 'inject', unit: '', target: 1, pack: 0, shelf: '', box: '', slot: '', had: false };
   const sc = openSheet({ title: d ? 'แก้ไขข้อมูลยา' : 'เพิ่มยาเข้ารถ', sub: d ? d.id : 'ใช้ฟอร์มเดียวกันทั้งเพิ่มและแก้ไข', body: '<div id="ds-body" style="display:flex;flex-direction:column;gap:14px"></div>',
     actions: '<div style="display:flex;flex-direction:column;gap:6px;width:100%"><button class="btn" type="button" id="ds-save" onclick="saveDrugSheet(this)">' + (d ? 'บันทึกการแก้ไข' : 'เพิ่มยานี้เข้ารถ') + '</button>' +
       (d ? '<button class="lnk red" type="button" style="align-self:center" onclick="deactivateDrugSheet()">นำยานี้ออกจากรถ</button>' : '') + '</div>' });
@@ -1674,7 +1673,6 @@ function renderDrugSheet() {
     '<div class="grid2"><div><label class="fl" for="ds-unit">หน่วย</label><select id="ds-unit" class="inp" onchange="DS.unit=this.value;dsValid()"><option value="">— เลือก —</option>' +
       UNITS.concat(s.unit && UNITS.indexOf(s.unit) < 0 ? [s.unit] : []).map(u => '<option' + (s.unit === u ? ' selected' : '') + '>' + esc(u) + '</option>').join('') + '</select></div>' +
     '<div><span class="fl">จำนวนเป้าหมาย</span>' + qtyCtl(s.target, 'DS.target=Math.max(1,DS.target-1);renderDrugSheet()', 'DS.target++;renderDrugSheet()', { min: 1 }) + '</div></div>' +
-    (APP.hasMin ? '<div><span class="fl">ขั้นต่ำตามหลักคลินิก <span class="lbl" style="font-weight:400">· รายงานจะไม่แนะนำให้ลดต่ำกว่านี้ · 0 = ไม่กำหนด</span></span>' + qtyCtl(s.min, 'DS.min=Math.max(0,DS.min-1);renderDrugSheet()', 'DS.min++;renderDrugSheet()', { min: 0, unit: s.unit }) + '</div>' : '') +
     (s.type === 'oral' ? '<div><label class="fl" for="ds-pack">เม็ดต่อซอง <span class="lbl" style="font-weight:400">(ถ้ามี · ยาน้ำเว้นว่าง)</span></label><input id="ds-pack" class="inp" inputmode="numeric" value="' + (s.pack || '') + '" oninput="DS.pack=parseInt(this.value,10)||0"></div>' : '') +
     (cart ? '<div><span class="fl">ตำแหน่งในรถ <span class="lbl" style="font-weight:400">· แสดงเป็น <b id="ds-pos" style="color:var(--ink)">' + esc(dsPos()) + '</b></span></span><div class="grid3">' +
       [['shelf', 'ชั้น'], ['box', 'กล่อง'], ['slot', 'ช่อง']].map(([f, l]) => '<div><label class="lbl" for="ds-' + f + '">' + l + '</label><input id="ds-' + f + '" class="inp" inputmode="numeric" value="' + esc(s[f]) + '" oninput="DS.' + f + '=parseInt(this.value,10)||\'\';$(\'ds-pos\').textContent=dsPos();dsValid()"></div>').join('') + '</div></div>' : '') +
@@ -1685,10 +1683,8 @@ function renderDrugSheet() {
 function dsPos() { return DS.shelf && DS.box && DS.slot ? DS.shelf + '-' + DS.box + '-' + DS.slot : '—'; }
 function dsValid() {
   const s = DS, cart = s.location !== FRIDGE;
-  const minOk = !APP.hasMin || !s.min || s.min <= s.target;
-  const ok = s.name.trim() && s.unit && s.target >= 1 && minOk && (!cart || (s.shelf >= 1 && s.box >= 1 && s.slot >= 1));
+  const ok = s.name.trim() && s.unit && s.target >= 1 && (!cart || (s.shelf >= 1 && s.box >= 1 && s.slot >= 1));
   const b = $('ds-save'); if (b) b.disabled = !ok;
-  const er = $('ds-err'); if (er) er.textContent = minOk ? '' : 'จำนวนเป้าหมายต้องไม่น้อยกว่าขั้นต่ำ';
   return ok;
 }
 async function saveDrugSheet(btn) {
@@ -1699,7 +1695,6 @@ async function saveDrugSheet(btn) {
     pack_size: s.type === 'oral' ? (s.pack || 0) : 0, had_alert: !!s.had,
     shelf: cart ? s.shelf : '', box: cart ? s.box : '', slot: cart ? s.slot : '',
   };
-  if (APP.hasMin) data.min_qty = s.min > 0 ? s.min : null;
   setBusy(btn, true);
   try {
     const res = s.id ? await api('updateDrug', Object.assign({ drug_id: s.id }, data)) : await api('addDrug', data);
@@ -1852,7 +1847,16 @@ function rptCustom() {
 async function rptLoad() {
   RPT.loading = true; RPT.err = null; renderReport();
   const want = RPT.from + RPT.to;
-  try { const d = await api('getDashboardData', { from: RPT.from, to: RPT.to }); if (want === RPT.from + RPT.to) RPT.data = d; }
+  // v2.4: ดึงช่วงก่อนหน้าที่ยาวเท่ากันมาเทียบ (ถ้าล้มก็แสดงต่อโดยไม่มีตัวเทียบ)
+  const len = daysBetween(RPT.from, RPT.to) + 1, pf = addDays(RPT.from, -len), pt = addDays(RPT.from, -1);
+  try {
+    const [d, p] = await Promise.all([
+      api('getDashboardData', { from: RPT.from, to: RPT.to }),
+      api('getDashboardData', { from: pf, to: pt }).catch(() => null),
+      APP.drugs.length ? null : loadDrugs().catch(() => null),
+    ]);
+    if (want === RPT.from + RPT.to) { RPT.data = d; RPT.prev = p; RPT.prevFrom = p ? pf : null; RPT.prevTo = p ? pt : null; }
+  }
   catch (e) { RPT.err = e.message; }
   RPT.loading = false;
   if (APP.page === 'report') renderReport();
@@ -1932,61 +1936,6 @@ function rptOverview(m) {
   return h;
 }
 
-/* ---------- ความปลอดภัย ---------- */
-function rptSafety(m) {
-  const f = RPT.filter;
-  const E = f === 'had' ? m.E.filter(e => e.had) : m.E;
-  const showErr = f !== 'miss', showMiss = f === 'all' || f === 'miss' || f === 'had';
-  const missP = f === 'had' ? m.missPharm.filter(x => x.had) : m.missPharm;
-  const rate = m.rxTotal ? (m.E.length / m.rxTotal * 100).toFixed(1) : '—';
-  let h = '<div class="row no-print" style="justify-content:space-between;flex-wrap:wrap;gap:8px"><div class="chips">' +
-    [['all', 'ทั้งหมด'], ['err', 'Med error'], ['miss', 'ยาหาย'], ['had', 'HAD']].map(([k, l]) => '<button class="chip' + (f === k ? ' on' : '') + '" type="button" onclick="RPT.filter=\'' + k + '\';renderReport()">' + l + '</button>').join('') +
-    '</div><button class="chip" type="button" onclick="window.print()">พิมพ์ PCT</button></div>';
-  h += '<div class="print-only h">รายงานความปลอดภัยรถยา ER · ช่วง ' + esc(thDate(RPT.from)) + ' – ' + esc(thDate(RPT.to)) + '</div>';
-  h += '<div class="grid2 kpis4">' +
-    kpi('Med error' + (f === 'had' ? ' (HAD)' : ''), E.length, f === 'had' ? 'จากทั้งหมด ' + m.E.length : rate + ' ต่อ 100 ใบสั่ง') +
-    kpi('ระดับ E ขึ้นไป', E.filter(e => 'EFGHI'.indexOf(e.severity) >= 0 && e.severity).length, 'HAD เกี่ยวข้อง ' + m.errHad, 'var(--red)') +
-    kpi('ใบสั่งไม่ตรง', m.rxMis, (m.rxTotal ? (m.rxMis / m.rxTotal * 100).toFixed(1) : '0') + '% ของใบสั่ง') +
-    kpi('ยาหายไม่มีใบสั่ง', sum(missP, x => x.qty), '+ พยาบาลแจ้งขาด ' + m.missNurseQty) + '</div>';
-  h += '<div class="rgrid">';
-  if (showErr) {
-    /* รายสัปดาห์ */
-    const weeks = []; for (let d = RPT.from; d <= RPT.to; d = addDays(d, 7)) weeks.push(d);
-    const wk = weeks.map(w => { const end = addDays(w, 6); const xs = E.filter(e => e.shift_date >= w && e.shift_date <= end); return { w: w, lo: xs.filter(e => 'ABCD'.indexOf(e.severity) >= 0).length, hi: xs.filter(e => 'EFGHI'.indexOf(e.severity) >= 0 && e.severity).length }; });
-    const wmx = Math.max.apply(null, wk.map(x => x.lo + x.hi).concat([1]));
-    h += '<section class="card span2"><span class="h">Med error รายสัปดาห์ ตามความรุนแรง</span>' +
-      '<div class="legend"><span><span class="sw" style="background:var(--bar2)"></span>A–D</span><span><span class="sw" style="background:var(--org)"></span>E–I</span></div>' +
-      '<div class="vbars" style="gap:10px" role="img" aria-label="Med error รายสัปดาห์">' + wk.map(x => '<div style="flex:1;display:flex;flex-direction:column;justify-content:flex-end;height:100%" title="' + esc(thDateShort(x.w)) + ': A–D ' + x.lo + ', E–I ' + x.hi + '"><i style="display:block;background:var(--org);height:' + (x.hi / wmx * 100) + '%"></i><i style="display:block;background:var(--bar2);border-radius:3px 3px 0 0;height:' + (x.lo / wmx * 100) + '%"></i></div>').join('') + '</div>' +
-      '<div class="row lbl" style="justify-content:space-between"><span>' + esc(thDateShort(weeks[0])) + '</span><span>สัปดาห์ละแท่ง</span></div></section>';
-    h += '<section class="card"><span class="h">แยกตามขั้นตอน</span>' + hbars(ERR_TYPES.map(t => [t, E.filter(e => e.error_type === t).length])) + '</section>';
-    const subs = {}; E.forEach(e => String(e.error_subtype || '').split(',').map(s => s.trim()).filter(Boolean).forEach(s => { subs[s] = (subs[s] || 0) + 1; }));
-    const par = topEntries(subs, 8), tot = sum(Object.values(subs)) || 1; let cum = 0;
-    h += '<section class="card"><span class="h">ลักษณะที่พบบ่อย (Pareto)</span>' + hbars(par) +
-      (par.length ? '<span class="lbl">สะสม: ' + par.slice(0, 3).map(p => { cum += p[1]; return Math.round(cum / tot * 100) + '%'; }).join(' → ') + ' (3 อันดับแรก)</span>' : '') + '</section>';
-    const sv = Object.keys(SEV).map(k => E.filter(e => e.severity === k).length), smx = Math.max.apply(null, sv.concat([1]));
-    h += '<section class="card"><span class="h">ระดับความรุนแรง A–I</span><div style="display:grid;grid-template-columns:repeat(9,minmax(0,1fr));gap:4px;align-items:end;height:90px">' +
-      sv.map((n, i) => '<div style="display:flex;flex-direction:column;justify-content:flex-end;height:100%;text-align:center"><span class="lbl">' + (n || '') + '</span><i style="display:block;border-radius:4px 4px 0 0;background:' + (i >= 4 ? 'var(--org)' : 'var(--bar2)') + ';height:' + (n ? n / smx * 70 : 2) + 'px"></i></div>').join('') +
-      '</div><div style="display:grid;grid-template-columns:repeat(9,minmax(0,1fr));gap:4px;text-align:center;font-size:12px;font-weight:700">' + Object.keys(SEV).map(k => '<span>' + k + '</span>').join('') + '</div></section>';
-    const rv = E.filter(e => e.had || ('EFGHI'.indexOf(e.severity) >= 0 && e.severity));
-    h += '<section class="card span2"><span class="h">ต้องทบทวน — ระดับ E ขึ้นไป หรือ HAD</span>' + (rv.length ? '<div class="scrollx"><table class="tbl"><thead><tr><th>วันที่</th><th class="l">รายการ</th><th>ระดับ</th></tr></thead><tbody>' +
-      rv.map(e => '<tr><td>' + esc(thDateShort(e.shift_date)) + '</td><td class="l">' + esc(e.error_type) + (e.error_subtype ? ' · ' + esc(e.error_subtype) : '') + '<br><span class="lbl">' + esc(e.note || '') + (e.note ? ' · ' : '') + esc(e.pharmacist_name || '') + '</span></td><td><span class="pill ' + ('EFGHI'.indexOf(e.severity) >= 0 ? 'p-red' : 'p-amb') + '">' + esc(e.severity || '—') + (e.had ? ' · HAD' : '') + '</span></td></tr>').join('') + '</tbody></table></div>' : '<div class="lbl">ไม่มีรายการ</div>') + '</section>';
-  }
-  if (showMiss) {
-    const all = missP.concat(f === 'had' ? [] : m.missNurse);
-    h += '<section class="card"><span class="h">ยาหาย / ขาด — 2 แหล่ง</span><div class="legend"><span><span class="sw" style="background:var(--org)"></span>เภสัชบันทึก (ไม่มีใบสั่ง) ' + sum(missP, x => x.qty) + '</span>' + (f === 'had' ? '' : '<span><span class="sw" style="background:var(--bar)"></span>พยาบาลแจ้งขาด ' + m.missNurseQty + '</span>') + '</div>' +
-      hbars(topEntries(countBy(all.map(x => Object.assign({ __w: x.qty }, x)), x => x.drug), 8), 'var(--org)') + '</section>';
-    const ev = all.slice().sort((a, b) => String(b.date).localeCompare(String(a.date)));
-    h += '<section class="card"><span class="h">บันทึกยาหาย/ขาดในช่วงนี้</span>' + (ev.length ? '<div class="scrollx"><table class="tbl"><thead><tr><th>วันที่</th><th class="l">ยา</th><th>จำนวน</th><th class="l">แหล่ง</th></tr></thead><tbody>' +
-      ev.slice(0, 60).map(x => '<tr><td>' + esc(thDateShort(x.date)) + '</td><td class="l">' + esc(x.drug) + (x.had ? ' <span class="had">HAD</span>' : '') + (x.note ? '<br><span class="lbl">' + esc(x.note) + '</span>' : '') + '</td><td>' + x.qty + '</td><td class="l"><span class="lbl">' + (x.source === 'nurse' ? 'พยาบาล' : 'เภสัช') + ' · ' + esc(x.by || '') + '</span></td></tr>').join('') +
-      '</tbody></table></div>' + (ev.length > 60 ? '<span class="lbl">แสดง 60 จาก ' + ev.length + '</span>' : '') : '<div class="lbl">ไม่มีรายการ</div>') + '</section>';
-  }
-  if (f === 'all') {
-    h += '<section class="card"><span class="h">ความเสี่ยงอื่น</span>' + hbars(topEntries(countBy(m.otherRisks, r => RISK_LABEL[r.risk_type] || r.risk_type))) + '</section>';
-  }
-  h += '</div>';
-  return h;
-}
-
 /* ---------- ภาระงาน ---------- */
 function rptWork(m) {
   const P = {};
@@ -2058,27 +2007,181 @@ async function rptDeleteShift(id, btn) {
 }
 
 /* ============================================================
-   รายงาน › ยา & Stock — ใช้ปรับรายการยาและจำนวนที่เก็บในรถ
+   รายงาน › ความปลอดภัย (v2.4) — เน้นยาหาย · Med error เป็นรายเคส
+   · ทุกตัวเลขเทียบช่วงก่อนหน้าที่ยาวเท่ากัน (RPT.prev)
+   · อัตรายาหาย = ยาหายไม่มีใบสั่ง ÷ จำนวนชิ้นที่ออกจากรถ × 100 (เทียบข้ามช่วงที่งานไม่เท่ากันได้)
+   · รวมชื่อยาที่เขียนต่างกัน (Ceftriaxone / cef-3 / Ceftriaxone 1 g) เข้ากับรายการยาในรถ — rxMatchDrug
+   · "ไม่ระบุยา" (ข้อมูลเดิมที่กดแค่ตัวนับ) ไม่นำมาจัดอันดับ แต่นับในยอดรวมและอัตรา
+   ============================================================ */
+
+/* ---------- รวมชื่อยา ---------- */
+const DRUG_ALIAS = [
+  [/\bcef-?3\b|\bceftri\w*/g, 'ceftriaxone'], [/\bfortum\b/g, 'ceftazidime'], [/\bdimenhydrinate\b/g, 'dimen'],
+  [/\bplasil\b|\bmetoclop\w*/g, 'metoclopramide'], [/\blosec\b/g, 'omeprazole'], [/\bparacetamol\b|\bparacet\b|\bpcm\b/g, 'para'],
+  [/\btramadol\b/g, 'tramol'], [/\bdomp\b|\bmotilium\b/g, 'domperidone'], [/\bamoxicillin\b|\bamox\b/g, 'amoxy'],
+  [/\bdexamethasone\b/g, 'dexa'], [/\bbuscopan\b/g, 'hyoscine'], [/\bgentamicin\b/g, 'genta'], [/\bclindamycin\b/g, 'clinda'],
+  [/\bhaloperidol\b/g, 'halo'], [/\bofloxacin\b/g, 'oflox'], [/\bchlorpheniramine\b/g, 'cpm'], [/\bdicloxacillin\b/g, 'dicloxa'],
+  [/\blasix\b/g, 'furosemide'], [/\bvit\.?\s*k1?\b/g, 'vitamin k1'], [/\bvit\.?\s*b\b/g, 'vitamin b'], [/\bmetro\b|\bflagyl\b/g, 'metronidazole'],
+  [/\bsimet\w*/g, 'simethicone'], [/\bbactrim\b|\bco-?trimox\w*/g, 'bactrim'], [/\bomep\b/g, 'omeprazole'],
+];
+function dnorm(s) {
+  let t = ' ' + String(s || '').toLowerCase().replace(/[(),/+]/g, ' ') + ' ';
+  DRUG_ALIAS.forEach(([re, v]) => { t = t.replace(re, v); });
+  return t.replace(/\s+/g, ' ').trim();
+}
+function noteForm(t) {
+  if (/\binj\w*|ฉีด|\bvial\b|\bamp\b/.test(t)) return 'inj';
+  if (/syr|susp|elix|ยาน้ำ/.test(t)) return 'syr';
+  if (/\boph\b|lotion|enema|หยอด|ทา/.test(t)) return 'ext';
+  if (/\btab\w*|เม็ด|แผง|\bcap\w*/.test(t)) return 'tab';
+  return '';
+}
+function drugForm(d) { const t = dnorm(d.name); if (d.type === 'inject') return 'inj'; if (/syr|susp|elix|milk/.test(t)) return 'syr'; if (d.type === 'other' || d.type === 'enema' || /oph|lotion|enema|หยอด/.test(t)) return 'ext'; return 'tab'; }
+const FORM_TH = { inj: 'ฉีด', syr: 'น้ำ', ext: 'ใช้ภายนอก', tab: 'เม็ด' };
+let _dIdx = null, _dIdxN = -1;
+function drugIndex() {
+  if (_dIdx && _dIdxN === APP.drugs.length) return _dIdx;
+  _dIdx = APP.drugs.map(d => { const t = dnorm(d.name); return { d: d, t: t, base: t.split(' ')[0], form: drugForm(d), toks: new Set(t.split(' ').slice(1).filter(x => x.length >= 2)) }; });
+  _dIdxN = APP.drugs.length;
+  return _dIdx;
+}
+/* ชื่ออิสระ → { key, label, had, matched } · key เดียวกัน = ยาเดียวกัน (หรือกลุ่มยาเดียวกันเมื่อแยกความแรงไม่ได้) */
+function rxMatchDrug(raw) {
+  const t = dnorm(raw);
+  if (!t) return null;
+  const idx = drugIndex(), b = t.split(' ')[0];
+  let c = idx.filter(e => e.base === b);
+  if (!c.length && b.length >= 4) c = idx.filter(e => e.base.indexOf(b) === 0 || b.indexOf(e.base) === 0);
+  if (!c.length) return { key: 'U:' + t, label: String(raw).trim(), had: false, matched: false };
+  const f = noteForm(t);
+  if (f) { const cf = c.filter(e => e.form === f); if (cf.length) c = cf; }
+  if (c.length > 1) {
+    const toks = t.split(' ').slice(1);
+    const sc = c.map(e => toks.filter(x => e.toks.has(x)).length), mx = Math.max.apply(null, sc);
+    const best = c.filter((e, i) => sc[i] === mx);
+    if (mx > 0 && best.length === 1) c = best;
+  }
+  if (c.length === 1) return { key: c[0].d.id, label: c[0].d.name, had: c[0].d.had, matched: true };
+  const forms = Array.from(new Set(c.map(e => e.form)));
+  const label = c[0].d.name.split(' ')[0] + (forms.length === 1 ? ' (' + FORM_TH[forms[0]] + ')' : '');
+  return { key: 'G:' + b + ':' + forms.join(','), label: label, had: c.some(e => e.d.had), matched: true };
+}
+/* จำนวนจากข้อความเดิมที่ไม่มี "จำนวน n" เช่น "cef-3 หาย 2 ขวด" */
+function freeQty(s) {
+  const m = String(s || '').match(/หาย(?:ไป)?\s*(\d+)/) || String(s || '').match(/(\d+)\s*(?:amps?|vials?|ขวด|แผง|ซอง|เม็ด|tabs?|หลอด|amp\.)(?![a-z])/i);
+  return m ? Math.max(1, parseInt(m[1], 10)) : 0;
+}
+
+/* ---------- คำนวณ ---------- */
+function safDerive(m) {
+  const ev = m.missPharm.map(x => {
+    const legacy = /ไม่ระบุยา/.test(x.drug);
+    const g = legacy ? null : rxMatchDrug(x.drug);
+    const fq = !legacy && x.qty === 1 ? freeQty(x.drug + ' ' + (x.note || '')) : 0;
+    return Object.assign({}, x, { qty: fq || x.qty, g: g, legacy: legacy || !g });
+  });
+  const total = sum(ev, x => x.qty), unnamed = sum(ev.filter(x => x.legacy), x => x.qty);
+  const by = {};
+  ev.filter(x => !x.legacy).forEach(x => {
+    const k = x.g.key, o = by[k] = by[k] || { label: x.g.label, had: x.g.had || x.had, matched: x.g.matched, qty: 0, n: 0, dates: [], names: new Set() };
+    o.qty += x.qty; o.n++; o.dates.push(x.date); o.names.add(String(x.drug).trim());
+  });
+  const rank = Object.values(by).sort((a, b) => b.qty - a.qty || b.n - a.n);
+  rank.forEach(r => { r.dates.sort(); r.last = r.dates[r.dates.length - 1]; });
+  return { ev: ev, total: total, unnamed: unnamed, rank: rank, unmatched: rank.filter(r => !r.matched) };
+}
+function safRate(m) { return m.dispQty ? m.missPharmQty / m.dispQty * 100 : 0; }
+/* ▲▼ เทียบช่วงก่อน · lowerIsBetter = true สำหรับตัวชี้วัดความเสี่ยง */
+function delta(cur, prev, fmt) {
+  if (prev == null) return '<span class="lbl">ไม่มีข้อมูลช่วงก่อน</span>';
+  const d = cur - prev, f = fmt || (v => String(Math.round(v * 10) / 10));
+  if (Math.abs(d) < 1e-9) return '<span class="lbl">เท่าช่วงก่อน (' + f(prev) + ')</span>';
+  return '<span class="lbl" style="color:' + (d > 0 ? 'var(--red)' : 'var(--ink)') + ';font-weight:600">' + (d > 0 ? '▲ ' : '▼ ') + f(Math.abs(d)) + '</span><span class="lbl"> จากช่วงก่อน (' + f(prev) + ')</span>';
+}
+function kpiD(label, val, deltaHtml, color) { return '<div class="kpi"><span class="lbl">' + label + '</span><span class="kn" style="color:' + (color || 'var(--ink)') + '">' + val + '</span><span>' + deltaHtml + '</span></div>'; }
+
+function rptSafety(m) {
+  const s = safDerive(m), P0 = RPT.prev ? rptDerive(RPT.prev) : null;
+  const P = P0 && P0.S.length ? P0 : null;   // ช่วงก่อนไม่มีบันทึกเวรเลย (ก่อนเริ่มใช้ระบบ) → ไม่เทียบ
+  const rate = safRate(m), pRate = P ? safRate(P) : null;
+  const rx = m.rxTotal ? m.rxMis / m.rxTotal * 100 : 0, pRx = P ? (P.rxTotal ? P.rxMis / P.rxTotal * 100 : 0) : null;
+  const pct = v => (Math.round(v * 10) / 10) + '%';
+  let h = '<div class="row no-print" style="justify-content:space-between;align-items:baseline;flex-wrap:wrap;gap:8px"><span class="lbl">' + (P ? 'เทียบกับ ' + esc(thDateShort(RPT.prevFrom) + ' – ' + thDateShort(RPT.prevTo)) + ' (' + P.S.length + ' เวร)' : 'ช่วงก่อนหน้าไม่มีบันทึกเวร — ไม่มีตัวเทียบ') + '</span><button class="chip" type="button" onclick="window.print()">พิมพ์ PCT</button></div>';
+  h += '<div class="print-only h">รายงานความปลอดภัยรถยา ER · ' + esc(thDate(RPT.from)) + ' – ' + esc(thDate(RPT.to)) + (P ? ' · เทียบ ' + esc(thDate(RPT.prevFrom)) + ' – ' + esc(thDate(RPT.prevTo)) : '') + '</div>';
+  h += '<div class="grid2 kpis4">' +
+    kpiD('ยาหายไม่มีใบสั่ง', m.missPharmQty + ' <span class="lbl">ชิ้น</span>', delta(m.missPharmQty, P && P.missPharmQty), m.missPharmQty ? 'var(--red)' : '') +
+    kpiD('อัตรายาหาย', (Math.round(rate * 10) / 10) + ' <span class="lbl">/100 ชิ้นที่ออก</span>', delta(rate, pRate)) +
+    kpiD('ใบสั่งไม่ตรง', pct(rx), delta(rx, pRx, pct)) +
+    kpiD('Med error', m.E.length + (m.errEplus ? ' <span class="lbl" style="color:var(--red)">E+ ' + m.errEplus + '</span>' : ''), delta(m.E.length, P && P.E.length)) + '</div>';
+  h += '<div class="rgrid">';
+
+  /* แนวโน้มรายสัปดาห์: ระบุยา / ไม่ระบุยา + อัตรา */
+  const weeks = []; for (let d = RPT.from; d <= RPT.to; d = addDays(d, 7)) weeks.push(d);
+  const wk = weeks.map(w => {
+    const e = addDays(w, 6), xs = s.ev.filter(x => x.date >= w && x.date <= e), out = sum(m.DD.filter(x => x.date >= w && x.date <= e), x => num(x.qty));
+    const named = sum(xs.filter(x => !x.legacy), x => x.qty), un = sum(xs.filter(x => x.legacy), x => x.qty);
+    return { w: w, named: named, un: un, out: out, rate: out ? (named + un) / out * 100 : 0 };
+  });
+  const wmx = Math.max.apply(null, wk.map(x => x.named + x.un).concat([1]));
+  h += '<section class="card span2"><div class="row" style="align-items:baseline"><span class="h grow">ยาหายรายสัปดาห์</span><span class="lbl">ตัวเลขใต้แท่ง = ต่อ 100 ชิ้นที่ออก</span></div>' +
+    '<div class="legend"><span><span class="sw" style="background:var(--org)"></span>ระบุยา</span><span><span class="sw" style="background:var(--bar2)"></span>ไม่ระบุยา (ข้อมูลเดิม)</span></div>' +
+    '<div class="vbars" style="gap:6px" role="img" aria-label="ยาหายรายสัปดาห์">' + wk.map(x => '<div style="flex:1;display:flex;flex-direction:column;justify-content:flex-end;height:100%" title="' + esc(thDateShort(x.w)) + ': ระบุยา ' + x.named + ', ไม่ระบุ ' + x.un + ', ออก ' + x.out + ' ชิ้น">' +
+      '<span class="lbl" style="text-align:center;font-size:11px">' + ((x.named + x.un) || '') + '</span>' +
+      '<i style="display:block;background:var(--bar2);height:' + (x.un / wmx * 85) + '%"></i><i style="display:block;background:var(--org);border-radius:3px 3px 0 0;height:' + (x.named / wmx * 85) + '%"></i></div>').join('') + '</div>' +
+    '<div style="display:flex;gap:6px">' + wk.map(x => '<span class="lbl" style="flex:1;text-align:center;font-size:11px">' + (x.out ? Math.round(x.rate * 10) / 10 : '–') + '</span>').join('') + '</div>' +
+    '<div class="row lbl" style="justify-content:space-between"><span>' + esc(thDateShort(weeks[0])) + '</span><span>สัปดาห์ละแท่ง</span><span>' + esc(thDateShort(weeks[weeks.length - 1])) + '</span></div></section>';
+
+  /* ยาที่หาย — รวมชื่อแล้ว */
+  const rep = s.rank.filter(r => r.n >= 2);
+  h += '<section class="card"><span class="h">ยาที่หาย (รวมชื่อที่เขียนต่างกันแล้ว)</span><span class="lbl" style="margin-top:-6px">' + s.rank.length + ' รายการ · หายซ้ำ ≥ 2 ครั้ง ' + rep.length + ' รายการ</span>' +
+    (s.rank.length ? '<table class="tbl"><thead><tr><th>ยา</th><th>ครั้ง</th><th>ชิ้น</th><th>ล่าสุด</th></tr></thead><tbody>' +
+      s.rank.slice(0, 12).map(r => '<tr><td class="l">' + (r.n >= 2 ? '<b>' + esc(r.label) + '</b>' : esc(r.label)) + (r.had ? '<span class="had">HAD</span>' : '') + (r.names.size > 1 ? '<br><span class="lbl">บันทึกเป็น: ' + esc(Array.from(r.names).slice(0, 3).join(' / ')) + '</span>' : '') + '</td><td>' + (r.n >= 2 ? '<b style="color:var(--red)">' + r.n + '</b>' : r.n) + '</td><td>' + r.qty + '</td><td>' + esc(thDateShort(r.last)) + '</td></tr>').join('') + '</tbody></table>' +
+      (s.rank.length > 12 ? '<span class="lbl">แสดง 12 จาก ' + s.rank.length + ' · ดูทั้งหมดใน Excel</span>' : '')
+      : '<div class="lbl">ไม่มียาหายที่ระบุชื่อในช่วงนี้</div>') + '</section>';
+
+  /* หายวันไหน */
+  const dw = ['อา', 'จ', 'อ', 'พ', 'พฤ', 'ศ', 'ส'], D = [0, 0, 0, 0, 0, 0, 0], nDays = [0, 0, 0, 0, 0, 0, 0];
+  s.ev.forEach(x => { const i = new Date(String(x.date).slice(0, 10) + 'T00:00:00Z').getUTCDay(); if (i >= 0) D[i] += x.qty; });
+  m.days.forEach(d => { nDays[new Date(d + 'T00:00:00Z').getUTCDay()]++; });
+  const perDay = D.map((v, i) => nDays[i] ? v / nDays[i] : 0), dmx = Math.max.apply(null, perDay.concat([0.01]));
+  h += '<section class="card"><span class="h">หายวันไหน</span><span class="lbl" style="margin-top:-6px">ชิ้นต่อวัน เฉลี่ยตามวันในสัปดาห์ (วันที่ของเวรที่บันทึก)</span>' +
+    '<div class="vbars" style="height:90px" role="img" aria-label="ยาหายตามวันในสัปดาห์">' + perDay.map((v, i) => '<i title="' + dw[i] + ': รวม ' + D[i] + ' ชิ้น ใน ' + nDays[i] + ' วัน" style="height:' + (v / dmx * 100) + '%;background:' + (v === dmx && v > 0 ? 'var(--org)' : 'var(--bar)') + '"></i>').join('') + '</div>' +
+    '<div style="display:grid;grid-template-columns:repeat(7,1fr);text-align:center" class="lbl">' + dw.map((x, i) => '<span>' + x + '<br><b style="color:var(--ink)">' + (Math.round(perDay[i] * 10) / 10) + '</b></span>').join('') + '</div>' +
+    '<span class="lbl">วันเสาร์–อาทิตย์ = ' + (Math.round((perDay[0] + perDay[6]) / 2 * 10) / 10) + ' · วันทำการ = ' + (Math.round(sum(perDay.slice(1, 6)) / 5 * 10) / 10) + ' ชิ้น/วัน</span></section>';
+
+  /* Med error รายเคส */
+  const E = m.E.slice().sort((a, b) => String(b.shift_date).localeCompare(String(a.shift_date)));
+  const st = {}; E.forEach(e => { st[e.error_type || '—'] = (st[e.error_type || '—'] || 0) + 1; });
+  h += '<section class="card span2"><div class="row" style="align-items:baseline;flex-wrap:wrap;gap:6px"><span class="h grow">Med error · ' + E.length + ' เคส</span>' +
+    '<span class="chips">' + Object.entries(st).sort((a, b) => b[1] - a[1]).map(([k, v]) => '<span class="pill p-gry">' + esc(k) + ' ' + v + '</span>').join('') + '</span></div>' +
+    (E.length ? (m.errEplus ? '' : '<div class="lbl">ไม่มีเคสระดับ E ขึ้นไป (ถึงผู้ป่วยและเกิดอันตราย)</div>') +
+      '<div class="usg">' + E.map(e => { const hi = 'EFGHI'.indexOf(e.severity) >= 0 && e.severity; return '<div class="usg-r"><div class="grow"><b>' + esc(e.error_type || '—') + '</b>' + (e.error_subtype ? ' · ' + esc(e.error_subtype) : '') + (e.had ? '<span class="had">HAD</span>' : '') +
+        (e.note ? '<span class="lbl" style="display:block;margin-top:2px;color:var(--ink)">' + esc(e.note) + '</span>' : '') + '<span class="lbl" style="display:block">' + esc(thDate(e.shift_date)) + ' · บันทึกโดย ' + esc(e.pharmacist_name || '—') + '</span></div>' +
+        '<div class="usg-s"><span class="pill ' + (hi ? 'p-red' : 'p-gry') + '">' + esc(e.severity || '—') + '</span><span class="lbl" style="font-size:11px">' + esc((SEV[e.severity] || ['', ''])[1]) + '</span></div></div>'; }).join('') + '</div>'
+      : '<div class="lbl">ไม่มี Med error ในช่วงนี้</div>') + '</section>';
+
+  /* ความเสี่ยงอื่น + คุณภาพข้อมูล */
+  if (m.otherRisks.length) h += '<section class="card"><span class="h">ความเสี่ยงอื่น</span>' + hbars(topEntries(countBy(m.otherRisks, r => RISK_LABEL[r.risk_type] || r.risk_type))) + '</section>';
+  const unPct = s.total ? Math.round(s.unnamed / s.total * 100) : 0;
+  h += '<section class="card"><span class="h">คุณภาพข้อมูล</span>' +
+    '<div class="row" style="align-items:baseline"><span class="grow">ยาหายที่ไม่ระบุชื่อยา</span><b style="font-size:18px;color:' + (unPct > 10 ? 'var(--red)' : 'var(--ink)') + '">' + unPct + '%</b></div>' +
+    '<span class="lbl">' + s.unnamed + ' จาก ' + s.total + ' ชิ้น · ข้อมูลก่อน v2 ที่กดแค่ตัวนับ — นับในยอดรวม แต่จัดอันดับไม่ได้</span>' +
+    (s.unmatched.length ? '<div style="border-top:1px solid rgba(13,21,53,.08);padding-top:8px"><span style="font-size:13px;font-weight:600">ชื่อที่จับคู่กับยาในรถไม่ได้ (' + s.unmatched.length + ')</span><div class="lbl">' + esc(s.unmatched.map(r => r.label + ' (' + r.qty + ')').join(' · ')) + '</div></div>' : '') +
+    (m.missNurseQty ? '<div style="border-top:1px solid rgba(13,21,53,.08);padding-top:8px" class="lbl">พยาบาลแจ้งขาดตอนรับรถ ' + m.missNurseQty + ' ชิ้น — แยกจากยาหาย (ส่วนใหญ่เติมไม่ทัน/นับผิด)</div>' : '') + '</section>';
+  h += '</div>';
+  return h;
+}
+
+/* ============================================================
+   รายงาน › ยา & Stock — ข้อมูลการใช้ยาจากรถ (ไม่มีคำแนะนำอัตโนมัติ)
    ข้อมูล: getDrugUsageReport (ช่วงวันที่เดียวกับแท็บอื่น)
    + Export Excel ทุกแท็บ (SheetJS โหลดตอนกดปุ่มเท่านั้น)
-
-   หลักคำแนะนำ (ปรับเกณฑ์ได้ที่ USG_RULE):
-   · ใช้สูงสุด/รอบ = จ่ายมากที่สุดระหว่างการเติม 2 ครั้ง → ในรถต้องมีอย่างน้อยเท่านี้
-   · ควรเพิ่ม = เคยจ่ายจนหมดในระบบ / ใช้สูงสุดต่อรอบ ≥ เป้า
-     (พยาบาลแจ้งขาด = แสดงเป็นข้อมูล ไม่ใช่เกณฑ์ เพราะมักเป็นเรื่องเติมไม่ทัน/นับผิด มากกว่าจำนวนไม่พอ)
-                → แนะนำ max(ขั้นต่ำ, ⌈max(ใช้สูงสุด/รอบ, เป้า) × 1.25⌉, เป้า + 1)
-   · ลดได้   = ดู ≥ 60 วัน · ตั้งขั้นต่ำแล้ว · เป้า > ⌈ใช้สูงสุด/รอบ × 1.25⌉
-                และ (ไม่มีการใช้ หรือมีถอนออก หรือใช้สูงสุด/รอบ ≤ ครึ่งเป้า)
-                → แนะนำ max(ขั้นต่ำ, ⌈ใช้สูงสุด/รอบ × 1.25⌉) · ไม่ต่ำกว่าขั้นต่ำเสมอ
-   · ยาที่ออกจากรถตอนล็อตเหลืออายุ ≤ 7 วัน ไม่นับเป็นการใช้ (edge isExpOut) → นับเป็น "ทิ้ง/ถอน (EXP)" รวมกับ WITHDRAW
-   · หมดอายุบ่อย = ทิ้ง/ถอน ≥ จำนวนที่ใช้จริง → สัญญาณให้ลดจำนวน
-   · ทบทวน   = เข้าเกณฑ์ลด แต่ยังไม่ตั้งขั้นต่ำ → ไม่แนะนำตัวเลข (กันลดยาต้านพิษ/ยาฉุกเฉินที่นาน ๆ ใช้ที)
+   · ใช้ = DISPENSE ไม่นับที่ออกตอนล็อตเหลืออายุ ≤ 7 วัน (edge isExpOut → นับเป็น "ทิ้ง/ถอน (EXP)" รวม WITHDRAW)
+   · หมดอายุบ่อย = ทิ้ง/ถอน ≥ จำนวนที่ใช้จริง
+   · ใช้เพิ่มขึ้น = 4 สัปดาห์ล่าสุด ≥ 1.5 เท่าของ 4 สัปดาห์ก่อน และเพิ่ม ≥ 3
    ============================================================ */
-const USG_RULE = { buffer: 1.25, minDays: 60, procQty: 2, riseRatio: 1.5, riseAbs: 3 };
-const USG = { data: null, key: '', loading: false, err: null, showAll: false };
-const USG_FLAG = {
-  up: { l: 'ควรเพิ่ม', c: 'p-red', o: 0 }, down: { l: 'ลดได้', c: 'p-blu', o: 1 }, review: { l: 'ทบทวน', c: 'p-amb', o: 2 }, ok: { l: 'คงเดิม', c: 'p-gry', o: 9 },
-};
+const USG_RULE = { riseRatio: 1.5, riseAbs: 3 };
+const USG = { data: null, key: '', loading: false, err: null };
 
 async function usgLoad(force) {
   const key = RPT.from + RPT.to;
@@ -2092,97 +2195,54 @@ async function usgLoad(force) {
 }
 
 function usgDerive(U) {
-  const days = num(U.days), list = (U.drugs || []).map(r => Object.assign({}, r));
-  const nW = (U.weeks || []).length;
+  const days = num(U.days), list = (U.drugs || []).map(r => Object.assign({}, r)), nW = (U.weeks || []).length;
   list.forEach(r => {
     r.waste = num(r.withdraw_qty) + num(r.expout_qty);
     r.expBad = r.waste > 0 && r.waste >= num(r.disp_qty);
-    const t = num(r.target_qty), need = num(r.peak_cycle), min = num(r.min_qty) > 0 ? num(r.min_qty) : 0;
-    const withBuf = Math.ceil(need * USG_RULE.buffer);
-    const why = [];
-    r.flag = 'ok'; r.suggest = t;
-    if (r.stockouts > 0 || (need > 0 && need >= t)) {
-      r.flag = 'up';
-      r.suggest = Math.max(min, Math.ceil(Math.max(need, t) * USG_RULE.buffer), t + 1);
-      if (r.stockouts) why.push('หมดในระบบ ' + r.stockouts + ' ครั้ง');
-      if (need > 0 && need >= t) why.push('ใช้สูงสุด ' + need + '/รอบ ≥ เป้า ' + t);
-    } else if (days >= USG_RULE.minDays && t > Math.max(1, withBuf) && (r.disp_qty === 0 || r.waste > 0 || need <= t / 2)) {
-      if (min > 0 && t > Math.max(min, withBuf)) { r.flag = 'down'; r.suggest = Math.max(min, withBuf, 1); }
-      else if (!min) { r.flag = 'review'; r.suggest = null; }
-      if (r.flag !== 'ok') {
-        why.push(r.disp_qty === 0 ? 'ไม่มีการใช้ใน ' + days + ' วัน' : 'ใช้สูงสุด ' + need + '/รอบ จากเป้า ' + t);
-        if (r.flag === 'review') why.push('ยังไม่ตั้งขั้นต่ำ');
-      }
-    }
-    if (r.waste > 0) why.push('ทิ้ง/ถอน (EXP) ' + r.waste + ' ' + (r.unit || ''));
-    if (r.nurse_miss_events) why.push('พยาบาลแจ้งขาด ' + r.nurse_miss_events + ' ครั้ง');
-    r.proc = num(r.norx_qty) >= USG_RULE.procQty;
-    if (r.proc) why.push('ยาหายไม่มีใบสั่ง ' + r.norx_qty);
     r.rise = false; r.last4 = 0; r.prev4 = 0;
     if (nW >= 8) {
       const w = r.weekly || [];
       r.last4 = sum(w.slice(-4)); r.prev4 = sum(w.slice(-8, -4));
       r.rise = r.last4 - r.prev4 >= USG_RULE.riseAbs && r.last4 >= r.prev4 * USG_RULE.riseRatio;
     }
-    r.why = why.join(' · ');
   });
-  const cnt = (f) => list.filter(f).length;
   return {
     U: U, days: days, list: list, nW: nW,
     byUse: list.filter(r => r.disp_qty > 0).sort((a, b) => b.disp_qty - a.disp_qty),
-    n: { exp: cnt(r => r.expBad), up: cnt(r => r.flag === 'up'), down: cnt(r => r.flag === 'down'), review: cnt(r => r.flag === 'review'), proc: cnt(r => r.proc) },
+    unused: list.filter(r => r.disp_qty === 0).sort((a, b) => b.waste - a.waste || String(a.name).localeCompare(String(b.name))),
+    expBad: list.filter(r => r.expBad).sort((a, b) => b.waste - a.waste),
     rising: list.filter(r => r.rise).sort((a, b) => (b.last4 - b.prev4) - (a.last4 - a.prev4)),
   };
-}
-function usgPri(list) { return list.slice().sort((a, b) => USG_FLAG[a.flag].o - USG_FLAG[b.flag].o || (b.proc - a.proc) || (b.rise - a.rise) || b.disp_qty - a.disp_qty); }
-function usgSugg(r) {
-  if (r.flag === 'review') return '<span class="pill p-amb">ตั้งขั้นต่ำก่อน</span>';
-  if (r.flag === 'ok') return '<span class="lbl">' + r.target_qty + '</span>';
-  return '<span class="pill ' + USG_FLAG[r.flag].c + '">' + (r.flag === 'up' ? '▲ ' : '▼ ') + r.suggest + '</span>';
 }
 
 function rptStock() {
   if (USG.err && USG.key === RPT.from + RPT.to) return errorBox('โหลดข้อมูลยาไม่ได้: ' + USG.err, 'usgLoad(true)');
   if (!USG.data || USG.key !== RPT.from + RPT.to) { usgLoad(); return skeleton(4); }
   const m = usgDerive(USG.data);
-  let h = '';
-  if (m.days < USG_RULE.minDays) h += '<div class="note warn no-print"><span class="grow">ช่วงนี้ ' + m.days + ' วัน — "ลดได้" จะแสดงเมื่อดู ≥ ' + USG_RULE.minDays + ' วัน (ควรดู 3 เดือนขึ้นไปก่อนปรับจำนวนจริง)</span><button class="lnk" type="button" onclick="rptPreset(\'90\')">ดู 3 เดือน</button></div>';
-  if (!m.U.has_min) h += '<div class="note info no-print">ยังไม่มีช่อง "ขั้นต่ำตามหลักคลินิก" ในฐานข้อมูล — รัน migration_ermedcart_min_qty.sql แล้วตั้งค่าที่หน้า Stock › แก้ไขข้อมูลยา</div>';
-  h += '<div class="grid2 kpis4">' +
-    kpi('ควรเพิ่ม', m.n.up, 'รายการ · เคยหมด/ใช้เกินเป้า', m.n.up ? 'var(--red)' : '') +
-    kpi('ลดได้', m.n.down, 'รายการ · ไม่ต่ำกว่าขั้นต่ำ') +
-    kpi('หมดอายุบ่อย', m.n.exp, 'ทิ้ง/ถอน ≥ ที่ใช้จริง') +
-    kpi('ทบทวน', m.n.review, 'ใช้น้อย · ยังไม่ตั้งขั้นต่ำ') + '</div>';
+  let h = '<div class="grid2 kpis4">' +
+    kpi('มีการใช้', m.byUse.length, 'จาก ' + m.list.length + ' รายการในรถ') +
+    kpi('ไม่มีการใช้เลย', m.unused.length, 'รายการ · ใน ' + m.days + ' วัน') +
+    kpi('หมดอายุบ่อย', m.expBad.length, 'ทิ้ง/ถอน ≥ ที่ใช้จริง', m.expBad.length ? 'var(--red)' : '') +
+    kpi('ใช้เพิ่มขึ้น', m.nW >= 8 ? m.rising.length : '—', m.nW >= 8 ? '4 สัปดาห์ล่าสุด' : 'ต้องดู ≥ 8 สัปดาห์') + '</div>';
   h += '<div class="rgrid">';
-  h += '<section class="card"><span class="h">Top 10 ใช้มากที่สุด</span><span class="lbl" style="margin-top:-6px">จำนวนที่จ่ายจากรถรวม ใน ' + m.days + ' วัน (หน่วยของยา)</span>' +
+  h += '<section class="card"><span class="h">Top 10 ใช้มากที่สุด</span><span class="lbl" style="margin-top:-6px">จำนวนที่จ่ายจากรถ ใน ' + m.days + ' วัน (หน่วยของยา)</span>' +
     hbars(m.byUse.slice(0, 10).map(r => [r.name + (r.had ? ' (HAD)' : ''), r.disp_qty])) + '</section>';
-
   h += '<section class="card"><span class="h">ใช้เพิ่มขึ้น</span><span class="lbl" style="margin-top:-6px">4 สัปดาห์ล่าสุด เทียบ 4 สัปดาห์ก่อนหน้า</span>' +
     (m.nW < 8 ? '<div class="lbl">ต้องดูช่วงอย่างน้อย 8 สัปดาห์ (เลือก 3 เดือน)</div>' : m.rising.length ?
       '<table class="tbl"><thead><tr><th>ยา</th><th>ก่อน</th><th>ล่าสุด</th></tr></thead><tbody>' + m.rising.slice(0, 8).map(r => '<tr><td class="l">' + esc(r.name) + '</td><td>' + r.prev4 + '</td><td><b>' + r.last4 + '</b></td></tr>').join('') + '</tbody></table>'
       : '<div class="lbl">ไม่มียาที่ใช้เพิ่มขึ้นชัดเจน</div>') + '</section>';
-
-  const pri = usgPri(m.list);
-  const shown = USG.showAll ? pri : pri.filter(r => r.flag !== 'ok' || r.proc || r.rise || r.expBad || r.nurse_miss_events);
-  h += '<section class="card span2"><div class="row" style="align-items:baseline;flex-wrap:wrap;gap:6px"><span class="h grow">ข้อเสนอปรับจำนวนในรถ</span>' +
-    '<button class="chip no-print' + (USG.showAll ? ' on' : '') + '" type="button" onclick="USG.showAll=!USG.showAll;renderReport()">' + (USG.showAll ? 'เฉพาะที่ต้องดู' : 'แสดงทั้งหมด ' + pri.length) + '</button></div>' +
-    (shown.length ? '<div class="usg">' + shown.map(r => '<div class="usg-r">' +
-        '<div class="grow"><b>' + esc(r.name) + '</b>' + (r.had ? '<span class="had">HAD</span>' : '') +
-        '<span class="chips" style="gap:4px;margin-top:4px">' + (r.flag !== 'ok' ? '<span class="pill ' + USG_FLAG[r.flag].c + '">' + USG_FLAG[r.flag].l + '</span>' : '') +
-        (r.expBad ? '<span class="pill p-amb">หมดอายุบ่อย</span>' : '') + (r.proc ? '<span class="pill p-red">ตรวจกระบวนการ</span>' : '') + (r.rise ? '<span class="pill p-amb">ใช้เพิ่มขึ้น</span>' : '') + '</span>' +
-        '<span class="lbl" style="display:block;margin-top:4px">เป้า ' + r.target_qty + (num(r.min_qty) > 0 ? ' · ขั้นต่ำ ' + r.min_qty : '') + ' · ใช้รวม ' + r.disp_qty + ' · ใช้สูงสุด ' + r.peak_cycle + '/รอบ</span>' +
-        (r.why ? '<span class="lbl" style="display:block">' + esc(r.why) + '</span>' : '') + '</div>' +
-        '<div class="usg-s"><span class="lbl">แนะนำ</span>' + usgSugg(r) + '</div></div>').join('') +
-      '</div>' : '<div class="lbl">ไม่มียาที่ต้องปรับในช่วงนี้</div>') +
-    '<span class="lbl">ใช้ = จ่ายจากรถ ไม่นับที่ออกตอนล็อตเหลืออายุ ≤ ' + (m.U.exp_out_days || 7) + ' วัน (นับเป็นทิ้ง/ถอน) · ใช้สูงสุด/รอบ = จ่ายมากที่สุดก่อนเติมครั้งถัดไป · แนะนำ = ⌈ค่าที่ต้องใช้ × ' + USG_RULE.buffer + '⌉ และไม่ต่ำกว่าขั้นต่ำ · เป็นค่าเบื้องต้นให้ทีมพิจารณา</span></section>';
-
+  h += '<section class="card"><span class="h">หมดอายุบ่อย</span><span class="lbl" style="margin-top:-6px">ทิ้ง/ถอนเพราะหมดอายุ มากกว่าหรือเท่ากับที่ใช้จริง</span>' +
+    (m.expBad.length ? '<table class="tbl"><thead><tr><th>ยา</th><th>ใช้</th><th>ทิ้ง/ถอน</th><th>เป้า</th></tr></thead><tbody>' +
+      m.expBad.map(r => '<tr><td class="l">' + esc(r.name) + '</td><td>' + r.disp_qty + '</td><td><b style="color:var(--red)">' + r.waste + '</b></td><td>' + r.target_qty + '</td></tr>').join('') + '</tbody></table>'
+      : '<div class="lbl">ไม่มี</div>') + '</section>';
+  h += '<section class="card"><span class="h">ไม่มีการใช้เลยในช่วงนี้ (' + m.unused.length + ')</span><span class="lbl" style="margin-top:-6px">' + m.days + ' วัน · ตัวเลขในวงเล็บ = เป้าในรถ</span>' +
+    (m.unused.length ? '<div class="lbl" style="color:var(--ink);line-height:1.8">' + m.unused.map(r => esc(r.name) + ' <span class="lbl">(' + r.target_qty + ')</span>').join(' · ') + '</div>' : '<div class="lbl">ทุกรายการมีการใช้</div>') + '</section>';
   const H = m.U.hour || [], sh = [['เวรดึก 00–08', sum(H.slice(0, 8))], ['เวรเช้า 08–16', sum(H.slice(8, 16))], ['เวรบ่าย 16–24', sum(H.slice(16, 24))]];
   const dw = ['อา', 'จ', 'อ', 'พ', 'พฤ', 'ศ', 'ส'], D = m.U.dow || [], dmx = Math.max.apply(null, D.concat([1]));
-  h += '<section class="card"><span class="h">จ่ายยาตามเวรและวัน</span><span class="lbl" style="margin-top:-6px">จำนวนครั้งที่บันทึกจ่าย (ตามเวลาที่บันทึก)</span>' + hbars(sh) +
+  h += '<section class="card span2"><span class="h">จ่ายยาตามเวรและวัน</span><span class="lbl" style="margin-top:-6px">จำนวนครั้งที่บันทึกจ่าย (ตามเวลาที่บันทึก)</span>' + hbars(sh) +
     '<div class="vbars" style="height:70px;margin-top:6px" role="img" aria-label="จ่ายยาตามวันในสัปดาห์">' + dw.map((x, i) => '<i title="' + x + ': ' + (D[i] || 0) + '" style="height:' + ((D[i] || 0) / dmx * 100) + '%"></i>').join('') + '</div>' +
     '<div style="display:grid;grid-template-columns:repeat(7,1fr);text-align:center" class="lbl">' + dw.map((x, i) => '<span>' + x + '<br><b style="color:var(--ink)">' + (D[i] || 0) + '</b></span>').join('') + '</div></section>';
-  if ((m.U.norx_unmatched || []).length) h += '<section class="card span2"><span class="h">ยาหายที่จับคู่กับรายการยาไม่ได้</span><span class="lbl">ชื่อในบันทึกเวรไม่ตรงกับยาในรถ: ' + esc(m.U.norx_unmatched.map(x => x.name + ' (' + x.qty + ')').join(' · ')) + '</span></section>';
-  h += '</div>';
+  h += '</div><div class="lbl">ใช้ = จ่ายจากรถ ไม่นับที่ออกตอนล็อตเหลืออายุ ≤ ' + (m.U.exp_out_days || 7) + ' วัน (นับเป็นทิ้ง/ถอน)</div>';
   return h;
 }
 
@@ -2218,13 +2278,13 @@ function rptWorkbook(X) {
     ['ยาหายไม่มีใบสั่ง', m.missPharmQty, ''], ['พยาบาลแจ้งขาด', m.missNurseQty, ''],
     ['Med error', m.E.length, 'E ขึ้นไป ' + m.errEplus + ' · HAD ' + m.errHad],
     ['พยาบาลตรวจรถ (%)', m.nurseRate, m.days.filter(d => m.checkedDays.has(d)).length + ' จาก ' + m.days.length + ' วัน'],
-    ['ยาควรเพิ่มจำนวน', u.n.up, ''], ['ยาลดได้', u.n.down, ''], ['ยาที่ต้องทบทวน (ยังไม่ตั้งขั้นต่ำ)', u.n.review, ''], ['ยาที่ต้องตรวจกระบวนการ', u.n.proc, ''], ['ยาหมดอายุบ่อย (ทิ้ง/ถอน ≥ ใช้)', u.n.exp, ''],
+    ['ยาที่มีการใช้', u.byUse.length, 'จาก ' + u.list.length + ' รายการ'], ['ยาที่ไม่มีการใช้เลย', u.unused.length, ''], ['ยาหมดอายุบ่อย (ทิ้ง/ถอน ≥ ใช้)', u.expBad.length, ''],
     ['สร้างเมื่อ', thDate(bkkToday()) + ' ' + bkkTime(), 'ER Med Cart'],
   ], [34, 26, 30]);
-  add('ยา & Stock', [['รหัส', 'ยา', 'หน่วย', 'ที่เก็บ', 'ตำแหน่ง', 'HAD', 'เป้าหมาย', 'ขั้นต่ำ', 'คงเหลือ', 'จ่ายรวม', 'จ่าย (ครั้ง)', 'วันที่มีการใช้', 'ใช้สูงสุด/วัน', 'วันที่ใช้สูงสุด', 'ใช้สูงสุด/รอบเติม', 'หมดในระบบ (ครั้ง)', 'พยาบาลแจ้งขาด (ครั้ง)', 'ถอนออก (จำนวน)', 'ออกตอนใกล้หมดอายุ (จำนวน)', 'ทิ้ง/ถอนรวม', 'หมดอายุบ่อย', 'ยาหายไม่มีใบสั่ง', 'ใช้ล่าสุด', 'คำแนะนำ', 'แนะนำจำนวน', 'ใช้เพิ่มขึ้น', 'เหตุผล']]
-    .concat(usgPri(u.list).map(r => [r.drug_id, r.name, r.unit, r.location, r.cart_pos, r.had ? 'HAD' : '', r.target_qty, num(r.min_qty) > 0 ? r.min_qty : '', r.balance, r.disp_qty, r.disp_events, r.use_days, r.peak_day, r.peak_day_date ? xDate(r.peak_day_date) : '', r.peak_cycle,
-      r.stockouts, r.nurse_miss_events, r.withdraw_qty, num(r.expout_qty), r.waste, r.expBad ? 'ใช่' : '', r.norx_qty, r.last_used ? xDate(r.last_used) : '', USG_FLAG[r.flag].l, r.suggest == null ? '' : r.suggest, r.rise ? 'ใช่' : '', r.why])),
-    [7, 30, 7, 10, 9, 5, 9, 8, 9, 8, 9, 10, 10, 12, 12, 12, 14, 11, 14, 11, 11, 12, 12, 10, 10, 9, 44]);
+  add('ยา & Stock', [['รหัส', 'ยา', 'หน่วย', 'ที่เก็บ', 'ตำแหน่ง', 'HAD', 'เป้าหมาย', 'คงเหลือ', 'จ่ายรวม', 'จ่าย (ครั้ง)', 'วันที่มีการใช้', 'ใช้สูงสุด/วัน', 'วันที่ใช้สูงสุด', 'ใช้สูงสุด/รอบเติม', 'หมดในระบบ (ครั้ง)', 'พยาบาลแจ้งขาด (ครั้ง)', 'ถอนออก (จำนวน)', 'ออกตอนใกล้หมดอายุ (จำนวน)', 'ทิ้ง/ถอนรวม', 'หมดอายุบ่อย', 'ยาหายไม่มีใบสั่ง', 'ใช้ล่าสุด', 'ใช้เพิ่มขึ้น']]
+    .concat(u.list.slice().sort((a, b) => b.disp_qty - a.disp_qty).map(r => [r.drug_id, r.name, r.unit, r.location, r.cart_pos, r.had ? 'HAD' : '', r.target_qty, r.balance, r.disp_qty, r.disp_events, r.use_days, r.peak_day, r.peak_day_date ? xDate(r.peak_day_date) : '', r.peak_cycle,
+      r.stockouts, r.nurse_miss_events, r.withdraw_qty, num(r.expout_qty), r.waste, r.expBad ? 'ใช่' : '', r.norx_qty, r.last_used ? xDate(r.last_used) : '', r.rise ? 'ใช่' : ''])),
+    [7, 30, 7, 10, 9, 5, 9, 9, 8, 9, 10, 10, 12, 12, 12, 14, 11, 14, 11, 11, 12, 12, 10]);
   const W = USG.data.weeks || [];
   add('ใช้รายสัปดาห์', [['ยา', 'HAD'].concat(W.map(w => 'สัปดาห์ ' + thDateShort(w)), ['รวม'])]
     .concat(u.byUse.map(r => [r.name, r.had ? 'HAD' : ''].concat(r.weekly || [], [r.disp_qty]))), [30, 5].concat(W.map(() => 12), [8]));
@@ -2235,9 +2295,14 @@ function rptWorkbook(X) {
   add('Med error', [['วันที่', 'ขั้นตอน', 'ลักษณะ', 'ระดับ', 'HAD', 'รายละเอียด', 'ผู้บันทึก', 'รหัสเวร']]
     .concat(m.E.slice().sort((a, b) => String(a.shift_date).localeCompare(String(b.shift_date))).map(e => [xDate(e.shift_date), e.error_type || '', e.error_subtype || '', e.severity || '', e.had ? 'HAD' : '', e.note || '', e.pharmacist_name || '', e.shift_id || ''])),
     [12, 16, 30, 7, 6, 40, 14, 14]);
-  add('ยาหาย-ขาด', [['วันที่', 'ยา', 'จำนวน', 'แหล่ง', 'HAD', 'รายละเอียด', 'ผู้บันทึก']]
-    .concat(m.missPharm.concat(m.missNurse).sort((a, b) => String(a.date).localeCompare(String(b.date))).map(x => [xDate(x.date), x.drug, x.qty, x.source === 'nurse' ? 'พยาบาลแจ้งขาด' : 'เภสัชบันทึก (ไม่มีใบสั่ง)', x.had ? 'HAD' : '', x.note || '', x.by || ''])),
-    [12, 30, 8, 22, 6, 36, 14]);
+  const sf = safDerive(m);
+  add('ยาหาย-ขาด', [['วันที่', 'ยา (รวมชื่อ)', 'ชื่อที่บันทึก', 'จำนวน', 'แหล่ง', 'HAD', 'รายละเอียด', 'ผู้บันทึก']]
+    .concat(sf.ev.map(x => Object.assign({ src: 'pharm' }, x)).concat(m.missNurse).sort((a, b) => String(a.date).localeCompare(String(b.date)))
+      .map(x => [xDate(x.date), x.source === 'nurse' ? x.drug : (x.legacy ? '(ไม่ระบุยา)' : x.g.label), x.drug, x.qty, x.source === 'nurse' ? 'พยาบาลแจ้งขาด' : 'เภสัชบันทึก (ไม่มีใบสั่ง)', x.had || (x.g && x.g.had) ? 'HAD' : '', x.note || '', x.by || ''])),
+    [12, 26, 30, 8, 22, 6, 36, 14]);
+  add('ยาหาย-สรุปรายยา', [['ยา (รวมชื่อ)', 'HAD', 'ครั้ง', 'ชิ้น', 'ครั้งแรก', 'ล่าสุด', 'ชื่อที่บันทึก']]
+    .concat(sf.rank.map(r => [r.label, r.had ? 'HAD' : '', r.n, r.qty, xDate(r.dates[0]), xDate(r.last), Array.from(r.names).join(' / ')]))
+    .concat(sf.unnamed ? [['(ไม่ระบุยา — ข้อมูลเดิม)', '', '', sf.unnamed, '', '', '']] : []), [28, 6, 7, 7, 12, 12, 40]);
   add('ประวัติเวร', [['วันที่', 'รหัสเวร', 'เภสัชกร', 'จพ.', 'ไม่มีใบสั่ง', 'ใบสั่งทั้งหมด', 'ใบสั่งไม่ตรง', 'ยาหายไม่มีใบสั่ง', 'ความเสี่ยงอื่น', 'Med error']]
     .concat(m.S.slice().sort((a, b) => String(a.shift_date).localeCompare(String(b.shift_date))).map(s => {
       const rs = m.R.filter(r => r.shift_id === s.shift_id);
