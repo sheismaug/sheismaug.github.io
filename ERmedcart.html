@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="theme-color" content="#ffffff">
 <title>รถยา ER v2</title>
-<!-- ER Med Cart v2 · build 2026-10-26 07:23 UTC · แหล่งข้อมูล: Supabase ermedcart-hub (เดียวกับ v1) -->
+<!-- ER Med Cart v2 · build 2026-11-13 02:43 UTC · แหล่งข้อมูล: Supabase ermedcart-hub (เดียวกับ v1) -->
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Google+Sans:wght@400;500;700&family=Noto+Sans+Thai:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -304,6 +304,13 @@ body{color:var(--ink)}
 .jb b{font-size:15px}
 .jb.red b{color:var(--red)}
 
+/* รายงาน › ยา & Stock */
+.usg{display:flex;flex-direction:column}
+.usg-r{display:flex;gap:10px;align-items:flex-start;padding:10px 0;border-bottom:1px solid rgba(13,21,53,.08);font-size:14px}
+.usg-r:last-child{border-bottom:0}
+.usg-s{display:flex;flex-direction:column;align-items:flex-end;gap:2px;min-width:64px;text-align:right}
+.usg-s .pill{font-size:14px}
+
 </style>
 </head>
 <body>
@@ -332,7 +339,7 @@ const SUPABASE_ANON_KEY = 'sb_publishable_dPhW0DORMGlSTc1hzvT4Cw_9ChOlZ0H';
 const PHARMACISTS = ['ภญ.นัยนา', 'ภญ.วนิดา', 'ภญ.อัญชลี', 'ภญ.ยุพิน', 'ภญ.กรรณิกา'];
 const TECHS = ['จพ.วิภารัตน์', 'จพ.ปุญญพัฒน์', 'จพ.ธนารักษ์', 'จพ.สรัล'];
 const FRIDGE = 'ตู้เย็น ER';
-const READ_ACTIONS = { getStockSummary: 1, getStockByDrug: 1, getTodayShiftState: 1, getPendingNurseMisses: 1, getRecentActivity: 1, getDashboardData: 1 };
+const READ_ACTIONS = { getStockSummary: 1, getStockByDrug: 1, getTodayShiftState: 1, getPendingNurseMisses: 1, getRecentActivity: 1, getDashboardData: 1, getDrugUsageReport: 1 };
 
 /* ---------- API ---------- */
 async function api(action, payload) {
@@ -443,6 +450,7 @@ const ICON = {
   tick: '<path d="M5 12l5 5 9-10"/>',
   lock: '<rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/>',
   x: '<path d="M6 6l12 12M18 6L6 18"/>',
+  down: '<path d="M12 4v11M7 10l5 5 5-5M5 20h14"/>',
 };
 function svg(name, size, color, sw) {
   return '<svg width="' + (size || 22) + '" height="' + (size || 22) + '" viewBox="0 0 24 24" fill="none" stroke="' + (color || 'currentColor') + '" stroke-width="' + (sw || 1.8) + '" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' + ICON[name] + '</svg>';
@@ -519,11 +527,15 @@ function mapDrug(d) {
     id: d.drug_id, name: d.name, location: d.location || 'รถยา', type: d.type || 'inject',
     cart_pos: d.cart_pos || '', unit: d.unit || 'amp', pack_size: num(d.pack_size),
     cur: num(d.current_qty), target: num(d.target_qty), lot: d.lot, exp: d.exp_date || '',
-    status: d.exp_status || 'ok',
+    status: d.exp_status || 'ok', min: d.min_qty == null ? 0 : num(d.min_qty),
     had: d.had_alert === true || d.had_alert === 'TRUE' || d.had_alert === 1 || d.had_alert === 'true' || d.had_alert === 'Yes',
   };
 }
-async function loadDrugs() { const s = await api('getStockSummary'); APP.drugs = (s || []).map(mapDrug); return APP.drugs; }
+async function loadDrugs() {
+  const s = await api('getStockSummary');
+  APP.hasMin = (s || []).some(d => Object.prototype.hasOwnProperty.call(d, 'min_qty'));   // มีคอลัมน์ min_qty แล้ว (รัน migration แล้ว)
+  APP.drugs = (s || []).map(mapDrug); return APP.drugs;
+}
 async function loadPending() {
   try { APP.pending = (await api('getPendingNurseMisses', {})) || []; } catch (e) { /* แสดงต่อด้วยค่าเดิม */ }
   return APP.pending;
@@ -1630,8 +1642,8 @@ let DS = null;
 function openDrugSheet(id) {
   const d = id ? drugById(id) : null;
   const pp = d ? posParts(d.cart_pos) : [null, null, null];
-  DS = d ? { id: d.id, name: d.name, location: d.location, type: d.type, unit: d.unit, target: d.target || 1, pack: d.pack_size || 0, shelf: pp[0] < 99 ? pp[0] : '', box: pp[1] < 99 ? pp[1] : '', slot: pp[2] < 99 ? pp[2] : '', had: d.had }
-         : { id: null, name: '', location: 'รถยา', type: 'inject', unit: '', target: 1, pack: 0, shelf: '', box: '', slot: '', had: false };
+  DS = d ? { id: d.id, name: d.name, location: d.location, type: d.type, unit: d.unit, target: d.target || 1, min: d.min || 0, pack: d.pack_size || 0, shelf: pp[0] < 99 ? pp[0] : '', box: pp[1] < 99 ? pp[1] : '', slot: pp[2] < 99 ? pp[2] : '', had: d.had }
+         : { id: null, name: '', location: 'รถยา', type: 'inject', unit: '', target: 1, min: 0, pack: 0, shelf: '', box: '', slot: '', had: false };
   const sc = openSheet({ title: d ? 'แก้ไขข้อมูลยา' : 'เพิ่มยาเข้ารถ', sub: d ? d.id : 'ใช้ฟอร์มเดียวกันทั้งเพิ่มและแก้ไข', body: '<div id="ds-body" style="display:flex;flex-direction:column;gap:14px"></div>',
     actions: '<div style="display:flex;flex-direction:column;gap:6px;width:100%"><button class="btn" type="button" id="ds-save" onclick="saveDrugSheet(this)">' + (d ? 'บันทึกการแก้ไข' : 'เพิ่มยานี้เข้ารถ') + '</button>' +
       (d ? '<button class="lnk red" type="button" style="align-self:center" onclick="deactivateDrugSheet()">นำยานี้ออกจากรถ</button>' : '') + '</div>' });
@@ -1648,6 +1660,7 @@ function renderDrugSheet() {
     '<div class="grid2"><div><label class="fl" for="ds-unit">หน่วย</label><select id="ds-unit" class="inp" onchange="DS.unit=this.value;dsValid()"><option value="">— เลือก —</option>' +
       UNITS.concat(s.unit && UNITS.indexOf(s.unit) < 0 ? [s.unit] : []).map(u => '<option' + (s.unit === u ? ' selected' : '') + '>' + esc(u) + '</option>').join('') + '</select></div>' +
     '<div><span class="fl">จำนวนเป้าหมาย</span>' + qtyCtl(s.target, 'DS.target=Math.max(1,DS.target-1);renderDrugSheet()', 'DS.target++;renderDrugSheet()', { min: 1 }) + '</div></div>' +
+    (APP.hasMin ? '<div><span class="fl">ขั้นต่ำตามหลักคลินิก <span class="lbl" style="font-weight:400">· รายงานจะไม่แนะนำให้ลดต่ำกว่านี้ · 0 = ไม่กำหนด</span></span>' + qtyCtl(s.min, 'DS.min=Math.max(0,DS.min-1);renderDrugSheet()', 'DS.min++;renderDrugSheet()', { min: 0, unit: s.unit }) + '</div>' : '') +
     (s.type === 'oral' ? '<div><label class="fl" for="ds-pack">เม็ดต่อซอง <span class="lbl" style="font-weight:400">(ถ้ามี · ยาน้ำเว้นว่าง)</span></label><input id="ds-pack" class="inp" inputmode="numeric" value="' + (s.pack || '') + '" oninput="DS.pack=parseInt(this.value,10)||0"></div>' : '') +
     (cart ? '<div><span class="fl">ตำแหน่งในรถ <span class="lbl" style="font-weight:400">· แสดงเป็น <b id="ds-pos" style="color:var(--ink)">' + esc(dsPos()) + '</b></span></span><div class="grid3">' +
       [['shelf', 'ชั้น'], ['box', 'กล่อง'], ['slot', 'ช่อง']].map(([f, l]) => '<div><label class="lbl" for="ds-' + f + '">' + l + '</label><input id="ds-' + f + '" class="inp" inputmode="numeric" value="' + esc(s[f]) + '" oninput="DS.' + f + '=parseInt(this.value,10)||\'\';$(\'ds-pos\').textContent=dsPos();dsValid()"></div>').join('') + '</div></div>' : '') +
@@ -1658,8 +1671,10 @@ function renderDrugSheet() {
 function dsPos() { return DS.shelf && DS.box && DS.slot ? DS.shelf + '-' + DS.box + '-' + DS.slot : '—'; }
 function dsValid() {
   const s = DS, cart = s.location !== FRIDGE;
-  const ok = s.name.trim() && s.unit && s.target >= 1 && (!cart || (s.shelf >= 1 && s.box >= 1 && s.slot >= 1));
+  const minOk = !APP.hasMin || !s.min || s.min <= s.target;
+  const ok = s.name.trim() && s.unit && s.target >= 1 && minOk && (!cart || (s.shelf >= 1 && s.box >= 1 && s.slot >= 1));
   const b = $('ds-save'); if (b) b.disabled = !ok;
+  const er = $('ds-err'); if (er) er.textContent = minOk ? '' : 'จำนวนเป้าหมายต้องไม่น้อยกว่าขั้นต่ำ';
   return ok;
 }
 async function saveDrugSheet(btn) {
@@ -1670,6 +1685,7 @@ async function saveDrugSheet(btn) {
     pack_size: s.type === 'oral' ? (s.pack || 0) : 0, had_alert: !!s.had,
     shelf: cart ? s.shelf : '', box: cart ? s.box : '', slot: cart ? s.slot : '',
   };
+  if (APP.hasMin) data.min_qty = s.min > 0 ? s.min : null;
   setBusy(btn, true);
   try {
     const res = s.id ? await api('updateDrug', Object.assign({ drug_id: s.id }, data)) : await api('addDrug', data);
@@ -1830,14 +1846,15 @@ async function rptLoad() {
 function renderReport() {
   let h = '<div class="card no-print" style="gap:10px"><div class="chips">' +
     [['7', '7 วัน'], ['month', 'เดือนนี้'], ['90', '3 เดือน']].map(([k, l]) => '<button class="chip' + (RPT.preset === k ? ' on' : '') + '" type="button" onclick="rptPreset(\'' + k + '\')">' + l + '</button>').join('') +
-    '<button class="chip' + (RPT.preset === 'custom' ? ' on' : '') + '" type="button" onclick="rptCustom()">' + (RPT.preset === 'custom' ? esc(thDateShort(RPT.from) + ' – ' + thDateShort(RPT.to)) : 'กำหนดเอง') + '</button></div>' +
-    '<div class="seg tabs" role="tablist">' + [['overview', 'ภาพรวม'], ['safety', 'ความปลอดภัย'], ['work', 'ภาระงาน'], ['history', 'ประวัติเวร']]
+    '<button class="chip' + (RPT.preset === 'custom' ? ' on' : '') + '" type="button" onclick="rptCustom()">' + (RPT.preset === 'custom' ? esc(thDateShort(RPT.from) + ' – ' + thDateShort(RPT.to)) : 'กำหนดเอง') + '</button>' +
+    '<button class="chip" id="rpt-xlsx" type="button" onclick="rptExport(this)" style="margin-left:auto">' + svg('down', 16, 'currentColor', 2) + 'Excel</button></div>' +
+    '<div class="seg tabs" role="tablist">' + [['overview', 'ภาพรวม'], ['stock', 'ยา & Stock'], ['safety', 'ความปลอดภัย'], ['work', 'ภาระงาน'], ['history', 'ประวัติเวร']]
       .map(([k, l]) => '<button class="sg' + (RPT.tab === k ? ' on' : '') + '" type="button" role="tab" aria-selected="' + (RPT.tab === k) + '" onclick="RPT.tab=\'' + k + '\';renderReport()">' + l + '</button>').join('') + '</div></div>';
   if (RPT.err) h += errorBox('โหลดรายงานไม่ได้: ' + RPT.err, 'rptLoad()');
   else if (RPT.loading || !RPT.data) h += skeleton(4);
   else {
     const m = rptDerive(RPT.data);
-    h += RPT.tab === 'overview' ? rptOverview(m) : RPT.tab === 'safety' ? rptSafety(m) : RPT.tab === 'work' ? rptWork(m) : rptHistory(m);
+    h += RPT.tab === 'overview' ? rptOverview(m) : RPT.tab === 'stock' ? rptStock() : RPT.tab === 'safety' ? rptSafety(m) : RPT.tab === 'work' ? rptWork(m) : rptHistory(m);
   }
   $('pg-report').innerHTML = '<div class="wrap wide">' + h + '</div>';
 }
@@ -2024,6 +2041,218 @@ async function rptDeleteShift(id, btn) {
     if (APP.shift.id === id) { APP.shift.saved = false; APP.shift.id = null; }
     toast('ลบเวรแล้ว'); RPT.openShift = null; rptLoad();
   } catch (e) { setBusy(btn, false); toast(e.message, 'err'); }
+}
+
+/* ============================================================
+   รายงาน › ยา & Stock — ใช้ปรับรายการยาและจำนวนที่เก็บในรถ
+   ข้อมูล: getDrugUsageReport (ช่วงวันที่เดียวกับแท็บอื่น)
+   + Export Excel ทุกแท็บ (SheetJS โหลดตอนกดปุ่มเท่านั้น)
+
+   หลักคำแนะนำ (ปรับเกณฑ์ได้ที่ USG_RULE):
+   · ใช้สูงสุด/รอบ = จ่ายมากที่สุดระหว่างการเติม 2 ครั้ง → ในรถต้องมีอย่างน้อยเท่านี้
+   · ควรเพิ่ม = เคยจ่ายจนหมดในระบบ / ใช้สูงสุดต่อรอบ ≥ เป้า
+     (พยาบาลแจ้งขาด = แสดงเป็นข้อมูล ไม่ใช่เกณฑ์ เพราะมักเป็นเรื่องเติมไม่ทัน/นับผิด มากกว่าจำนวนไม่พอ)
+                → แนะนำ max(ขั้นต่ำ, ⌈max(ใช้สูงสุด/รอบ, เป้า) × 1.25⌉, เป้า + 1)
+   · ลดได้   = ดู ≥ 60 วัน · ตั้งขั้นต่ำแล้ว · เป้า > ⌈ใช้สูงสุด/รอบ × 1.25⌉
+                และ (ไม่มีการใช้ หรือมีถอนออก หรือใช้สูงสุด/รอบ ≤ ครึ่งเป้า)
+                → แนะนำ max(ขั้นต่ำ, ⌈ใช้สูงสุด/รอบ × 1.25⌉) · ไม่ต่ำกว่าขั้นต่ำเสมอ
+   · ทบทวน   = เข้าเกณฑ์ลด แต่ยังไม่ตั้งขั้นต่ำ → ไม่แนะนำตัวเลข (กันลดยาต้านพิษ/ยาฉุกเฉินที่นาน ๆ ใช้ที)
+   ============================================================ */
+const USG_RULE = { buffer: 1.25, minDays: 60, freqTop: 10, procQty: 2, riseRatio: 1.5, riseAbs: 3 };
+const USG = { data: null, key: '', loading: false, err: null, showAll: false };
+const USG_FLAG = {
+  up: { l: 'ควรเพิ่ม', c: 'p-red', o: 0 }, down: { l: 'ลดได้', c: 'p-blu', o: 1 }, review: { l: 'ทบทวน', c: 'p-amb', o: 2 }, ok: { l: 'คงเดิม', c: 'p-gry', o: 9 },
+};
+
+async function usgLoad(force) {
+  const key = RPT.from + RPT.to;
+  if (!force && USG.key === key && (USG.data || USG.loading)) return USG.data;
+  USG.loading = true; USG.err = null; USG.key = key; USG.data = null;
+  try { const d = await api('getDrugUsageReport', { from: RPT.from, to: RPT.to }); if (USG.key === key) USG.data = d; }
+  catch (e) { if (USG.key === key) USG.err = /unknown action/i.test(e.message) ? 'เซิร์ฟเวอร์ยังไม่มีฟังก์ชันนี้ — ต้อง deploy edge function ermedcart-hub เวอร์ชันใหม่ก่อน' : e.message; }
+  USG.loading = false;
+  if (APP.page === 'report' && RPT.tab === 'stock') renderReport();
+  return USG.data;
+}
+
+function usgDerive(U) {
+  const days = num(U.days), list = (U.drugs || []).map(r => Object.assign({}, r));
+  const byFreq = list.filter(r => r.restock_events >= 2).sort((a, b) => b.restock_events - a.restock_events || b.restock_qty - a.restock_qty);
+  const freqIds = new Set(byFreq.slice(0, USG_RULE.freqTop).map(r => r.drug_id));
+  const nW = (U.weeks || []).length;
+  list.forEach(r => {
+    const t = num(r.target_qty), need = num(r.peak_cycle), min = num(r.min_qty) > 0 ? num(r.min_qty) : 0;
+    const withBuf = Math.ceil(need * USG_RULE.buffer);
+    const why = [];
+    r.flag = 'ok'; r.suggest = t;
+    if (r.stockouts > 0 || (need > 0 && need >= t)) {
+      r.flag = 'up';
+      r.suggest = Math.max(min, Math.ceil(Math.max(need, t) * USG_RULE.buffer), t + 1);
+      if (r.stockouts) why.push('หมดในระบบ ' + r.stockouts + ' ครั้ง');
+      if (need > 0 && need >= t) why.push('ใช้สูงสุด ' + need + '/รอบ ≥ เป้า ' + t);
+    } else if (days >= USG_RULE.minDays && t > Math.max(1, withBuf) && (r.disp_qty === 0 || r.withdraw_qty > 0 || need <= t / 2)) {
+      if (min > 0 && t > Math.max(min, withBuf)) { r.flag = 'down'; r.suggest = Math.max(min, withBuf, 1); }
+      else if (!min) { r.flag = 'review'; r.suggest = null; }
+      if (r.flag !== 'ok') {
+        why.push(r.disp_qty === 0 ? 'ไม่มีการใช้ใน ' + days + ' วัน' : 'ใช้สูงสุด ' + need + '/รอบ จากเป้า ' + t);
+        if (r.withdraw_qty > 0) why.push('ถอนออก ' + r.withdraw_qty + ' ' + (r.unit || ''));
+        if (r.flag === 'review') why.push('ยังไม่ตั้งขั้นต่ำ');
+      }
+    }
+    if (r.nurse_miss_events) why.push('พยาบาลแจ้งขาด ' + r.nurse_miss_events + ' ครั้ง');
+    r.freq = freqIds.has(r.drug_id);
+    r.proc = num(r.norx_qty) >= USG_RULE.procQty;
+    if (r.proc) why.push('ยาหายไม่มีใบสั่ง ' + r.norx_qty);
+    r.rise = false; r.last4 = 0; r.prev4 = 0;
+    if (nW >= 8) {
+      const w = r.weekly || [];
+      r.last4 = sum(w.slice(-4)); r.prev4 = sum(w.slice(-8, -4));
+      r.rise = r.last4 - r.prev4 >= USG_RULE.riseAbs && r.last4 >= r.prev4 * USG_RULE.riseRatio;
+    }
+    r.why = why.join(' · ');
+  });
+  const cnt = (f) => list.filter(f).length;
+  return {
+    U: U, days: days, list: list, byFreq: byFreq, nW: nW,
+    byUse: list.filter(r => r.disp_qty > 0).sort((a, b) => b.disp_qty - a.disp_qty),
+    n: { up: cnt(r => r.flag === 'up'), down: cnt(r => r.flag === 'down'), review: cnt(r => r.flag === 'review'), proc: cnt(r => r.proc) },
+    rising: list.filter(r => r.rise).sort((a, b) => (b.last4 - b.prev4) - (a.last4 - a.prev4)),
+  };
+}
+function usgPri(list) { return list.slice().sort((a, b) => USG_FLAG[a.flag].o - USG_FLAG[b.flag].o || (b.proc - a.proc) || (b.freq - a.freq) || b.disp_qty - a.disp_qty); }
+function usgSugg(r) {
+  if (r.flag === 'review') return '<span class="pill p-amb">ตั้งขั้นต่ำก่อน</span>';
+  if (r.flag === 'ok') return '<span class="lbl">' + r.target_qty + '</span>';
+  return '<span class="pill ' + USG_FLAG[r.flag].c + '">' + (r.flag === 'up' ? '▲ ' : '▼ ') + r.suggest + '</span>';
+}
+
+function rptStock() {
+  if (USG.err && USG.key === RPT.from + RPT.to) return errorBox('โหลดข้อมูลยาไม่ได้: ' + USG.err, 'usgLoad(true)');
+  if (!USG.data || USG.key !== RPT.from + RPT.to) { usgLoad(); return skeleton(4); }
+  const m = usgDerive(USG.data);
+  let h = '';
+  if (m.days < USG_RULE.minDays) h += '<div class="note warn no-print"><span class="grow">ช่วงนี้ ' + m.days + ' วัน — "ลดได้" จะแสดงเมื่อดู ≥ ' + USG_RULE.minDays + ' วัน (ควรดู 3 เดือนขึ้นไปก่อนปรับจำนวนจริง)</span><button class="lnk" type="button" onclick="rptPreset(\'90\')">ดู 3 เดือน</button></div>';
+  if (!m.U.has_min) h += '<div class="note info no-print">ยังไม่มีช่อง "ขั้นต่ำตามหลักคลินิก" ในฐานข้อมูล — รัน migration_ermedcart_min_qty.sql แล้วตั้งค่าที่หน้า Stock › แก้ไขข้อมูลยา</div>';
+  h += '<div class="grid2 kpis4">' +
+    kpi('ควรเพิ่ม', m.n.up, 'รายการ · เคยหมด/ใช้เกินเป้า', m.n.up ? 'var(--red)' : '') +
+    kpi('ลดได้', m.n.down, 'รายการ · ไม่ต่ำกว่าขั้นต่ำ') +
+    kpi('ทบทวน', m.n.review, 'ใช้น้อย · ยังไม่ตั้งขั้นต่ำ') +
+    kpi('ตรวจกระบวนการ', m.n.proc, 'ยาหายไม่มีใบสั่ง ≥ ' + USG_RULE.procQty, m.n.proc ? 'var(--red)' : '') + '</div>';
+  h += '<div class="rgrid">';
+  h += '<section class="card"><span class="h">Top 10 อัตราการเติม</span><span class="lbl" style="margin-top:-6px">จำนวนครั้งที่เติม ใน ' + m.days + ' วัน · มาก = ภาระงานเติมสูง</span>' +
+    hbars(m.byFreq.slice(0, 10).map(r => [r.name + (r.had ? ' (HAD)' : ''), r.restock_events])) + '</section>';
+  h += '<section class="card"><span class="h">Top 10 ใช้มากที่สุด</span><span class="lbl" style="margin-top:-6px">จำนวนที่จ่ายจากรถรวม (หน่วยของยา)</span>' +
+    hbars(m.byUse.slice(0, 10).map(r => [r.name + (r.had ? ' (HAD)' : ''), r.disp_qty])) + '</section>';
+
+  const pri = usgPri(m.list);
+  const shown = USG.showAll ? pri : pri.filter(r => r.flag !== 'ok' || r.proc || r.freq || r.rise || r.nurse_miss_events);
+  h += '<section class="card span2"><div class="row" style="align-items:baseline;flex-wrap:wrap;gap:6px"><span class="h grow">ข้อเสนอปรับจำนวนในรถ</span>' +
+    '<button class="chip no-print' + (USG.showAll ? ' on' : '') + '" type="button" onclick="USG.showAll=!USG.showAll;renderReport()">' + (USG.showAll ? 'เฉพาะที่ต้องดู' : 'แสดงทั้งหมด ' + pri.length) + '</button></div>' +
+    (shown.length ? '<div class="usg">' + shown.map(r => '<div class="usg-r">' +
+        '<div class="grow"><b>' + esc(r.name) + '</b>' + (r.had ? '<span class="had">HAD</span>' : '') +
+        '<span class="chips" style="gap:4px;margin-top:4px">' + (r.flag !== 'ok' ? '<span class="pill ' + USG_FLAG[r.flag].c + '">' + USG_FLAG[r.flag].l + '</span>' : '') +
+        (r.freq ? '<span class="pill p-gry">เติมบ่อย</span>' : '') + (r.proc ? '<span class="pill p-red">ตรวจกระบวนการ</span>' : '') + (r.rise ? '<span class="pill p-amb">ใช้เพิ่มขึ้น</span>' : '') + '</span>' +
+        '<span class="lbl" style="display:block;margin-top:4px">เป้า ' + r.target_qty + (num(r.min_qty) > 0 ? ' · ขั้นต่ำ ' + r.min_qty : '') + ' · ใช้สูงสุด ' + r.peak_cycle + '/รอบ · เติม ' + r.restock_events + ' ครั้ง</span>' +
+        (r.why ? '<span class="lbl" style="display:block">' + esc(r.why) + '</span>' : '') + '</div>' +
+        '<div class="usg-s"><span class="lbl">แนะนำ</span>' + usgSugg(r) + '</div></div>').join('') +
+      '</div>' : '<div class="lbl">ไม่มียาที่ต้องปรับในช่วงนี้</div>') +
+    '<span class="lbl">ใช้สูงสุด/รอบ = จ่ายมากที่สุดก่อนเติมครั้งถัดไป · แนะนำ = ⌈ค่าที่ต้องใช้ × ' + USG_RULE.buffer + '⌉ และไม่ต่ำกว่าขั้นต่ำ · เป็นค่าเบื้องต้นให้ทีมพิจารณา</span></section>';
+
+  h += '<section class="card"><span class="h">ใช้เพิ่มขึ้น</span><span class="lbl" style="margin-top:-6px">4 สัปดาห์ล่าสุด เทียบ 4 สัปดาห์ก่อนหน้า</span>' +
+    (m.nW < 8 ? '<div class="lbl">ต้องดูช่วงอย่างน้อย 8 สัปดาห์ (เลือก 3 เดือน)</div>' : m.rising.length ?
+      '<table class="tbl"><thead><tr><th>ยา</th><th>ก่อน</th><th>ล่าสุด</th></tr></thead><tbody>' + m.rising.slice(0, 8).map(r => '<tr><td class="l">' + esc(r.name) + '</td><td>' + r.prev4 + '</td><td><b>' + r.last4 + '</b></td></tr>').join('') + '</tbody></table>'
+      : '<div class="lbl">ไม่มียาที่ใช้เพิ่มขึ้นชัดเจน</div>') + '</section>';
+
+  const H = m.U.hour || [], sh = [['เวรดึก 00–08', sum(H.slice(0, 8))], ['เวรเช้า 08–16', sum(H.slice(8, 16))], ['เวรบ่าย 16–24', sum(H.slice(16, 24))]];
+  const dw = ['อา', 'จ', 'อ', 'พ', 'พฤ', 'ศ', 'ส'], D = m.U.dow || [], dmx = Math.max.apply(null, D.concat([1]));
+  h += '<section class="card"><span class="h">จ่ายยาตามเวรและวัน</span><span class="lbl" style="margin-top:-6px">จำนวนครั้งที่บันทึกจ่าย (ตามเวลาที่บันทึก)</span>' + hbars(sh) +
+    '<div class="vbars" style="height:70px;margin-top:6px" role="img" aria-label="จ่ายยาตามวันในสัปดาห์">' + dw.map((x, i) => '<i title="' + x + ': ' + (D[i] || 0) + '" style="height:' + ((D[i] || 0) / dmx * 100) + '%"></i>').join('') + '</div>' +
+    '<div style="display:grid;grid-template-columns:repeat(7,1fr);text-align:center" class="lbl">' + dw.map((x, i) => '<span>' + x + '<br><b style="color:var(--ink)">' + (D[i] || 0) + '</b></span>').join('') + '</div></section>';
+  if ((m.U.norx_unmatched || []).length) h += '<section class="card span2"><span class="h">ยาหายที่จับคู่กับรายการยาไม่ได้</span><span class="lbl">ชื่อในบันทึกเวรไม่ตรงกับยาในรถ: ' + esc(m.U.norx_unmatched.map(x => x.name + ' (' + x.qty + ')').join(' · ')) + '</span></section>';
+  h += '</div>';
+  return h;
+}
+
+/* ---------- Export Excel ---------- */
+const XLSX_URL = 'https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js';
+function loadXlsx() {
+  if (window.XLSX) return Promise.resolve(window.XLSX);
+  return new Promise((res, rej) => {
+    const s = document.createElement('script'); s.src = XLSX_URL;
+    s.onload = () => window.XLSX ? res(window.XLSX) : rej(new Error('โหลดตัวสร้าง Excel ไม่สำเร็จ'));
+    s.onerror = () => { s.remove(); rej(new Error('โหลดตัวสร้าง Excel ไม่ได้ — ตรวจอินเทอร์เน็ตแล้วลองใหม่')); };
+    document.head.appendChild(s);
+  });
+}
+/* วันที่เป็น serial ของ Excel โดยตรง (เลี่ยงเวลาเพี้ยนจาก timezone ของเครื่อง) */
+function xDate(iso) { const p = isoParts(iso); return p.m ? { t: 'n', v: (Date.UTC(p.y, p.m - 1, p.d) - Date.UTC(1899, 11, 30)) / 864e5, z: 'yyyy-mm-dd' } : ''; }
+function xSheet(X, rows, widths) {
+  const ws = X.utils.aoa_to_sheet(rows);
+  ws['!cols'] = (widths || rows[0].map(() => 12)).map(w => ({ wch: w }));
+  if (rows.length > 1) ws['!autofilter'] = { ref: X.utils.encode_range({ s: { r: 0, c: 0 }, e: { r: rows.length - 1, c: rows[0].length - 1 } }) };
+  return ws;
+}
+/* สร้าง workbook จากข้อมูลที่โหลดแล้ว — แยกจากการดาวน์โหลดเพื่อทดสอบได้ */
+function rptWorkbook(X) {
+  const m = rptDerive(RPT.data), u = usgDerive(USG.data), wb = X.utils.book_new();
+  const add = (name, rows, w) => X.utils.book_append_sheet(wb, xSheet(X, rows, w), name);
+  const rxPct = m.rxTotal ? +(m.rxMis / m.rxTotal * 100).toFixed(1) : 0;
+  add('สรุป', [['หัวข้อ', 'ค่า', 'หมายเหตุ'],
+    ['ช่วงวันที่', thDate(RPT.from) + ' – ' + thDate(RPT.to), m.days.length + ' วัน'],
+    ['จ่ายยาจากรถ (รายการ)', m.dispRows, 'HAD ' + m.hadRows],
+    ['จ่ายยาจากรถ (จำนวน)', m.dispQty, ''],
+    ['ใบสั่งยาทั้งหมด', m.rxTotal, ''], ['ใบสั่งไม่ตรง', m.rxMis, rxPct + '%'],
+    ['ยาหายไม่มีใบสั่ง', m.missPharmQty, ''], ['พยาบาลแจ้งขาด', m.missNurseQty, ''],
+    ['Med error', m.E.length, 'E ขึ้นไป ' + m.errEplus + ' · HAD ' + m.errHad],
+    ['พยาบาลตรวจรถ (%)', m.nurseRate, m.days.filter(d => m.checkedDays.has(d)).length + ' จาก ' + m.days.length + ' วัน'],
+    ['ยาควรเพิ่มจำนวน', u.n.up, ''], ['ยาลดได้', u.n.down, ''], ['ยาที่ต้องทบทวน (ยังไม่ตั้งขั้นต่ำ)', u.n.review, ''], ['ยาที่ต้องตรวจกระบวนการ', u.n.proc, ''],
+    ['สร้างเมื่อ', thDate(bkkToday()) + ' ' + bkkTime(), 'ER Med Cart'],
+  ], [34, 26, 30]);
+  add('ยา & Stock', [['รหัส', 'ยา', 'หน่วย', 'ที่เก็บ', 'ตำแหน่ง', 'HAD', 'เป้าหมาย', 'ขั้นต่ำ', 'คงเหลือ', 'จ่ายรวม', 'จ่าย (ครั้ง)', 'วันที่มีการใช้', 'ใช้สูงสุด/วัน', 'วันที่ใช้สูงสุด', 'ใช้สูงสุด/รอบเติม', 'เติม (ครั้ง)', 'เติม (จำนวน)', 'หมดในระบบ (ครั้ง)', 'พยาบาลแจ้งขาด (ครั้ง)', 'ถอนออก (จำนวน)', 'ยาหายไม่มีใบสั่ง', 'ใช้ล่าสุด', 'คำแนะนำ', 'แนะนำจำนวน', 'เติมบ่อย', 'ใช้เพิ่มขึ้น', 'เหตุผล']]
+    .concat(usgPri(u.list).map(r => [r.drug_id, r.name, r.unit, r.location, r.cart_pos, r.had ? 'HAD' : '', r.target_qty, num(r.min_qty) > 0 ? r.min_qty : '', r.balance, r.disp_qty, r.disp_events, r.use_days, r.peak_day, r.peak_day_date ? xDate(r.peak_day_date) : '', r.peak_cycle,
+      r.restock_events, r.restock_qty, r.stockouts, r.nurse_miss_events, r.withdraw_qty, r.norx_qty, r.last_used ? xDate(r.last_used) : '', USG_FLAG[r.flag].l, r.suggest == null ? '' : r.suggest, r.freq ? 'ใช่' : '', r.rise ? 'ใช่' : '', r.why])),
+    [7, 30, 7, 10, 9, 5, 9, 8, 9, 8, 9, 10, 10, 12, 12, 9, 10, 12, 14, 11, 12, 12, 10, 10, 8, 9, 44]);
+  const W = USG.data.weeks || [];
+  add('ใช้รายสัปดาห์', [['ยา', 'HAD'].concat(W.map(w => 'สัปดาห์ ' + thDateShort(w)), ['รวม'])]
+    .concat(u.byUse.map(r => [r.name, r.had ? 'HAD' : ''].concat(r.weekly || [], [r.disp_qty]))), [30, 5].concat(W.map(() => 12), [8]));
+  const dd = {}; m.DD.forEach(x => { const k = x.name; dd[k] = dd[k] || { had: x.had, d: {} }; dd[k].d[x.date] = (dd[k].d[x.date] || 0) + num(x.qty); });
+  add('จ่ายยารายวัน', [['ยา', 'HAD'].concat(m.days.map(d => xDate(d)), ['รวม'])]
+    .concat(Object.entries(dd).sort((a, b) => sum(Object.values(b[1].d)) - sum(Object.values(a[1].d))).map(([n, x]) => [n, x.had ? 'HAD' : ''].concat(m.days.map(d => x.d[d] || ''), [sum(Object.values(x.d))]))),
+    [30, 5].concat(m.days.map(() => 11), [8]));
+  add('Med error', [['วันที่', 'ขั้นตอน', 'ลักษณะ', 'ระดับ', 'HAD', 'รายละเอียด', 'ผู้บันทึก', 'รหัสเวร']]
+    .concat(m.E.slice().sort((a, b) => String(a.shift_date).localeCompare(String(b.shift_date))).map(e => [xDate(e.shift_date), e.error_type || '', e.error_subtype || '', e.severity || '', e.had ? 'HAD' : '', e.note || '', e.pharmacist_name || '', e.shift_id || ''])),
+    [12, 16, 30, 7, 6, 40, 14, 14]);
+  add('ยาหาย-ขาด', [['วันที่', 'ยา', 'จำนวน', 'แหล่ง', 'HAD', 'รายละเอียด', 'ผู้บันทึก']]
+    .concat(m.missPharm.concat(m.missNurse).sort((a, b) => String(a.date).localeCompare(String(b.date))).map(x => [xDate(x.date), x.drug, x.qty, x.source === 'nurse' ? 'พยาบาลแจ้งขาด' : 'เภสัชบันทึก (ไม่มีใบสั่ง)', x.had ? 'HAD' : '', x.note || '', x.by || ''])),
+    [12, 30, 8, 22, 6, 36, 14]);
+  add('ประวัติเวร', [['วันที่', 'รหัสเวร', 'เภสัชกร', 'จพ.', 'ไม่มีใบสั่ง', 'ใบสั่งทั้งหมด', 'ใบสั่งไม่ตรง', 'ยาหายไม่มีใบสั่ง', 'ความเสี่ยงอื่น', 'Med error']]
+    .concat(m.S.slice().sort((a, b) => String(a.shift_date).localeCompare(String(b.shift_date))).map(s => {
+      const rs = m.R.filter(r => r.shift_id === s.shift_id);
+      const miss = Math.max(sum(rs.filter(r => String(r.risk_type).trim() === MISS), r => parseRiskNote(MISS, r.note).qty), num(s.drug_missing_cnt));
+      return [xDate(s.shift_date), s.shift_id, s.pharmacist_name || '', s.tech_name || '', s.no_drug ? 'ใช่' : '', num(s.rx_total), num(s.rx_missing), miss, rs.filter(r => String(r.risk_type).trim() !== MISS).length, m.E.filter(e => e.shift_id === s.shift_id).length];
+    })), [12, 14, 14, 16, 10, 12, 12, 14, 12, 10]);
+  const P = {}, pp = (n) => (P[n] = P[n] || { shifts: 0, rx: 0, mis: 0, checks: 0, restock: 0, me: 0 });
+  m.S.forEach(s => { const p = pp(s.pharmacist_name || '—'); p.shifts++; p.rx += num(s.rx_total); p.mis += num(s.rx_missing); });
+  (m.D.cart_checks || []).forEach(c => { pp(c.pharmacist || '—').checks++; });
+  (m.D.stock_by_person || []).forEach(x => { if (x.name && x.name !== '—') pp(x.name).restock = num(x.restock_days); });
+  m.E.forEach(e => { pp(e.pharmacist_name || '—').me++; });
+  const NN = {}; m.N.forEach(c => { const n = c.nurse_name || '—'; NN[n] = NN[n] || { n: 0, miss: 0 }; NN[n].n++; NN[n].miss += num(c.missing_cnt) > 0 ? 1 : 0; });
+  add('ภาระงาน', [['กลุ่ม', 'ชื่อ', 'เวร / ตรวจรถ (ครั้ง)', 'ใบสั่ง', 'ไม่ตรง', 'ยืนยันตรวจรถ', 'วันที่เติมยา', 'บันทึก ME / ครั้งที่แจ้งขาด']]
+    .concat(Object.entries(P).sort((a, b) => b[1].shifts - a[1].shifts).map(([n, p]) => ['เภสัชกร', n, p.shifts, p.rx, p.mis, p.checks, p.restock, p.me]))
+    .concat(Object.entries(NN).sort((a, b) => b[1].n - a[1].n).map(([n, x]) => ['พยาบาล', n, x.n, '', '', '', '', x.miss])),
+    [10, 18, 18, 8, 8, 12, 12, 22]);
+  return wb;
+}
+async function rptExport(btn) {
+  setBusy(btn, true, 'กำลังสร้าง…');
+  try {
+    const [X] = await Promise.all([loadXlsx(), RPT.data ? null : rptLoad(), usgLoad()]);
+    if (!RPT.data) throw new Error(RPT.err || 'ยังโหลดรายงานไม่เสร็จ');
+    if (!USG.data) throw new Error(USG.err || 'ยังโหลดข้อมูลยาไม่เสร็จ');
+    X.writeFile(rptWorkbook(X), 'ERmedcart_report_' + RPT.from + '_' + RPT.to + '.xlsx', { compression: true });
+    toast('ดาวน์โหลด Excel แล้ว');
+  } catch (e) { toast(e.message, 'err'); }
+  setBusy(btn, false);
 }
 
 /* ---------- boot ---------- */
