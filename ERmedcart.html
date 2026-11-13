@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="theme-color" content="#ffffff">
 <title>รถยา ER v2</title>
-<!-- ER Med Cart v2 · build 2026-11-13 03:40 UTC · แหล่งข้อมูล: Supabase ermedcart-hub (เดียวกับ v1) -->
+<!-- ER Med Cart v2 · build 2026-11-13 04:12 UTC · แหล่งข้อมูล: Supabase ermedcart-hub (เดียวกับ v1) -->
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Google+Sans:wght@400;500;700&family=Noto+Sans+Thai:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -311,6 +311,10 @@ body{color:var(--ink)}
 .usg-s{display:flex;flex-direction:column;align-items:flex-end;gap:2px;min-width:64px;text-align:right}
 .usg-s .pill{font-size:14px}
 .why{display:flex;flex-direction:column;gap:6px;padding:0 0 10px}
+.lost{display:grid;grid-template-columns:minmax(0,1.3fr) minmax(0,1fr) 62px;gap:10px;align-items:center;font-size:14px;padding:4px 0}
+.lost .nm{font-weight:600;overflow:hidden;text-overflow:ellipsis}
+.lost .track{height:10px}
+.lost .v{text-align:right;line-height:1.2;font-variant-numeric:tabular-nums}
 
 </style>
 </head>
@@ -2022,8 +2026,11 @@ const DRUG_ALIAS = [
   [/\bdexamethasone\b/g, 'dexa'], [/\bbuscopan\b/g, 'hyoscine'], [/\bgentamicin\b/g, 'genta'], [/\bclindamycin\b/g, 'clinda'],
   [/\bhaloperidol\b/g, 'halo'], [/\bofloxacin\b/g, 'oflox'], [/\bchlorpheniramine\b/g, 'cpm'], [/\bdicloxacillin\b/g, 'dicloxa'],
   [/\blasix\b/g, 'furosemide'], [/\bvit\.?\s*k1?\b/g, 'vitamin k1'], [/\bvit\.?\s*b\b/g, 'vitamin b'], [/\bmetro\b|\bflagyl\b/g, 'metronidazole'],
+  [/\bors\s*(?:เด็ก|ped\w*)/g, 'ors ped'], [/\bors\s*(?:ผู้ใหญ่|adult)/g, 'ors adult'],
   [/\bsimet\w*/g, 'simethicone'], [/\bbactrim\b|\bco-?trimox\w*/g, 'bactrim'], [/\bomep\b/g, 'omeprazole'],
 ];
+/* ชื่อที่ไม่ระบุความแรง → ตัวที่ใช้บ่อย (เฉพาะยาเม็ด/ไม่ระบุรูปแบบ) */
+const DRUG_DEFAULT = { para: 'para 500' };
 function dnorm(s) {
   let t = ' ' + String(s || '').toLowerCase().replace(/[(),/+]/g, ' ') + ' ';
   DRUG_ALIAS.forEach(([re, v]) => { t = t.replace(re, v); });
@@ -2037,7 +2044,7 @@ function noteForm(t) {
   return '';
 }
 function drugForm(d) { const t = dnorm(d.name); if (d.type === 'inject') return 'inj'; if (/syr|susp|elix|milk/.test(t)) return 'syr'; if (d.type === 'other' || d.type === 'enema' || /oph|lotion|enema|หยอด/.test(t)) return 'ext'; return 'tab'; }
-const FORM_TH = { inj: 'ฉีด', syr: 'น้ำ', ext: 'ใช้ภายนอก', tab: 'เม็ด' };
+const FORM_TH = { inj: 'ฉีด', syr: 'น้ำ', ext: 'ใช้ภายนอก', tab: 'กิน' };
 let _dIdx = null, _dIdxN = -1;
 function drugIndex() {
   if (_dIdx && _dIdxN === APP.drugs.length) return _dIdx;
@@ -2055,6 +2062,10 @@ function rxMatchDrug(raw) {
   if (!c.length) return { key: 'U:' + t, label: String(raw).trim(), had: false, matched: false };
   const f = noteForm(t);
   if (f) { const cf = c.filter(e => e.form === f); if (cf.length) c = cf; }
+  if (c.length > 1 && DRUG_DEFAULT[b] && !/\d/.test(t) && (!f || f === 'tab')) {
+    const dft = c.filter(e => e.t.indexOf(DRUG_DEFAULT[b]) === 0);
+    if (dft.length === 1) c = dft;
+  }
   if (c.length > 1) {
     const toks = t.split(' ').slice(1);
     const sc = c.map(e => toks.filter(x => e.toks.has(x)).length), mx = Math.max.apply(null, sc);
@@ -2067,26 +2078,37 @@ function rxMatchDrug(raw) {
   return { key: 'G:' + b + ':' + forms.join(','), label: label, had: c.some(e => e.d.had), matched: true };
 }
 /* จำนวนจากข้อความเดิมที่ไม่มี "จำนวน n" เช่น "cef-3 หาย 2 ขวด" */
-function freeQty(s) {
-  const m = String(s || '').match(/หาย(?:ไป)?\s*(\d+)/) || String(s || '').match(/(\d+)\s*(?:amps?|vials?|ขวด|แผง|ซอง|เม็ด|tabs?|หลอด|amp\.)(?![a-z])/i);
-  return m ? Math.max(1, parseInt(m[1], 10)) : 0;
+function freeQty(s, packSize) {
+  const t = String(s || '');
+  const u = t.match(/#?\s*(\d+)\s*(amps?|vials?|ขวด|แผง|ซอง|เม็ด|tabs?|หลอด)(?![a-z])/i), h = t.match(/หาย(?:ไป)?\s*(\d+)/);
+  if (u) {
+    let n = parseInt(u[1], 10);
+    if (/^(เม็ด|tab)/i.test(u[2]) && packSize > 1) n = Math.ceil(n / packSize);   // เม็ด → ซอง ให้ตรงหน่วยในรถ
+    return Math.max(1, n);
+  }
+  return h ? Math.max(1, parseInt(h[1], 10)) : 0;
 }
 
 /* ---------- คำนวณ ---------- */
 function safDerive(m) {
-  const ev = m.missPharm.map(x => {
+  const ev = [];
+  m.missPharm.forEach(x => {
     const legacy = /ไม่ระบุยา/.test(x.drug);
-    const g = legacy ? null : rxMatchDrug(x.drug);
-    const fq = !legacy && x.qty === 1 ? freeQty(x.drug + ' ' + (x.note || '')) : 0;
-    return Object.assign({}, x, { qty: fq || x.qty, g: g, legacy: legacy || !g });
+    const parts = legacy ? [x.drug] : String(x.drug).split(/\s*,\s*|\s+\+\s+/).map(p => p.trim()).filter(Boolean);
+    parts.forEach(part => {   // บันทึกเดียวหลายยา ("para #10 tab, tramadol inj #1 amp") → แยกเป็นรายยา
+      const g = legacy ? null : rxMatchDrug(part);
+      const dd = g && drugById(g.key);
+      const fq = !legacy && (parts.length > 1 || x.qty === 1) ? freeQty(part + (parts.length > 1 ? '' : ' ' + (x.note || '')), dd ? dd.pack_size : 0) : 0;
+      ev.push(Object.assign({}, x, { drug: part, qty: fq || (parts.length > 1 ? 1 : x.qty), g: g, legacy: legacy || !g, unit: dd ? dd.unit : '' }));
+    });
   });
   const total = sum(ev, x => x.qty), unnamed = sum(ev.filter(x => x.legacy), x => x.qty);
   const by = {};
   ev.filter(x => !x.legacy).forEach(x => {
-    const k = x.g.key, o = by[k] = by[k] || { label: x.g.label, had: x.g.had || x.had, matched: x.g.matched, qty: 0, n: 0, dates: [], names: new Set() };
+    const k = x.g.key, o = by[k] = by[k] || { label: x.g.label, had: x.g.had || x.had, matched: x.g.matched, unit: x.unit, qty: 0, n: 0, dates: [], names: new Set() };
     o.qty += x.qty; o.n++; o.dates.push(x.date); o.names.add(String(x.drug).trim());
   });
-  const rank = Object.values(by).sort((a, b) => b.qty - a.qty || b.n - a.n);
+  const rank = Object.values(by).sort((a, b) => b.n - a.n || b.qty - a.qty);
   rank.forEach(r => { r.dates.sort(); r.last = r.dates[r.dates.length - 1]; });
   return { ev: ev, total: total, unnamed: unnamed, rank: rank, unmatched: rank.filter(r => !r.matched) };
 }
@@ -2131,13 +2153,14 @@ function rptSafety(m) {
     '<div style="display:flex;gap:6px">' + wk.map(x => '<span class="lbl" style="flex:1;text-align:center;font-size:11px">' + (x.out ? Math.round(x.rate * 10) / 10 : '–') + '</span>').join('') + '</div>' +
     '<div class="row lbl" style="justify-content:space-between"><span>' + esc(thDateShort(weeks[0])) + '</span><span>สัปดาห์ละแท่ง</span><span>' + esc(thDateShort(weeks[weeks.length - 1])) + '</span></div></section>';
 
-  /* ยาที่หาย — รวมชื่อแล้ว */
-  const rep = s.rank.filter(r => r.n >= 2);
-  h += '<section class="card"><span class="h">ยาที่หาย (รวมชื่อที่เขียนต่างกันแล้ว)</span><span class="lbl" style="margin-top:-6px">' + s.rank.length + ' รายการ · หายซ้ำ ≥ 2 ครั้ง ' + rep.length + ' รายการ</span>' +
-    (s.rank.length ? '<table class="tbl"><thead><tr><th>ยา</th><th>ครั้ง</th><th>ชิ้น</th><th>ล่าสุด</th></tr></thead><tbody>' +
-      s.rank.slice(0, 12).map(r => '<tr><td class="l">' + (r.n >= 2 ? '<b>' + esc(r.label) + '</b>' : esc(r.label)) + (r.had ? '<span class="had">HAD</span>' : '') + (r.names.size > 1 ? '<br><span class="lbl">บันทึกเป็น: ' + esc(Array.from(r.names).slice(0, 3).join(' / ')) + '</span>' : '') + '</td><td>' + (r.n >= 2 ? '<b style="color:var(--red)">' + r.n + '</b>' : r.n) + '</td><td>' + r.qty + '</td><td>' + esc(thDateShort(r.last)) + '</td></tr>').join('') + '</tbody></table>' +
-      (s.rank.length > 12 ? '<span class="lbl">แสดง 12 จาก ' + s.rank.length + ' · ดูทั้งหมดใน Excel</span>' : '')
-      : '<div class="lbl">ไม่มียาหายที่ระบุชื่อในช่วงนี้</div>') + '</section>';
+  /* ยาที่หาย — รวมชื่อแล้ว · แท่ง = จำนวนครั้ง (หายซ้ำสำคัญกว่าหายทีละมาก) */
+  const rep = s.rank.filter(r => r.n >= 2), once = s.rank.filter(r => r.n < 2), nmx = Math.max.apply(null, s.rank.map(r => r.n).concat([1]));
+  const bar = r => '<div class="lost"><span class="nm">' + esc(r.label) + (r.had ? '<span class="had">HAD</span>' : '') + '</span>' +
+    '<div class="track"><i style="width:' + Math.max(4, Math.round(r.n / nmx * 100)) + '%;background:' + (r.n >= 2 ? 'var(--org)' : 'var(--bar2)') + '"></i></div>' +
+    '<span class="v"><b>' + r.n + '</b> ครั้ง<br><span class="lbl">' + r.qty + ' ' + esc(r.unit || 'ชิ้น') + '</span></span></div>';
+  h += '<section class="card"><span class="h">ยาที่หายซ้ำ</span><span class="lbl" style="margin-top:-6px">หาย ≥ 2 ครั้ง · ' + rep.length + ' รายการ · เรียงตามจำนวนครั้ง</span>' +
+    (rep.length ? rep.slice(0, 10).map(bar).join('') + (rep.length > 10 ? '<span class="lbl">และอีก ' + (rep.length - 10) + ' รายการ (ดูใน Excel)</span>' : '') : '<div class="lbl">ไม่มียาที่หายซ้ำในช่วงนี้</div>') +
+    (once.length ? '<details><summary class="lbl" style="cursor:pointer">หายครั้งเดียว ' + once.length + ' รายการ</summary><div class="lbl" style="margin-top:6px;line-height:1.8">' + once.map(r => esc(r.label) + ' (' + r.qty + ')').join(' · ') + '</div></details>' : '') + '</section>';
 
   /* หายวันไหน */
   const dw = ['อา', 'จ', 'อ', 'พ', 'พฤ', 'ศ', 'ส'], D = [0, 0, 0, 0, 0, 0, 0], nDays = [0, 0, 0, 0, 0, 0, 0];
