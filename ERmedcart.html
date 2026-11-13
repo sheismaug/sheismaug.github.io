@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="theme-color" content="#ffffff">
 <title>รถยา ER v2</title>
-<!-- ER Med Cart v2 · build 2026-11-13 02:43 UTC · แหล่งข้อมูล: Supabase ermedcart-hub (เดียวกับ v1) -->
+<!-- ER Med Cart v2 · build 2026-11-13 03:19 UTC · แหล่งข้อมูล: Supabase ermedcart-hub (เดียวกับ v1) -->
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Google+Sans:wght@400;500;700&family=Noto+Sans+Thai:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -310,6 +310,7 @@ body{color:var(--ink)}
 .usg-r:last-child{border-bottom:0}
 .usg-s{display:flex;flex-direction:column;align-items:flex-end;gap:2px;min-width:64px;text-align:right}
 .usg-s .pill{font-size:14px}
+.why{display:flex;flex-direction:column;gap:6px;padding:0 0 10px}
 
 </style>
 </head>
@@ -936,7 +937,7 @@ function ccToggle(id) {
   if (CC.open) setTimeout(() => { const el = $('cc-' + id); if (el) el.scrollIntoView({ block: 'start', behavior: 'smooth' }); }, 40);
 }
 async function ccLoad(id) {
-  if (!CC.st[id]) CC.st[id] = { counts: {}, wd: {}, refill: null, mode: 'latest', expRaw: '', loaded: false, err: null };
+  if (!CC.st[id]) CC.st[id] = { counts: {}, wd: {}, why: {}, refill: null, mode: 'latest', expRaw: '', loaded: false, err: null };
   const st = CC.st[id];
   if (st.loaded || st.loading) return;
   st.loading = true;
@@ -945,7 +946,10 @@ async function ccLoad(id) {
     const lots = (Array.isArray(res) ? res : (res && res.data) || []).filter(l => num(l.available_qty) > 0)
       .map(l => ({ exp: String(l.exp_date || '').slice(0, 10), avail: num(l.available_qty), lastRestock: String(l.last_restock_at || '') }));
     CC.lots[id] = lots;
-    lots.forEach(l => { if (st.counts[l.exp] == null) st.counts[l.exp] = l.avail; });
+    lots.forEach(l => {
+      if (st.counts[l.exp] == null) st.counts[l.exp] = l.avail;
+      if (st.wd[l.exp] == null && daysBetween(bkkToday(), l.exp) < 0) st.wd[l.exp] = true;   // v2.3: ล็อตหมดอายุแล้ว → ตั้งเป็นถอนออกทั้งล็อต (กดยกเลิกได้)
+    });
     st.loaded = true; st.err = null;
   } catch (e) { st.err = e.message; }
   st.loading = false;
@@ -958,14 +962,19 @@ function ccLatestLot(id) {
   if (!lots.length) return null;
   return lots.slice().sort((a, b) => (b.lastRestock || '').localeCompare(a.lastRestock || '') || b.exp.localeCompare(a.exp))[0];
 }
+const EXP_NEAR_DAYS = 7;   // เกณฑ์เดียวกับ 'ใกล้ EXP' และ edge isExpOut
 function ccCalc(id) {
   const d = drugById(id), st = CC.st[id], lots = CC.lots[id] || [];
   let disp = 0, wd = 0;
-  const dispItems = [], wdItems = [];
+  const dispItems = [], wdItems = [], needWhy = [], today = bkkToday();
+  st.why = st.why || {};
   lots.forEach(l => {
     const c = Math.min(l.avail, Math.max(0, num(st.counts[l.exp])));
     const miss = l.avail - c;
-    if (miss > 0) { disp += miss; dispItems.push({ exp: l.exp, qty: miss }); }
+    const near = daysBetween(today, l.exp) <= EXP_NEAR_DAYS;
+    /* v2.3: ล็อตใกล้/หมดอายุที่นับได้น้อยลง ต้องเลือกว่า "จ่ายผู้ป่วย" หรือ "ทิ้ง/ถอน" — กันยาหมดอายุถูกนับเป็นการใช้ */
+    if (miss > 0 && near && st.why[l.exp] === 'wd') { wd += miss; wdItems.push({ exp: l.exp, qty: miss }); }
+    else if (miss > 0) { disp += miss; dispItems.push({ exp: l.exp, qty: miss, real: near }); if (near && !st.why[l.exp]) needWhy.push(l.exp); }
     if (st.wd[l.exp] && c > 0) { wd += c; wdItems.push({ exp: l.exp, qty: c }); }
   });
   const out = disp + wd;
@@ -976,7 +985,7 @@ function ccCalc(id) {
   const mode = latest ? st.mode : 'other';
   const parsed = mode === 'other' ? parseExpInput(st.expRaw, bkkToday()) : null;
   const refillExp = mode === 'latest' ? (latest && latest.exp) : (parsed && parsed.ok ? parsed.iso : '');
-  return { d: d, disp: disp, wd: wd, out: out, after: after, suggested: suggested, refill: refill, latest: latest, mode: mode, parsed: parsed, refillExp: refillExp, dispItems: dispItems, wdItems: wdItems };
+  return { d: d, disp: disp, wd: wd, out: out, after: after, suggested: suggested, refill: refill, latest: latest, mode: mode, parsed: parsed, refillExp: refillExp, dispItems: dispItems, wdItems: wdItems, needWhy: needWhy };
 }
 function ccCardOpen(d) {
   const st = CC.st[d.id] || {};
@@ -996,14 +1005,17 @@ function ccCardOpen(d) {
     const cnt = Math.min(l.avail, Math.max(0, num(st.counts[l.exp])));
     const miss = l.avail - cnt;
     const days = daysBetween(bkkToday(), l.exp);
-    const wdOn = !!st.wd[l.exp];
+    const wdOn = !!st.wd[l.exp], near = days <= EXP_NEAR_DAYS, why = (st.why || {})[l.exp];
     const expTag = days < 0 ? ' <span class="lbl" style="color:var(--red);font-weight:600">หมดอายุแล้ว</span>' : days < 7 ? ' <span class="lbl" style="color:var(--red);font-weight:600">อีก ' + days + ' วัน</span>' : '';
     const tag = expTag + (wdOn ? '<br><span style="font-size:13px;color:var(--sub)">ถอนออก ' + cnt + '</span>'
-      : miss > 0 ? '<br><span style="font-size:13px;color:var(--red);font-weight:600">ขาด ' + miss + '</span>' : '');
+      : miss > 0 ? (near && why === 'wd' ? '<br><span style="font-size:13px;color:var(--sub)">ถอนออก ' + miss + ' (หมดอายุ)</span>' : '<br><span style="font-size:13px;color:var(--red);font-weight:600">ขาด ' + miss + '</span>') : '');
     const canWd = wdOn || days < 30;
     h += '<div class="lotr' + (wdOn ? ' wd' : miss > 0 ? ' miss' : '') + '"><span class="grow"><span class="nm expd" style="font-size:15px">EXP ' + esc(expFull(l.exp)) + '</span>' + tag +
       (canWd ? (wdOn ? ' · ' : '<br>') + '<button class="lnk muted" type="button" style="font-size:12px;min-height:28px" onclick="ccWd(\'' + id + '\',\'' + l.exp + '\')">' + (wdOn ? 'ยกเลิก' : 'ถอนล็อตนี้') + '</button>' : '') + '</span>' +
       qtyCtl(cnt, "ccCount('" + id + "','" + l.exp + "',-1)", "ccCount('" + id + "','" + l.exp + "',1)", { min: 0, max: l.avail, unit: '/ ' + l.avail }) + '</div>';
+    if (miss > 0 && near) h += '<div class="why" id="why-' + id + '-' + l.exp + '"><span class="lbl"' + (why ? '' : ' style="color:var(--red);font-weight:600"') + '>ล็อตนี้' + (days < 0 ? 'หมดอายุแล้ว' : 'ใกล้หมดอายุ') + ' — ' + miss + ' ' + esc(d.unit) + ' ที่ไม่อยู่ในรถ เพราะ</span>' +
+      '<div class="seg" role="group"><button class="sg' + (why === 'disp' ? ' on' : '') + '" type="button" aria-pressed="' + (why === 'disp') + '" onclick="ccWhy(\'' + id + '\',\'' + l.exp + '\',\'disp\')">จ่ายผู้ป่วย</button>' +
+      '<button class="sg' + (why === 'wd' ? ' on' : '') + '" type="button" aria-pressed="' + (why === 'wd') + '" onclick="ccWhy(\'' + id + '\',\'' + l.exp + '\',\'wd\')">ทิ้ง/ถอน (หมดอายุ)</button></div></div>';
   });
   h += '</div>';
 
@@ -1043,6 +1055,7 @@ function ccExpOut(p) {
   return '<div class="note ' + (p.level === 'block' ? 'err' : 'warn') + '" style="margin-top:8px"><span>' + expReadout(p) + '<br>' + esc(p.msg) + '</span></div>';
 }
 function ccBlocked(c) {
+  if (c.needWhy && c.needWhy.length) return true;   // ต้องเลือกเหตุผลของล็อตใกล้/หมดอายุก่อน
   if (c.refill > 0 && c.mode === 'other') return !(c.parsed && c.parsed.ok && c.parsed.level !== 'block');
   if (c.refill > 0 && c.mode === 'latest' && !c.refillExp) return true;
   return false;
@@ -1056,6 +1069,7 @@ function ccSaveLabel(c) {
   return 'บันทึก · ' + parts.join(' · ');
 }
 function ccCount(id, exp, delta) { const st = CC.st[id]; const l = (CC.lots[id] || []).find(x => x.exp === exp); if (!l) return; st.counts[exp] = Math.min(l.avail, Math.max(0, num(st.counts[exp]) + delta)); st.refill = null; renderCartList(); }
+function ccWhy(id, exp, v) { const st = CC.st[id]; st.why = st.why || {}; st.why[exp] = v; st.refill = null; renderCartList(); }
 function ccWd(id, exp) { const st = CC.st[id]; st.wd[exp] = !st.wd[exp]; st.refill = null; renderCartList(); }
 function ccRefill(id, delta) { const st = CC.st[id]; const c = ccCalc(id); st.refill = Math.max(0, c.refill + delta); renderCartList(); }
 function ccMode(id, m) { CC.st[id].mode = m; renderCartList(); if (m === 'other') setTimeout(() => { const i = $('cc-exp-' + id); if (i) i.focus(); }, 30); }
@@ -1077,7 +1091,7 @@ async function ccSave(id, btn) {
   const who = APP.user, log = (action, qty, exp, r) => CC.log.unshift({ id: uid(), drug_id: id, name: d.name, unit: d.unit, action: action, qty: qty, exp: exp, ts: r && r.timestamp, row: r && r.row_num, voided: false });
   let wrote = 0;
   try {
-    for (const it of c.dispItems) { const r = await api('saveDispense', { pharmacistName: who, drug_id: id, qty_dispensed: it.qty, exp_date: it.exp, purpose: '', rx_number: '' }); log('DISPENSE', it.qty, it.exp, r); wrote++; }
+    for (const it of c.dispItems) { const r = await api('saveDispense', { pharmacistName: who, drug_id: id, qty_dispensed: it.qty, exp_date: it.exp, purpose: it.real ? 'ใช้จริง (ล็อตใกล้หมดอายุ)' : '', rx_number: '' }); log('DISPENSE', it.qty, it.exp, r); wrote++; }
     for (const it of c.wdItems) { const r = await api('saveWithdraw', { pharmacistName: who, drug_id: id, qty_withdrawn: it.qty, exp_date: it.exp }); log('WITHDRAW', it.qty, it.exp, r); wrote++; }
     if (c.refill > 0) { const r = await api('saveRestock', { pharmacistName: who, drug_id: id, qty_added: c.refill, lot_number: '', exp_date: c.refillExp }); log('RESTOCK', c.refill, c.refillExp, r); wrote++; }
     if (!wrote) {   // ไม่มีการเคลื่อนไหว — ถ้ามีแจ้งขาดค้าง ปิดเป็น "ตรวจแล้ว ของครบ"
@@ -2056,9 +2070,11 @@ async function rptDeleteShift(id, btn) {
    · ลดได้   = ดู ≥ 60 วัน · ตั้งขั้นต่ำแล้ว · เป้า > ⌈ใช้สูงสุด/รอบ × 1.25⌉
                 และ (ไม่มีการใช้ หรือมีถอนออก หรือใช้สูงสุด/รอบ ≤ ครึ่งเป้า)
                 → แนะนำ max(ขั้นต่ำ, ⌈ใช้สูงสุด/รอบ × 1.25⌉) · ไม่ต่ำกว่าขั้นต่ำเสมอ
+   · ยาที่ออกจากรถตอนล็อตเหลืออายุ ≤ 7 วัน ไม่นับเป็นการใช้ (edge isExpOut) → นับเป็น "ทิ้ง/ถอน (EXP)" รวมกับ WITHDRAW
+   · หมดอายุบ่อย = ทิ้ง/ถอน ≥ จำนวนที่ใช้จริง → สัญญาณให้ลดจำนวน
    · ทบทวน   = เข้าเกณฑ์ลด แต่ยังไม่ตั้งขั้นต่ำ → ไม่แนะนำตัวเลข (กันลดยาต้านพิษ/ยาฉุกเฉินที่นาน ๆ ใช้ที)
    ============================================================ */
-const USG_RULE = { buffer: 1.25, minDays: 60, freqTop: 10, procQty: 2, riseRatio: 1.5, riseAbs: 3 };
+const USG_RULE = { buffer: 1.25, minDays: 60, procQty: 2, riseRatio: 1.5, riseAbs: 3 };
 const USG = { data: null, key: '', loading: false, err: null, showAll: false };
 const USG_FLAG = {
   up: { l: 'ควรเพิ่ม', c: 'p-red', o: 0 }, down: { l: 'ลดได้', c: 'p-blu', o: 1 }, review: { l: 'ทบทวน', c: 'p-amb', o: 2 }, ok: { l: 'คงเดิม', c: 'p-gry', o: 9 },
@@ -2077,10 +2093,10 @@ async function usgLoad(force) {
 
 function usgDerive(U) {
   const days = num(U.days), list = (U.drugs || []).map(r => Object.assign({}, r));
-  const byFreq = list.filter(r => r.restock_events >= 2).sort((a, b) => b.restock_events - a.restock_events || b.restock_qty - a.restock_qty);
-  const freqIds = new Set(byFreq.slice(0, USG_RULE.freqTop).map(r => r.drug_id));
   const nW = (U.weeks || []).length;
   list.forEach(r => {
+    r.waste = num(r.withdraw_qty) + num(r.expout_qty);
+    r.expBad = r.waste > 0 && r.waste >= num(r.disp_qty);
     const t = num(r.target_qty), need = num(r.peak_cycle), min = num(r.min_qty) > 0 ? num(r.min_qty) : 0;
     const withBuf = Math.ceil(need * USG_RULE.buffer);
     const why = [];
@@ -2090,17 +2106,16 @@ function usgDerive(U) {
       r.suggest = Math.max(min, Math.ceil(Math.max(need, t) * USG_RULE.buffer), t + 1);
       if (r.stockouts) why.push('หมดในระบบ ' + r.stockouts + ' ครั้ง');
       if (need > 0 && need >= t) why.push('ใช้สูงสุด ' + need + '/รอบ ≥ เป้า ' + t);
-    } else if (days >= USG_RULE.minDays && t > Math.max(1, withBuf) && (r.disp_qty === 0 || r.withdraw_qty > 0 || need <= t / 2)) {
+    } else if (days >= USG_RULE.minDays && t > Math.max(1, withBuf) && (r.disp_qty === 0 || r.waste > 0 || need <= t / 2)) {
       if (min > 0 && t > Math.max(min, withBuf)) { r.flag = 'down'; r.suggest = Math.max(min, withBuf, 1); }
       else if (!min) { r.flag = 'review'; r.suggest = null; }
       if (r.flag !== 'ok') {
         why.push(r.disp_qty === 0 ? 'ไม่มีการใช้ใน ' + days + ' วัน' : 'ใช้สูงสุด ' + need + '/รอบ จากเป้า ' + t);
-        if (r.withdraw_qty > 0) why.push('ถอนออก ' + r.withdraw_qty + ' ' + (r.unit || ''));
         if (r.flag === 'review') why.push('ยังไม่ตั้งขั้นต่ำ');
       }
     }
+    if (r.waste > 0) why.push('ทิ้ง/ถอน (EXP) ' + r.waste + ' ' + (r.unit || ''));
     if (r.nurse_miss_events) why.push('พยาบาลแจ้งขาด ' + r.nurse_miss_events + ' ครั้ง');
-    r.freq = freqIds.has(r.drug_id);
     r.proc = num(r.norx_qty) >= USG_RULE.procQty;
     if (r.proc) why.push('ยาหายไม่มีใบสั่ง ' + r.norx_qty);
     r.rise = false; r.last4 = 0; r.prev4 = 0;
@@ -2113,13 +2128,13 @@ function usgDerive(U) {
   });
   const cnt = (f) => list.filter(f).length;
   return {
-    U: U, days: days, list: list, byFreq: byFreq, nW: nW,
+    U: U, days: days, list: list, nW: nW,
     byUse: list.filter(r => r.disp_qty > 0).sort((a, b) => b.disp_qty - a.disp_qty),
-    n: { up: cnt(r => r.flag === 'up'), down: cnt(r => r.flag === 'down'), review: cnt(r => r.flag === 'review'), proc: cnt(r => r.proc) },
+    n: { exp: cnt(r => r.expBad), up: cnt(r => r.flag === 'up'), down: cnt(r => r.flag === 'down'), review: cnt(r => r.flag === 'review'), proc: cnt(r => r.proc) },
     rising: list.filter(r => r.rise).sort((a, b) => (b.last4 - b.prev4) - (a.last4 - a.prev4)),
   };
 }
-function usgPri(list) { return list.slice().sort((a, b) => USG_FLAG[a.flag].o - USG_FLAG[b.flag].o || (b.proc - a.proc) || (b.freq - a.freq) || b.disp_qty - a.disp_qty); }
+function usgPri(list) { return list.slice().sort((a, b) => USG_FLAG[a.flag].o - USG_FLAG[b.flag].o || (b.proc - a.proc) || (b.rise - a.rise) || b.disp_qty - a.disp_qty); }
 function usgSugg(r) {
   if (r.flag === 'review') return '<span class="pill p-amb">ตั้งขั้นต่ำก่อน</span>';
   if (r.flag === 'ok') return '<span class="lbl">' + r.target_qty + '</span>';
@@ -2136,32 +2151,30 @@ function rptStock() {
   h += '<div class="grid2 kpis4">' +
     kpi('ควรเพิ่ม', m.n.up, 'รายการ · เคยหมด/ใช้เกินเป้า', m.n.up ? 'var(--red)' : '') +
     kpi('ลดได้', m.n.down, 'รายการ · ไม่ต่ำกว่าขั้นต่ำ') +
-    kpi('ทบทวน', m.n.review, 'ใช้น้อย · ยังไม่ตั้งขั้นต่ำ') +
-    kpi('ตรวจกระบวนการ', m.n.proc, 'ยาหายไม่มีใบสั่ง ≥ ' + USG_RULE.procQty, m.n.proc ? 'var(--red)' : '') + '</div>';
+    kpi('หมดอายุบ่อย', m.n.exp, 'ทิ้ง/ถอน ≥ ที่ใช้จริง') +
+    kpi('ทบทวน', m.n.review, 'ใช้น้อย · ยังไม่ตั้งขั้นต่ำ') + '</div>';
   h += '<div class="rgrid">';
-  h += '<section class="card"><span class="h">Top 10 อัตราการเติม</span><span class="lbl" style="margin-top:-6px">จำนวนครั้งที่เติม ใน ' + m.days + ' วัน · มาก = ภาระงานเติมสูง</span>' +
-    hbars(m.byFreq.slice(0, 10).map(r => [r.name + (r.had ? ' (HAD)' : ''), r.restock_events])) + '</section>';
-  h += '<section class="card"><span class="h">Top 10 ใช้มากที่สุด</span><span class="lbl" style="margin-top:-6px">จำนวนที่จ่ายจากรถรวม (หน่วยของยา)</span>' +
+  h += '<section class="card"><span class="h">Top 10 ใช้มากที่สุด</span><span class="lbl" style="margin-top:-6px">จำนวนที่จ่ายจากรถรวม ใน ' + m.days + ' วัน (หน่วยของยา)</span>' +
     hbars(m.byUse.slice(0, 10).map(r => [r.name + (r.had ? ' (HAD)' : ''), r.disp_qty])) + '</section>';
-
-  const pri = usgPri(m.list);
-  const shown = USG.showAll ? pri : pri.filter(r => r.flag !== 'ok' || r.proc || r.freq || r.rise || r.nurse_miss_events);
-  h += '<section class="card span2"><div class="row" style="align-items:baseline;flex-wrap:wrap;gap:6px"><span class="h grow">ข้อเสนอปรับจำนวนในรถ</span>' +
-    '<button class="chip no-print' + (USG.showAll ? ' on' : '') + '" type="button" onclick="USG.showAll=!USG.showAll;renderReport()">' + (USG.showAll ? 'เฉพาะที่ต้องดู' : 'แสดงทั้งหมด ' + pri.length) + '</button></div>' +
-    (shown.length ? '<div class="usg">' + shown.map(r => '<div class="usg-r">' +
-        '<div class="grow"><b>' + esc(r.name) + '</b>' + (r.had ? '<span class="had">HAD</span>' : '') +
-        '<span class="chips" style="gap:4px;margin-top:4px">' + (r.flag !== 'ok' ? '<span class="pill ' + USG_FLAG[r.flag].c + '">' + USG_FLAG[r.flag].l + '</span>' : '') +
-        (r.freq ? '<span class="pill p-gry">เติมบ่อย</span>' : '') + (r.proc ? '<span class="pill p-red">ตรวจกระบวนการ</span>' : '') + (r.rise ? '<span class="pill p-amb">ใช้เพิ่มขึ้น</span>' : '') + '</span>' +
-        '<span class="lbl" style="display:block;margin-top:4px">เป้า ' + r.target_qty + (num(r.min_qty) > 0 ? ' · ขั้นต่ำ ' + r.min_qty : '') + ' · ใช้สูงสุด ' + r.peak_cycle + '/รอบ · เติม ' + r.restock_events + ' ครั้ง</span>' +
-        (r.why ? '<span class="lbl" style="display:block">' + esc(r.why) + '</span>' : '') + '</div>' +
-        '<div class="usg-s"><span class="lbl">แนะนำ</span>' + usgSugg(r) + '</div></div>').join('') +
-      '</div>' : '<div class="lbl">ไม่มียาที่ต้องปรับในช่วงนี้</div>') +
-    '<span class="lbl">ใช้สูงสุด/รอบ = จ่ายมากที่สุดก่อนเติมครั้งถัดไป · แนะนำ = ⌈ค่าที่ต้องใช้ × ' + USG_RULE.buffer + '⌉ และไม่ต่ำกว่าขั้นต่ำ · เป็นค่าเบื้องต้นให้ทีมพิจารณา</span></section>';
 
   h += '<section class="card"><span class="h">ใช้เพิ่มขึ้น</span><span class="lbl" style="margin-top:-6px">4 สัปดาห์ล่าสุด เทียบ 4 สัปดาห์ก่อนหน้า</span>' +
     (m.nW < 8 ? '<div class="lbl">ต้องดูช่วงอย่างน้อย 8 สัปดาห์ (เลือก 3 เดือน)</div>' : m.rising.length ?
       '<table class="tbl"><thead><tr><th>ยา</th><th>ก่อน</th><th>ล่าสุด</th></tr></thead><tbody>' + m.rising.slice(0, 8).map(r => '<tr><td class="l">' + esc(r.name) + '</td><td>' + r.prev4 + '</td><td><b>' + r.last4 + '</b></td></tr>').join('') + '</tbody></table>'
       : '<div class="lbl">ไม่มียาที่ใช้เพิ่มขึ้นชัดเจน</div>') + '</section>';
+
+  const pri = usgPri(m.list);
+  const shown = USG.showAll ? pri : pri.filter(r => r.flag !== 'ok' || r.proc || r.rise || r.expBad || r.nurse_miss_events);
+  h += '<section class="card span2"><div class="row" style="align-items:baseline;flex-wrap:wrap;gap:6px"><span class="h grow">ข้อเสนอปรับจำนวนในรถ</span>' +
+    '<button class="chip no-print' + (USG.showAll ? ' on' : '') + '" type="button" onclick="USG.showAll=!USG.showAll;renderReport()">' + (USG.showAll ? 'เฉพาะที่ต้องดู' : 'แสดงทั้งหมด ' + pri.length) + '</button></div>' +
+    (shown.length ? '<div class="usg">' + shown.map(r => '<div class="usg-r">' +
+        '<div class="grow"><b>' + esc(r.name) + '</b>' + (r.had ? '<span class="had">HAD</span>' : '') +
+        '<span class="chips" style="gap:4px;margin-top:4px">' + (r.flag !== 'ok' ? '<span class="pill ' + USG_FLAG[r.flag].c + '">' + USG_FLAG[r.flag].l + '</span>' : '') +
+        (r.expBad ? '<span class="pill p-amb">หมดอายุบ่อย</span>' : '') + (r.proc ? '<span class="pill p-red">ตรวจกระบวนการ</span>' : '') + (r.rise ? '<span class="pill p-amb">ใช้เพิ่มขึ้น</span>' : '') + '</span>' +
+        '<span class="lbl" style="display:block;margin-top:4px">เป้า ' + r.target_qty + (num(r.min_qty) > 0 ? ' · ขั้นต่ำ ' + r.min_qty : '') + ' · ใช้รวม ' + r.disp_qty + ' · ใช้สูงสุด ' + r.peak_cycle + '/รอบ</span>' +
+        (r.why ? '<span class="lbl" style="display:block">' + esc(r.why) + '</span>' : '') + '</div>' +
+        '<div class="usg-s"><span class="lbl">แนะนำ</span>' + usgSugg(r) + '</div></div>').join('') +
+      '</div>' : '<div class="lbl">ไม่มียาที่ต้องปรับในช่วงนี้</div>') +
+    '<span class="lbl">ใช้ = จ่ายจากรถ ไม่นับที่ออกตอนล็อตเหลืออายุ ≤ ' + (m.U.exp_out_days || 7) + ' วัน (นับเป็นทิ้ง/ถอน) · ใช้สูงสุด/รอบ = จ่ายมากที่สุดก่อนเติมครั้งถัดไป · แนะนำ = ⌈ค่าที่ต้องใช้ × ' + USG_RULE.buffer + '⌉ และไม่ต่ำกว่าขั้นต่ำ · เป็นค่าเบื้องต้นให้ทีมพิจารณา</span></section>';
 
   const H = m.U.hour || [], sh = [['เวรดึก 00–08', sum(H.slice(0, 8))], ['เวรเช้า 08–16', sum(H.slice(8, 16))], ['เวรบ่าย 16–24', sum(H.slice(16, 24))]];
   const dw = ['อา', 'จ', 'อ', 'พ', 'พฤ', 'ศ', 'ส'], D = m.U.dow || [], dmx = Math.max.apply(null, D.concat([1]));
@@ -2205,13 +2218,13 @@ function rptWorkbook(X) {
     ['ยาหายไม่มีใบสั่ง', m.missPharmQty, ''], ['พยาบาลแจ้งขาด', m.missNurseQty, ''],
     ['Med error', m.E.length, 'E ขึ้นไป ' + m.errEplus + ' · HAD ' + m.errHad],
     ['พยาบาลตรวจรถ (%)', m.nurseRate, m.days.filter(d => m.checkedDays.has(d)).length + ' จาก ' + m.days.length + ' วัน'],
-    ['ยาควรเพิ่มจำนวน', u.n.up, ''], ['ยาลดได้', u.n.down, ''], ['ยาที่ต้องทบทวน (ยังไม่ตั้งขั้นต่ำ)', u.n.review, ''], ['ยาที่ต้องตรวจกระบวนการ', u.n.proc, ''],
+    ['ยาควรเพิ่มจำนวน', u.n.up, ''], ['ยาลดได้', u.n.down, ''], ['ยาที่ต้องทบทวน (ยังไม่ตั้งขั้นต่ำ)', u.n.review, ''], ['ยาที่ต้องตรวจกระบวนการ', u.n.proc, ''], ['ยาหมดอายุบ่อย (ทิ้ง/ถอน ≥ ใช้)', u.n.exp, ''],
     ['สร้างเมื่อ', thDate(bkkToday()) + ' ' + bkkTime(), 'ER Med Cart'],
   ], [34, 26, 30]);
-  add('ยา & Stock', [['รหัส', 'ยา', 'หน่วย', 'ที่เก็บ', 'ตำแหน่ง', 'HAD', 'เป้าหมาย', 'ขั้นต่ำ', 'คงเหลือ', 'จ่ายรวม', 'จ่าย (ครั้ง)', 'วันที่มีการใช้', 'ใช้สูงสุด/วัน', 'วันที่ใช้สูงสุด', 'ใช้สูงสุด/รอบเติม', 'เติม (ครั้ง)', 'เติม (จำนวน)', 'หมดในระบบ (ครั้ง)', 'พยาบาลแจ้งขาด (ครั้ง)', 'ถอนออก (จำนวน)', 'ยาหายไม่มีใบสั่ง', 'ใช้ล่าสุด', 'คำแนะนำ', 'แนะนำจำนวน', 'เติมบ่อย', 'ใช้เพิ่มขึ้น', 'เหตุผล']]
+  add('ยา & Stock', [['รหัส', 'ยา', 'หน่วย', 'ที่เก็บ', 'ตำแหน่ง', 'HAD', 'เป้าหมาย', 'ขั้นต่ำ', 'คงเหลือ', 'จ่ายรวม', 'จ่าย (ครั้ง)', 'วันที่มีการใช้', 'ใช้สูงสุด/วัน', 'วันที่ใช้สูงสุด', 'ใช้สูงสุด/รอบเติม', 'หมดในระบบ (ครั้ง)', 'พยาบาลแจ้งขาด (ครั้ง)', 'ถอนออก (จำนวน)', 'ออกตอนใกล้หมดอายุ (จำนวน)', 'ทิ้ง/ถอนรวม', 'หมดอายุบ่อย', 'ยาหายไม่มีใบสั่ง', 'ใช้ล่าสุด', 'คำแนะนำ', 'แนะนำจำนวน', 'ใช้เพิ่มขึ้น', 'เหตุผล']]
     .concat(usgPri(u.list).map(r => [r.drug_id, r.name, r.unit, r.location, r.cart_pos, r.had ? 'HAD' : '', r.target_qty, num(r.min_qty) > 0 ? r.min_qty : '', r.balance, r.disp_qty, r.disp_events, r.use_days, r.peak_day, r.peak_day_date ? xDate(r.peak_day_date) : '', r.peak_cycle,
-      r.restock_events, r.restock_qty, r.stockouts, r.nurse_miss_events, r.withdraw_qty, r.norx_qty, r.last_used ? xDate(r.last_used) : '', USG_FLAG[r.flag].l, r.suggest == null ? '' : r.suggest, r.freq ? 'ใช่' : '', r.rise ? 'ใช่' : '', r.why])),
-    [7, 30, 7, 10, 9, 5, 9, 8, 9, 8, 9, 10, 10, 12, 12, 9, 10, 12, 14, 11, 12, 12, 10, 10, 8, 9, 44]);
+      r.stockouts, r.nurse_miss_events, r.withdraw_qty, num(r.expout_qty), r.waste, r.expBad ? 'ใช่' : '', r.norx_qty, r.last_used ? xDate(r.last_used) : '', USG_FLAG[r.flag].l, r.suggest == null ? '' : r.suggest, r.rise ? 'ใช่' : '', r.why])),
+    [7, 30, 7, 10, 9, 5, 9, 8, 9, 8, 9, 10, 10, 12, 12, 12, 14, 11, 14, 11, 11, 12, 12, 10, 10, 9, 44]);
   const W = USG.data.weeks || [];
   add('ใช้รายสัปดาห์', [['ยา', 'HAD'].concat(W.map(w => 'สัปดาห์ ' + thDateShort(w)), ['รวม'])]
     .concat(u.byUse.map(r => [r.name, r.had ? 'HAD' : ''].concat(r.weekly || [], [r.disp_qty]))), [30, 5].concat(W.map(() => 12), [8]));
