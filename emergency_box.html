@@ -1561,8 +1561,7 @@ body.light select option { background: #fff; color: #111; }
 
   <div class="tabs">
     <button class="tab-btn active" onclick="switchTab('inv')">📦 คลังยา</button>
-    <button class="tab-btn staff-only" onclick="switchTab('dis')">💊 นับ/จ่ายยา</button>
-    <button class="tab-btn staff-only" onclick="switchTab('ref')">➕ เติมยา</button>
+    <button class="tab-btn staff-only" onclick="switchTab('dis')">🧮 นับ + เติมยา</button>
   </div>
   <div class="sync-note" id="syncNote"></div>
 
@@ -1571,42 +1570,28 @@ body.light select option { background: #fff; color: #111; }
     <div id="drugList"><div style="text-align:center;padding:40px;color:var(--muted)">กำลังโหลด...</div></div>
   </div>
 
-  <!-- Dispense -->
+  <!-- นับ + เติม -->
   <div id="panel-dis" class="tab-panel">
-    <div class="form-row">
-      <div class="form-group"><label>HN <span class="opt">(ต้องใส่ถ้ามีการใช้กับผู้ป่วย)</span></label><input type="text" id="dHN" inputmode="numeric" placeholder="HN ผู้ป่วย" autocomplete="off"></div>
-      <div class="form-group"><label>ชื่อผู้ป่วย <span class="opt">(ไม่บังคับ)</span></label><input type="text" id="dName" placeholder="ชื่อ-นามสกุล" autocomplete="off"></div>
+    <div class="form-group">
+      <label>ผู้บันทึก <span class="req">*</span></label>
+      <select id="dStaff" class="staff-select" onchange="rememberStaff(this.value)"></select>
     </div>
-    <div class="form-row">
+    <div id="patientBox" style="display:none;background:var(--surface);border:1px solid var(--accent);border-radius:14px;padding:12px 14px 2px;margin-bottom:14px">
+      <div style="font-size:12px;font-weight:700;color:var(--accent);margin-bottom:8px">มียาที่ใช้กับผู้ป่วย — ใส่ข้อมูลผู้ป่วย</div>
+      <div class="form-row">
+        <div class="form-group"><label>HN <span class="req">*</span></label><input type="text" id="dHN" inputmode="numeric" placeholder="HN ผู้ป่วย" autocomplete="off"></div>
+        <div class="form-group"><label>ชื่อผู้ป่วย <span class="opt">(ไม่บังคับ)</span></label><input type="text" id="dName" placeholder="ชื่อ-นามสกุล" autocomplete="off"></div>
+      </div>
       <div class="form-group">
-        <label>ผู้ป่วย</label>
         <div class="ward-toggle">
           <button class="ward-btn er"  onclick="selectWard('ER')">ER</button>
           <button class="ward-btn ipd" onclick="selectWard('IPD')">IPD</button>
         </div>
       </div>
-      <div class="form-group">
-        <label>ผู้บันทึก <span class="req">*</span></label>
-        <select id="dStaff" class="staff-select" onchange="rememberStaff(this.value)"></select>
-      </div>
     </div>
-    <div class="section-label">นับยาที่เหลือในซอง <span class="hint">ตัวเลขตั้งต้น = ที่ระบบมี · ตัวไหนเหลือน้อยกว่า กด −</span></div>
-    <input type="search" id="dSearch" class="search-input" placeholder="ค้นหายา…" oninput="renderDispenseList()">
+    <div class="section-label">นับยาที่เหลือ แล้วเติมในการ์ดเดียวกัน <span class="hint">ตัวเลขตั้งต้น = ที่ระบบมี · เหลือน้อยกว่าให้กด −</span></div>
+    <input type="search" id="dSearch" class="search-input" placeholder="ค้นหายา…" oninput="renderWork()">
     <div id="dispenseList"></div>
-  </div>
-
-  <!-- Refill -->
-  <div id="panel-ref" class="tab-panel">
-    <div class="form-group">
-      <label>ผู้เติม <span class="req">*</span></label>
-      <select id="rStaff" class="staff-select" onchange="rememberStaff(this.value)"></select>
-    </div>
-    <div class="section-label">ยาที่ต้องเติม <span class="hint">แตะ Lot ที่ตรงกับข้างกล่องยา — ถ้าไม่มี กด "Lot ใหม่"</span></div>
-    <div id="refillCards"></div>
-    <div class="refill-add-row">
-      <select id="rAddDrug"><option value="">+ เติมยาอื่น (ที่ไม่ได้ขาด)…</option></select>
-      <button class="btn-secondary" onclick="addRefillCardFromSelect()">เพิ่ม</button>
-    </div>
   </div>
 
   <div class="bottom-action">
@@ -2193,7 +2178,7 @@ function goToDashboard(category) {
 }
 
 function goToDetail(boxId) {
-  if (boxId !== currentBoxId) { resetDispenseForm(); refillCards = []; }
+  if (boxId !== currentBoxId) resetDispenseForm();
   currentBoxId = boxId;
   goToPage('page-detail');
   switchTab('inv');
@@ -2406,8 +2391,7 @@ async function loadDetail(force = false) {
     setDetailHeader();
     renderInventory();
     // ไม่ล้างฟอร์มที่กำลังกรอกอยู่ — อัปเดตเฉพาะเมื่ออยู่หน้าคลังยา
-    if (currentTab === 'dis' && !dispenseHasInput()) renderDispenseList();
-    if (currentTab === 'ref' && !refillHasInput()) initRefill();
+    if (currentTab === 'dis' && !workHasInput()) initWork();
     setSyncNote('อัปเดตล่าสุด ' + new Date().toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit' }));
   } catch(e) {
     if (!mem) document.getElementById('drugList').innerHTML = '<div style="text-align:center;padding:40px;color:var(--muted)">ไม่สามารถโหลดได้</div>';
@@ -2474,41 +2458,43 @@ function toggleLots(id) { document.getElementById(id).classList.toggle('open'); 
 function switchTab(tab) {
   if ((tab === 'dis' || tab === 'ref') && !isStaff) { requireAuth(() => switchTab(tab)); return; }
   currentTab = tab;
-  document.querySelectorAll('.tab-btn').forEach((b, i) => b.classList.toggle('active', ['inv','dis','ref'][i] === tab));
+  if (tab === 'ref') tab = 'dis';
+  currentTab = tab;
+  document.querySelectorAll('.tab-btn').forEach((b, i) => b.classList.toggle('active', ['inv','dis'][i] === tab));
   document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
   document.getElementById(`panel-${tab}`).classList.add('active');
   updateActionBtn();
   if (tab === 'dis') renderDispenseList();
-  if (tab === 'ref' && !refillHasInput()) initRefill();
 }
 
 function updateActionBtn() {
   const btn = document.getElementById('detailActionBtn');
   if (currentTab === 'inv') { btn.textContent = '🔄 รีเฟรช'; btn.className = 'btn-primary full'; }
   if (currentTab === 'dis') {
-    const n = dispenseItems().reduce((s, it) => s + it.qty, 0);
-    btn.textContent = n ? `💊 บันทึก (หายไป ${n} หน่วย)` : '💊 บันทึก';
-    btn.className = 'btn-primary full';
-  }
-  if (currentTab === 'ref') {
-    const n = refillCards.filter(c => cardState(c).ready).length;
-    btn.textContent = n ? `✅ บันทึกการเติม (${n} รายการ)` : '✅ บันทึกการเติม';
+    const used = dispenseItems().reduce((s, it) => s + it.qty, 0);
+    const ref = refillCards.filter(c => cardState(c).ready).reduce((s, c) => s + c.qty, 0);
+    const parts = [used && `หายไป ${used}`, ref && `เติม ${ref}`].filter(Boolean);
+    btn.textContent = parts.length ? `✅ บันทึก (${parts.join(' · ')})` : '✅ บันทึก';
     btn.className = 'btn-primary full success';
+    updatePatientBox();
   }
 }
 
 function handleDetailAction() {
   if (currentTab === 'inv') return loadDetail(true);
-  if (currentTab === 'dis') return submitDispense();
-  if (currentTab === 'ref') return submitRefill();
+  if (currentTab === 'dis') return submitWork();
 }
 
 // ============================================================
-// DISPENSE — นับยาที่เหลือในซอง แล้วระบบคิดว่าหายไปเท่าไร
-//   หายไป = ใช้กับผู้ป่วย (ค่าตั้งต้น) + หักแล้วไม่ได้ใช้/แตก
+// นับ + เติมยา (หน้าเดียว)
+//   1) นับยาที่เหลือในซองทีละ lot → ระบบคิดว่าหายไปเท่าไร (ใช้กับผู้ป่วย / หักแล้วไม่ได้ใช้)
+//   2) ระบบคิดว่าต้องเติมเท่าไร → แตะ lot ที่เคยเติม หรือกรอก lot/EXP ใหม่
+//   3) บันทึกครั้งเดียว (action: countRefill)
 // ============================================================
 let countLeft = {};   // "drugIdx|lotKey" → จำนวนที่นับได้
 let wasteN    = {};   // "drugIdx|lotKey" → จำนวนที่หักแล้วไม่ได้ใช้
+let refillCards = [];
+let cardSeq = 0;
 
 function selectWard(type) {
   selectedWard = type;
@@ -2518,230 +2504,119 @@ function selectWard(type) {
 
 function usableLots(drug) { return drug.lots.filter(l => l.qty > 0 && lotStatus(l) !== 'expired'); }
 function cKey(idx, lot) { return `${idx}|${lotKey(lot)}`; }
-function missingOf(idx, lot) {
-  const k = cKey(idx, lot);
-  return k in countLeft ? Math.max(0, lot.qty - countLeft[k]) : 0;
+function leftOf(idx, lot) { const k = cKey(idx, lot); return k in countLeft ? countLeft[k] : lot.qty; }
+function missingOf(idx, lot) { return Math.max(0, lot.qty - leftOf(idx, lot)); }
+function needOf(idx) {
+  const d = boxData.drugs[idx];
+  const left = usableLots(d).reduce((s, l) => s + leftOf(idx, l), 0);
+  return Math.max(0, (Number(d.max_qty) || 0) - left);
 }
-function dispenseHasInput() { return dispenseItems().length > 0; }
+function workHasInput() { return dispenseItems().length > 0 || refillCards.some(c => c.sel !== null || c.manual); }
+function dispenseHasInput() { return workHasInput(); }
+function refillHasInput() { return workHasInput(); }
 
-function renderDispenseList() {
+// ── การ์ดเติมยา ──
+function newCard(idx, qty) { return { id: ++cardSeq, idx, qty: Math.max(1, qty || 1), sel: null, lot: '', dd: '', mm: '', yy: '', ack: false, manual: false }; }
+function cardDrug(c) { return boxData?.drugs?.[c.idx]; }
+function cardsOf(idx) { return refillCards.filter(c => c.idx === idx); }
+
+// ให้การ์ดเติมตามจำนวนที่ขาดเสมอ (ถ้าผู้ใช้ยังไม่ได้แก้จำนวนเอง)
+function syncCards(idx) {
+  const need = needOf(idx), cards = cardsOf(idx);
+  if (!cards.length) { if (need > 0) refillCards.push(newCard(idx, need)); return; }
+  if (cards.length === 1 && !cards[0].manual) {
+    if (need > 0) cards[0].qty = need;
+    else if (cards[0].sel === null) refillCards = refillCards.filter(c => c !== cards[0]);
+  }
+}
+
+function initWork() {
+  countLeft = {}; wasteN = {}; refillCards = [];
+  (boxData?.drugs || []).forEach((d, idx) => syncCards(idx));
+  renderWork();
+}
+// ชื่อเดิม — loadDetail/switchTab เรียกใช้
+function renderDispenseList() { if (!workHasInput()) initWork(); else renderWork(); }
+function initRefill() { initWork(); }
+
+function renderWork() {
   const el = document.getElementById('dispenseList');
-  if (!el) return;
+  if (!el || !boxData) return;
   const q = (document.getElementById('dSearch').value || '').trim().toLowerCase();
-  const drugs = (boxData?.drugs || []).map((d, idx) => ({ d, idx }))
-    .filter(x => usableLots(x.d).length)
-    .sort((a, b) => a.d.drug_name.localeCompare(b.d.drug_name));
-  const expiredN = (boxData?.drugs || []).reduce((s, d) => s + d.lots.filter(l => lotStatus(l) === 'expired' && l.qty > 0).length, 0);
+  const expiredN = boxData.drugs.reduce((s, d) => s + d.lots.filter(l => lotStatus(l) === 'expired' && l.qty > 0).length, 0);
   let html = expiredN
-    ? `<div class="d-row" style="border-color:var(--critical);cursor:pointer" onclick="switchTab('inv')"><div class="d-main"><div class="d-name" style="color:var(--critical)">มี lot หมดอายุ ${expiredN} lot</div><div class="d-sub">ไม่ต้องนับในหน้านี้ — กดเพื่อไปถอนในหน้าคลังยา</div></div></div>` : '';
-  if (!drugs.length) { el.innerHTML = html + '<div style="color:var(--muted);font-size:13px;padding:12px">ไม่มียาในกล่อง</div>'; return; }
-  html += drugs.map(({ d, idx }) => {
-    const touched = usableLots(d).some(l => missingOf(idx, l) > 0);
+    ? `<div class="d-row" style="border-color:var(--critical);cursor:pointer" onclick="switchTab('inv')"><div class="d-main"><div class="d-name" style="color:var(--critical)">มี lot หมดอายุ ${expiredN} lot</div><div class="d-sub">ไม่นับในหน้านี้ — กดเพื่อไปถอนในหน้าคลังยา</div></div></div>` : '';
+  const order = boxData.drugs.map((d, idx) => ({ d, idx })).sort((a, b) => a.d.drug_name.localeCompare(b.d.drug_name));
+  html += order.map(({ d, idx }) => {
+    const touched = usableLots(d).some(l => missingOf(idx, l) > 0) || cardsOf(idx).some(c => c.sel !== null);
     if (q && !d.drug_name.toLowerCase().includes(q) && !touched) return '';
-    return countRowHtml(d, idx);
+    return blockHtml(idx);
   }).join('');
   el.innerHTML = html;
   updateActionBtn();
 }
 
-function countRowHtml(d, idx) {
+function blockHtml(idx) {
+  const d = boxData.drugs[idx];
   const lots = usableLots(d);
+  const need = needOf(idx), cards = cardsOf(idx);
   const anyMissing = lots.some(l => missingOf(idx, l) > 0);
+  const st = cards.map(cardState);
+  const cls = st.some(s => !s.skip && !s.ready) ? ' bad' : (cards.length && st.every(s => s.ready)) ? ' ready' : '';
   return `
-    <div class="d-row${anyMissing ? ' picked' : ''}${isHadDrug(d) ? ' had' : ''}" id="crow-${idx}" style="display:block">
-      <div class="d-name">${isHadDrug(d) ? '<span class="had-badge">HAD</span> ' : ''}${esc(d.drug_name)}</div>
-      ${lots.map((l, li) => {
-        const k = cKey(idx, l), left = k in countLeft ? countLeft[k] : l.qty, miss = l.qty - left;
-        const w = Math.min(wasteN[k] || 0, miss), use = miss - w;
-        const s = lotStatus(l), subCls = s === 'critical' ? 'crit' : s === 'warning' ? 'warn' : '';
-        return `
-        <div style="display:flex;align-items:center;gap:10px;margin-top:8px">
-          <div class="d-main">
-            <div class="d-sub ${subCls}">LOT ${esc(l.lot)} · EXP ${toBE(l.exp_date)}</div>
-            <div class="d-sub">ระบบมี ${l.qty} ${esc(d.unit)}${miss ? ` · <b style="color:var(--critical)">หายไป ${miss}</b>` : ''}</div>
-          </div>
-          <div style="text-align:center">
-            <div style="font-size:10px;color:var(--muted);margin-bottom:2px">นับได้</div>
-            <div class="stepper">
-              <button onclick="stepCount(${idx},${li},-1)" ${left > 0 ? '' : 'disabled'}>−</button>
-              <div class="num" style="${miss ? 'color:var(--critical)' : ''}">${left}</div>
-              <button class="plus" onclick="stepCount(${idx},${li},1)" ${left < l.qty ? '' : 'disabled'}>+</button>
-            </div>
-          </div>
-        </div>
-        ${miss ? `
-        <div class="chips" style="margin-top:6px;align-items:center">
-          <span style="font-size:12px;color:var(--muted)">หายไป ${miss} เพราะ:</span>
-          <span class="chip sm${use ? ' on' : ''}" style="cursor:default">ใช้กับผู้ป่วย <b>${use}</b></span>
-          <span class="chip sm" style="cursor:default;${w ? 'background:#FEF3C7;border-color:#F59E0B;color:#92400E' : ''}">หักแล้วไม่ได้ใช้ <b>${w}</b></span>
-          <span class="stepper" style="gap:2px">
-            <button style="width:30px;height:30px;font-size:16px" onclick="stepWaste(${idx},${li},-1)" ${w > 0 ? '' : 'disabled'}>−</button>
-            <button style="width:30px;height:30px;font-size:16px" onclick="stepWaste(${idx},${li},1)" ${w < miss ? '' : 'disabled'}>+</button>
-          </span>
-        </div>` : ''}`;
-      }).join('')}
-    </div>`;
-}
-
-function refreshCountRow(idx) {
-  const row = document.getElementById('crow-' + idx);
-  if (row) row.outerHTML = countRowHtml(boxData.drugs[idx], idx);
-  updateActionBtn();
-}
-function stepCount(idx, li, delta) {
-  const l = usableLots(boxData.drugs[idx])[li]; if (!l) return;
-  const k = cKey(idx, l);
-  const cur = k in countLeft ? countLeft[k] : l.qty;
-  countLeft[k] = Math.max(0, Math.min(l.qty, cur + delta));
-  if (countLeft[k] === l.qty) { delete countLeft[k]; delete wasteN[k]; }
-  else wasteN[k] = Math.min(wasteN[k] || 0, l.qty - countLeft[k]);
-  refreshCountRow(idx);
-}
-function stepWaste(idx, li, delta) {
-  const l = usableLots(boxData.drugs[idx])[li]; if (!l) return;
-  const k = cKey(idx, l), miss = missingOf(idx, l);
-  wasteN[k] = Math.max(0, Math.min(miss, (wasteN[k] || 0) + delta));
-  refreshCountRow(idx);
-}
-
-function dispenseItems() {
-  const items = [];
-  (boxData?.drugs || []).forEach((d, idx) => usableLots(d).forEach(l => {
-    const miss = missingOf(idx, l); if (!miss) return;
-    const w = Math.min(wasteN[cKey(idx, l)] || 0, miss), use = miss - w;
-    if (use) items.push({ drug_name: d.drug_name, lot: l.lot, exp_date: l.exp_date, qty: use, reason: 'use' });
-    if (w)   items.push({ drug_name: d.drug_name, lot: l.lot, exp_date: l.exp_date, qty: w,   reason: 'waste' });
-  }));
-  return items;
-}
-
-let confirmAction = null;
-function openConfirm(title, sub, html, okLabel, onOk) {
-  document.getElementById('popupTitle').textContent = title;
-  document.getElementById('popupPatient').textContent = sub;
-  document.getElementById('popupSummaryBox').innerHTML = html;
-  const b = document.getElementById('popupConfirmBtn');
-  b.textContent = okLabel; b.disabled = false;
-  confirmAction = onOk;
-  document.getElementById('popupDispense').classList.add('show');
-}
-async function runConfirm() {
-  if (!confirmAction) return;
-  const b = document.getElementById('popupConfirmBtn');
-  const label = b.textContent;
-  b.textContent = 'กำลังบันทึก...'; b.disabled = true;
-  try { await confirmAction(); }
-  finally { b.textContent = label; b.disabled = false; }
-}
-
-function submitDispense() {
-  const HN    = document.getElementById('dHN').value.trim();
-  const name  = document.getElementById('dName').value.trim();
-  const staff = document.getElementById('dStaff').value.trim();
-  const items = dispenseItems();
-  if (!items.length) return showToast('ยอดที่นับตรงกับระบบทุกตัว — ไม่มีอะไรต้องบันทึก', 'err');
-  const hasUse = items.some(it => it.reason === 'use');
-  const miss = [hasUse && !HN && 'HN', hasUse && !selectedWard && 'ER/IPD', !staff && 'ผู้บันทึก'].filter(Boolean);
-  if (miss.length) return showToast('ยังไม่ได้ใส่: ' + miss.join(', '), 'err');
-
-  const payload = { action: 'dispense', box_id: currentBoxId, HN, patient_name: name, ward_type: hasUse ? selectedWard : '', dispensed_by: staff, items };
-  const byDrug = {};
-  items.forEach(it => { (byDrug[it.drug_name] = byDrug[it.drug_name] || { use: 0, waste: 0 })[it.reason] += it.qty; });
-  const html = Object.entries(byDrug).map(([dn, v]) => {
-    const d = boxData.drugs.find(x => x.drug_name === dn);
-    const after = d ? usableLots(d).reduce((s, l) => s + l.qty, 0) - v.use - v.waste : 0;
-    const need = d ? Math.max(0, d.max_qty - after) : 0;
-    return `<div class="summary-row"><span>${esc(dn)}</span>
-      <span>${v.use ? `ใช้ ${v.use}` : ''}${v.use && v.waste ? ' · ' : ''}${v.waste ? `<span style="color:#B45309">หักทิ้ง ${v.waste}</span>` : ''}${need ? ` → <strong>ต้องเติม ${need}</strong>` : ''}</span></div>`;
-  }).join('');
-  const sub = hasUse ? `HN ${HN}${name ? ' · ' + name : ''} · ${selectedWard} · ${staff}` : `หักแล้วไม่ได้ใช้ (ไม่ได้ใช้กับผู้ป่วย) · ${staff}`;
-  openConfirm('ยืนยันยอดที่นับ', sub, html, '✓ ยืนยัน', async () => {
-    try {
-      const data = await apiPost(payload);
-      if (!data.success) return showToast('บันทึกไม่สำเร็จ: ' + (data.error || ''), 'err');
-      closePopup();
-      resetDispenseForm();
-      showToast('บันทึกแล้ว', 'ok');
-      if (!applyInventory(data.inventory)) await loadDetail(true);
-      switchTab('inv');
-    } catch(e) { showToast('เชื่อมต่อไม่ได้ — ยังไม่ได้บันทึก ลองใหม่อีกครั้ง', 'err'); }
-  });
-}
-
-function resetDispenseForm() {
-  document.getElementById('dHN').value = '';
-  document.getElementById('dName').value = '';
-  document.getElementById('dSearch').value = '';
-  selectedWard = '';
-  document.querySelectorAll('.ward-btn').forEach(b => b.classList.remove('active'));
-  countLeft = {}; wasteN = {};
-}
-
-// ============================================================
-// REFILL — การ์ดยาที่ขาด + ปุ่ม lot ที่เคยเติม, lot ใหม่ตรวจซ้ำก่อนบันทึก
-// ============================================================
-let refillCards = [];
-let cardSeq = 0;
-
-function newCard(drug, qty) {
-  return { id: ++cardSeq, drug: drug.drug_name, qty: Math.max(1, qty || 1), sel: null, lot: '', dd: '', mm: '', yy: '', ack: false };
-}
-function cardDrug(c) { return (boxData?.drugs || []).find(d => d.drug_name === c.drug); }
-function refillHasInput() { return refillCards.some(c => c.sel !== null); }
-
-function initRefill() {
-  refillCards = (boxData?.drugs || []).filter(d => d.refill_qty > 0).map(d => newCard(d, d.refill_qty));
-  renderRefill();
-}
-
-// สถานะของการ์ด: ready = บันทึกได้, msg = ข้อความ, level
-function cardState(c) {
-  const d = cardDrug(c);
-  if (!d || c.sel === null) return { ready: false, skip: true };
-  let lot, ymd, notes = [];
-  if (c.sel === 'new') {
-    lot = normLot(c.lot);
-    const p = parseExp(c.dd, c.mm, c.yy);
-    if (!lot) return { ready: false, level: 'err', msgs: ['ใส่ Lot ตามข้างกล่อง/แอมป์'] };
-    if (p.empty) return { ready: false, level: 'err', msgs: ['ใส่เดือน/ปีที่หมดอายุ'] };
-    if (p.error) return { ready: false, level: 'err', msgs: [p.error] };
-    ymd = p.ymd; notes = p.notes;
-  } else {
-    const k = (d.known_lots || [])[c.sel];
-    if (!k) return { ready: false, skip: true };
-    lot = k.lot; ymd = k.exp_date;
-  }
-  const chk = c.sel === 'new' ? checkIncoming(d, lot, ymd) : checkIncoming({ known_lots: [] }, lot, ymd);
-  const ready = chk.level !== 'err' && (chk.level !== 'warn' || c.ack);
-  return { ready, lot, ymd, notes, level: chk.level, msgs: chk.msgs, fix: chk.fix, days: daysBetween(todayYMD(), ymd) };
-}
-
-function renderRefill() {
-  const el = document.getElementById('refillCards');
-  if (!el) return;
-  el.innerHTML = refillCards.length ? refillCards.map(cardHtml).join('')
-    : '<div class="r-empty">✓ ยาครบทุกรายการ — ถ้าจะเติมเพิ่ม เลือกยาด้านล่าง</div>';
-  const sel = document.getElementById('rAddDrug');
-  sel.innerHTML = '<option value="">+ เติมยาอื่น…</option>' +
-    (boxData?.drugs || []).map((d, i) => `<option value="${i}">${esc(d.drug_name)}</option>`).join('');
-  updateActionBtn();
-}
-
-function cardHtml(c) {
-  const d = cardDrug(c);
-  if (!d) return '';
-  const st = cardState(c);
-  const known = d.known_lots || [];
-  const expiredLots = d.lots.filter(l => lotStatus(l) === 'expired');
-  const cls = st.ready ? ' ready' : (!st.skip && st.level === 'err') ? ' bad' : '';
-  return `
-  <div class="r-card${cls}${isHadDrug(d) ? ' had' : ''}" id="rc-${c.id}">
+  <div class="r-card${cls}${isHadDrug(d) ? ' had' : ''}" id="blk-${idx}">
     <div class="r-head">
       <div class="d-main">
         <div class="d-name">${isHadDrug(d) ? '<span class="had-badge">HAD</span> ' : ''}${esc(d.drug_name)}</div>
-        <div class="d-sub">มี ${d.total_qty}/${d.max_qty} ${esc(d.unit)}${d.refill_qty ? ` · ขาด ${d.refill_qty}` : ''}</div>
-        ${expiredLots.length ? `<div class="d-sub crit">มี lot หมดอายุค้าง ${expiredLots.length} lot — กด "ถอน" ในหน้าคลังยา</div>` : ''}
+        <div class="d-sub">ต้องมี ${d.max_qty} ${esc(d.unit)}${need ? ` · <b style="color:var(--warning)">ต้องเติม ${need}</b>` : ' · <span style="color:var(--ok)">ครบ</span>'}</div>
       </div>
+    </div>
+    ${lots.length ? lots.map((l, li) => countLotHtml(idx, l, li)).join('') : '<div class="d-sub" style="margin-top:6px">ไม่มียาในซอง</div>'}
+    ${cards.length ? `<div style="border-top:1px dashed var(--border);margin-top:10px;padding-top:8px">${cards.map(c => cardBodyHtml(c)).join('')}</div>` : ''}
+    <button class="r-split" onclick="addCard(${idx})">${cards.length ? '+ เติมจากอีก lot' : '+ เติมยานี้'}</button>
+  </div>`;
+}
+
+function countLotHtml(idx, l, li) {
+  const left = leftOf(idx, l), miss = l.qty - left;
+  const w = Math.min(wasteN[cKey(idx, l)] || 0, miss), use = miss - w;
+  const s = lotStatus(l), subCls = s === 'critical' ? 'crit' : s === 'warning' ? 'warn' : '';
+  return `
+    <div style="display:flex;align-items:center;gap:10px;margin-top:8px">
+      <div class="d-main">
+        <div class="d-sub ${subCls}">LOT ${esc(l.lot)} · EXP ${toBE(l.exp_date)}</div>
+        <div class="d-sub">ระบบมี ${l.qty}${miss ? ` · <b style="color:var(--critical)">หายไป ${miss}</b>` : ''}</div>
+      </div>
+      <div style="text-align:center">
+        <div style="font-size:10px;color:var(--muted);margin-bottom:2px">นับได้</div>
+        <div class="stepper">
+          <button onclick="stepCount(${idx},${li},-1)" ${left > 0 ? '' : 'disabled'}>−</button>
+          <div class="num" style="${miss ? 'color:var(--critical)' : ''}">${left}</div>
+          <button class="plus" onclick="stepCount(${idx},${li},1)" ${left < l.qty ? '' : 'disabled'}>+</button>
+        </div>
+      </div>
+    </div>
+    ${miss ? `
+    <div class="chips" style="margin-top:6px;align-items:center">
+      <span style="font-size:12px;color:var(--muted)">หายไปเพราะ:</span>
+      <span class="chip sm${use ? ' on' : ''}" style="cursor:default">ใช้กับผู้ป่วย <b>${use}</b></span>
+      <span class="chip sm" style="cursor:default;${w ? 'background:#FEF3C7;border-color:#F59E0B;color:#92400E' : ''}">หักแล้วไม่ได้ใช้ <b>${w}</b></span>
+      <span class="stepper" style="gap:2px">
+        <button style="width:30px;height:30px;font-size:16px" onclick="stepWaste(${idx},${li},-1)" ${w > 0 ? '' : 'disabled'}>−</button>
+        <button style="width:30px;height:30px;font-size:16px" onclick="stepWaste(${idx},${li},1)" ${w < miss ? '' : 'disabled'}>+</button>
+      </span>
+    </div>` : ''}`;
+}
+
+function cardBodyHtml(c) {
+  const d = cardDrug(c);
+  const st = cardState(c);
+  const known = d.known_lots || [];
+  return `
+  <div id="rc-${c.id}" style="margin-top:6px">
+    <div style="display:flex;align-items:center;gap:10px">
+      <div class="d-main"><div style="font-size:13px;font-weight:700;color:var(--text)">เติม</div>
+        <div class="d-sub">แตะ Lot ที่ตรงกับแอมป์ที่หยิบมาเติม</div></div>
       <div class="stepper">
         <button onclick="stepCard(${c.id},-1)" ${c.qty > 1 ? '' : 'disabled'}>−</button>
         <div class="num">${c.qty}</div>
@@ -2768,9 +2643,30 @@ function cardHtml(c) {
           </div></div>
       </div>` : ''}
     <div class="r-check" id="rcc-${c.id}">${checkHtml(c, st)}</div>
-    ${c.sel === null ? '<div class="r-skip">ยังไม่ได้เลือก Lot — รายการนี้จะไม่ถูกบันทึก</div>' : ''}
-    <button class="r-split" onclick="splitCard(${c.id})">+ ยานี้มาจากอีก lot</button>
+    ${c.sel === null ? '<div class="r-skip">ยังไม่ได้เลือก Lot — ถ้าไม่เลือก รายการนี้จะไม่ถูกเติม</div>' : ''}
   </div>`;
+}
+
+// สถานะของการ์ด: ready = บันทึกได้
+function cardState(c) {
+  const d = cardDrug(c);
+  if (!d || c.sel === null) return { ready: false, skip: true };
+  let lot, ymd, notes = [];
+  if (c.sel === 'new') {
+    lot = normLot(c.lot);
+    const p = parseExp(c.dd, c.mm, c.yy);
+    if (!lot) return { ready: false, level: 'err', msgs: ['ใส่ Lot ตามข้างกล่อง/แอมป์'] };
+    if (p.empty) return { ready: false, level: 'err', msgs: ['ใส่เดือน/ปีที่หมดอายุ'] };
+    if (p.error) return { ready: false, level: 'err', msgs: [p.error] };
+    ymd = p.ymd; notes = p.notes;
+  } else {
+    const k = (d.known_lots || [])[c.sel];
+    if (!k) return { ready: false, skip: true };
+    lot = k.lot; ymd = k.exp_date;
+  }
+  const chk = c.sel === 'new' ? checkIncoming(d, lot, ymd) : checkIncoming({ known_lots: [] }, lot, ymd);
+  const ready = chk.level !== 'err' && (chk.level !== 'warn' || c.ack);
+  return { ready, lot, ymd, notes, level: chk.level, msgs: chk.msgs, fix: chk.fix, days: daysBetween(todayYMD(), ymd) };
 }
 
 function checkHtml(c, st) {
@@ -2780,21 +2676,35 @@ function checkHtml(c, st) {
   if (st.notes?.length) h += `<br><span style="color:var(--muted);font-size:12px">${esc(st.notes.join(' · '))}</span>`;
   (st.msgs || []).forEach(m => { h += `<br><span class="${st.level === 'err' ? 'err' : 'warn'}">${esc(m)}</span>`; });
   if (st.fix) h += ` <button onclick="applyFix(${c.id})">${esc(st.fix.label)}</button>`;
-  if (st.level === 'warn' && !st.fix) h += ` <button onclick="ackCard(${c.id})">${c.ack ? '✓ ยืนยันแล้ว' : 'ยืนยันว่าถูก'}</button>`;
-  else if (st.level === 'warn' && st.fix) h += ` <button onclick="ackCard(${c.id})">${c.ack ? '✓ ยืนยันแล้ว' : 'ของฉันถูกแล้ว'}</button>`;
+  if (st.level === 'warn') h += ` <button onclick="ackCard(${c.id})">${c.ack ? '✓ ยืนยันแล้ว' : (st.fix ? 'ของฉันถูกแล้ว' : 'ยืนยันว่าถูก')}</button>`;
   return h;
 }
 
 function findCard(id) { return refillCards.find(c => c.id === id); }
-function rerenderCard(c) {
-  const el = document.getElementById('rc-' + c.id);
-  if (el) el.outerHTML = cardHtml(c);
+function rerenderBlock(idx) {
+  const el = document.getElementById('blk-' + idx);
+  if (el) el.outerHTML = blockHtml(idx);
   updateActionBtn();
+}
+function stepCount(idx, li, delta) {
+  const l = usableLots(boxData.drugs[idx])[li]; if (!l) return;
+  const k = cKey(idx, l);
+  countLeft[k] = Math.max(0, Math.min(l.qty, leftOf(idx, l) + delta));
+  if (countLeft[k] === l.qty) { delete countLeft[k]; delete wasteN[k]; }
+  else wasteN[k] = Math.min(wasteN[k] || 0, l.qty - countLeft[k]);
+  syncCards(idx);
+  rerenderBlock(idx);
+}
+function stepWaste(idx, li, delta) {
+  const l = usableLots(boxData.drugs[idx])[li]; if (!l) return;
+  const k = cKey(idx, l);
+  wasteN[k] = Math.max(0, Math.min(missingOf(idx, l), (wasteN[k] || 0) + delta));
+  rerenderBlock(idx);
 }
 function pickLot(id, sel) {
   const c = findCard(id); if (!c) return;
   c.sel = c.sel === sel ? null : sel; c.ack = false;
-  rerenderCard(c);
+  rerenderBlock(c.idx);
   if (c.sel === 'new') document.querySelector(`#rc-${id} .lot-in`)?.focus();
 }
 function editCard(id, field, val, input) {
@@ -2802,72 +2712,135 @@ function editCard(id, field, val, input) {
   c[field] = field === 'lot' ? val : String(val).replace(/\D/g, '');
   c.ack = false;
   if (input && field === 'mm' && c.mm.length === 2) input.parentElement.querySelector('.yy')?.focus();
-  // อัปเดตเฉพาะกล่องตรวจ ไม่ re-render input (ไม่ให้เคอร์เซอร์หลุด)
-  const st = cardState(c);
-  document.getElementById('rcc-' + id).innerHTML = checkHtml(c, st);
-  document.getElementById('rc-' + id).className =
-    'r-card' + (st.ready ? ' ready' : (!st.skip && st.level === 'err') ? ' bad' : '') + (isHadDrug(cardDrug(c)) ? ' had' : '');
+  document.getElementById('rcc-' + id).innerHTML = checkHtml(c, cardState(c));   // ไม่ re-render input
   updateActionBtn();
 }
 function applyFix(id) {
   const c = findCard(id); const st = cardState(c);
   if (!st.fix) return;
-  const d = cardDrug(c);
-  const i = (d.known_lots || []).findIndex(k => k.lot === st.fix.lot && k.exp_date === st.fix.exp_date);
+  const i = (cardDrug(c).known_lots || []).findIndex(k => k.lot === st.fix.lot && k.exp_date === st.fix.exp_date);
   if (i >= 0) { c.sel = i; c.ack = false; }
-  rerenderCard(c);
+  rerenderBlock(c.idx);
 }
-function ackCard(id) { const c = findCard(id); c.ack = !c.ack; rerenderCard(c); }
-function stepCard(id, delta) { const c = findCard(id); c.qty = Math.max(1, c.qty + delta); rerenderCard(c); }
-function removeCard(id) { refillCards = refillCards.filter(c => c.id !== id); renderRefill(); }
-function splitCard(id) {
-  const c = findCard(id); const d = cardDrug(c);
-  const n = newCard(d, 1);
-  if (c.qty > 1) c.qty -= 1;
-  refillCards.splice(refillCards.indexOf(c) + 1, 0, n);
-  renderRefill();
-}
-function addRefillCardFromSelect() {
-  const sel = document.getElementById('rAddDrug');
-  const d = (boxData?.drugs || [])[Number(sel.value)];
-  if (sel.value === '' || !d) return;
-  refillCards.push(newCard(d, Math.max(1, d.refill_qty)));
-  renderRefill();
-  document.getElementById('rc-' + cardSeq)?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+function ackCard(id) { const c = findCard(id); c.ack = !c.ack; rerenderBlock(c.idx); }
+function stepCard(id, delta) { const c = findCard(id); c.qty = Math.max(1, c.qty + delta); c.manual = true; rerenderBlock(c.idx); }
+function removeCard(id) { const c = findCard(id); refillCards = refillCards.filter(x => x !== c); rerenderBlock(c.idx); }
+function addCard(idx) {
+  const cards = cardsOf(idx);
+  const n = newCard(idx, cards.length ? 1 : Math.max(1, needOf(idx)));
+  n.manual = true;
+  if (cards.length === 1 && cards[0].qty > 1) { cards[0].qty -= 1; cards[0].manual = true; }
+  refillCards.splice(cards.length ? refillCards.indexOf(cards[cards.length - 1]) + 1 : refillCards.length, 0, n);
+  rerenderBlock(idx);
 }
 
-function submitRefill() {
-  const staff = document.getElementById('rStaff').value.trim();
-  if (!staff) return showToast('ยังไม่ได้เลือกผู้เติม', 'err');
-  const states = refillCards.map(c => ({ c, st: cardState(c) })).filter(x => !x.st.skip);
-  if (!states.length) return showToast('ยังไม่ได้เลือก Lot ของยาที่เติม', 'err');
-  const bad = states.find(x => !x.st.ready);
+function dispenseItems() {
+  const items = [];
+  (boxData?.drugs || []).forEach((d, idx) => usableLots(d).forEach(l => {
+    const miss = missingOf(idx, l); if (!miss) return;
+    const w = Math.min(wasteN[cKey(idx, l)] || 0, miss), use = miss - w;
+    if (use) items.push({ drug_name: d.drug_name, lot: l.lot, exp_date: l.exp_date, qty: use, reason: 'use' });
+    if (w)   items.push({ drug_name: d.drug_name, lot: l.lot, exp_date: l.exp_date, qty: w,   reason: 'waste' });
+  }));
+  return items;
+}
+
+function updatePatientBox() {
+  const hasUse = dispenseItems().some(it => it.reason === 'use');
+  const box = document.getElementById('patientBox');
+  if (box) box.style.display = hasUse ? '' : 'none';
+}
+
+let confirmAction = null;
+function openConfirm(title, sub, html, okLabel, onOk) {
+  document.getElementById('popupTitle').textContent = title;
+  document.getElementById('popupPatient').textContent = sub;
+  document.getElementById('popupSummaryBox').innerHTML = html;
+  const b = document.getElementById('popupConfirmBtn');
+  b.textContent = okLabel; b.disabled = false;
+  confirmAction = onOk;
+  document.getElementById('popupDispense').classList.add('show');
+}
+async function runConfirm() {
+  if (!confirmAction) return;
+  const b = document.getElementById('popupConfirmBtn');
+  const label = b.textContent;
+  b.textContent = 'กำลังบันทึก...'; b.disabled = true;
+  try { await confirmAction(); }
+  finally { b.textContent = label; b.disabled = false; }
+}
+
+function submitWork() {
+  const HN    = document.getElementById('dHN').value.trim();
+  const name  = document.getElementById('dName').value.trim();
+  const staff = document.getElementById('dStaff').value.trim();
+  const used  = dispenseItems();
+  const hasUse = used.some(it => it.reason === 'use');
+  const states = refillCards.map(c => ({ c, st: cardState(c) }));
+  const chosen = states.filter(x => !x.st.skip);
+  const skipped = [...new Set(states.filter(x => x.st.skip).map(x => cardDrug(x.c).drug_name))];
+
+  if (!used.length && !chosen.length) {
+    if (skipped.length) return showToast('ยังไม่ได้เลือก Lot ของยาที่จะเติม', 'err');
+    return showToast('ยอดตรงและยาครบทุกตัว — ไม่มีอะไรต้องบันทึก', 'ok');
+  }
+  const miss = [hasUse && !HN && 'HN', hasUse && !selectedWard && 'ER/IPD', !staff && 'ผู้บันทึก'].filter(Boolean);
+  if (miss.length) { document.getElementById('panel-dis').scrollIntoView({ behavior: 'smooth' }); return showToast('ยังไม่ได้ใส่: ' + miss.join(', '), 'err'); }
+  const bad = chosen.find(x => !x.st.ready);
   if (bad) {
     document.getElementById('rc-' + bad.c.id)?.scrollIntoView({ behavior: 'smooth', block: 'center' });
-    return showToast(`${bad.c.drug}: ${bad.st.level === 'warn' ? 'กดยืนยันข้อความเตือนก่อน' : (bad.st.msgs?.[0] || 'ข้อมูลไม่ครบ')}`, 'err');
+    return showToast(`${cardDrug(bad.c).drug_name}: ${bad.st.level === 'warn' ? 'กดยืนยันข้อความเตือนก่อน' : (bad.st.msgs?.[0] || 'ข้อมูลไม่ครบ')}`, 'err');
   }
-  const items = states.map(({ c, st }) => ({ drug_name: c.drug, lot: st.lot, exp_date: st.ymd, qty: c.qty }));
+  const refill = chosen.map(({ c, st }) => ({ drug_name: cardDrug(c).drug_name, lot: st.lot, exp_date: st.ymd, qty: c.qty }));
 
-  // อ่านทวนตัวใหญ่ — ให้เทียบกับข้างกล่องยาอีกรอบก่อนบันทึก
-  const html = states.map(({ c, st }) => `
-    <div class="rb-row">
-      <span class="rb-qty">+${c.qty}</span>
-      <div class="rb-drug">${esc(c.drug)}</div>
-      <div class="rb-lot">${esc(st.lot)}</div>
-      <div class="rb-exp">EXP ${toThaiLong(st.ymd)} <small>(${humanSpan(st.days)})</small></div>
-      ${st.level === 'warn' ? `<div class="rb-warn">${esc(st.msgs.join(' · '))}</div>` : ''}
-    </div>`).join('');
-  openConfirm('ทวน Lot / EXP กับกล่องยา', `ผู้เติม: ${staff}`, html, '✓ ตรงกับกล่องยา บันทึก', async () => {
+  // สรุปก่อนบันทึก
+  let html = '';
+  if (used.length) {
+    const byDrug = {};
+    used.forEach(it => { (byDrug[it.drug_name] = byDrug[it.drug_name] || { use: 0, waste: 0 })[it.reason] += it.qty; });
+    html += '<div style="font-size:12px;color:var(--muted);margin-bottom:4px">ยาที่หายไป</div>' +
+      Object.entries(byDrug).map(([dn, v]) => `<div class="summary-row"><span>${esc(dn)}</span><span>${v.use ? `ใช้ ${v.use}` : ''}${v.use && v.waste ? ' · ' : ''}${v.waste ? `<span style="color:#B45309">หักทิ้ง ${v.waste}</span>` : ''}</span></div>`).join('');
+  }
+  if (refill.length) {
+    html += `<div style="font-size:12px;color:var(--muted);margin:${used.length ? '14px' : '0'} 0 4px">เติม — ทวน Lot / EXP กับแอมป์อีกครั้ง</div>` +
+      chosen.map(({ c, st }) => `
+      <div class="rb-row">
+        <span class="rb-qty">+${c.qty}</span>
+        <div class="rb-drug">${esc(cardDrug(c).drug_name)}</div>
+        <div class="rb-lot">${esc(st.lot)}</div>
+        <div class="rb-exp">EXP ${toThaiLong(st.ymd)} <small>(${humanSpan(st.days)})</small></div>
+        ${st.level === 'warn' ? `<div class="rb-warn">${esc(st.msgs.join(' · '))}</div>` : ''}
+      </div>`).join('');
+  }
+  if (skipped.length) html += `<div style="margin-top:10px;font-size:12px;color:var(--warning)">ยังไม่ได้เติม: ${esc(skipped.join(', '))}</div>`;
+
+  const sub = (hasUse ? `HN ${HN}${name ? ' · ' + name : ''} · ${selectedWard} · ` : '') + `ผู้บันทึก: ${staff}`;
+  const payload = { action: 'countRefill', box_id: currentBoxId, HN, patient_name: name, ward_type: hasUse ? selectedWard : '', staff, used, refill };
+  openConfirm('ยืนยันการนับและเติม', sub, html, '✓ ถูกต้อง บันทึก', async () => {
     try {
-      const data = await apiPost({ action: 'refill', box_id: currentBoxId, refilled_by: staff, items });
-      if (!data.success) return showToast('บันทึกไม่สำเร็จ: ' + (data.error || ''), 'err');
+      const data = await apiPost(payload);
+      if (!data.success) {
+        const msg = /Unknown action/.test(data.error || '') ? 'ต้องอัปเดต Apps Script เป็นเวอร์ชันใหม่ก่อน' : (data.error || '');
+        return showToast('บันทึกไม่สำเร็จ: ' + msg, 'err');
+      }
       closePopup();
-      refillCards = [];
-      showToast('บันทึกการเติมยาแล้ว', 'ok');
+      resetDispenseForm();
       if (!applyInventory(data.inventory)) await loadDetail(true);
+      showToast('บันทึกแล้ว' + (skipped.length ? ` · ยังไม่ได้เติม ${skipped.length} รายการ` : ''), 'ok');
       switchTab('inv');
     } catch(e) { showToast('เชื่อมต่อไม่ได้ — ยังไม่ได้บันทึก ลองใหม่อีกครั้ง', 'err'); }
   });
+}
+function submitDispense() { return submitWork(); }
+function submitRefill() { return submitWork(); }
+
+function resetDispenseForm() {
+  document.getElementById('dHN').value = '';
+  document.getElementById('dName').value = '';
+  document.getElementById('dSearch').value = '';
+  selectedWard = '';
+  document.querySelectorAll('.ward-btn').forEach(b => b.classList.remove('active'));
+  countLeft = {}; wasteN = {}; refillCards = [];
 }
 
 // ============================================================
