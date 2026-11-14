@@ -2626,7 +2626,7 @@ function cardBodyHtml(c) {
     </div>
     <div class="chips">
       ${known.map((k, i) => (daysBetween(todayYMD(), k.exp_date) <= ALERT_WARNING && c.sel !== i) ? '' :
-        `<button class="chip${c.sel === i ? ' on' : ''}" onclick="pickLot(${c.id},${i})"><b>${esc(k.lot)}</b>EXP ${toBE(k.exp_date)}</button>`).join('')}
+        `<button class="chip${c.sel === i ? ' on' : ''}" onclick="pickLot(${c.id},${i})"><b>${esc(k.lot)}${k.conflict ? ' ⚠' : ''}</b>EXP ${toBE(k.exp_date)}</button>`).join('')}
       <button class="chip new${c.sel === 'new' ? ' on' : ''}" onclick="pickLot(${c.id},'new')"><b>+ Lot ใหม่</b>พิมพ์เอง</button>
     </div>
     ${c.sel === 'new' ? `
@@ -2663,8 +2663,10 @@ function cardState(c) {
     const k = (d.known_lots || [])[c.sel];
     if (!k) return { ready: false, skip: true };
     lot = k.lot; ymd = k.exp_date;
+    if (k.conflict) notes.push('LOT นี้เคยถูกบันทึก EXP หลายค่า — ตรวจวันที่บนแอมป์ให้ตรง');
   }
   const chk = c.sel === 'new' ? checkIncoming(d, lot, ymd) : checkIncoming({ known_lots: [] }, lot, ymd);
+  if (c.sel !== 'new' && (d.known_lots || [])[c.sel]?.conflict && chk.level === 'ok') { chk.level = 'warn'; chk.msgs.push('ตรวจ EXP บนแอมป์ว่าตรงกับ ' + toThaiLong(ymd)); }
   const ready = chk.level !== 'err' && (chk.level !== 'warn' || c.ack);
   return { ready, lot, ymd, notes, level: chk.level, msgs: chk.msgs, fix: chk.fix, days: daysBetween(todayYMD(), ymd) };
 }
