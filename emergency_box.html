@@ -1384,7 +1384,8 @@ body.light select option { background: #fff; color: #111; }
 .exp-in { display: flex; align-items: center; gap: 4px; }
 .exp-in input { width: 52px; text-align: center; padding: 10px 4px; }
 .exp-in input.yy { width: 66px; }
-.exp-in input.dd { width: 46px; opacity: .8; }
+.exp-in input.dd { width: 52px; }
+.exp-in input.dd:placeholder-shown { opacity: .75; }
 .exp-in span { color: var(--muted); }
 .r-check { margin-top: 8px; font-size: 13px; line-height: 1.5; }
 .r-check .ok   { color: var(--ok); font-weight: 600; }
@@ -1396,6 +1397,27 @@ body.light select option { background: #fff; color: #111; }
 }
 .r-split { margin-top: 8px; background: none; border: none; color: var(--accent); font-size: 12px; cursor: pointer; font-family: inherit; padding: 0; }
 .r-skip { font-size: 12px; color: var(--muted); margin-top: 6px; }
+.why { margin-top: 8px; padding: 10px; border-radius: 12px; background: var(--surface2); }
+.why-h { font-size: 12.5px; font-weight: 700; color: var(--critical); margin-bottom: 8px; }
+.why-row { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.why-opt { display: flex; align-items: center; gap: 8px; padding: 10px; border-radius: 10px; border: 1.5px solid var(--border);
+  background: var(--surface); color: var(--text); font-family: inherit; font-size: 13px; text-align: left; min-width: 0; }
+button.why-opt { cursor: pointer; }
+.why-ic { font-size: 18px; line-height: 1; flex: none; }
+.why-t { flex: 1; font-weight: 600; line-height: 1.25; }
+.why-ck { font-weight: 800; }
+.why-opt.use.on   { border-color: var(--accent); background: color-mix(in srgb, var(--accent) 10%, var(--surface)); }
+.why-opt.use.on .why-ck { color: var(--accent); }
+.why-opt.waste.on { border-color: #F59E0B; background: color-mix(in srgb, #F59E0B 12%, var(--surface)); }
+.why-opt.waste.on .why-ck { color: #B45309; }
+.why-step { display: flex; align-items: center; gap: 4px; flex: none; }
+.why-step input { width: 34px; height: 28px; text-align: center; font-family: 'Google Sans', sans-serif; font-size: 15px; font-weight: 700;
+  border: 1px solid transparent; border-radius: 8px; background: transparent; color: var(--text); padding: 0; }
+input.num { width: 44px; height: 36px; border: 1px solid transparent; border-radius: 8px; background: transparent; color: var(--text); padding: 0; }
+input.num:focus, .why-step input:focus { outline: none; border-color: var(--accent); background: var(--surface); }
+.why-step button { width: 28px; height: 28px; border-radius: 8px; border: 1px solid var(--border); background: var(--surface2); color: var(--text); font-size: 15px; cursor: pointer; }
+.why-step button:disabled { opacity: .3; cursor: not-allowed; }
+@media (max-width: 420px) { .why-row { grid-template-columns: 1fr; } }
 .r-done { display: flex; align-items: center; gap: 10px; margin-top: 8px; padding: 8px 10px; border-radius: 12px; background: color-mix(in srgb, var(--ok) 12%, transparent); }
 .r-done-lot { flex: 1; display: flex; align-items: center; gap: 8px; min-width: 0; }
 .r-done-lot .tick { width: 22px; height: 22px; border-radius: 50%; background: var(--ok); color: #fff; font-size: 13px; font-weight: 700; display: grid; place-items: center; flex: none; }
@@ -2687,21 +2709,41 @@ function countLotHtml(idx, l, li) {
         <div style="font-size:10px;color:var(--muted);margin-bottom:2px">นับได้</div>
         <div class="stepper">
           <button onclick="stepCount(${idx},${li},-1)" ${left > 0 ? '' : 'disabled'}>−</button>
-          <div class="num" style="${miss ? 'color:var(--critical)' : ''}">${left}</div>
+          <input class="num" inputmode="numeric" autocomplete="off" onfocus="this.select()" onkeydown="if(event.key==='Enter')this.blur()" value="${left}" style="${miss ? 'color:var(--critical)' : ''}" onchange="setCount(${idx},${li},this.value)">
           <button class="plus" onclick="stepCount(${idx},${li},1)" ${left < l.qty ? '' : 'disabled'}>+</button>
         </div>
       </div>
     </div>
-    ${miss ? `
-    <div class="chips" style="margin-top:6px;align-items:center">
-      <span style="font-size:12px;color:var(--muted)">หายไปเพราะ:</span>
-      <span class="chip sm${use ? ' on' : ''}" style="cursor:default">ใช้กับผู้ป่วย <b>${use}</b></span>
-      <span class="chip sm" style="cursor:default;${w ? 'background:#FEF3C7;border-color:#F59E0B;color:#92400E' : ''}">หักแล้วไม่ได้ใช้ <b>${w}</b></span>
-      <span class="stepper" style="gap:2px">
-        <button style="width:30px;height:30px;font-size:16px" onclick="stepWaste(${idx},${li},-1)" ${w > 0 ? '' : 'disabled'}>−</button>
-        <button style="width:30px;height:30px;font-size:16px" onclick="stepWaste(${idx},${li},1)" ${w < miss ? '' : 'disabled'}>+</button>
-      </span>
-    </div>` : ''}`;
+    ${miss ? whyHtml(idx, li, miss, use, w, boxData.drugs[idx].unit) : ''}`;
+}
+
+// หายไปแล้วไปไหน: 2 ช่องแยกชัด — แตะเลือก (หายไป 1) หรือปรับจำนวนแต่ละช่อง (หายไปหลายชิ้น)
+function whyHtml(idx, li, miss, use, w, unit) {
+  const opt = (kind, icon, label, n) => {
+    const on = n > 0;
+    if (miss === 1) return `
+      <button class="why-opt ${kind}${on ? ' on' : ''}" onclick="setWaste(${idx},${li},${kind === 'waste' ? 1 : 0})">
+        <span class="why-ic">${icon}</span><span class="why-t">${label}</span><span class="why-ck">${on ? '✓' : ''}</span>
+      </button>`;
+    const minus = kind === 'use' ? `setWaste(${idx},${li},${w + 1})` : `setWaste(${idx},${li},${w - 1})`;
+    const plus  = kind === 'use' ? `setWaste(${idx},${li},${w - 1})` : `setWaste(${idx},${li},${w + 1})`;
+    return `
+      <div class="why-opt ${kind}${on ? ' on' : ''}">
+        <span class="why-ic">${icon}</span><span class="why-t">${label}</span>
+        <span class="why-step">
+          <button onclick="${minus}" ${n > 0 ? '' : 'disabled'}>−</button><input inputmode="numeric" autocomplete="off" onfocus="this.select()" onkeydown="if(event.key==='Enter')this.blur()" value="${n}" onchange="setWaste(${idx},${li},${kind === 'use' ? miss + '-' : ''}(parseInt(this.value)||0))">
+          <button onclick="${plus}" ${n < miss ? '' : 'disabled'}>+</button>
+        </span>
+      </div>`;
+  };
+  return `
+    <div class="why">
+      <div class="why-h">หายไป ${miss} ${esc(unit || '')} — ${miss === 1 ? 'เป็นแบบไหน?' : 'แบ่งเป็น'}</div>
+      <div class="why-row">
+        ${opt('use', '💉', 'ใช้กับผู้ป่วย', use)}
+        ${opt('waste', '🗑️', 'หักแล้วไม่ได้ใช้', w)}
+      </div>
+    </div>`;
 }
 
 // ── ปุ่ม Lot ตอนเติม: lot ในกล่องนี้ก่อน (ติดป้าย "เพิ่งหยิบไป" ถ้านับแล้วขาด) → lot อื่นที่เคยเติม
@@ -2748,7 +2790,7 @@ function cardBodyHtml(c) {
   const stepper = `
       <div class="stepper">
         <button onclick="stepCard(${c.id},-1)" ${c.qty > 1 ? '' : 'disabled'}>−</button>
-        <div class="num">${c.qty}</div>
+        <input class="num" inputmode="numeric" autocomplete="off" onfocus="this.select()" onkeydown="if(event.key==='Enter')this.blur()" value="${c.qty}" onchange="setCardQty(${c.id},this.value)">
         <button class="plus" onclick="stepCard(${c.id},1)">+</button>
       </div>
       <button class="r-x" title="ไม่เติมรายการนี้" onclick="removeCard(${c.id})">✕</button>`;
@@ -2772,13 +2814,14 @@ function cardBodyHtml(c) {
       <div class="r-new">
         <div><label>Lot (ตามที่พิมพ์บนแอมป์)</label>
           <input class="lot-in" value="${esc(c.lot)}" autocomplete="off" autocapitalize="characters" spellcheck="false"
-                 oninput="editCard(${c.id},'lot',this.value)"></div>
-        <div><label>หมดอายุ เดือน / ปี <span style="opacity:.7">(วัน)</span></label>
+                 name="eb-lot-${c.id}" oninput="editCard(${c.id},'lot',this.value)"></div>
+        <div><label>หมดอายุ <span style="opacity:.7">วัน (ถ้ามี)</span> / เดือน / ปี</label>
           <div class="exp-in">
-            <input class="mm" inputmode="numeric" maxlength="2" placeholder="MM" value="${esc(c.mm)}" oninput="editCard(${c.id},'mm',this.value,this)">
+            <input class="dd" inputmode="numeric" maxlength="2" placeholder="DD" autocomplete="off" name="eb-dd-${c.id}" value="${esc(c.dd)}" oninput="editCard(${c.id},'dd',this.value,this)">
             <span>/</span>
-            <input class="yy" inputmode="numeric" maxlength="4" placeholder="YY" value="${esc(c.yy)}" oninput="editCard(${c.id},'yy',this.value)">
-            <input class="dd" inputmode="numeric" maxlength="2" placeholder="วัน" value="${esc(c.dd)}" oninput="editCard(${c.id},'dd',this.value)">
+            <input class="mm" inputmode="numeric" maxlength="2" placeholder="MM" autocomplete="off" name="eb-mm-${c.id}" value="${esc(c.mm)}" oninput="editCard(${c.id},'mm',this.value,this)">
+            <span>/</span>
+            <input class="yy" inputmode="numeric" maxlength="4" placeholder="YY" autocomplete="off" name="eb-yy-${c.id}" value="${esc(c.yy)}" oninput="editCard(${c.id},'yy',this.value,this)">
           </div></div>
       </div>` : ''}
     <div class="r-check" id="rcc-${c.id}">${checkHtml(c, st)}</div>
@@ -2835,6 +2878,22 @@ function stepCount(idx, li, delta) {
   syncCards(idx);
   rerenderBlock(idx);
 }
+function setCount(idx, li, v) {
+  const l = usableLots(boxData.drugs[idx])[li]; if (!l) return;
+  const n = parseInt(String(v).replace(/\D/g, ''), 10);
+  stepCount(idx, li, (isNaN(n) ? leftOf(idx, l) : n) - leftOf(idx, l));
+}
+function setCardQty(id, v) {
+  const c = findCard(id); if (!c) return;
+  const n = parseInt(String(v).replace(/\D/g, ''), 10);
+  if (n > 0) { c.qty = n; c.manual = true; }
+  rerenderBlock(c.idx);
+}
+function setWaste(idx, li, n) {
+  const l = usableLots(boxData.drugs[idx])[li]; if (!l) return;
+  wasteN[cKey(idx, l)] = Math.max(0, Math.min(missingOf(idx, l), n));
+  rerenderBlock(idx);
+}
 function stepWaste(idx, li, delta) {
   const l = usableLots(boxData.drugs[idx])[li]; if (!l) return;
   const k = cKey(idx, l);
@@ -2853,6 +2912,8 @@ function editCard(id, field, val, input) {
   const c = findCard(id); if (!c) return;
   c[field] = field === 'lot' ? val : String(val).replace(/\D/g, '');
   c.ack = false;
+  if (input && field !== 'lot' && input.value !== c[field]) input.value = c[field];   // กันค่าแปลกจาก autofill ค้างในช่อง
+  if (input && field === 'dd' && c.dd.length === 2) input.parentElement.querySelector('.mm')?.focus();
   if (input && field === 'mm' && c.mm.length === 2) input.parentElement.querySelector('.yy')?.focus();
   document.getElementById('rcc-' + id).innerHTML = checkHtml(c, cardState(c));   // ไม่ re-render input
   updateActionBtn();
