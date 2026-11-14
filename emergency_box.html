@@ -1357,6 +1357,11 @@ body.light select option { background: #fff; color: #111; }
 .chip.new.on { color: #fff; }
 .chip.sm { padding: 4px 8px; }
 .chip.sm b { font-size: 12px; display: inline; }
+.chip-h { font-size: 11.5px; font-weight: 600; color: var(--muted); margin: 10px 0 -2px; }
+.chip.took { border-color: #F2B8BD; background: #FFF4F4; }
+.chip.took.on { border-color: var(--accent); background: var(--accent); }
+.chip .tag { display: inline-block; margin-top: 3px; font-size: 10.5px; font-weight: 700; color: #C0202A; background: #FDE7E9; border-radius: 6px; padding: 1px 6px; }
+.chip.on .tag { color: #fff; background: rgba(255,255,255,.22); }
 
 .r-card {
   background: var(--surface); border: 1px solid var(--border); border-radius: 14px;
@@ -2664,6 +2669,41 @@ function countLotHtml(idx, l, li) {
     </div>` : ''}`;
 }
 
+// ── ปุ่ม Lot ตอนเติม: lot ในกล่องนี้ก่อน (ติดป้าย "เพิ่งหยิบไป" ถ้านับแล้วขาด) → lot อื่นที่เคยเติม
+//    ซ่อน lot ที่น่าจะพิมพ์ผิดจาก lot อื่น (EXP เดียวกัน + ตัวอักษรต่างกัน ≤1 / หน้าตาเหมือนกัน)
+function lotChipsHtml(c, d) {
+  const known = d.known_lots || [];
+  const today = todayYMD();
+  const inBox = new Map();   // "lot__exp" → ขาดไปกี่ชิ้น
+  (d.lots || []).forEach(l => {
+    if (l.status === 'expired') return;
+    inBox.set(l.lot + '__' + l.exp_date, l.qty - leftOf(c.idx, l));
+  });
+  const isIn = k => inBox.has(k.lot + '__' + k.exp_date);
+  const looksSame = (a, b) => a.exp_date === b.exp_date &&
+    (lotShape(a.lot) === lotShape(b.lot) || editDist(lotShape(a.lot), lotShape(b.lot)) <= 1);
+  const shown = [];
+  known.forEach((k, i) => {
+    if (c.sel !== i && daysBetween(today, k.exp_date) <= ALERT_WARNING) return;
+    const twin = shown.find(j => looksSame(known[j], k));
+    if (twin === undefined) { shown.push(i); return; }
+    // เก็บตัวที่อยู่ในกล่อง / ตัวที่ถูกเลือกอยู่ / ตัวที่เจอก่อน (ใช้ล่าสุด)
+    if ((isIn(k) && !isIn(known[twin])) || c.sel === i) shown[shown.indexOf(twin)] = i;
+  });
+  const chip = i => {
+    const k = known[i], miss = inBox.get(k.lot + '__' + k.exp_date) || 0;
+    return `<button class="chip${c.sel === i ? ' on' : ''}${miss > 0 ? ' took' : ''}" onclick="pickLot(${c.id},${i})">` +
+      `<b>${esc(k.lot)}${k.conflict ? ' ⚠' : ''}</b>EXP ${toBE(k.exp_date)}` +
+      (miss > 0 ? `<span class="tag">เพิ่งหยิบไป ${miss}</span>` : '') + `</button>`;
+  };
+  const a = shown.filter(i => isIn(known[i])).sort((x, y) =>
+    (inBox.get(known[y].lot + '__' + known[y].exp_date) || 0) - (inBox.get(known[x].lot + '__' + known[x].exp_date) || 0));
+  const b = shown.filter(i => !isIn(known[i]));
+  const newBtn = `<button class="chip new${c.sel === 'new' ? ' on' : ''}" onclick="pickLot(${c.id},'new')"><b>+ Lot ใหม่</b>พิมพ์เอง</button>`;
+  return (a.length ? `<div class="chip-h">Lot ที่มีในกล่องนี้</div><div class="chips">${a.map(chip).join('')}</div>` : '') +
+    `<div class="chip-h">${a.length ? 'Lot อื่นที่เคยเติม' : 'Lot ที่เคยเติม'}</div><div class="chips">${b.map(chip).join('')}${newBtn}</div>`;
+}
+
 function cardBodyHtml(c) {
   const d = cardDrug(c);
   const st = cardState(c);
@@ -2680,11 +2720,7 @@ function cardBodyHtml(c) {
       </div>
       <button class="r-x" title="ไม่เติมรายการนี้" onclick="removeCard(${c.id})">✕</button>
     </div>
-    <div class="chips">
-      ${known.map((k, i) => (daysBetween(todayYMD(), k.exp_date) <= ALERT_WARNING && c.sel !== i) ? '' :
-        `<button class="chip${c.sel === i ? ' on' : ''}" onclick="pickLot(${c.id},${i})"><b>${esc(k.lot)}${k.conflict ? ' ⚠' : ''}</b>EXP ${toBE(k.exp_date)}</button>`).join('')}
-      <button class="chip new${c.sel === 'new' ? ' on' : ''}" onclick="pickLot(${c.id},'new')"><b>+ Lot ใหม่</b>พิมพ์เอง</button>
-    </div>
+    ${lotChipsHtml(c, d)}
     ${c.sel === 'new' ? `
       <div class="r-new">
         <div><label>Lot (ตามที่พิมพ์บนแอมป์)</label>
