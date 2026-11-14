@@ -1414,6 +1414,22 @@ body.light select option { background: #fff; color: #111; }
 
 .sib-item img.icon { width: 34px; height: 34px; object-fit: contain; display: block; margin: 0 auto; }
 @media (max-width: 600px) { .sib-item img.icon { width: 26px; height: 26px; } .lcard-icon { width: 44px; height: 44px; } }
+
+/* landing alert — รายการที่ต้องจัดการ */
+.alert-banner { text-align: left; padding: 12px 14px; }
+.la-head { font-size: 13px; font-weight: 700; margin-bottom: 6px; }
+.la-row { display: flex; align-items: center; gap: 10px; width: 100%; padding: 9px 10px; margin-top: 6px;
+  border-radius: 10px; border: 1px solid rgba(239,68,68,0.18); background: var(--surface); color: var(--text);
+  font-family: inherit; text-align: left; cursor: pointer; }
+.la-row:hover { border-color: var(--critical); }
+.la-main { flex: 1; min-width: 0; }
+.la-main b { display: block; font-size: 14px; }
+.la-main small { display: block; font-size: 12px; color: var(--muted); margin-top: 1px; }
+.la-pill { flex-shrink: 0; font-size: 11px; font-weight: 700; padding: 3px 8px; border-radius: 20px; white-space: nowrap; }
+.la-pill.exp  { background: var(--critical); color: #fff; }
+.la-pill.crit { background: rgba(239,68,68,0.12); color: var(--critical); }
+.la-go { flex-shrink: 0; font-size: 12px; font-weight: 700; color: var(--critical); }
+.la-foot { font-size: 12px; margin-top: 8px; opacity: .85; }
 </style>
 </head>
 <body>
@@ -2239,22 +2255,41 @@ function showToast(msg, type = '') {
 // ============================================================
 // LANDING
 // ============================================================
+// แจ้งเตือนหน้าแรก: บอกเลยว่า "ยาอะไร lot ไหน กล่องไหน" แตะแล้วเข้ากล่องนั้น
+let landingAlerts = [];
 function renderLandingAlert(alerts) {
   const b = document.getElementById('landingAlert');
-  const bad  = alerts.filter(a => a.level === 'critical' || a.level === 'expired' || a.days_left <= ALERT_CRITICAL);
-  const warn = alerts.filter(a => !bad.includes(a));
-  const badBoxes  = new Set(bad.map(a => a.box_id)).size;
-  const warnBoxes = new Set(warn.map(a => a.box_id)).size;
-  const expired = alerts.filter(a => a.level === 'expired' || a.days_left < 0).length;
-  if (bad.length) {
-    let msg = `วิกฤต ${badBoxes} กล่อง — มียาหมดอายุ/เหลือไม่ถึง ${ALERT_CRITICAL} วัน`;
-    if (expired) msg += ` (หมดอายุแล้ว ${expired} lot)`;
-    if (warnBoxes) msg += ` · ใกล้หมดอายุอีก ${warnBoxes} กล่อง`;
-    b.textContent = msg; b.className = 'alert-banner show crit';
-  } else if (warn.length) {
-    b.textContent = `${warnBoxes} กล่อง มียาใกล้หมดอายุ (ไม่ถึง ${ALERT_WARNING} วัน)`;
-    b.className = 'alert-banner show warn';
-  } else b.className = 'alert-banner';
+  const isExp = a => a.level === 'expired' || a.days_left < 0;
+  const urgent = alerts.filter(a => isExp(a) || a.days_left <= ALERT_CRITICAL)
+    .sort((x, y) => x.days_left - y.days_left);
+  const soon = alerts.filter(a => !urgent.includes(a));
+  if (!urgent.length && !soon.length) { b.className = 'alert-banner'; b.innerHTML = ''; return; }
+  landingAlerts = urgent;
+  const SHOW = 5;
+  const rows = urgent.slice(0, SHOW).map((a, i) => {
+    const exp = isExp(a);
+    const when = exp ? `หมดแล้ว ${-a.days_left} วัน` : a.days_left === 0 ? 'หมดวันนี้' : `เหลือ ${a.days_left} วัน`;
+    return `
+      <button class="la-row" onclick="openAlertBox(${i})">
+        <span class="la-pill ${exp ? 'exp' : 'crit'}">${when}</span>
+        <span class="la-main"><b>${esc(a.drug_name)}</b><small>LOT ${esc(a.lot)} · ${a.qty} หน่วย · ${esc(a.box_label || a.box_id)}</small></span>
+        <span class="la-go">ถอน →</span>
+      </button>`;
+  }).join('');
+  const more = urgent.length > SHOW ? `<div class="la-foot">+ อีก ${urgent.length - SHOW} รายการ — ดูทั้งหมดในหน้ารายงาน</div>` : '';
+  const soonLine = soon.length
+    ? `<div class="la-foot">ใกล้หมดอายุใน ${ALERT_WARNING} วัน อีก ${soon.length} lot (${new Set(soon.map(a => a.box_id)).size} กล่อง)</div>` : '';
+  b.innerHTML = (urgent.length ? `<div class="la-head">ต้องจัดการ ${urgent.length} lot</div>${rows}${more}` : '') + soonLine;
+  b.className = 'alert-banner show ' + (urgent.length ? 'crit' : 'warn');
+}
+function openAlertBox(i) {
+  const a = landingAlerts[i]; if (!a) return;
+  const go = () => {
+    if (a.category) currentCategory = a.category;
+    pendingFocus = { drug: a.drug_name, lot: a.lot };
+    goToDetail(a.box_id);
+  };
+  isStaff ? go() : requireAuth(go);
 }
 
 async function initLanding() {
@@ -2399,7 +2434,8 @@ async function loadDetail(force = false) {
   }
 }
 
-let renderedDrugs = [];   // ใช้อ้างอิงจากปุ่ม (ไม่ต้องใส่ชื่อยาลงใน onclick)
+let renderedDrugs = [];
+let pendingFocus = null;   // เปิด lot ที่ต้องถอนให้อัตโนมัติ เมื่อมาจากแจ้งเตือนหน้าแรก   // ใช้อ้างอิงจากปุ่ม (ไม่ต้องใส่ชื่อยาลงใน onclick)
 
 function renderInventory() {
   const list = document.getElementById('drugList');
@@ -2451,6 +2487,16 @@ function renderInventory() {
         </div>
       </div>`;
   }).join('');
+  if (pendingFocus) {
+    const di = renderedDrugs.findIndex(d => d.drug_name === pendingFocus.drug);
+    if (di >= 0) {
+      const el = document.getElementById('dl-' + di);
+      el?.classList.add('open');
+      setTimeout(() => el?.closest('.drug-card')?.scrollIntoView({ behavior: 'smooth', block: 'center' }), 50);
+      el?.closest('.drug-card')?.animate([{ boxShadow: '0 0 0 3px var(--critical)' }, { boxShadow: '0 0 0 0 transparent' }], { duration: 1600 });
+    }
+    pendingFocus = null;
+  }
 }
 
 function toggleLots(id) { document.getElementById(id).classList.toggle('open'); }
