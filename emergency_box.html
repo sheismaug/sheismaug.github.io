@@ -1561,7 +1561,7 @@ body.light select option { background: #fff; color: #111; }
 
   <div class="tabs">
     <button class="tab-btn active" onclick="switchTab('inv')">📦 คลังยา</button>
-    <button class="tab-btn staff-only" onclick="switchTab('dis')">💊 จ่ายยา</button>
+    <button class="tab-btn staff-only" onclick="switchTab('dis')">💊 นับ/จ่ายยา</button>
     <button class="tab-btn staff-only" onclick="switchTab('ref')">➕ เติมยา</button>
   </div>
   <div class="sync-note" id="syncNote"></div>
@@ -1574,23 +1574,23 @@ body.light select option { background: #fff; color: #111; }
   <!-- Dispense -->
   <div id="panel-dis" class="tab-panel">
     <div class="form-row">
-      <div class="form-group"><label>HN <span class="req">*</span></label><input type="text" id="dHN" inputmode="numeric" placeholder="HN ผู้ป่วย" autocomplete="off"></div>
+      <div class="form-group"><label>HN <span class="opt">(ต้องใส่ถ้ามีการใช้กับผู้ป่วย)</span></label><input type="text" id="dHN" inputmode="numeric" placeholder="HN ผู้ป่วย" autocomplete="off"></div>
       <div class="form-group"><label>ชื่อผู้ป่วย <span class="opt">(ไม่บังคับ)</span></label><input type="text" id="dName" placeholder="ชื่อ-นามสกุล" autocomplete="off"></div>
     </div>
     <div class="form-row">
       <div class="form-group">
-        <label>ผู้ป่วย <span class="req">*</span></label>
+        <label>ผู้ป่วย</label>
         <div class="ward-toggle">
           <button class="ward-btn er"  onclick="selectWard('ER')">ER</button>
           <button class="ward-btn ipd" onclick="selectWard('IPD')">IPD</button>
         </div>
       </div>
       <div class="form-group">
-        <label>ผู้จ่าย <span class="req">*</span></label>
+        <label>ผู้บันทึก <span class="req">*</span></label>
         <select id="dStaff" class="staff-select" onchange="rememberStaff(this.value)"></select>
       </div>
     </div>
-    <div class="section-label">กด + ที่ยาที่หยิบไป <span class="hint">ระบบเลือก lot ที่หมดอายุก่อนให้แล้ว (FEFO)</span></div>
+    <div class="section-label">นับยาที่เหลือในซอง <span class="hint">ตัวเลขตั้งต้น = ที่ระบบมี · ตัวไหนเหลือน้อยกว่า กด −</span></div>
     <input type="search" id="dSearch" class="search-input" placeholder="ค้นหายา…" oninput="renderDispenseList()">
     <div id="dispenseList"></div>
   </div>
@@ -1671,6 +1671,12 @@ body.light select option { background: #fff; color: #111; }
       </div>
     </div>
     <div id="rDrugRate">กำลังโหลด...</div>
+  </div>
+
+  <div class="report-section" style="animation-delay:0.18s">
+    <div class="section-label">Wastage</div>
+    <h2>ยาที่หักแล้วไม่ได้ใช้</h2>
+    <div id="rWaste" style="margin-top:14px">กำลังโหลด...</div>
   </div>
 
   <!-- Leaderboard gamification -->
@@ -2481,7 +2487,7 @@ function updateActionBtn() {
   if (currentTab === 'inv') { btn.textContent = '🔄 รีเฟรช'; btn.className = 'btn-primary full'; }
   if (currentTab === 'dis') {
     const n = dispenseItems().reduce((s, it) => s + it.qty, 0);
-    btn.textContent = n ? `💊 บันทึกการจ่าย (${n} หน่วย)` : '💊 บันทึกการจ่าย';
+    btn.textContent = n ? `💊 บันทึก (หายไป ${n} หน่วย)` : '💊 บันทึก';
     btn.className = 'btn-primary full';
   }
   if (currentTab === 'ref') {
@@ -2498,10 +2504,11 @@ function handleDetailAction() {
 }
 
 // ============================================================
-// DISPENSE — กด +/− ที่ยา, lot เลือก FEFO ให้อัตโนมัติ
+// DISPENSE — นับยาที่เหลือในซอง แล้วระบบคิดว่าหายไปเท่าไร
+//   หายไป = ใช้กับผู้ป่วย (ค่าตั้งต้น) + หักแล้วไม่ได้ใช้/แตก
 // ============================================================
-let dispQty = {};   // drug_name → { lotKey: qty }
-let dispSel = {};   // drug_name → lotKey ที่กำลังเลือก
+let countLeft = {};   // "drugIdx|lotKey" → จำนวนที่นับได้
+let wasteN    = {};   // "drugIdx|lotKey" → จำนวนที่หักแล้วไม่ได้ใช้
 
 function selectWard(type) {
   selectedWard = type;
@@ -2510,88 +2517,100 @@ function selectWard(type) {
 }
 
 function usableLots(drug) { return drug.lots.filter(l => l.qty > 0 && lotStatus(l) !== 'expired'); }
-function dispenseHasInput() { return Object.values(dispQty).some(m => Object.values(m).some(q => q > 0)); }
-function dispenseDrugs() {
-  return [...(boxData?.drugs || [])].filter(d => usableLots(d).length)
-    .sort((a, b) => a.drug_name.localeCompare(b.drug_name));
+function cKey(idx, lot) { return `${idx}|${lotKey(lot)}`; }
+function missingOf(idx, lot) {
+  const k = cKey(idx, lot);
+  return k in countLeft ? Math.max(0, lot.qty - countLeft[k]) : 0;
 }
+function dispenseHasInput() { return dispenseItems().length > 0; }
 
 function renderDispenseList() {
   const el = document.getElementById('dispenseList');
   if (!el) return;
   const q = (document.getElementById('dSearch').value || '').trim().toLowerCase();
-  const drugs = dispenseDrugs();
-  if (!drugs.length) { el.innerHTML = '<div style="color:var(--muted);font-size:13px;padding:12px">ไม่มียาที่จ่ายได้ในกล่อง</div>'; return; }
-  el.innerHTML = drugs.map(d => {
-    if (q && !d.drug_name.toLowerCase().includes(q) && !dispTotal(d.drug_name)) return '';
-    return dispenseRowHtml(d);
+  const drugs = (boxData?.drugs || []).map((d, idx) => ({ d, idx }))
+    .filter(x => usableLots(x.d).length)
+    .sort((a, b) => a.d.drug_name.localeCompare(b.d.drug_name));
+  const expiredN = (boxData?.drugs || []).reduce((s, d) => s + d.lots.filter(l => lotStatus(l) === 'expired' && l.qty > 0).length, 0);
+  let html = expiredN
+    ? `<div class="d-row" style="border-color:var(--critical);cursor:pointer" onclick="switchTab('inv')"><div class="d-main"><div class="d-name" style="color:var(--critical)">มี lot หมดอายุ ${expiredN} lot</div><div class="d-sub">ไม่ต้องนับในหน้านี้ — กดเพื่อไปถอนในหน้าคลังยา</div></div></div>` : '';
+  if (!drugs.length) { el.innerHTML = html + '<div style="color:var(--muted);font-size:13px;padding:12px">ไม่มียาในกล่อง</div>'; return; }
+  html += drugs.map(({ d, idx }) => {
+    const touched = usableLots(d).some(l => missingOf(idx, l) > 0);
+    if (q && !d.drug_name.toLowerCase().includes(q) && !touched) return '';
+    return countRowHtml(d, idx);
   }).join('');
+  el.innerHTML = html;
   updateActionBtn();
 }
 
-function dispTotal(name) { return Object.values(dispQty[name] || {}).reduce((s, v) => s + v, 0); }
-
-function dispenseRowHtml(d) {
+function countRowHtml(d, idx) {
   const lots = usableLots(d);
-  const name = d.drug_name;
-  if (!dispSel[name] || !lots.some(l => lotKey(l) === dispSel[name])) dispSel[name] = lotKey(lots[0]);
-  const sel = lots.find(l => lotKey(l) === dispSel[name]);
-  const picked = dispQty[name] || {};
-  const qSel = picked[dispSel[name]] || 0;
-  const total = dispTotal(name);
-  const idx = (boxData.drugs || []).indexOf(d);
-  const s = lotStatus(sel);
-  const subCls = s === 'critical' ? 'crit' : s === 'warning' ? 'warn' : '';
-  const alloc = Object.entries(picked).filter(([, v]) => v > 0)
-    .map(([k, v]) => `LOT ${esc(k.split('__')[0])} ×${v}`).join(' · ');
+  const anyMissing = lots.some(l => missingOf(idx, l) > 0);
   return `
-    <div class="d-row${total ? ' picked' : ''}${isHadDrug(d) ? ' had' : ''}" id="drow-${idx}">
-      <div class="d-main">
-        <div class="d-name">${isHadDrug(d) ? '<span class="had-badge">HAD</span> ' : ''}${esc(name)}</div>
-        <div class="d-sub ${subCls}">LOT ${esc(sel.lot)} · EXP ${toBE(sel.exp_date)} · มี ${sel.qty}</div>
-        ${lots.length > 1 ? `<div class="chips">${lots.map((l, li) => `
-          <button class="chip sm${lotKey(l) === dispSel[name] ? ' on' : ''}" onclick="selectDispLot(${idx},${li})"><b>${esc(l.lot)}</b> · ${toBE(l.exp_date)}</button>`).join('')}</div>` : ''}
-        ${total && (lots.length > 1) ? `<div class="d-alloc">จ่าย: ${alloc}</div>` : ''}
-      </div>
-      <div class="stepper">
-        <button onclick="stepDisp(${idx},-1)" ${qSel ? '' : 'disabled'}>−</button>
-        <div class="num">${qSel}</div>
-        <button class="plus" onclick="stepDisp(${idx},1)" ${qSel >= sel.qty ? 'disabled' : ''}>+</button>
-      </div>
+    <div class="d-row${anyMissing ? ' picked' : ''}${isHadDrug(d) ? ' had' : ''}" id="crow-${idx}" style="display:block">
+      <div class="d-name">${isHadDrug(d) ? '<span class="had-badge">HAD</span> ' : ''}${esc(d.drug_name)}</div>
+      ${lots.map((l, li) => {
+        const k = cKey(idx, l), left = k in countLeft ? countLeft[k] : l.qty, miss = l.qty - left;
+        const w = Math.min(wasteN[k] || 0, miss), use = miss - w;
+        const s = lotStatus(l), subCls = s === 'critical' ? 'crit' : s === 'warning' ? 'warn' : '';
+        return `
+        <div style="display:flex;align-items:center;gap:10px;margin-top:8px">
+          <div class="d-main">
+            <div class="d-sub ${subCls}">LOT ${esc(l.lot)} · EXP ${toBE(l.exp_date)}</div>
+            <div class="d-sub">ระบบมี ${l.qty} ${esc(d.unit)}${miss ? ` · <b style="color:var(--critical)">หายไป ${miss}</b>` : ''}</div>
+          </div>
+          <div style="text-align:center">
+            <div style="font-size:10px;color:var(--muted);margin-bottom:2px">นับได้</div>
+            <div class="stepper">
+              <button onclick="stepCount(${idx},${li},-1)" ${left > 0 ? '' : 'disabled'}>−</button>
+              <div class="num" style="${miss ? 'color:var(--critical)' : ''}">${left}</div>
+              <button class="plus" onclick="stepCount(${idx},${li},1)" ${left < l.qty ? '' : 'disabled'}>+</button>
+            </div>
+          </div>
+        </div>
+        ${miss ? `
+        <div class="chips" style="margin-top:6px;align-items:center">
+          <span style="font-size:12px;color:var(--muted)">หายไป ${miss} เพราะ:</span>
+          <span class="chip sm${use ? ' on' : ''}" style="cursor:default">ใช้กับผู้ป่วย <b>${use}</b></span>
+          <span class="chip sm" style="cursor:default;${w ? 'background:#FEF3C7;border-color:#F59E0B;color:#92400E' : ''}">หักแล้วไม่ได้ใช้ <b>${w}</b></span>
+          <span class="stepper" style="gap:2px">
+            <button style="width:30px;height:30px;font-size:16px" onclick="stepWaste(${idx},${li},-1)" ${w > 0 ? '' : 'disabled'}>−</button>
+            <button style="width:30px;height:30px;font-size:16px" onclick="stepWaste(${idx},${li},1)" ${w < miss ? '' : 'disabled'}>+</button>
+          </span>
+        </div>` : ''}`;
+      }).join('')}
     </div>`;
 }
 
-function refreshDispRow(idx) {
-  const d = boxData.drugs[idx];
-  const row = document.getElementById('drow-' + idx);
-  if (row) row.outerHTML = dispenseRowHtml(d);
+function refreshCountRow(idx) {
+  const row = document.getElementById('crow-' + idx);
+  if (row) row.outerHTML = countRowHtml(boxData.drugs[idx], idx);
   updateActionBtn();
 }
-
-function selectDispLot(idx, li) {
-  const d = boxData.drugs[idx];
-  dispSel[d.drug_name] = lotKey(usableLots(d)[li]);
-  refreshDispRow(idx);
+function stepCount(idx, li, delta) {
+  const l = usableLots(boxData.drugs[idx])[li]; if (!l) return;
+  const k = cKey(idx, l);
+  const cur = k in countLeft ? countLeft[k] : l.qty;
+  countLeft[k] = Math.max(0, Math.min(l.qty, cur + delta));
+  if (countLeft[k] === l.qty) { delete countLeft[k]; delete wasteN[k]; }
+  else wasteN[k] = Math.min(wasteN[k] || 0, l.qty - countLeft[k]);
+  refreshCountRow(idx);
 }
-
-function stepDisp(idx, delta) {
-  const d = boxData.drugs[idx];
-  const name = d.drug_name, key = dispSel[name];
-  const lot = usableLots(d).find(l => lotKey(l) === key);
-  if (!lot) return;
-  const m = dispQty[name] = dispQty[name] || {};
-  m[key] = Math.max(0, Math.min(lot.qty, (m[key] || 0) + delta));
-  if (delta > 0 && m[key] === lot.qty) {
-    const next = usableLots(d).find(l => lotKey(l) !== key && (m[lotKey(l)] || 0) < l.qty);
-    if (next) { dispSel[name] = lotKey(next); showToast(`LOT ${lot.lot} หมดแล้ว — ครั้งต่อไปจะหยิบจาก LOT ${next.lot}`); }
-  }
-  refreshDispRow(idx);
+function stepWaste(idx, li, delta) {
+  const l = usableLots(boxData.drugs[idx])[li]; if (!l) return;
+  const k = cKey(idx, l), miss = missingOf(idx, l);
+  wasteN[k] = Math.max(0, Math.min(miss, (wasteN[k] || 0) + delta));
+  refreshCountRow(idx);
 }
 
 function dispenseItems() {
   const items = [];
-  (boxData?.drugs || []).forEach(d => Object.entries(dispQty[d.drug_name] || {}).forEach(([k, q]) => {
-    if (q > 0) { const [lot, exp] = k.split('__'); items.push({ drug_name: d.drug_name, lot, exp_date: exp, qty: q }); }
+  (boxData?.drugs || []).forEach((d, idx) => usableLots(d).forEach(l => {
+    const miss = missingOf(idx, l); if (!miss) return;
+    const w = Math.min(wasteN[cKey(idx, l)] || 0, miss), use = miss - w;
+    if (use) items.push({ drug_name: d.drug_name, lot: l.lot, exp_date: l.exp_date, qty: use, reason: 'use' });
+    if (w)   items.push({ drug_name: d.drug_name, lot: l.lot, exp_date: l.exp_date, qty: w,   reason: 'waste' });
   }));
   return items;
 }
@@ -2619,26 +2638,30 @@ function submitDispense() {
   const HN    = document.getElementById('dHN').value.trim();
   const name  = document.getElementById('dName').value.trim();
   const staff = document.getElementById('dStaff').value.trim();
-  const miss = [!HN && 'HN', !selectedWard && 'ER/IPD', !staff && 'ผู้จ่าย'].filter(Boolean);
-  if (miss.length) return showToast('ยังไม่ได้ใส่: ' + miss.join(', '), 'err');
   const items = dispenseItems();
-  if (!items.length) return showToast('ยังไม่ได้กด + ที่ยาที่จ่าย', 'err');
+  if (!items.length) return showToast('ยอดที่นับตรงกับระบบทุกตัว — ไม่มีอะไรต้องบันทึก', 'err');
+  const hasUse = items.some(it => it.reason === 'use');
+  const miss = [hasUse && !HN && 'HN', hasUse && !selectedWard && 'ER/IPD', !staff && 'ผู้บันทึก'].filter(Boolean);
+  if (miss.length) return showToast('ยังไม่ได้ใส่: ' + miss.join(', '), 'err');
 
-  const payload = { action: 'dispense', box_id: currentBoxId, HN, patient_name: name, ward_type: selectedWard, dispensed_by: staff, items };
-  const html = items.map(it => {
-    const d = boxData.drugs.find(x => x.drug_name === it.drug_name);
-    const after = d ? usableLots(d).reduce((s, l) => s + l.qty, 0) - dispTotal(it.drug_name) : 0;
+  const payload = { action: 'dispense', box_id: currentBoxId, HN, patient_name: name, ward_type: hasUse ? selectedWard : '', dispensed_by: staff, items };
+  const byDrug = {};
+  items.forEach(it => { (byDrug[it.drug_name] = byDrug[it.drug_name] || { use: 0, waste: 0 })[it.reason] += it.qty; });
+  const html = Object.entries(byDrug).map(([dn, v]) => {
+    const d = boxData.drugs.find(x => x.drug_name === dn);
+    const after = d ? usableLots(d).reduce((s, l) => s + l.qty, 0) - v.use - v.waste : 0;
     const need = d ? Math.max(0, d.max_qty - after) : 0;
-    return `<div class="summary-row"><span>${esc(it.drug_name)} <small style="color:var(--muted)">LOT ${esc(it.lot)}</small></span>
-      <span>จ่าย ${it.qty}${need ? ` → <strong>ต้องเติม ${need}</strong>` : ''}</span></div>`;
+    return `<div class="summary-row"><span>${esc(dn)}</span>
+      <span>${v.use ? `ใช้ ${v.use}` : ''}${v.use && v.waste ? ' · ' : ''}${v.waste ? `<span style="color:#B45309">หักทิ้ง ${v.waste}</span>` : ''}${need ? ` → <strong>ต้องเติม ${need}</strong>` : ''}</span></div>`;
   }).join('');
-  openConfirm('ยืนยันการจ่ายยา', `HN ${HN}${name ? ' · ' + name : ''} · ${selectedWard} · ${staff}`, html, '✓ ยืนยัน', async () => {
+  const sub = hasUse ? `HN ${HN}${name ? ' · ' + name : ''} · ${selectedWard} · ${staff}` : `หักแล้วไม่ได้ใช้ (ไม่ได้ใช้กับผู้ป่วย) · ${staff}`;
+  openConfirm('ยืนยันยอดที่นับ', sub, html, '✓ ยืนยัน', async () => {
     try {
       const data = await apiPost(payload);
       if (!data.success) return showToast('บันทึกไม่สำเร็จ: ' + (data.error || ''), 'err');
       closePopup();
       resetDispenseForm();
-      showToast('บันทึกการจ่ายยาแล้ว', 'ok');
+      showToast('บันทึกแล้ว', 'ok');
       if (!applyInventory(data.inventory)) await loadDetail(true);
       switchTab('inv');
     } catch(e) { showToast('เชื่อมต่อไม่ได้ — ยังไม่ได้บันทึก ลองใหม่อีกครั้ง', 'err'); }
@@ -2651,7 +2674,7 @@ function resetDispenseForm() {
   document.getElementById('dSearch').value = '';
   selectedWard = '';
   document.querySelectorAll('.ward-btn').forEach(b => b.classList.remove('active'));
-  dispQty = {}; dispSel = {};
+  countLeft = {}; wasteN = {};
 }
 
 // ============================================================
@@ -3026,6 +3049,24 @@ async function loadReport() {
   loadAlertReport();
   loadDrugRateReport(dateFrom, dateTo);
   loadLeaderboard(dateFrom, dateTo);
+  loadWasteReport(dateFrom, dateTo);
+}
+
+async function loadWasteReport(dateFrom, dateTo) {
+  const el = document.getElementById('rWaste');
+  try {
+    const params = { action: 'getReport', type: 'waste' };
+    if (dateFrom) params.date_from = dateFrom;
+    if (dateTo)   params.date_to   = dateTo;
+    const data = await apiGet(params);
+    if (data.error || !data.report) { el.innerHTML = '<div style="color:var(--muted)">ยังไม่มีข้อมูล (ต้องอัปเดต Apps Script ก่อน)</div>'; return; }
+    if (!data.report.length) { el.innerHTML = '<div style="color:var(--ok)">ไม่มียาที่หักทิ้งในช่วงเวลานี้</div>'; return; }
+    el.innerHTML = data.report.map(d => `
+      <div class="drug-rate-row"><div class="drug-rate-header"><span class="drug-rate-name">${esc(d.drug_name)}</span>
+      <span class="drug-rate-count">${d.qty} หน่วย · ${d.times} ครั้ง</span></div></div>`).join('') +
+      '<div style="font-size:12px;color:var(--muted);margin:14px 0 6px">รายการล่าสุด</div>' +
+      (data.recent || []).map(r => `<div style="font-size:12px;padding:4px 0;border-top:1px solid var(--border)">${toBE(r.date)} · ${esc(r.box_label)} · ${esc(r.drug_name)} LOT ${esc(r.lot)} ×${r.qty} · ${esc(r.by)}</div>`).join('');
+  } catch(e) { el.innerHTML = '<div style="color:var(--muted)">โหลดไม่ได้</div>'; }
 }
 
 async function loadAlertReport() {
