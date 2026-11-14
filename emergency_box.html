@@ -1396,6 +1396,14 @@ body.light select option { background: #fff; color: #111; }
 }
 .r-split { margin-top: 8px; background: none; border: none; color: var(--accent); font-size: 12px; cursor: pointer; font-family: inherit; padding: 0; }
 .r-skip { font-size: 12px; color: var(--muted); margin-top: 6px; }
+.r-done { display: flex; align-items: center; gap: 10px; margin-top: 8px; padding: 8px 10px; border-radius: 12px; background: color-mix(in srgb, var(--ok) 12%, transparent); }
+.r-done-lot { flex: 1; display: flex; align-items: center; gap: 8px; min-width: 0; }
+.r-done-lot .tick { width: 22px; height: 22px; border-radius: 50%; background: var(--ok); color: #fff; font-size: 13px; font-weight: 700; display: grid; place-items: center; flex: none; }
+.r-done-lot b { font-family: 'Google Sans', monospace; font-size: 14px; letter-spacing: .04em; display: block; }
+.r-done-lot span { font-size: 12px; color: var(--muted); }
+.r-change { background: none; border: none; color: var(--accent); font-size: 12px; font-weight: 600; cursor: pointer; font-family: inherit; padding: 4px; }
+.chip.more { border-style: dashed; color: var(--muted); }
+.chip.more b { font-size: 13px; letter-spacing: 0; }
 .refill-add-row { display: flex; gap: 8px; margin-top: 6px; }
 .refill-add-row select {
   flex: 1; background: var(--surface2); border: 1px dashed var(--border); color: var(--text);
@@ -2088,8 +2096,33 @@ function checkIncoming(drug, lot, ymd) {
         out.fix = { lot: near.lot, exp_date: near.exp_date, label: `ใช้ ${near.lot}` };
       }
     }
+    // lot ใหม่ที่ไม่เคยเห็น → เทียบ EXP กับ lot อื่นของยาเดียวกัน (จับเลขปี/เดือนพิมพ์ผิดที่ยังดูเป็นไปได้)
+    if (!same && out.level !== 'err') {
+      const odd = expOddness(drug, L, ymd);
+      if (odd) { out.level = 'warn'; out.msgs.push(odd); }
+    }
   }
   return out;
+}
+
+// อายุยาที่เหลือตอนเติมของ lot อื่นๆ = ช่วงที่ "ปกติ" สำหรับยานี้
+//  - EXP ไกลกว่าที่ยานี้เคยได้รับ > 9 เดือน → น่าจะพิมพ์ปีเกิน
+//  - EXP เก่ากว่า lot ที่เพิ่งเติมล่าสุด > 9 เดือน → น่าจะพิมพ์ปีขาด
+function expOddness(drug, lot, ymd) {
+  const ref = (drug?.known_lots || []).filter(k => k.lot !== lot && k.last && k.exp_date);
+  if (!ref.length) return '';
+  const span = d => { const m = Math.round(Math.abs(d) / 30.44), y = Math.floor(m / 12), r = m % 12;
+    return (y ? y + ' ปี' : '') + (y && r ? ' ' : '') + (r ? r + ' เดือน' : (y ? '' : 'ไม่ถึงเดือน')); };
+  const shelf = ref.map(k => daysBetween(String(k.last).slice(0, 10), k.exp_date));
+  const maxShelf = Math.max(...shelf);
+  const remain = daysBetween(todayYMD(), ymd);
+  if (remain - maxShelf > 274)
+    return `EXP นี้ไกลกว่าที่ยานี้เคยได้รับ ${span(remain - maxShelf)} (ปกติได้อายุยาวสุดราว ${span(maxShelf)}) — ตรวจปีบนแอมป์อีกครั้ง`;
+  const latest = ref.reduce((a, b) => a.last > b.last ? a : b);
+  const back = daysBetween(ymd, latest.exp_date);
+  if (back > 274)
+    return `EXP เก่ากว่า LOT ${latest.lot} ที่เพิ่งเติม (${toThaiLong(latest.exp_date)}) ${span(back)} — ตรวจปีบนแอมป์อีกครั้ง`;
+  return '';
 }
 
 // ============================================================
@@ -2534,7 +2567,8 @@ function updateActionBtn() {
   if (currentTab === 'dis') {
     const used = dispenseItems().reduce((s, it) => s + it.qty, 0);
     const ref = refillCards.filter(c => cardState(c).ready).reduce((s, c) => s + c.qty, 0);
-    const parts = [used && `หายไป ${used}`, ref && `เติม ${ref}`].filter(Boolean);
+    const todo = refillCards.filter(c => c.sel === null).length;
+    const parts = [used && `หายไป ${used}`, ref && `เติม ${ref}`, todo && `ยังไม่เลือก lot ${todo}`].filter(Boolean);
     btn.textContent = parts.length ? `✅ บันทึก (${parts.join(' · ')})` : '✅ บันทึก';
     btn.className = 'btn-primary full success';
     updatePatientBox();
@@ -2634,7 +2668,8 @@ function blockHtml(idx) {
     </div>
     ${lots.length ? lots.map((l, li) => countLotHtml(idx, l, li)).join('') : '<div class="d-sub" style="margin-top:6px">ไม่มียาในซอง</div>'}
     ${cards.length ? `<div style="border-top:1px dashed var(--border);margin-top:10px;padding-top:8px">${cards.map(c => cardBodyHtml(c)).join('')}</div>` : ''}
-    <button class="r-split" onclick="addCard(${idx})">${cards.length ? '+ เติมจากอีก lot' : '+ เติมยานี้'}</button>
+    ${!cards.length ? `<button class="r-split" onclick="addCard(${idx})">+ เติมยานี้</button>`
+      : cards.every(c => c.sel !== null) ? `<button class="r-split" onclick="addCard(${idx})">+ เติมจากอีก lot</button>` : ''}
   </div>`;
 }
 
@@ -2700,25 +2735,37 @@ function lotChipsHtml(c, d) {
     (inBox.get(known[y].lot + '__' + known[y].exp_date) || 0) - (inBox.get(known[x].lot + '__' + known[x].exp_date) || 0));
   const b = shown.filter(i => !isIn(known[i]));
   const newBtn = `<button class="chip new${c.sel === 'new' ? ' on' : ''}" onclick="pickLot(${c.id},'new')"><b>+ Lot ใหม่</b>พิมพ์เอง</button>`;
-  return (a.length ? `<div class="chip-h">Lot ที่มีในกล่องนี้</div><div class="chips">${a.map(chip).join('')}</div>` : '') +
-    `<div class="chip-h">${a.length ? 'Lot อื่นที่เคยเติม' : 'Lot ที่เคยเติม'}</div><div class="chips">${b.map(chip).join('')}${newBtn}</div>`;
+  if (!a.length) return `<div class="chips">${b.map(chip).join('')}${newBtn}</div>`;
+  const open = c.more || c.sel === 'new' || b.includes(c.sel);
+  return `<div class="chips">${a.map(chip).join('')}` +
+    (open ? '' : `<button class="chip more" onclick="toggleMore(${c.id})"><b>lot อื่น ▾</b>${b.length ? b.length + ' lot · พิมพ์เอง' : 'พิมพ์เอง'}</button>`) +
+    `</div>` + (open ? `<div class="chips">${b.map(chip).join('')}${newBtn}</div>` : '');
 }
 
 function cardBodyHtml(c) {
   const d = cardDrug(c);
   const st = cardState(c);
-  const known = d.known_lots || [];
-  return `
-  <div id="rc-${c.id}" style="margin-top:6px">
-    <div style="display:flex;align-items:center;gap:10px">
-      <div class="d-main"><div style="font-size:13px;font-weight:700;color:var(--text)">เติม</div>
-        <div class="d-sub">แตะ Lot ที่ตรงกับแอมป์ที่หยิบมาเติม</div></div>
+  const stepper = `
       <div class="stepper">
         <button onclick="stepCard(${c.id},-1)" ${c.qty > 1 ? '' : 'disabled'}>−</button>
         <div class="num">${c.qty}</div>
         <button class="plus" onclick="stepCard(${c.id},1)">+</button>
       </div>
-      <button class="r-x" title="ไม่เติมรายการนี้" onclick="removeCard(${c.id})">✕</button>
+      <button class="r-x" title="ไม่เติมรายการนี้" onclick="removeCard(${c.id})">✕</button>`;
+  // เลือก lot ที่รู้จักแล้วและผ่านการตรวจ → ยุบเหลือบรรทัดเดียว
+  if (st.ready && c.sel !== 'new') {
+    return `
+  <div id="rc-${c.id}" class="r-done">
+    <div class="r-done-lot"><span class="tick">✓</span><div><b>${esc(st.lot)}</b><span>EXP ${toBE(st.ymd)}</span></div></div>
+    <button class="r-change" onclick="pickLot(${c.id},null)">เปลี่ยน</button>
+    ${stepper}
+  </div>`;
+  }
+  return `
+  <div id="rc-${c.id}" style="margin-top:6px">
+    <div style="display:flex;align-items:center;gap:10px">
+      <div class="d-main"><div style="font-size:13px;font-weight:700;color:var(--text)">เติม</div></div>
+      ${stepper}
     </div>
     ${lotChipsHtml(c, d)}
     ${c.sel === 'new' ? `
@@ -2735,7 +2782,6 @@ function cardBodyHtml(c) {
           </div></div>
       </div>` : ''}
     <div class="r-check" id="rcc-${c.id}">${checkHtml(c, st)}</div>
-    ${c.sel === null ? '<div class="r-skip">ยังไม่ได้เลือก Lot — ถ้าไม่เลือก รายการนี้จะไม่ถูกเติม</div>' : ''}
   </div>`;
 }
 
@@ -2795,9 +2841,11 @@ function stepWaste(idx, li, delta) {
   wasteN[k] = Math.max(0, Math.min(missingOf(idx, l), (wasteN[k] || 0) + delta));
   rerenderBlock(idx);
 }
+function toggleMore(id) { const c = findCard(id); if (!c) return; c.more = !c.more; rerenderBlock(c.idx); }
 function pickLot(id, sel) {
   const c = findCard(id); if (!c) return;
   c.sel = c.sel === sel ? null : sel; c.ack = false;
+  if (c.sel === null) c.more = false;
   rerenderBlock(c.idx);
   if (c.sel === 'new') document.querySelector(`#rc-${id} .lot-in`)?.focus();
 }
