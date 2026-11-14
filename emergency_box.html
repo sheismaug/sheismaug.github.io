@@ -1428,6 +1428,9 @@ body.light select option { background: #fff; color: #111; }
 .la-pill { flex-shrink: 0; font-size: 11px; font-weight: 700; padding: 3px 8px; border-radius: 20px; white-space: nowrap; }
 .la-pill.exp  { background: var(--critical); color: #fff; }
 .la-pill.crit { background: rgba(239,68,68,0.12); color: var(--critical); }
+.la-place { display: inline-flex; align-items: center; gap: 4px; margin-top: 4px; font-size: 12px; font-weight: 700; color: var(--text);
+  background: var(--surface2); border-radius: 8px; padding: 2px 8px 2px 4px; }
+.la-place img { width: 16px; height: 16px; }
 .la-go { flex-shrink: 0; font-size: 12px; font-weight: 700; color: var(--critical); }
 .la-foot { font-size: 12px; margin-top: 8px; opacity: .85; }
 </style>
@@ -1952,6 +1955,12 @@ const STAFF = {
   'จพ.':     ['จพ.วิภารัตน์','จพ.ปุญญพัฒน์','จพ.ธนารักษ์','จพ.สรัล'],
 };
 const CAT_LABEL = { hospital: 'HOSPITAL', maternity: 'MATERNITY', refer: 'REFER CAR' };
+const CAT_TH = { hospital: 'โรงพยาบาล', maternity: 'ห้องคลอด', refer: 'รถ Refer' };
+const CAT_ICON = { hospital: 'hospital', maternity: 'pregnant_woman', refer: 'ambulance' };
+function boxPlace(a) {
+  const label = a.box_label || a.box_id, cat = CAT_TH[a.category];
+  return cat && !String(label).includes(cat) ? cat + ' · ' + label : label;
+}
 const TH_MONTH = ['ม.ค.','ก.พ.','มี.ค.','เม.ย.','พ.ค.','มิ.ย.','ก.ค.','ส.ค.','ก.ย.','ต.ค.','พ.ย.','ธ.ค.'];
 
 // ============================================================
@@ -2272,7 +2281,8 @@ function renderLandingAlert(alerts) {
     return `
       <button class="la-row" onclick="openAlertBox(${i})">
         <span class="la-pill ${exp ? 'exp' : 'crit'}">${when}</span>
-        <span class="la-main"><b>${esc(a.drug_name)}</b><small>LOT ${esc(a.lot)} · ${a.qty} หน่วย · ${esc(a.box_label || a.box_id)}</small></span>
+        <span class="la-main"><b>${esc(a.drug_name)}</b><small>LOT ${esc(a.lot)} · ${a.qty} หน่วย</small>
+          <span class="la-place">${CAT_ICON[a.category] ? `<img src="icons/${CAT_ICON[a.category]}_3d.png" alt="">` : ''}${esc(boxPlace(a))}</span></span>
         <span class="la-go">ถอน →</span>
       </button>`;
   }).join('');
@@ -3102,7 +3112,7 @@ async function loadAlertReport() {
         <div class="alert-dot ${lv}"></div>
         <div class="alert-info">
           <div class="alert-drug">${esc(a.drug_name)}</div>
-          <div class="alert-meta">${esc(a.box_label)} · LOT: ${esc(a.lot)} · EXP: ${toBE(a.exp_date)}</div>
+          <div class="alert-meta">${esc(boxPlace(a))} · LOT: ${esc(a.lot)} · EXP: ${toBE(a.exp_date)}</div>
         </div>
         <div class="alert-days ${lv}">${a.days_left < 0 ? 'หมดแล้ว' : a.days_left === 0 ? 'วันนี้' : a.days_left + ' วัน'}</div>
       </div>`; }).join('');
