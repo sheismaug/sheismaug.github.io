@@ -4,7 +4,8 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Emergency Box System</title>
-<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai+Looped:wght@300;400;500;600;700&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Google+Sans:wght@400;500;700&family=Noto+Sans+Thai:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <style>
 /* ============================================================
    GLOBAL
@@ -100,13 +101,13 @@ h1, h2, h3,
 .popup h3,
 .report-section h2,
 .admin-section h2 {
-  font-family: 'DM Sans', 'IBM Plex Sans Thai Looped', sans-serif;
+  font-family: 'Google Sans','Noto Sans Thai',sans-serif;
 }
 
 body {
   background: var(--bg);
   color: var(--text);
-  font-family: 'IBM Plex Sans Thai Looped', sans-serif;
+  font-family: 'Google Sans','Noto Sans Thai',sans-serif;
   min-height: 100vh;
   overflow-x: hidden;
 }
@@ -157,7 +158,7 @@ body::before {
   padding: 8px 16px;
   border-radius: 10px;
   cursor: pointer;
-  font-family: 'IBM Plex Sans Thai Looped', sans-serif;
+  font-family: 'Google Sans','Noto Sans Thai',sans-serif;
   font-size: 14px;
   transition: all 0.2s;
   white-space: nowrap;
@@ -169,7 +170,7 @@ body::before {
   display: block;
   font-size: 11px;
   color: var(--muted);
-  font-family: 'DM Sans', sans-serif;
+  font-family: 'Google Sans','Noto Sans Thai',sans-serif;
   font-weight: 400;
   margin-top: 3px;
   letter-spacing: 0.05em;
@@ -181,7 +182,7 @@ body::before {
   border: none;
   padding: 11px 20px;
   border-radius: 11px;
-  font-family: 'IBM Plex Sans Thai Looped', sans-serif;
+  font-family: 'Google Sans','Noto Sans Thai',sans-serif;
   font-size: 15px;
   font-weight: 600;
   cursor: pointer;
@@ -200,7 +201,7 @@ body::before {
   border: 1px solid var(--border);
   padding: 11px 20px;
   border-radius: 11px;
-  font-family: 'IBM Plex Sans Thai Looped', sans-serif;
+  font-family: 'Google Sans','Noto Sans Thai',sans-serif;
   font-size: 15px;
   cursor: pointer;
 }
@@ -215,7 +216,7 @@ body::before {
   color: var(--text);
   padding: 11px 14px;
   border-radius: 11px;
-  font-family: 'IBM Plex Sans Thai Looped', sans-serif;
+  font-family: 'Google Sans','Noto Sans Thai',sans-serif;
   font-size: 15px;
   outline: none;
   transition: border-color 0.2s;
@@ -227,7 +228,7 @@ body::before {
 .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
 
 .section-label {
-  font-family: 'DM Sans', sans-serif;
+  font-family: 'Google Sans','Noto Sans Thai',sans-serif;
   font-size: 10px;
   letter-spacing: 0.12em;
   color: var(--muted);
@@ -302,10 +303,11 @@ body::before {
 #page-landing.staff-mode {
   padding-top: 32px;
 }
+#page-landing:not(.active) { display: none; }  /* เดิม id selector ทำให้หน้าแรกค้างอยู่บนทุกหน้า */
 
 .landing-header { margin-bottom: 28px; }
 .landing-logo {
-  font-family: 'DM Sans', sans-serif;
+  font-family: 'Google Sans','Noto Sans Thai',sans-serif;
   font-size: 10px;
   letter-spacing: 0.3em;
   color: var(--muted);
@@ -368,7 +370,7 @@ body::before {
 .landing-card:hover::before { opacity: 1; }
 
 .lcard-badge {
-  font-family: 'DM Sans', sans-serif;
+  font-family: 'Google Sans','Noto Sans Thai',sans-serif;
   font-size: 10px;
   padding: 3px 9px;
   border-radius: 20px;
@@ -432,7 +434,7 @@ body::before {
   text-align: center;
 }
 .stat-num {
-  font-family: 'DM Sans', sans-serif;
+  font-family: 'Google Sans','Noto Sans Thai',sans-serif;
   font-size: 26px;
   font-weight: 700;
   line-height: 1;
@@ -481,7 +483,7 @@ body::before {
 
 .box-icon  { font-size: 52px; margin-bottom: 16px; display: block; transition: transform 0.2s; }
 .box-card:hover .box-icon { transform: scale(1.0); }
-.box-id    { font-family: 'DM Sans', sans-serif; font-size: 11px; color: var(--muted); margin-bottom: 6px; letter-spacing: 0.05em; }
+.box-id    { font-family: 'Google Sans','Noto Sans Thai',sans-serif; font-size: 11px; color: var(--muted); margin-bottom: 6px; letter-spacing: 0.05em; }
 .box-label { font-size: 22px; font-weight: 700; margin-bottom: 14px; line-height: 1.2; }
 
 .box-status {
@@ -528,7 +530,7 @@ body::before {
   color: var(--muted);
   border-radius: 10px;
   cursor: pointer;
-  font-family: 'IBM Plex Sans Thai Looped', sans-serif;
+  font-family: 'Google Sans','Noto Sans Thai',sans-serif;
   font-size: 14px;
   font-weight: 600;
   transition: all 0.2s;
@@ -593,7 +595,7 @@ body::before {
 .drug-unit { font-size: 12px; color: var(--muted); }
 .drug-qty-wrap { text-align: right; flex-shrink: 0; }
 .drug-qty {
-  font-family: 'DM Sans', sans-serif;
+  font-family: 'Google Sans','Noto Sans Thai',sans-serif;
   font-size: 17px; font-weight: 700;
 }
 .drug-qty.ok       { color: var(--ok); }
@@ -632,17 +634,64 @@ body::before {
 .lot-check.checked::after { content: '✓'; color: white; font-size: 12px; font-weight: 700; }
 
 .lot-info { flex: 1; }
-.lot-id  { font-family: 'DM Sans', sans-serif; font-size: 11px; color: var(--muted); }
+.lot-id  { font-family: 'Google Sans','Noto Sans Thai',sans-serif; font-size: 11px; color: var(--muted); }
 .lot-exp { font-size: 13px; margin-top: 2px; }
 .lot-exp.warning  { color: var(--warning); }
 .lot-exp.critical { color: var(--critical); font-weight: 700; }
 
 .lot-qty-badge {
-  font-family: 'DM Sans', sans-serif;
+  font-family: 'Google Sans','Noto Sans Thai',sans-serif;
   font-size: 12px; font-weight: 700;
   padding: 4px 10px; border-radius: 8px;
   background: var(--surface2);
 }
+
+/* Withdraw button (ถอนยาใกล้หมดอายุ) */
+.withdraw-btn {
+  font-size: 10px; padding: 1px 7px; border-radius: 8px;
+  border: 1px solid var(--critical); background: rgba(239,68,68,0.1);
+  color: var(--critical); cursor: pointer; margin-left: 6px;
+  font-weight: 600; vertical-align: middle; line-height: 1.5;
+  font-family: 'Google Sans','Noto Sans Thai',sans-serif;
+  transition: all 0.15s;
+}
+.withdraw-btn:hover { background: rgba(239,68,68,0.2); }
+.withdraw-btn:active { background: rgba(239,68,68,0.3); }
+body.light .withdraw-btn { background: #fee2e2; color: #991b1b; border-color: #ef4444; }
+
+/* Withdraw modal extras */
+.withdraw-old-lot {
+  background: var(--surface2); border-radius: 12px; padding: 14px 16px;
+  border: 1px solid var(--border); margin-bottom: 12px;
+}
+.withdraw-old-lot .wo-label { font-size: 11px; color: var(--muted); font-weight: 600; margin-bottom: 4px; }
+.withdraw-old-lot .wo-detail { font-size: 14px; color: var(--text); font-weight: 600; }
+.withdraw-old-lot .wo-exp { font-size: 12px; margin-top: 2px; }
+.withdraw-qty-row {
+  display: grid; grid-template-columns: 1fr 100px; gap: 12px; align-items: center;
+  margin: 12px 0;
+}
+.withdraw-qty-row label { font-size: 13px; color: var(--text); font-weight: 600; }
+.withdraw-qty-row input {
+  width: 100%; background: var(--surface); border: 1px solid var(--border);
+  color: var(--text); padding: 9px 8px; border-radius: 10px;
+  font-size: 14px; text-align: center; outline: none;
+  font-family: 'Google Sans','Noto Sans Thai',sans-serif;
+}
+.withdraw-qty-row input:focus { border-color: var(--accent); }
+.withdraw-new-section {
+  background: var(--surface2); border-radius: 12px; padding: 14px 16px;
+  border: 1px solid var(--border); margin-top: 12px;
+}
+.withdraw-new-section .wn-title {
+  font-size: 13px; font-weight: 700; color: var(--ok); margin-bottom: 10px;
+  display: flex; align-items: center; gap: 6px;
+}
+.withdraw-toggle-row {
+  display: flex; align-items: center; gap: 8px; margin: 10px 0;
+  font-size: 13px; color: var(--muted);
+}
+.withdraw-toggle-row input[type="checkbox"] { accent-color: var(--accent); }
 
 /* Ward toggle */
 .ward-toggle { display: flex; gap: 8px; }
@@ -652,7 +701,7 @@ body::before {
   background: var(--surface2);
   color: var(--muted);
   border-radius: 11px; cursor: pointer;
-  font-family: 'IBM Plex Sans Thai Looped', sans-serif;
+  font-family: 'Google Sans','Noto Sans Thai',sans-serif;
   font-size: 14px; font-weight: 600;
   transition: all 0.2s;
 }
@@ -682,7 +731,7 @@ body::before {
   color: var(--text);
   padding: 9px 12px;
   border-radius: 10px;
-  font-family: 'IBM Plex Sans Thai Looped', sans-serif;
+  font-family: 'Google Sans','Noto Sans Thai',sans-serif;
   font-size: 14px;
   outline: none;
 }
@@ -713,7 +762,7 @@ body::before {
   color: var(--text);
   padding: 9px 12px;
   border-radius: 10px;
-  font-family: 'IBM Plex Sans Thai Looped', sans-serif;
+  font-family: 'Google Sans','Noto Sans Thai',sans-serif;
   font-size: 14px;
   outline: none;
   width: 100%;
@@ -741,7 +790,7 @@ body::before {
   color: var(--accent);
   border-radius: 9px;
   cursor: pointer;
-  font-family: 'IBM Plex Sans Thai Looped', sans-serif;
+  font-family: 'Google Sans','Noto Sans Thai',sans-serif;
   font-size: 13px;
   margin-top: 4px;
   transition: all 0.15s;
@@ -764,7 +813,7 @@ body::before {
   background: transparent;
   border: none;
   color: var(--text);
-  font-family: 'IBM Plex Sans Thai Looped', sans-serif;
+  font-family: 'Google Sans','Noto Sans Thai',sans-serif;
   font-size: 14px;
   outline: none;
   padding: 3px 2px;
@@ -818,7 +867,7 @@ body::before {
   background: transparent;
   border: 1px dashed var(--border);
   color: var(--muted); border-radius: 12px;
-  cursor: pointer; font-family: 'IBM Plex Sans Thai Looped', sans-serif;
+  cursor: pointer; font-family: 'Google Sans','Noto Sans Thai',sans-serif;
   font-size: 14px; transition: all 0.2s; margin-bottom: 16px;
 }
 .add-item-btn:hover { border-color: var(--accent); color: var(--accent); }
@@ -892,14 +941,14 @@ body::before {
 .alert-info { flex: 1; }
 .alert-drug { font-size: 14px; font-weight: 600; }
 .alert-meta { font-size: 11px; color: var(--muted); margin-top: 2px; }
-.alert-days { font-family: 'DM Sans', sans-serif; font-size: 12px; font-weight: 700; }
+.alert-days { font-family: 'Google Sans','Noto Sans Thai',sans-serif; font-size: 12px; font-weight: 700; }
 .alert-days.critical { color: var(--critical); }
 .alert-days.warning  { color: var(--warning); }
 
 .drug-rate-row { margin-bottom: 14px; }
 .drug-rate-header { display: flex; justify-content: space-between; margin-bottom: 5px; font-size: 14px; }
 .drug-rate-name { font-weight: 600; }
-.drug-rate-count { font-family: 'DM Sans', sans-serif; font-size: 12px; color: var(--muted); }
+.drug-rate-count { font-family: 'Google Sans','Noto Sans Thai',sans-serif; font-size: 12px; color: var(--muted); }
 .bar-track { height: 7px; background: var(--surface2); border-radius: 4px; overflow: hidden; }
 .bar-fill  { height: 100%; border-radius: 4px; transition: width 0.7s ease; }
 .bar-sub   { display: flex; gap: 8px; margin-top: 4px; font-size: 11px; }
@@ -913,12 +962,12 @@ body::before {
   border-bottom: 1px solid var(--border);
 }
 .leader-row:last-child { border-bottom: none; }
-.leader-rank { font-family: 'DM Sans', sans-serif; font-size: 14px; font-weight: 700; width: 28px; flex-shrink: 0; }
+.leader-rank { font-family: 'Google Sans','Noto Sans Thai',sans-serif; font-size: 14px; font-weight: 700; width: 28px; flex-shrink: 0; }
 .leader-rank.gold   { color: #fbbf24; }
 .leader-rank.silver { color: #9ca3af; }
 .leader-rank.bronze { color: #b45309; }
 .leader-name { flex: 1; font-size: 14px; font-weight: 600; }
-.leader-count { font-family: 'DM Sans', sans-serif; font-size: 12px; color: var(--muted); }
+.leader-count { font-family: 'Google Sans','Noto Sans Thai',sans-serif; font-size: 12px; color: var(--muted); }
 .leader-count strong { color: var(--ok); }
 
 /* ============================================================
@@ -944,7 +993,7 @@ body::before {
 .drug-master-row:hover { background: var(--surface2); }
 .drug-master-row:last-child { border-bottom: none; }
 .drug-master-name { flex: 1; font-weight: 600; }
-.drug-master-meta { font-size: 12px; color: var(--muted); font-family: 'DM Sans', sans-serif; }
+.drug-master-meta { font-size: 12px; color: var(--muted); font-family: 'Google Sans','Noto Sans Thai',sans-serif; }
 .edit-btn {
   background: rgba(59,130,246,0.08);
   border: none;
@@ -1032,7 +1081,7 @@ body::before {
   color: var(--text);
   padding: 13px 44px 13px 16px;
   border-radius: 12px;
-  font-family: 'IBM Plex Sans Thai Looped', sans-serif;
+  font-family: 'Google Sans','Noto Sans Thai',sans-serif;
   font-size: 16px;
   outline: none;
   text-align: center;
@@ -1063,7 +1112,7 @@ body::before {
   margin-top: 16px;
   font-size: 12px; color: var(--muted);
   cursor: pointer; background: none; border: none;
-  font-family: 'IBM Plex Sans Thai Looped', sans-serif;
+  font-family: 'Google Sans','Noto Sans Thai',sans-serif;
   text-decoration: underline;
 }
 
@@ -1097,7 +1146,7 @@ body::before {
   padding: 14px 20px;
   border-radius: 14px;
   cursor: pointer;
-  font-family: 'IBM Plex Sans Thai Looped', sans-serif;
+  font-family: 'Google Sans','Noto Sans Thai',sans-serif;
   font-size: 14px;
   font-weight: 600;
   transition: all 0.2s;
@@ -1257,6 +1306,111 @@ body.light select option { background: #fff; color: #111; }
   .boxes-grid { grid-template-columns: 1fr !important; }
   .sib-items { flex-wrap: wrap; }
 }
+
+/* ============================================================
+   v2 — dispense steppers / refill cards / lot chips
+   ============================================================ */
+.req { color: var(--critical); }
+.opt, .hint { color: var(--muted); font-weight: 400; font-size: 11px; }
+.section-label .hint { margin-left: 6px; text-transform: none; letter-spacing: 0; }
+.search-input {
+  width: 100%; margin-bottom: 12px; padding: 10px 14px; border-radius: 12px;
+  border: 1px solid var(--border); background: var(--surface2); color: var(--text);
+  font-family: inherit; font-size: 14px; outline: none;
+}
+.search-input:focus { border-color: var(--accent); }
+
+.d-row {
+  display: flex; align-items: center; gap: 12px;
+  background: var(--surface); border: 1px solid var(--border); border-radius: 14px;
+  padding: 10px 12px; margin-bottom: 8px;
+}
+.d-row.picked { border-color: var(--accent); background: rgba(59,130,246,0.06); }
+.d-row.had { border-left: 3px solid var(--critical); }
+.d-main { flex: 1; min-width: 0; }
+.d-name { font-size: 14px; font-weight: 600; color: var(--text); }
+.d-sub  { font-size: 12px; color: var(--muted); margin-top: 2px; }
+.d-sub.warn { color: var(--warning); }
+.d-sub.crit { color: var(--critical); font-weight: 600; }
+.d-alloc { font-size: 12px; color: var(--accent); margin-top: 3px; font-weight: 600; }
+
+.stepper { display: flex; align-items: center; gap: 4px; flex-shrink: 0; }
+.stepper button {
+  width: 40px; height: 40px; border-radius: 12px; border: 1px solid var(--border);
+  background: var(--surface2); color: var(--text); font-size: 20px; font-weight: 700;
+  cursor: pointer; font-family: inherit; line-height: 1;
+}
+.stepper button.plus { background: var(--accent); color: #fff; border-color: var(--accent); }
+.stepper button:disabled { opacity: .3; cursor: not-allowed; }
+.stepper .num { min-width: 30px; text-align: center; font-size: 18px; font-weight: 700; font-family: 'Google Sans', sans-serif; }
+
+.chips { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+.chip {
+  border: 1.5px solid var(--border); background: var(--surface2); color: var(--text);
+  border-radius: 10px; padding: 7px 10px; font-size: 12px; cursor: pointer;
+  font-family: inherit; text-align: left; line-height: 1.35;
+}
+.chip b { font-family: 'Google Sans', monospace; font-size: 14px; letter-spacing: .04em; display: block; }
+.chip.on { border-color: var(--accent); background: var(--accent); color: #fff; }
+.chip.new { border-style: dashed; color: var(--accent); }
+.chip.new.on { color: #fff; }
+.chip.sm { padding: 4px 8px; }
+.chip.sm b { font-size: 12px; display: inline; }
+
+.r-card {
+  background: var(--surface); border: 1px solid var(--border); border-radius: 14px;
+  padding: 12px 14px; margin-bottom: 10px;
+}
+.r-card.ready { border-color: var(--ok); }
+.r-card.bad   { border-color: var(--critical); }
+.r-card.had   { border-left: 3px solid var(--critical); }
+.r-head { display: flex; align-items: center; gap: 10px; }
+.r-head .d-main { flex: 1; }
+.r-x { background: none; border: none; color: var(--muted); font-size: 16px; cursor: pointer; padding: 4px 6px; }
+.r-new { margin-top: 10px; display: grid; grid-template-columns: 1fr auto; gap: 8px; align-items: end; }
+.r-new label { display: block; font-size: 11px; color: var(--muted); margin-bottom: 4px; }
+.r-new input {
+  width: 100%; background: var(--surface2); border: 1px solid var(--border); color: var(--text);
+  padding: 10px; border-radius: 10px; font-size: 16px; outline: none; font-family: 'Google Sans', sans-serif;
+}
+.r-new input:focus { border-color: var(--accent); }
+.r-new .lot-in { text-transform: uppercase; letter-spacing: .05em; }
+.exp-in { display: flex; align-items: center; gap: 4px; }
+.exp-in input { width: 52px; text-align: center; padding: 10px 4px; }
+.exp-in input.yy { width: 66px; }
+.exp-in input.dd { width: 46px; opacity: .8; }
+.exp-in span { color: var(--muted); }
+.r-check { margin-top: 8px; font-size: 13px; line-height: 1.5; }
+.r-check .ok   { color: var(--ok); font-weight: 600; }
+.r-check .warn { color: var(--warning); font-weight: 600; }
+.r-check .err  { color: var(--critical); font-weight: 600; }
+.r-check button {
+  margin-left: 6px; font-size: 12px; padding: 3px 8px; border-radius: 8px; cursor: pointer;
+  border: 1px solid var(--accent); background: transparent; color: var(--accent); font-family: inherit;
+}
+.r-split { margin-top: 8px; background: none; border: none; color: var(--accent); font-size: 12px; cursor: pointer; font-family: inherit; padding: 0; }
+.r-skip { font-size: 12px; color: var(--muted); margin-top: 6px; }
+.refill-add-row { display: flex; gap: 8px; margin-top: 6px; }
+.refill-add-row select {
+  flex: 1; background: var(--surface2); border: 1px dashed var(--border); color: var(--text);
+  padding: 10px; border-radius: 12px; font-family: inherit; font-size: 14px;
+}
+.r-empty { padding: 18px; text-align: center; color: var(--ok); background: var(--surface); border-radius: 14px; border: 1px solid var(--border); margin-bottom: 10px; }
+
+.rb-row { padding: 10px 0; border-bottom: 1px solid var(--border); }
+.rb-row:last-child { border-bottom: none; }
+.rb-drug { font-size: 13px; color: var(--muted); }
+.rb-lot  { font-family: 'Google Sans', monospace; font-size: 20px; font-weight: 700; letter-spacing: .06em; color: var(--text); }
+.rb-exp  { font-size: 15px; font-weight: 600; color: var(--text); }
+.rb-exp small { color: var(--muted); font-weight: 400; }
+.rb-qty  { float: right; font-size: 18px; font-weight: 700; color: var(--ok); }
+.rb-warn { color: var(--warning); font-size: 12px; font-weight: 600; }
+
+.lot-exp.expired { color: var(--critical); font-weight: 700; }
+.drug-icon-box.expired, .drug-qty.expired { color: var(--critical); }
+.sync-note { font-size: 11px; color: var(--muted); text-align: right; margin: -14px 0 10px; min-height: 14px; }
+.exp-preview { font-size: 12px; margin-top: 6px; min-height: 16px; }
+
 </style>
 </head>
 <body>
@@ -1273,7 +1427,7 @@ body.light select option { background: #fff; color: #111; }
       กลับหน้าหลัก
     </a>
     <button id="theme-toggle" onclick="toggleTheme()"
-      style="background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.15);color:var(--text);height:36px;padding:0 12px;border-radius:10px;cursor:pointer;display:flex;align-items:center;gap:6px;font-size:12px;font-family:'IBM Plex Sans Thai Looped',sans-serif;font-weight:500;transition:background 0.15s;flex-shrink:0;white-space:nowrap;">
+      style="background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.15);color:var(--text);height:36px;padding:0 12px;border-radius:10px;cursor:pointer;display:flex;align-items:center;gap:6px;font-size:12px;font-family:'Google Sans','Noto Sans Thai',sans-serif;font-weight:500;transition:background 0.15s;flex-shrink:0;white-space:nowrap;">
       <span id="theme-icon">🌙</span>
       <span id="theme-label">Dark Mode</span>
     </button>
@@ -1407,6 +1561,7 @@ body.light select option { background: #fff; color: #111; }
     <button class="tab-btn staff-only" onclick="switchTab('dis')">💊 จ่ายยา</button>
     <button class="tab-btn staff-only" onclick="switchTab('ref')">➕ เติมยา</button>
   </div>
+  <div class="sync-note" id="syncNote"></div>
 
   <!-- Inventory -->
   <div id="panel-inv" class="tab-panel active">
@@ -1415,76 +1570,40 @@ body.light select option { background: #fff; color: #111; }
 
   <!-- Dispense -->
   <div id="panel-dis" class="tab-panel">
-    <div class="section-label">ข้อมูลผู้ป่วย</div>
     <div class="form-row">
-      <div class="form-group"><label>HN</label><input type="text" id="dHN" placeholder="เช่น 65010001"></div>
-      <div class="form-group"><label>ชื่อ-นามสกุล</label><input type="text" id="dName" placeholder="ชื่อผู้ป่วย"></div>
+      <div class="form-group"><label>HN <span class="req">*</span></label><input type="text" id="dHN" inputmode="numeric" placeholder="HN ผู้ป่วย" autocomplete="off"></div>
+      <div class="form-group"><label>ชื่อผู้ป่วย <span class="opt">(ไม่บังคับ)</span></label><input type="text" id="dName" placeholder="ชื่อ-นามสกุล" autocomplete="off"></div>
     </div>
-    <div class="form-group">
-      <label>ประเภทผู้ป่วย</label>
-      <div class="ward-toggle">
-        <button class="ward-btn er"  onclick="selectWard('ER')">🚨 ER</button>
-        <button class="ward-btn ipd" onclick="selectWard('IPD')">🏥 IPD</button>
+    <div class="form-row">
+      <div class="form-group">
+        <label>ผู้ป่วย <span class="req">*</span></label>
+        <div class="ward-toggle">
+          <button class="ward-btn er"  onclick="selectWard('ER')">ER</button>
+          <button class="ward-btn ipd" onclick="selectWard('IPD')">IPD</button>
+        </div>
+      </div>
+      <div class="form-group">
+        <label>ผู้จ่าย <span class="req">*</span></label>
+        <select id="dStaff" class="staff-select" onchange="rememberStaff(this.value)"></select>
       </div>
     </div>
-    <div class="form-group">
-      <label>เจ้าหน้าที่ผู้จ่าย</label>
-      <select id="dStaff">
-        <option value="">— เลือกเจ้าหน้าที่ —</option>
-        <optgroup label="เภสัชกร">
-          <option>ภญ.นัยนา</option>
-          <option>ภญ.วนิดา</option>
-          <option>ภญ.อัญชลี</option>
-          <option>ภญ.ยุพิน</option>
-          <option>ภญ.กรรณิกา</option>
-        </optgroup>
-        <optgroup label="จพ.">
-          <option>จพ.วิภารัตน์</option>
-          <option>จพ.ปุญญพัฒน์</option>
-          <option>จพ.ธนารักษ์</option>
-          <option>จพ.สรัล</option>
-        </optgroup>
-      </select>
-    </div>
-
-    <!-- Step 1: เลือกยา -->
-    <div class="section-label">เลือกยาที่มีการจ่าย <span style="font-weight:400;color:var(--muted)">(กดเพื่อเปิด/ปิด)</span></div>
-    <div id="dbe-drug-pills" style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:16px;"></div>
-
-    <!-- Step 2: กรอก lot ของยาที่เลือก -->
-    <div id="dispenseByException"></div>
-
-    <!-- Summary -->
-    <div id="dispenseSummaryBar" style="display:none;margin-top:12px;padding:12px 14px;background:var(--surface2);border-radius:12px;border:1px solid var(--border);">
-      <div style="font-size:12px;color:var(--muted);margin-bottom:4px;">สรุปการจ่าย</div>
-      <div id="dispenseSummaryText" style="font-size:14px;font-weight:600;color:var(--text)">—</div>
-    </div>
+    <div class="section-label">กด + ที่ยาที่หยิบไป <span class="hint">ระบบเลือก lot ที่หมดอายุก่อนให้แล้ว (FEFO)</span></div>
+    <input type="search" id="dSearch" class="search-input" placeholder="ค้นหายา…" oninput="renderDispenseList()">
+    <div id="dispenseList"></div>
   </div>
 
   <!-- Refill -->
   <div id="panel-ref" class="tab-panel">
     <div class="form-group">
-      <label>เจ้าหน้าที่ผู้เติม</label>
-      <select id="rStaff">
-        <option value="">— เลือกเจ้าหน้าที่ —</option>
-        <optgroup label="เภสัชกร">
-          <option>ภญ.นัยนา</option>
-          <option>ภญ.วนิดา</option>
-          <option>ภญ.อัญชลี</option>
-          <option>ภญ.ยุพิน</option>
-          <option>ภญ.กรรณิกา</option>
-        </optgroup>
-        <optgroup label="จพ.">
-          <option>จพ.วิภารัตน์</option>
-          <option>จพ.ปุญญพัฒน์</option>
-          <option>จพ.ธนารักษ์</option>
-          <option>จพ.สรัล</option>
-        </optgroup>
-      </select>
+      <label>ผู้เติม <span class="req">*</span></label>
+      <select id="rStaff" class="staff-select" onchange="rememberStaff(this.value)"></select>
     </div>
-    <div class="section-label">รายการที่เติม</div>
-    <div id="refillGroups"></div>
-    <button class="add-item-btn" onclick="addRefillGroup()">+ เพิ่มรายการยา</button>
+    <div class="section-label">ยาที่ต้องเติม <span class="hint">แตะ Lot ที่ตรงกับข้างกล่องยา — ถ้าไม่มี กด "Lot ใหม่"</span></div>
+    <div id="refillCards"></div>
+    <div class="refill-add-row">
+      <select id="rAddDrug"><option value="">+ เติมยาอื่น (ที่ไม่ได้ขาด)…</option></select>
+      <button class="btn-secondary" onclick="addRefillCardFromSelect()">เพิ่ม</button>
+    </div>
   </div>
 
   <div class="bottom-action">
@@ -1678,17 +1797,18 @@ body.light select option { background: #fff; color: #111; }
       <input type="text" id="elLot" placeholder="Lot number">
     </div>
     <div class="form-group">
-      <label>วันหมดอายุ (ค.ศ.)</label>
+      <label>วันหมดอายุ (วัน / เดือน / ปี ค.ศ. หรือ พ.ศ. — ไม่ใส่วัน = สิ้นเดือน)</label>
       <div class="date-input-wrap" style="width:100%">
-        <input type="number" id="elDd" class="ru-dd" placeholder="DD" min="1" max="31">
+        <input type="number" id="elDd" class="ru-dd" placeholder="DD" min="1" max="31" oninput="syncEditPreview()">
         <span class="date-sep">/</span>
-        <input type="number" id="elMm" class="ru-mm" placeholder="MM" min="1" max="12">
+        <input type="number" id="elMm" class="ru-mm" placeholder="MM" min="1" max="12" oninput="syncEditPreview()">
         <span class="date-sep">/</span>
-        <input type="number" id="elYyyy" class="ru-yyyy" placeholder="YYYY" min="2020" max="2099">
+        <input type="number" id="elYyyy" class="ru-yyyy" placeholder="YYYY" oninput="syncEditPreview()">
         <input type="date" id="elExpPicker" class="ru-exp-hidden"
                onchange="syncEditLotDate()">
         <button class="cal-btn" onclick="document.getElementById('elExpPicker').showPicker()">📅</button>
       </div>
+      <div class="exp-preview" id="elExpPreview"></div>
     </div>
     <div class="form-group">
       <label>จำนวน</label>
@@ -1701,15 +1821,86 @@ body.light select option { background: #fff; color: #111; }
   </div>
 </div>
 
+<!-- Withdraw Modal (ถอนยาใกล้หมดอายุ) -->
+<div class="modal-overlay" id="modalWithdraw">
+  <div class="modal" style="max-width:420px">
+    <h3>🔄 ถอนยาใกล้หมดอายุ</h3>
+    <input type="hidden" id="wdDrug">
+    <input type="hidden" id="wdLot">
+    <input type="hidden" id="wdExp">
+    <input type="hidden" id="wdMaxQty">
+
+    <!-- Lot เก่าที่จะถอน -->
+    <div class="withdraw-old-lot">
+      <div class="wo-label">Lot ที่จะถอนออก</div>
+      <div class="wo-detail" id="wdOldInfo">—</div>
+      <div class="wo-exp" id="wdOldExp">—</div>
+    </div>
+
+    <div class="withdraw-qty-row">
+      <label>จำนวนที่ถอนออก</label>
+      <input type="number" id="wdQtyOut" min="1" value="1" oninput="clampWithdrawQty()">
+    </div>
+
+    <!-- Lot ใหม่ที่จะเข้ามาแทน -->
+    <div class="withdraw-toggle-row">
+      <input type="checkbox" id="wdAddNew" checked onchange="toggleWithdrawNew()">
+      <label for="wdAddNew">เพิ่ม Lot ใหม่เข้ามาแทน</label>
+    </div>
+
+    <div class="withdraw-new-section" id="wdNewSection">
+      <div class="wn-title">➕ Lot ใหม่ที่จะเข้ามาแทน</div>
+      <div id="wdKnownLots" style="margin-bottom:10px"></div>
+      <div class="form-group">
+        <label>Lot number</label>
+        <input type="text" id="wdNewLot" placeholder="Lot number ใหม่" style="text-transform:uppercase" autocomplete="off" oninput="syncWdPreview()">
+      </div>
+      <div class="form-group">
+        <label>วันหมดอายุ (ค.ศ. หรือ พ.ศ. — ไม่ใส่วัน = สิ้นเดือน)</label>
+        <div class="date-input-wrap" id="wdNewDateRow" style="width:100%">
+          <input type="number" id="wdNewDd" class="ru-dd" placeholder="DD" min="1" max="31"
+                 oninput="limitDigits(this,2);syncWdPreview()">
+          <span class="date-sep">/</span>
+          <input type="number" id="wdNewMm" class="ru-mm wd-mm" placeholder="MM" min="1" max="12"
+                 oninput="limitDigits(this,2);syncWdPreview()">
+          <span class="date-sep">/</span>
+          <input type="number" id="wdNewYyyy" class="ru-yyyy wd-yyyy" placeholder="YYYY"
+                 oninput="limitDigits(this, 4);syncWdPreview()">
+          <input type="date" id="wdNewExpPicker" class="ru-exp-hidden"
+                 onchange="syncWithdrawNewDate()">
+          <button class="cal-btn" onclick="document.getElementById('wdNewExpPicker').showPicker()">📅</button>
+        </div>
+        <div class="exp-preview" id="wdExpPreview"></div>
+      </div>
+      <div class="form-group">
+        <label>จำนวนที่เติมเข้า</label>
+        <input type="number" id="wdNewQty" min="1" value="1" placeholder="จำนวน">
+      </div>
+    </div>
+
+    <div class="form-group" style="margin-top:12px">
+      <label>เจ้าหน้าที่ผู้ดำเนินการ</label>
+      <select id="wdStaff" onchange="rememberStaff(this.value)">
+        <option value="">— เลือก —</option>
+      </select>
+    </div>
+
+    <div class="modal-actions">
+      <button class="btn-secondary" onclick="closeModal('modalWithdraw')">ยกเลิก</button>
+      <button class="btn-primary" id="wdSubmitBtn" onclick="submitWithdraw()" style="background:var(--critical)">🔄 ยืนยันถอนยา</button>
+    </div>
+  </div>
+</div>
+
 <!-- Dispense confirm popup -->
 <div class="popup-overlay" id="popupDispense">
   <div class="popup">
-    <h3>✓ ยืนยันการจ่ายยา</h3>
+    <h3 id="popupTitle">ยืนยัน</h3>
     <p id="popupPatient"></p>
-    <div class="summary-box" id="popupSummaryBox"></div>
+    <div class="summary-box" id="popupSummaryBox" style="max-height:55vh;overflow:auto"></div>
     <div class="popup-actions">
       <button class="btn-secondary" onclick="closePopup()">ยกเลิก</button>
-      <button class="btn-primary success" id="popupConfirmBtn" onclick="confirmDispense()">✓ ยืนยัน</button>
+      <button class="btn-primary success" id="popupConfirmBtn" onclick="runConfirm()">✓ ยืนยัน</button>
     </div>
   </div>
 </div>
@@ -1740,12 +1931,18 @@ body.light select option { background: #fff; color: #111; }
      ============================================================ -->
 <script>
 // ============================================================
-// CONFIG — ใส่ URL Apps Script ที่นี่
+// CONFIG
 // ============================================================
 const GAS_URL = 'https://script.google.com/macros/s/AKfycbzeswPf0O4ulbj_rfNEDz2SCYQlH7nByb4-Vl1ri6efc4n9JsJFuYisZ9MTYTAtbygzZw/exec';
 const ALERT_WARNING  = 30;
 const ALERT_CRITICAL = 15;
 const COLORS = ['#3b82f6','#10b981','#f59e0b','#8b5cf6','#ec4899','#06b6d4','#f97316'];
+const STAFF = {
+  'เภสัชกร': ['ภญ.นัยนา','ภญ.วนิดา','ภญ.อัญชลี','ภญ.ยุพิน','ภญ.กรรณิกา'],
+  'จพ.':     ['จพ.วิภารัตน์','จพ.ปุญญพัฒน์','จพ.ธนารักษ์','จพ.สรัล'],
+};
+const CAT_LABEL = { hospital: 'HOSPITAL', maternity: 'MATERNITY', refer: 'REFER CAR' };
+const TH_MONTH = ['ม.ค.','ก.พ.','มี.ค.','เม.ย.','พ.ค.','มิ.ย.','ก.ค.','ส.ค.','ก.ย.','ต.ค.','พ.ย.','ธ.ค.'];
 
 // ============================================================
 // STATE
@@ -1755,38 +1952,158 @@ let currentBoxId    = '';
 let boxData         = null;
 let currentTab      = 'inv';
 let selectedWard    = '';
-let checkedLots     = {};
-let refillCount     = 0;
-let dispensePayload = null;
+let invCache        = {};   // box_id → inventory (มาจาก getBoxes include_inventory)
 
 // ============================================================
-// AUTH
+// SMALL UTILS
 // ============================================================
-const STAFF_PW = 'hp869131';
-let isStaff    = false;
-let authCallback = null; // function to call after successful login
+function esc(s) {
+  return String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+function lsGet(k) { try { return JSON.parse(localStorage.getItem(k)); } catch(e) { return null; } }
+function lsSet(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch(e) {} }
+function isHadDrug(d) { return d.is_had === true || String(d.is_had).trim().toLowerCase() === 'true'; }
+function lotKey(l) { return `${l.lot}__${l.exp_date}`; }
+function lotStatus(l) {
+  if (l.days_left !== null && l.days_left !== undefined && l.days_left < 0) return 'expired';
+  return l.status || levelOf(l.days_left);
+}
+
+function todayYMD() {
+  const d = new Date();
+  return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+}
+function daysBetween(a, b) {
+  const [y1,m1,d1] = a.split('-').map(Number), [y2,m2,d2] = b.split('-').map(Number);
+  return Math.round((Date.UTC(y2,m2-1,d2) - Date.UTC(y1,m1-1,d1)) / 86400000);
+}
+function toBE(ymd) {
+  if (!ymd) return '—';
+  const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(ymd);
+  if (!m) return ymd;
+  return `${m[3]}/${m[2]}/${+m[1] + 543}`;
+}
+function toThaiLong(ymd) {
+  const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(ymd || '');
+  if (!m) return ymd || '—';
+  return `${+m[3]} ${TH_MONTH[+m[2]-1]} ${+m[1] + 543}`;
+}
+function humanSpan(days) {
+  if (days < 0)   return `หมดอายุแล้ว ${-days} วัน`;
+  if (days === 0) return 'หมดอายุวันนี้';
+  if (days < 60)  return `อีก ${days} วัน`;
+  const mo = Math.round(days / 30.44);
+  return mo < 24 ? `อีก ${mo} เดือน` : `อีก ${(days/365.25).toFixed(1)} ปี`;
+}
+function levelOf(days) {
+  if (days === null || days === undefined) return 'ok';
+  if (days < 0) return 'expired';
+  if (days <= ALERT_CRITICAL) return 'critical';
+  if (days <= ALERT_WARNING) return 'warning';
+  return 'ok';
+}
+
+// ── EXP parser: รับ เดือน + ปี (วันไม่บังคับ = สิ้นเดือน), ปี 2 หลัก/ค.ศ./พ.ศ. ──
+function parseExp(dd, mm, yy) {
+  dd = String(dd ?? '').trim(); mm = String(mm ?? '').trim(); yy = String(yy ?? '').trim();
+  if (!mm && !yy && !dd) return { empty: true };
+  const notes = [];
+  const m = Number(mm);
+  if (!mm || !(m >= 1 && m <= 12)) return { error: 'เดือนต้องเป็น 1–12' };
+  if (!/^\d{2}$|^\d{4}$/.test(yy)) return { error: 'ใส่ปี 2 หรือ 4 หลัก' };
+  let y = Number(yy);
+  if (yy.length === 2) {
+    if (y >= 50) { y = 2500 + y - 543; notes.push('ปี พ.ศ. 25' + yy); }
+    else y = 2000 + y;
+  } else if (y > 2400) { y -= 543; notes.push('แปลงจาก พ.ศ.'); }
+  if (y < 2000 || y > 2100) return { error: 'ปีไม่ถูกต้อง' };
+  const last = new Date(Date.UTC(y, m, 0)).getUTCDate();
+  let d;
+  if (!dd) { d = last; notes.push('ไม่ใส่วัน = สิ้นเดือน'); }
+  else {
+    d = Number(dd);
+    if (!(d >= 1 && d <= last)) return { error: `เดือนนี้มี 1–${last} วัน` };
+  }
+  return { ymd: `${y}-${String(m).padStart(2,'0')}-${String(d).padStart(2,'0')}`, notes };
+}
+
+// ── ตรวจของที่จะเข้ากล่อง: คืน {level:'ok'|'warn'|'err', msgs:[], fix:{...}} ──
+const CONFUSABLE = { O:'0', Q:'0', D:'0', I:'1', L:'1', S:'5', B:'8', Z:'2', G:'6' };
+function lotShape(s) { return String(s).toUpperCase().replace(/[^A-Z0-9]/g,'').replace(/[OQDILSBZG]/g, c => CONFUSABLE[c]); }
+function editDist(a, b) {
+  if (Math.abs(a.length - b.length) > 1) return 9;
+  const dp = Array.from({length: a.length + 1}, (_, i) => [i]);
+  for (let j = 1; j <= b.length; j++) dp[0][j] = j;
+  for (let i = 1; i <= a.length; i++) for (let j = 1; j <= b.length; j++)
+    dp[i][j] = Math.min(dp[i-1][j] + 1, dp[i][j-1] + 1, dp[i-1][j-1] + (a[i-1] === b[j-1] ? 0 : 1));
+  return dp[a.length][b.length];
+}
+function normLot(s) { return String(s || '').trim().toUpperCase().replace(/\s+/g, ''); }
+
+function checkIncoming(drug, lot, ymd) {
+  const out = { level: 'ok', msgs: [], fix: null };
+  const known = drug?.known_lots || [];
+  const L = normLot(lot);
+  const days = daysBetween(todayYMD(), ymd);
+  if (days < 0) { out.level = 'err'; out.msgs.push(`หมดอายุแล้ว (${toThaiLong(ymd)}) — เติมไม่ได้`); }
+  else if (days > 6 * 366) { out.level = 'err'; out.msgs.push(`EXP ${toThaiLong(ymd)} ไกลเกินไป — ตรวจปีอีกครั้ง`); }
+  else if (days <= ALERT_WARNING) { out.level = 'warn'; out.msgs.push(`เหลือแค่ ${days} วัน — แน่ใจว่าจะเติม lot นี้?`); }
+
+  if (L) {
+    const same = known.find(k => k.lot === L);
+    if (same && same.exp_date !== ymd) {
+      if (out.level !== 'err') out.level = 'warn';
+      out.msgs.push(`LOT ${L} เคยบันทึก EXP ${toThaiLong(same.exp_date)}`);
+      out.fix = { lot: same.lot, exp_date: same.exp_date, label: 'ใช้ EXP นี้' };
+    } else if (!same) {
+      const near = known.find(k => k.lot !== L && L.length >= 4 &&
+        (lotShape(k.lot) === lotShape(L) || editDist(k.lot, L) === 1));
+      if (near) {
+        if (out.level !== 'err') out.level = 'warn';
+        out.msgs.push(`คล้าย LOT ${near.lot} (EXP ${toThaiLong(near.exp_date)}) ที่เคยเติม — อ่านจากกล่องยาอีกครั้ง`);
+        out.fix = { lot: near.lot, exp_date: near.exp_date, label: `ใช้ ${near.lot}` };
+      }
+    }
+  }
+  return out;
+}
+
+// ============================================================
+// AUTH  (ไม่เก็บรหัสเป็นตัวอักษรในโค้ด — เทียบ SHA-256; server ตรวจซ้ำถ้าตั้ง STAFF_PW ไว้)
+// ============================================================
+const STAFF_PW_SHA256 = '7e9d9c446e9ecfd69929e51dc4b3f100bcf47010c33bf6d9365bd939b7988a3e';
+let staffPw = sessionStorage.getItem('eb_pw') || '';
+let isStaff = !!staffPw;
+let authCallback = null;
+
+async function sha256Hex(s) {
+  const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(s));
+  return [...new Uint8Array(buf)].map(b => b.toString(16).padStart(2,'0')).join('');
+}
 
 function requireAuth(callback) {
   if (isStaff) { callback(); return; }
   authCallback = callback;
-  const overlay = document.getElementById('authOverlay');
   document.getElementById('authInput').value = '';
   document.getElementById('authHint').textContent = '';
   document.getElementById('authInput').classList.remove('err');
-  overlay.classList.add('show');
+  document.getElementById('authOverlay').classList.add('show');
   setTimeout(() => document.getElementById('authInput').focus(), 100);
 }
 
-function submitAuth() {
-  const val = document.getElementById('authInput').value;
-  if (val === STAFF_PW) {
-    isStaff = true;
+async function submitAuth() {
+  const inp = document.getElementById('authInput');
+  const val = inp.value;
+  let ok = false;
+  try { ok = (await sha256Hex(val)) === STAFF_PW_SHA256; } catch(e) { ok = false; }
+  if (ok) {
+    isStaff = true; staffPw = val;
+    sessionStorage.setItem('eb_pw', val);
     document.getElementById('authOverlay').classList.remove('show');
     updateStaffBadge();
-    showToast('✅ เข้าสู่ระบบเจ้าหน้าที่แล้ว', 'ok');
-    if (authCallback) { authCallback(); authCallback = null; }
+    showToast('เข้าสู่ระบบเจ้าหน้าที่แล้ว', 'ok');
+    if (authCallback) { const cb = authCallback; authCallback = null; cb(); }
   } else {
-    const inp = document.getElementById('authInput');
     inp.classList.add('err');
     document.getElementById('authHint').textContent = 'รหัสผ่านไม่ถูกต้อง';
     inp.value = '';
@@ -1794,15 +2111,8 @@ function submitAuth() {
   }
 }
 
-function closeAuth() {
-  document.getElementById('authOverlay').classList.remove('show');
-  authCallback = null;
-}
-
-function toggleAuthPw() {
-  const inp = document.getElementById('authInput');
-  inp.type = inp.type === 'password' ? 'text' : 'password';
-}
+function closeAuth() { document.getElementById('authOverlay').classList.remove('show'); authCallback = null; }
+function toggleAuthPw() { const i = document.getElementById('authInput'); i.type = i.type === 'password' ? 'text' : 'password'; }
 
 function showStaffMenu() {
   document.getElementById('guestCards').style.display = 'none';
@@ -1813,31 +2123,45 @@ function showStaffMenu() {
 }
 
 function logout() {
-  isStaff = false;
+  isStaff = false; staffPw = '';
+  sessionStorage.removeItem('eb_pw');
   updateStaffBadge();
   document.getElementById('guestCards').style.display = '';
   document.getElementById('staffEntryBtn').style.display = '';
   document.getElementById('staffIconBar').classList.remove('show');
   document.getElementById('page-landing').classList.remove('staff-mode');
+  if (currentTab !== 'inv' && document.getElementById('page-detail').classList.contains('active')) switchTab('inv');
   showToast('ออกจากระบบแล้ว');
 }
 
 function updateStaffBadge() {
-  document.querySelectorAll('.staff-badge').forEach(el => {
-    el.classList.toggle('show', isStaff);
-  });
+  document.querySelectorAll('.staff-badge').forEach(el => el.classList.toggle('show', isStaff));
   document.body.classList.toggle('is-staff', isStaff);
-  // ถ้าอยู่หน้า detail ให้ re-render inventory เพื่อแสดง/ซ่อนปุ่ม edit
-  if (document.getElementById('page-detail').classList.contains('active') && boxData) {
-    renderInventory();
-  }
+  if (document.getElementById('page-detail').classList.contains('active') && boxData) renderInventory();
+}
+
+// ── staff dropdowns (รายชื่อชุดเดียว + จำคนล่าสุด) ──
+function staffOptionsHtml() {
+  return '<option value="">— เลือกเจ้าหน้าที่ —</option>' +
+    Object.entries(STAFF).map(([g, names]) =>
+      `<optgroup label="${esc(g)}">${names.map(n => `<option>${esc(n)}</option>`).join('')}</optgroup>`).join('');
+}
+function fillStaffSelects() {
+  const last = localStorage.getItem('eb_staff') || '';
+  document.querySelectorAll('.staff-select, #wdStaff').forEach(sel => {
+    sel.innerHTML = staffOptionsHtml();
+    sel.value = last;
+  });
+}
+function rememberStaff(v) {
+  try { localStorage.setItem('eb_staff', v); } catch(e) {}
+  document.querySelectorAll('.staff-select, #wdStaff').forEach(sel => { sel.value = v; });
 }
 
 // ============================================================
 // NAVIGATION
 // ============================================================
 function goToPage(pageId) {
-  // report และ admin ต้องเป็นเจ้าหน้าที่
   if ((pageId === 'page-report' || pageId === 'page-admin') && !isStaff) {
     requireAuth(() => goToPage(pageId));
     return;
@@ -1854,82 +2178,101 @@ function goToDashboard(category) {
   document.getElementById('dashTitle').textContent =
     category === 'hospital' ? 'Emergency Box โรงพยาบาล' :
     category === 'maternity' ? 'Emergency Box ห้องคลอด' : 'Emergency Box รถ Refer';
-  document.getElementById('dashCategory').textContent =
-    category === 'hospital' ? 'HOSPITAL' : category === 'maternity' ? 'MATERNITY' : 'REFER CAR';
+  document.getElementById('dashCategory').textContent = CAT_LABEL[category] || category;
   goToPage('page-dashboard');
   loadBoxes();
 }
 
 function goToDetail(boxId) {
+  if (boxId !== currentBoxId) { resetDispenseForm(); refillCards = []; }
   currentBoxId = boxId;
-  checkedLots  = {};
-  refillCount  = 0;
   goToPage('page-detail');
   switchTab('inv');
   loadDetail();
 }
 
 // ============================================================
-// API HELPERS
+// API
 // ============================================================
-async function apiGet(params) {
+async function apiGet(params, timeoutMs = 20000) {
   const qs = new URLSearchParams(params).toString();
   const controller = new AbortController();
-  const timeout = setTimeout(() => controller.abort(), 15000); // 15 วินาที
+  const t = setTimeout(() => controller.abort(), timeoutMs);
   try {
     const res = await fetch(`${GAS_URL}?${qs}`, { redirect: 'follow', signal: controller.signal });
-    return res.json();
-  } finally {
-    clearTimeout(timeout);
-  }
+    return await res.json();
+  } finally { clearTimeout(t); }
 }
 
 async function apiPost(body) {
-  const res = await fetch(GAS_URL, {
-    method: 'POST',
-    redirect: 'follow',
-    headers: { 'Content-Type': 'text/plain' },
-    body: JSON.stringify(body),
-  });
-  return res.json();
+  const controller = new AbortController();
+  const t = setTimeout(() => controller.abort(), 45000);
+  try {
+    const res = await fetch(GAS_URL, {
+      method: 'POST', redirect: 'follow', signal: controller.signal,
+      headers: { 'Content-Type': 'text/plain' },
+      body: JSON.stringify({ ...body, pw: staffPw }),
+    });
+    const data = await res.json();
+    if (data && data.auth === false) { logout(); showToast('รหัสเจ้าหน้าที่ไม่ผ่าน — เข้าสู่ระบบใหม่', 'err'); }
+    return data;
+  } finally { clearTimeout(t); }
+}
+
+// รับ inventory ที่ server ส่งกลับมาหลังบันทึก (ถ้ามี) ไม่ต้องโหลดใหม่
+function applyInventory(inv) {
+  if (inv && inv.drugs) {
+    boxData = inv; invCache[currentBoxId] = inv;
+    lsSet('eb2_inv_' + currentBoxId, { t: Date.now(), d: inv });
+    renderInventory();
+    return true;
+  }
+  return false;
 }
 
 // ============================================================
 // TOAST
 // ============================================================
+let toastTimer = null;
 function showToast(msg, type = '') {
   const t = document.getElementById('toast');
   t.textContent = msg;
   t.className = `toast ${type} show`;
-  setTimeout(() => t.classList.remove('show'), 3000);
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => t.classList.remove('show'), type === 'err' ? 4500 : 3000);
 }
 
 // ============================================================
-// LANDING — load alerts
+// LANDING
 // ============================================================
+function renderLandingAlert(alerts) {
+  const b = document.getElementById('landingAlert');
+  const bad  = alerts.filter(a => a.level === 'critical' || a.level === 'expired' || a.days_left <= ALERT_CRITICAL);
+  const warn = alerts.filter(a => !bad.includes(a));
+  const badBoxes  = new Set(bad.map(a => a.box_id)).size;
+  const warnBoxes = new Set(warn.map(a => a.box_id)).size;
+  const expired = alerts.filter(a => a.level === 'expired' || a.days_left < 0).length;
+  if (bad.length) {
+    let msg = `วิกฤต ${badBoxes} กล่อง — มียาหมดอายุ/เหลือไม่ถึง ${ALERT_CRITICAL} วัน`;
+    if (expired) msg += ` (หมดอายุแล้ว ${expired} lot)`;
+    if (warnBoxes) msg += ` · ใกล้หมดอายุอีก ${warnBoxes} กล่อง`;
+    b.textContent = msg; b.className = 'alert-banner show crit';
+  } else if (warn.length) {
+    b.textContent = `${warnBoxes} กล่อง มียาใกล้หมดอายุ (ไม่ถึง ${ALERT_WARNING} วัน)`;
+    b.className = 'alert-banner show warn';
+  } else b.className = 'alert-banner';
+}
+
 async function initLanding() {
+  const cached = lsGet('eb2_alerts');
+  if (cached?.d) renderLandingAlert(cached.d);
   try {
     const data = await apiGet({ action: 'getAlerts' });
     const alerts = data.alerts || [];
-    const critAlerts = alerts.filter(a => a.level === 'critical');
-    const warnAlerts = alerts.filter(a => a.level === 'warning');
-    const critBoxes = new Set(critAlerts.map(a => a.box_id)).size;
-    const warnBoxes = new Set(warnAlerts.map(a => a.box_id)).size;
-
-    if (critAlerts.length > 0) {
-      const b = document.getElementById('landingAlert');
-      let msg = `🔴 วิกฤต! ${critBoxes} กล่อง มียาเหลือน้อยกว่า ${ALERT_CRITICAL} วัน`;
-      if (warnBoxes > 0) msg += ` · ⚠️ ${warnBoxes} กล่อง ใกล้หมดอายุ`;
-      b.textContent = msg;
-      b.className = 'alert-banner show crit';
-    } else if (warnAlerts.length > 0) {
-      const b = document.getElementById('landingAlert');
-      b.textContent = `⚠️ ${warnBoxes} กล่อง มียาใกล้หมดอายุ (เหลือน้อยกว่า ${ALERT_WARNING} วัน)`;
-      b.className = 'alert-banner show warn';
-    }
-  } catch(e) {
-    // API fail หรือ timeout — ไม่แสดง alert แต่หน้าโหลดได้ปกติ
-  } finally {
+    lsSet('eb2_alerts', { t: Date.now(), d: alerts });
+    renderLandingAlert(alerts);
+  } catch(e) { /* ยังใช้หน้าได้ */ }
+  finally {
     document.getElementById('landingLoader').style.display = 'none';
     document.getElementById('landingFooterLinks').style.display = 'inline';
     document.getElementById('landingTime').textContent = new Date().toLocaleString('th-TH');
@@ -1937,159 +2280,133 @@ async function initLanding() {
 }
 
 // ============================================================
-// DASHBOARD
+// DASHBOARD  (แสดง cache ทันที แล้วค่อยอัปเดต — getBoxes ส่ง inventory ทุกกล่องมาในครั้งเดียว)
 // ============================================================
+function skeletonHtml() {
+  return [60,50,70].map(w => `<div class="skeleton"><div class="skel-line" style="width:${w}%"></div><div class="skel-line" style="width:80%"></div><div class="skel-line" style="width:45%"></div></div>`).join('');
+}
+
 async function loadBoxes() {
-  document.getElementById('boxesGrid').innerHTML = `
-    <div class="skeleton"><div class="skel-line" style="width:60%"></div><div class="skel-line" style="width:80%"></div><div class="skel-line" style="width:45%"></div></div>
-    <div class="skeleton"><div class="skel-line" style="width:50%"></div><div class="skel-line" style="width:70%"></div><div class="skel-line" style="width:60%"></div></div>
-    <div class="skeleton"><div class="skel-line" style="width:70%"></div><div class="skel-line" style="width:50%"></div><div class="skel-line" style="width:80%"></div></div>`;
+  const cat = currentCategory;
+  const cached = lsGet('eb2_boxes_' + cat);
+  if (cached?.d) renderBoxes(cached.d.boxes, cached.d.alerts);
+  else document.getElementById('boxesGrid').innerHTML = skeletonHtml();
 
   try {
-    // โหลดแยกกัน ไม่ให้ fail พร้อมกัน
-    const boxRes   = await apiGet({ action: 'getBoxes', category: currentCategory });
-    const boxes    = boxRes.boxes || [];
-
-    let alerts = [];
-    try {
-      const alertRes = await apiGet({ action: 'getAlerts' });
-      const boxIds   = new Set(boxes.map(b => b.box_id));
-      alerts = (alertRes.alerts || []).filter(a => boxIds.has(a.box_id));
-    } catch(e) { /* alerts ไม่ได้ก็แสดงกล่องได้ */ }
-
-    renderBoxes(boxes, alerts);
+    const res = await apiGet({ action: 'getBoxes', category: cat, include_inventory: '1' });
+    if (res.error) throw new Error(res.error);
+    let boxes = res.boxes || [], alerts;
+    if (res.inventories) {
+      Object.entries(res.inventories).forEach(([id, inv]) => {
+        invCache[id] = inv;
+        lsSet('eb2_inv_' + id, { t: Date.now(), d: inv });
+      });
+      alerts = alertsFromInventories(res.inventories);
+    } else {
+      // backend เวอร์ชันเก่า
+      try {
+        const ar = await apiGet({ action: 'getAlerts' });
+        const ids = new Set(boxes.map(b => b.box_id));
+        alerts = (ar.alerts || []).filter(a => ids.has(a.box_id));
+      } catch(e) { alerts = []; }
+    }
+    lsSet('eb2_boxes_' + cat, { t: Date.now(), d: { boxes, alerts } });
+    if (cat === currentCategory) renderBoxes(boxes, alerts);
   } catch(e) {
-    document.getElementById('boxesGrid').innerHTML =
-      '<div class="empty-state"><div class="empty-icon">⚠️</div><p>ไม่สามารถเชื่อมต่อได้<br><small style="font-size:12px">ตรวจสอบ GAS_URL ในโค้ด</small></p></div>';
+    if (!cached?.d) document.getElementById('boxesGrid').innerHTML =
+      '<div class="empty-state"><div class="empty-icon">⚠️</div><p>ไม่สามารถเชื่อมต่อได้<br><small style="font-size:12px">ลองรีเฟรชอีกครั้ง</small></p></div>';
+    else showToast('อัปเดตไม่ได้ — แสดงข้อมูลล่าสุดที่มี', 'err');
   }
+}
+
+function alertsFromInventories(invs) {
+  const out = [];
+  Object.entries(invs).forEach(([id, inv]) => inv.drugs.forEach(d => d.lots.forEach(l => {
+    if (l.status && l.status !== 'ok') out.push({ box_id: id, drug_name: d.drug_name, lot: l.lot, exp_date: l.exp_date, qty: l.qty, days_left: l.days_left, level: l.status });
+  })));
+  return out;
 }
 
 function renderBoxes(boxes, alerts = []) {
   const grid = document.getElementById('boxesGrid');
   if (!boxes.length) {
-    grid.innerHTML = '<div class="empty-state"><div class="empty-icon">📦</div><p>ยังไม่มีกล่อง<br><small style="font-size:12px">กด "+ กล่อง" เพื่อเริ่มต้น</small></p></div>';
+    grid.innerHTML = '<div class="empty-state"><div class="empty-icon">📦</div><p>ยังไม่มีกล่อง<br><small style="font-size:12px">เพิ่มกล่องได้ที่หน้า "จัดการ"</small></p></div>';
     ['sOk','sWarn','sCrit','sTotal'].forEach(id => document.getElementById(id).textContent = '0');
     return;
   }
+  grid.style.gridTemplateColumns = `repeat(${Math.min(boxes.length, 5)}, 1fr)`;
 
-  // Dynamic grid: max 5 ต่อแถว เต็มจอ
-  const cols = Math.min(boxes.length, 5);
-  grid.style.gridTemplateColumns = `repeat(${cols}, 1fr)`;
-
-  // นับจาก alerts จริงๆ (จำนวน lot ที่มีปัญหา ไม่ใช่จำนวนกล่อง)
-  const critCount = alerts.filter(a => a.level === 'critical').length;
-  const warnCount = alerts.filter(a => a.level === 'warning').length;
-  document.getElementById('sOk').textContent    = boxes.filter(b=>b.status==='ok').length;
-  document.getElementById('sWarn').textContent  = warnCount;
-  document.getElementById('sCrit').textContent  = critCount;
+  const isExp  = a => a.level === 'expired' || a.days_left < 0;
+  const isCrit = a => !isExp(a) && a.level === 'critical';
+  document.getElementById('sOk').textContent    = boxes.filter(b => b.status === 'ok').length;
+  document.getElementById('sWarn').textContent  = alerts.filter(a => a.level === 'warning').length;
+  document.getElementById('sCrit').textContent  = alerts.filter(a => isExp(a) || isCrit(a)).length;
   document.getElementById('sTotal').textContent = boxes.length;
 
   const statusLabel = { ok: '✓ ปกติ', warning: '⚠ ใกล้หมดอายุ', critical: '🔴 วิกฤต' };
   const icon = currentCategory === 'hospital' ? '🏥' : currentCategory === 'maternity' ? '🏩' : '🚑';
 
   grid.innerHTML = boxes.map((box, i) => {
-    const boxAlerts   = alerts.filter(a => a.box_id === box.box_id);
-    const expiredLots = boxAlerts.filter(a => a.days_left <= 0);
-    const critLots    = boxAlerts.filter(a => a.level === 'critical' && a.days_left > 0);
-    const warnLots    = boxAlerts.filter(a => a.level === 'warning');
-
-    // จำนวนที่ต้องเติม = qty ยาหมดอายุ + ที่ยังขาดจาก max (refill_needed จาก GAS)
-    const expiredQty  = expiredLots.reduce((s,a) => s + Number(a.qty||0), 0);
-    const gasRefill   = Number(box.refill_needed) || 0;
-    const refillTotal = gasRefill;
-
-    let alertLine = '';
-    if (expiredLots.length > 0) alertLine += `<div class="box-refill" style="color:var(--critical)">🔴 หมดอายุ <strong style="color:var(--critical)">${expiredLots.length} lot · ${expiredQty} หน่วย</strong></div>`;
-    if (critLots.length > 0)   alertLine += `<div class="box-refill" style="color:var(--critical)">⚠️ วิกฤต <strong style="color:var(--critical)">${critLots.length} lot</strong></div>`;
-    if (warnLots.length > 0)   alertLine += `<div class="box-refill" style="color:var(--warning)">⚠ เตือน <strong style="color:var(--warning)">${warnLots.length} lot</strong></div>`;
-    if (refillTotal > 0)       alertLine += `<div class="box-refill" style="margin-top:8px">ต้องเติม <strong style="color:var(--warning);font-size:16px">${refillTotal} หน่วย</strong></div>`;
-    else if (box.status === 'ok') alertLine = `<div class="box-refill" style="color:var(--ok);margin-top:8px">✓ ครบทุกรายการ</div>`;
-
+    const ba = alerts.filter(a => a.box_id === box.box_id);
+    const expLots = ba.filter(isExp), critLots = ba.filter(isCrit), warnLots = ba.filter(a => a.level === 'warning');
+    const expQty = expLots.reduce((s, a) => s + Number(a.qty || 0), 0);
+    const refill = Number(box.refill_needed) || 0;
+    let line = '';
+    if (expLots.length)  line += `<div class="box-refill" style="color:var(--critical)">หมดอายุแล้ว <strong style="color:var(--critical)">${expLots.length} lot · ${expQty} หน่วย</strong></div>`;
+    if (critLots.length) line += `<div class="box-refill" style="color:var(--critical)">วิกฤต <strong style="color:var(--critical)">${critLots.length} lot</strong></div>`;
+    if (warnLots.length) line += `<div class="box-refill" style="color:var(--warning)">เตือน <strong style="color:var(--warning)">${warnLots.length} lot</strong></div>`;
+    if (refill > 0)      line += `<div class="box-refill" style="margin-top:8px">ต้องเติม <strong style="color:var(--warning);font-size:16px">${refill} หน่วย</strong></div>`;
+    else if (box.status === 'ok') line = `<div class="box-refill" style="color:var(--ok);margin-top:8px">✓ ครบทุกรายการ</div>`;
     return `
-    <div class="box-card ${box.status}" style="animation-delay:${i*0.07}s" onclick="goToDetail('${box.box_id}')">
+    <div class="box-card ${esc(box.status)}" style="animation-delay:${i*0.07}s" data-box="${esc(box.box_id)}" onclick="goToDetail(this.dataset.box)">
       <span class="box-icon">${icon}</span>
-      <div class="box-id">BOX · ${box.box_id}</div>
-      <div class="box-label">${box.label}</div>
-      <div class="box-status">${statusLabel[box.status]}</div>
-      ${alertLine}
+      <div class="box-id">BOX · ${esc(box.box_id)}</div>
+      <div class="box-label">${esc(box.label)}</div>
+      <div class="box-status">${statusLabel[box.status] || ''}</div>
+      ${line}
     </div>`;
   }).join('');
-}
-
-// Add Box
-let currentAddBoxCategory = 'hospital';
-let boxEditMode = 'add';
-let boxOriginalId = '';
-
-function openAddBoxModal(category) {
-  currentAddBoxCategory = category || currentCategory;
-  boxEditMode = 'add';
-  boxOriginalId = '';
-  document.getElementById('abId').value = '';
-  document.getElementById('abId').disabled = false;
-  document.getElementById('abLabel').value = '';
-  document.getElementById('boxModalTitle').textContent = '➕ เพิ่มกล่องใหม่';
-  document.getElementById('modalAddBox').classList.add('show');
-}
-
-function openEditBoxModal(category, box_id, label) {
-  currentAddBoxCategory = category;
-  boxEditMode = 'edit';
-  boxOriginalId = box_id;
-  document.getElementById('abId').value = box_id;
-  document.getElementById('abId').disabled = true;
-  document.getElementById('abLabel').value = label;
-  document.getElementById('boxModalTitle').textContent = '✏️ แก้ไขชื่อกล่อง';
-  document.getElementById('modalAddBox').classList.add('show');
-}
-
-async function submitAddBox() {
-  const box_id = boxOriginalId || document.getElementById('abId').value.trim();
-  const label  = document.getElementById('abLabel').value.trim();
-  if (!box_id || !label) return showToast('กรุณากรอกข้อมูลให้ครบ', 'err');
-  try {
-    let data;
-    if (boxEditMode === 'edit') {
-      data = await apiPost({ action: 'updateBox', box_id, label });
-    } else {
-      data = await apiPost({ action: 'addBox', box_id, category: currentAddBoxCategory, label });
-    }
-    if (data.success) {
-      closeModal('modalAddBox');
-      loadAdmin();
-      showToast(boxEditMode === 'edit' ? '✅ แก้ไขแล้ว' : '✅ เพิ่มกล่องแล้ว', 'ok');
-    } else showToast('เกิดข้อผิดพลาด: ' + data.error, 'err');
-  } catch(e) { showToast('เกิดข้อผิดพลาด', 'err'); }
 }
 
 // ============================================================
 // BOX DETAIL
 // ============================================================
-async function loadDetail() {
-  document.getElementById('drugList').innerHTML = '<div style="text-align:center;padding:40px;color:var(--muted)">กำลังโหลด...</div>';
+function setDetailHeader() {
+  document.getElementById('detailTitle').textContent = boxData?.box?.label || currentBoxId;
+  const cat = boxData?.box?.category || currentCategory;
+  document.getElementById('detailSub').textContent = `${CAT_LABEL[cat] || cat} · ${currentBoxId}`;
+}
+
+function setSyncNote(text) { const el = document.getElementById('syncNote'); if (el) el.textContent = text; }
+
+async function loadDetail(force = false) {
+  const boxId = currentBoxId;
+  const mem = invCache[boxId] || lsGet('eb2_inv_' + boxId)?.d;
+  if (mem && !force) {
+    boxData = mem; setDetailHeader(); renderInventory();
+    setSyncNote('กำลังอัปเดต…');
+  } else {
+    document.getElementById('drugList').innerHTML = '<div style="text-align:center;padding:40px;color:var(--muted)">กำลังโหลด...</div>';
+  }
   try {
-    const data = await apiGet({ action: 'getInventory', box_id: currentBoxId });
-    boxData = data;
-    document.getElementById('detailTitle').textContent = data.box?.label || currentBoxId;
-    document.getElementById('detailSub').textContent = `${currentCategory === 'hospital' ? 'HOSPITAL' : 'REFER CAR'} · ${currentBoxId}`;
+    const data = await apiGet({ action: 'getInventory', box_id: boxId });
+    if (data.error) throw new Error(data.error);
+    if (boxId !== currentBoxId) return;
+    boxData = data; invCache[boxId] = data;
+    lsSet('eb2_inv_' + boxId, { t: Date.now(), d: data });
+    setDetailHeader();
     renderInventory();
-    populateDrugDropdown();
-    renderRefillPreload();
+    // ไม่ล้างฟอร์มที่กำลังกรอกอยู่ — อัปเดตเฉพาะเมื่ออยู่หน้าคลังยา
+    if (currentTab === 'dis' && !dispenseHasInput()) renderDispenseList();
+    if (currentTab === 'ref' && !refillHasInput()) initRefill();
+    setSyncNote('อัปเดตล่าสุด ' + new Date().toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit' }));
   } catch(e) {
-    document.getElementById('drugList').innerHTML = '<div style="text-align:center;padding:40px;color:var(--muted)">ไม่สามารถโหลดได้</div>';
+    if (!mem) document.getElementById('drugList').innerHTML = '<div style="text-align:center;padding:40px;color:var(--muted)">ไม่สามารถโหลดได้</div>';
+    else setSyncNote('อัปเดตไม่ได้ — แสดงข้อมูลล่าสุดที่มี');
   }
 }
 
-function toBE(dateStr) {
-  // แปลง YYYY-MM-DD → DD/MM/พ.ศ.
-  if (!dateStr) return '—';
-  const d = new Date(dateStr);
-  if (isNaN(d.getTime())) return dateStr;
-  const day   = String(d.getDate()).padStart(2, '0');
-  const month = String(d.getMonth() + 1).padStart(2, '0');
-  const year  = d.getFullYear() + 543;
-  return `${day}/${month}/${year}`;
-}
+let renderedDrugs = [];   // ใช้อ้างอิงจากปุ่ม (ไม่ต้องใส่ชื่อยาลงใน onclick)
 
 function renderInventory() {
   const list = document.getElementById('drugList');
@@ -2097,54 +2414,46 @@ function renderInventory() {
     list.innerHTML = '<div style="text-align:center;padding:40px;color:var(--muted)">ไม่มีรายการยา</div>';
     return;
   }
+  // FEFO: ยาที่มี lot ใกล้หมดอายุที่สุดขึ้นก่อน
+  renderedDrugs = [...boxData.drugs].sort((a, b) =>
+    (a.lots[0]?.exp_date || '9999') < (b.lots[0]?.exp_date || '9999') ? -1 : 1);
 
-  // FEFO sort — HAD ขึ้นก่อนถ้า qty = 0
-  const drugs = [...boxData.drugs].sort((a, b) => {
-    const ae = a.lots[0] ? new Date(a.lots[0].exp_date) : new Date('9999');
-    const be = b.lots[0] ? new Date(b.lots[0].exp_date) : new Date('9999');
-    return ae - be;
-  });
-
-  list.innerHTML = drugs.map((drug, i) => {
-    const ws    = drug.lots.some(l=>l.status==='critical') ? 'critical'
-                : drug.lots.some(l=>l.status==='warning')  ? 'warning' : 'ok';
-    const em    = { ok:'💊', warning:'⚠️', critical:'🔴' }[ws];
-    // รับได้ทุกรูปแบบ: true, TRUE, True, checkbox value
-    const isHad = drug.is_had === true || String(drug.is_had).trim().toLowerCase() === 'true';
+  list.innerHTML = renderedDrugs.map((drug, i) => {
+    const st = drug.lots.map(lotStatus);
+    const ws = st.includes('expired') ? 'expired' : st.includes('critical') ? 'critical' : st.includes('warning') ? 'warning' : 'ok';
+    const em = { ok:'💊', warning:'⚠️', critical:'🔴', expired:'⛔' }[ws];
+    const had = isHadDrug(drug);
     return `
-      <div class="drug-card${isHad ? ' had-card' : ''}" style="animation-delay:${i*0.05}s">
+      <div class="drug-card${had ? ' had-card' : ''}" style="animation-delay:${Math.min(i,12)*0.04}s">
         <div class="drug-header" onclick="toggleLots('dl-${i}')">
-          <div class="drug-icon-box ${ws}">${em}</div>
+          <div class="drug-icon-box ${ws === 'expired' ? 'critical' : ws}">${em}</div>
           <div style="flex:1">
-            <div class="drug-name">
-              ${isHad ? '<span class="had-badge">⚠ HAD</span>' : ''}
-              ${drug.drug_name}
-            </div>
-            <div class="drug-unit">${drug.unit}</div>
+            <div class="drug-name">${had ? '<span class="had-badge">⚠ HAD</span>' : ''}${esc(drug.drug_name)}</div>
+            <div class="drug-unit">${esc(drug.unit)}</div>
           </div>
           <div class="drug-qty-wrap">
-            <div class="drug-qty ${ws}">${drug.total_qty}<span style="font-size:12px;opacity:.5">/${drug.max_qty}</span></div>
-            <div class="drug-qty-max">${drug.unit}</div>
+            <div class="drug-qty ${ws === 'expired' ? 'critical' : ws}">${drug.total_qty}<span style="font-size:12px;opacity:.5">/${drug.max_qty}</span></div>
+            <div class="drug-qty-max">${esc(drug.unit)}</div>
             ${drug.refill_qty > 0 ? `<div class="refill-badge">เติม +${drug.refill_qty}</div>` : ''}
           </div>
         </div>
         <div class="lot-list" id="dl-${i}">
           ${!drug.lots.length
             ? '<div style="padding:14px 18px;color:var(--muted);font-size:13px">ยังไม่มี Lot</div>'
-            : drug.lots.map((lot, li) => `
+            : drug.lots.map((lot, li) => {
+              const s = lotStatus(lot);
+              const tail = s === 'expired' ? ' · หมดอายุแล้ว (ไม่นับในยอด)' : s !== 'ok' ? ` · เหลือ ${lot.days_left} วัน` : '';
+              return `
               <div class="lot-row">
                 <div class="lot-info">
-                  <div class="lot-id">LOT: ${lot.lot || '—'}</div>
-                  <div class="lot-exp ${lot.status}">
-                    EXP: ${toBE(lot.exp_date)}
-                    ${lot.status!=='ok' ? ` · เหลือ ${lot.days_left} วัน` : ''}
-                    ${lot.status==='critical' ? ' 🔴' : lot.status==='warning' ? ' ⚠️' : ''}
-                  </div>
+                  <div class="lot-id">LOT: ${esc(lot.lot || '—')}${
+                    isStaff && s !== 'ok' ? ` <button class="withdraw-btn" onclick="event.stopPropagation();openWithdrawModal(${i},${li})">ถอน</button>` : ''
+                  }</div>
+                  <div class="lot-exp ${s}">EXP: ${toBE(lot.exp_date)}${tail}</div>
                 </div>
-                <div class="lot-qty-badge">${lot.qty} ${drug.unit}</div>
-                ${isStaff ? `<button class="edit-btn" style="flex-shrink:0"
-                  onclick="openEditLotModal('${drug.drug_name}','${lot.lot}','${lot.exp_date}',${lot.qty})">✏️</button>` : ''}
-              </div>`).join('')
+                <div class="lot-qty-badge">${lot.qty} ${esc(drug.unit)}</div>
+                ${isStaff ? `<button class="edit-btn" style="flex-shrink:0" onclick="openEditLotModal(${i},${li})">✏️</button>` : ''}
+              </div>`; }).join('')
           }
         </div>
       </div>`;
@@ -2154,35 +2463,42 @@ function renderInventory() {
 function toggleLots(id) { document.getElementById(id).classList.toggle('open'); }
 
 function switchTab(tab) {
-  // จ่าย/เติมยาต้องเป็นเจ้าหน้าที่
-  if ((tab === 'dis' || tab === 'ref') && !isStaff) {
-    requireAuth(() => switchTab(tab));
-    return;
-  }
+  if ((tab === 'dis' || tab === 'ref') && !isStaff) { requireAuth(() => switchTab(tab)); return; }
   currentTab = tab;
-  document.querySelectorAll('.tab-btn').forEach((b,i) => b.classList.toggle('active', ['inv','dis','ref'][i] === tab));
+  document.querySelectorAll('.tab-btn').forEach((b, i) => b.classList.toggle('active', ['inv','dis','ref'][i] === tab));
   document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
   document.getElementById(`panel-${tab}`).classList.add('active');
+  updateActionBtn();
+  if (tab === 'dis') renderDispenseList();
+  if (tab === 'ref' && !refillHasInput()) initRefill();
+}
 
+function updateActionBtn() {
   const btn = document.getElementById('detailActionBtn');
-  if (tab === 'inv') { btn.textContent = '🔄 รีเฟรช'; btn.className = 'btn-primary full'; }
-  if (tab === 'dis') {
-    btn.textContent = '💊 บันทึกการจ่าย'; btn.className = 'btn-primary full';
-    initDispenseGroups();
+  if (currentTab === 'inv') { btn.textContent = '🔄 รีเฟรช'; btn.className = 'btn-primary full'; }
+  if (currentTab === 'dis') {
+    const n = dispenseItems().reduce((s, it) => s + it.qty, 0);
+    btn.textContent = n ? `💊 บันทึกการจ่าย (${n} หน่วย)` : '💊 บันทึกการจ่าย';
+    btn.className = 'btn-primary full';
   }
-  if (tab === 'ref') { btn.textContent = '✅ บันทึกการเติม'; btn.className = 'btn-primary full success'; }
+  if (currentTab === 'ref') {
+    const n = refillCards.filter(c => cardState(c).ready).length;
+    btn.textContent = n ? `✅ บันทึกการเติม (${n} รายการ)` : '✅ บันทึกการเติม';
+    btn.className = 'btn-primary full success';
+  }
 }
 
 function handleDetailAction() {
-  if (currentTab === 'inv') return loadDetail();
+  if (currentTab === 'inv') return loadDetail(true);
   if (currentTab === 'dis') return submitDispense();
   if (currentTab === 'ref') return submitRefill();
 }
 
-// --- DISPENSE ---
-function populateDrugDropdown() {
-  // ไม่ต้องใช้แล้ว — ย้ายไป addDispenseGroup
-}
+// ============================================================
+// DISPENSE — กด +/− ที่ยา, lot เลือก FEFO ให้อัตโนมัติ
+// ============================================================
+let dispQty = {};   // drug_name → { lotKey: qty }
+let dispSel = {};   // drug_name → lotKey ที่กำลังเลือก
 
 function selectWard(type) {
   selectedWard = type;
@@ -2190,485 +2506,541 @@ function selectWard(type) {
   document.querySelector(`.ward-btn.${type.toLowerCase()}`).classList.add('active');
 }
 
-// ============================================================
-// DISPENSE — multi-drug group (เหมือน refill)
-// ============================================================
-let dispenseGroupCount = 0;
-
-function initDispenseGroups() {
-  renderDrugPills();
-  document.getElementById('dispenseByException').innerHTML = '';
-  const bar = document.getElementById('dispenseSummaryBar');
-  if (bar) bar.style.display = 'none';
+function usableLots(drug) { return drug.lots.filter(l => l.qty > 0 && lotStatus(l) !== 'expired'); }
+function dispenseHasInput() { return Object.values(dispQty).some(m => Object.values(m).some(q => q > 0)); }
+function dispenseDrugs() {
+  return [...(boxData?.drugs || [])].filter(d => usableLots(d).length)
+    .sort((a, b) => a.drug_name.localeCompare(b.drug_name));
 }
 
-// ─── Step 1: Drug pill selector ───
-const selectedDrugs = new Set();
-
-function renderDrugPills() {
-  const container = document.getElementById('dbe-drug-pills');
-  if (!container || !boxData?.drugs?.length) return;
-  selectedDrugs.clear();
-
-  const drugs = boxData.drugs.filter(d => d.lots.some(l => l.qty > 0));
-  if (!drugs.length) {
-    container.innerHTML = '<div style="color:var(--muted);font-size:13px">ไม่มียาในกล่อง</div>';
-    return;
-  }
-  container.innerHTML = drugs.map((drug, idx) => {
-    const isHad = drug.is_had === true || String(drug.is_had).toLowerCase() === 'true';
-    return `<button id="pill-${idx}"
-      onclick="toggleDrugPill(${idx})"
-      style="padding:8px 14px;border-radius:99px;border:1.5px solid var(--border);
-             background:var(--surface);color:var(--text);font-family:'IBM Plex Sans Thai Looped',sans-serif;
-             font-size:13px;cursor:pointer;display:flex;align-items:center;gap:6px;transition:all 0.15s;">
-      ${isHad ? '<span style="font-size:10px;background:rgba(239,68,68,0.15);color:var(--critical);padding:1px 5px;border-radius:4px;font-weight:700">HAD</span>' : ''}
-      ${drug.drug_name}
-    </button>`;
+function renderDispenseList() {
+  const el = document.getElementById('dispenseList');
+  if (!el) return;
+  const q = (document.getElementById('dSearch').value || '').trim().toLowerCase();
+  const drugs = dispenseDrugs();
+  if (!drugs.length) { el.innerHTML = '<div style="color:var(--muted);font-size:13px;padding:12px">ไม่มียาที่จ่ายได้ในกล่อง</div>'; return; }
+  el.innerHTML = drugs.map(d => {
+    if (q && !d.drug_name.toLowerCase().includes(q) && !dispTotal(d.drug_name)) return '';
+    return dispenseRowHtml(d);
   }).join('');
+  updateActionBtn();
 }
 
-function toggleDrugPill(idx) {
-  const drugs = boxData.drugs.filter(d => d.lots.some(l => l.qty > 0));
-  const drug = drugs[idx];
-  if (!drug) return;
-  const btn = document.getElementById(`pill-${idx}`);
-  if (!btn) return;
+function dispTotal(name) { return Object.values(dispQty[name] || {}).reduce((s, v) => s + v, 0); }
 
-  if (selectedDrugs.has(drug.drug_name)) {
-    selectedDrugs.delete(drug.drug_name);
-    btn.style.background = 'var(--surface)';
-    btn.style.borderColor = 'var(--border)';
-    btn.style.color = 'var(--text)';
-  } else {
-    selectedDrugs.add(drug.drug_name);
-    btn.style.background = 'var(--accent)';
-    btn.style.borderColor = 'var(--accent)';
-    btn.style.color = '#fff';
+function dispenseRowHtml(d) {
+  const lots = usableLots(d);
+  const name = d.drug_name;
+  if (!dispSel[name] || !lots.some(l => lotKey(l) === dispSel[name])) dispSel[name] = lotKey(lots[0]);
+  const sel = lots.find(l => lotKey(l) === dispSel[name]);
+  const picked = dispQty[name] || {};
+  const qSel = picked[dispSel[name]] || 0;
+  const total = dispTotal(name);
+  const idx = (boxData.drugs || []).indexOf(d);
+  const s = lotStatus(sel);
+  const subCls = s === 'critical' ? 'crit' : s === 'warning' ? 'warn' : '';
+  const alloc = Object.entries(picked).filter(([, v]) => v > 0)
+    .map(([k, v]) => `LOT ${esc(k.split('__')[0])} ×${v}`).join(' · ');
+  return `
+    <div class="d-row${total ? ' picked' : ''}${isHadDrug(d) ? ' had' : ''}" id="drow-${idx}">
+      <div class="d-main">
+        <div class="d-name">${isHadDrug(d) ? '<span class="had-badge">HAD</span> ' : ''}${esc(name)}</div>
+        <div class="d-sub ${subCls}">LOT ${esc(sel.lot)} · EXP ${toBE(sel.exp_date)} · มี ${sel.qty}</div>
+        ${lots.length > 1 ? `<div class="chips">${lots.map((l, li) => `
+          <button class="chip sm${lotKey(l) === dispSel[name] ? ' on' : ''}" onclick="selectDispLot(${idx},${li})"><b>${esc(l.lot)}</b> · ${toBE(l.exp_date)}</button>`).join('')}</div>` : ''}
+        ${total && (lots.length > 1) ? `<div class="d-alloc">จ่าย: ${alloc}</div>` : ''}
+      </div>
+      <div class="stepper">
+        <button onclick="stepDisp(${idx},-1)" ${qSel ? '' : 'disabled'}>−</button>
+        <div class="num">${qSel}</div>
+        <button class="plus" onclick="stepDisp(${idx},1)" ${qSel >= sel.qty ? 'disabled' : ''}>+</button>
+      </div>
+    </div>`;
+}
+
+function refreshDispRow(idx) {
+  const d = boxData.drugs[idx];
+  const row = document.getElementById('drow-' + idx);
+  if (row) row.outerHTML = dispenseRowHtml(d);
+  updateActionBtn();
+}
+
+function selectDispLot(idx, li) {
+  const d = boxData.drugs[idx];
+  dispSel[d.drug_name] = lotKey(usableLots(d)[li]);
+  refreshDispRow(idx);
+}
+
+function stepDisp(idx, delta) {
+  const d = boxData.drugs[idx];
+  const name = d.drug_name, key = dispSel[name];
+  const lot = usableLots(d).find(l => lotKey(l) === key);
+  if (!lot) return;
+  const m = dispQty[name] = dispQty[name] || {};
+  m[key] = Math.max(0, Math.min(lot.qty, (m[key] || 0) + delta));
+  if (delta > 0 && m[key] === lot.qty) {
+    const next = usableLots(d).find(l => lotKey(l) !== key && (m[lotKey(l)] || 0) < l.qty);
+    if (next) { dispSel[name] = lotKey(next); showToast(`LOT ${lot.lot} หมดแล้ว — ครั้งต่อไปจะหยิบจาก LOT ${next.lot}`); }
   }
-  renderDispenseByException();
+  refreshDispRow(idx);
 }
 
-// ─── Step 2: Lot fill for selected drugs ───
-function renderDispenseByException() {
-  const container = document.getElementById('dispenseByException');
-  if (!container) return;
-
-  if (!selectedDrugs.size) {
-    container.innerHTML = '';
-    const bar = document.getElementById('dispenseSummaryBar');
-    if (bar) bar.style.display = 'none';
-    return;
-  }
-
-  const drugs = boxData.drugs.filter(d => selectedDrugs.has(d.drug_name));
-
-  container.innerHTML = drugs.map((drug, di) => {
-    const validLots = drug.lots.filter(l => l.qty > 0);
-    const isHad = drug.is_had === true || String(drug.is_had).toLowerCase() === 'true';
-    return `
-      <div style="background:var(--surface);border:1px solid var(--border);border-radius:14px;margin-bottom:10px;overflow:hidden;${isHad?'border-left:3px solid var(--critical);':''}">
-        <div style="padding:10px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:8px;">
-          ${isHad ? '<span class="had-badge">⚠ HAD</span>' : ''}
-          <span style="font-size:14px;font-weight:700;color:var(--text)">${drug.drug_name}</span>
-          <span style="font-size:12px;color:var(--muted)">${drug.unit}</span>
-        </div>
-        <div style="padding:8px 16px;">
-          <div style="display:grid;grid-template-columns:1fr 72px 72px 90px;gap:8px;padding:4px 0 8px;font-size:11px;color:var(--muted);font-weight:600;">
-            <span>Lot / EXP</span>
-            <span style="text-align:center">ระบบมี</span>
-            <span style="text-align:center">เหลือจริง</span>
-            <span style="text-align:center">จ่ายไป</span>
-          </div>
-          ${validLots.map((lot, li) => `
-            <div style="display:grid;grid-template-columns:1fr 72px 72px 90px;gap:8px;align-items:center;padding:6px 0;border-top:1px solid var(--border);">
-              <div>
-                <div style="font-size:13px;font-weight:600;color:var(--text)">LOT: ${lot.lot||'—'}</div>
-                <div class="lot-exp ${lot.status}" style="font-size:11px">EXP: ${toBE(lot.exp_date)}${lot.status!=='ok'?` · ${lot.days_left} วัน`:''}</div>
-              </div>
-              <div style="text-align:center;font-size:14px;color:var(--muted)">${lot.qty}</div>
-              <div style="text-align:center;">
-                <input type="number" id="dbe-${di}-${li}"
-                  value="${lot.qty}" min="0" max="${lot.qty}"
-                  data-drug="${drug.drug_name}" data-lot="${lot.lot}" data-max="${lot.qty}"
-                  style="width:60px;background:var(--surface2);border:1px solid var(--border);color:var(--text);
-                         padding:6px 4px;border-radius:8px;font-size:14px;text-align:center;outline:none;"
-                  oninput="updateDispenseDiff('dbe-${di}-${li}','diff-${di}-${li}')">
-              </div>
-              <div id="diff-${di}-${li}" style="text-align:center;">
-                <span style="font-size:12px;color:var(--muted)">ไม่มีการจ่าย</span>
-              </div>
-            </div>`).join('')}
-        </div>
-      </div>`;
-  }).join('');
-
-  updateDispenseSummary();
+function dispenseItems() {
+  const items = [];
+  (boxData?.drugs || []).forEach(d => Object.entries(dispQty[d.drug_name] || {}).forEach(([k, q]) => {
+    if (q > 0) { const [lot, exp] = k.split('__'); items.push({ drug_name: d.drug_name, lot, exp_date: exp, qty: q }); }
+  }));
+  return items;
 }
 
-function updateDispenseDiff(inputId, diffId) {
-  const input = document.getElementById(inputId);
-  const diffEl = document.getElementById(diffId);
-  if (!input || !diffEl) return;
-  const max = Number(input.getAttribute('data-max'));
-  let val = Number(input.value);
-  if (isNaN(val) || val < 0) val = 0;
-  if (val > max) { val = max; input.value = max; }
-  const diff = max - val;
-  diffEl.innerHTML = diff === 0
-    ? '<span style="font-size:12px;color:var(--muted)">ไม่มีการจ่าย</span>'
-    : `<span style="font-size:13px;font-weight:700;color:var(--critical)">จ่าย ${diff}</span>`;
-  updateDispenseSummary();
+let confirmAction = null;
+function openConfirm(title, sub, html, okLabel, onOk) {
+  document.getElementById('popupTitle').textContent = title;
+  document.getElementById('popupPatient').textContent = sub;
+  document.getElementById('popupSummaryBox').innerHTML = html;
+  const b = document.getElementById('popupConfirmBtn');
+  b.textContent = okLabel; b.disabled = false;
+  confirmAction = onOk;
+  document.getElementById('popupDispense').classList.add('show');
 }
-
-function updateDispenseSummary() {
-  const inputs = document.querySelectorAll('[id^="dbe-"]');
-  const parts = [];
-  inputs.forEach(input => {
-    const diff = Number(input.getAttribute('data-max')) - Number(input.value);
-    if (diff > 0) parts.push({
-      drug: input.getAttribute('data-drug'),
-      lot:  input.getAttribute('data-lot'),
-      qty:  diff
-    });
-  });
-  const bar = document.getElementById('dispenseSummaryBar');
-  const txt = document.getElementById('dispenseSummaryText');
-  if (!parts.length) { if (bar) bar.style.display = 'none'; return; }
-  if (bar) bar.style.display = 'block';
-  const grouped = {};
-  parts.forEach(p => {
-    if (!grouped[p.drug]) grouped[p.drug] = [];
-    grouped[p.drug].push(`LOT ${p.lot} ×${p.qty}`);
-  });
-  if (txt) txt.textContent = Object.entries(grouped)
-    .map(([drug, lots]) => `${drug.split(' ')[0]}: ${lots.join(', ')}`)
-    .join(' | ');
+async function runConfirm() {
+  if (!confirmAction) return;
+  const b = document.getElementById('popupConfirmBtn');
+  const label = b.textContent;
+  b.textContent = 'กำลังบันทึก...'; b.disabled = true;
+  try { await confirmAction(); }
+  finally { b.textContent = label; b.disabled = false; }
 }
 
 function submitDispense() {
   const HN    = document.getElementById('dHN').value.trim();
   const name  = document.getElementById('dName').value.trim();
   const staff = document.getElementById('dStaff').value.trim();
-  if (!HN || !name || !selectedWard || !staff) return showToast('กรุณากรอกข้อมูลให้ครบ', 'err');
+  const miss = [!HN && 'HN', !selectedWard && 'ER/IPD', !staff && 'ผู้จ่าย'].filter(Boolean);
+  if (miss.length) return showToast('ยังไม่ได้ใส่: ' + miss.join(', '), 'err');
+  const items = dispenseItems();
+  if (!items.length) return showToast('ยังไม่ได้กด + ที่ยาที่จ่าย', 'err');
 
-  const inputs = document.querySelectorAll('[id^="dbe-"]');
-  const items = [];
-  inputs.forEach(input => {
-    const diff = Number(input.getAttribute('data-max')) - Number(input.value);
-    if (diff > 0) items.push({
-      drug_name: input.getAttribute('data-drug'),
-      lot:       input.getAttribute('data-lot'),
-      qty:       diff
-    });
-  });
-
-  if (!items.length) return showToast('ไม่มียาที่ต้องจ่าย — ตัวเลขทุกช่องตรงกับระบบ', 'err');
-
-  dispensePayload = { box_id: currentBoxId, HN, patient_name: name, ward_type: selectedWard, dispensed_by: staff, items };
-
-  document.getElementById('popupPatient').textContent = `ผู้ป่วย: ${name} (HN: ${HN}) · ${selectedWard}`;
-  document.getElementById('popupSummaryBox').innerHTML = items.map(item => {
-    const drug = (boxData?.drugs || []).find(d => d.drug_name === item.drug_name);
-    if (!drug) return '';
-    const today = new Date();
-    let validQtyAfter = 0;
-    drug.lots.forEach(lot => {
-      const exp = new Date(lot.exp_date);
-      if (!lot.lot || isNaN(exp) || exp < today) return;
-      const dispensed = (lot.lot === item.lot) ? Number(item.qty) : 0;
-      validQtyAfter += Math.max(0, Number(lot.qty) - dispensed);
-    });
-    const need = Math.max(0, drug.max_qty - validQtyAfter);
-    return `<div class="summary-row">
-      <span>${item.drug_name} (LOT: ${item.lot})</span>
-      <span>จ่าย ${item.qty} → <strong>ต้องเติม ${need}</strong></span>
-    </div>`;
+  const payload = { action: 'dispense', box_id: currentBoxId, HN, patient_name: name, ward_type: selectedWard, dispensed_by: staff, items };
+  const html = items.map(it => {
+    const d = boxData.drugs.find(x => x.drug_name === it.drug_name);
+    const after = d ? usableLots(d).reduce((s, l) => s + l.qty, 0) - dispTotal(it.drug_name) : 0;
+    const need = d ? Math.max(0, d.max_qty - after) : 0;
+    return `<div class="summary-row"><span>${esc(it.drug_name)} <small style="color:var(--muted)">LOT ${esc(it.lot)}</small></span>
+      <span>จ่าย ${it.qty}${need ? ` → <strong>ต้องเติม ${need}</strong>` : ''}</span></div>`;
   }).join('');
-
-  document.getElementById('popupDispense').classList.add('show');
-}
-
-async function confirmDispense() {
-  const btn = document.getElementById('popupConfirmBtn');
-  btn.textContent = 'กำลังบันทึก...'; btn.disabled = true;
-  try {
-    const data = await apiPost({ action: 'dispense', ...dispensePayload });
-    if (data.success) {
+  openConfirm('ยืนยันการจ่ายยา', `HN ${HN}${name ? ' · ' + name : ''} · ${selectedWard} · ${staff}`, html, '✓ ยืนยัน', async () => {
+    try {
+      const data = await apiPost(payload);
+      if (!data.success) return showToast('บันทึกไม่สำเร็จ: ' + (data.error || ''), 'err');
       closePopup();
-      showToast('✅ บันทึกการจ่ายยาแล้ว', 'ok');
-      // โหลดข้อมูลใหม่ก่อน แล้วค่อย switch tab และ reset form
-      await loadDetail();
+      resetDispenseForm();
+      showToast('บันทึกการจ่ายยาแล้ว', 'ok');
+      if (!applyInventory(data.inventory)) await loadDetail(true);
       switchTab('inv');
-      // reset dispense form
-      selectedDrugs.clear();
-      document.getElementById('dispenseByException').innerHTML = '';
-      const bar = document.getElementById('dispenseSummaryBar');
-      if (bar) bar.style.display = 'none';
-      checkedLots = {};
-    } else showToast('เกิดข้อผิดพลาด: ' + data.error, 'err');
-  } catch(e) { showToast('เกิดข้อผิดพลาด', 'err'); }
-  finally { btn.textContent = '✓ ยืนยัน'; btn.disabled = false; }
-}
-
-// --- REFILL ---
-function renderRefillPreload() {
-  const container = document.getElementById('refillGroups');
-  if (!container) return;
-  container.innerHTML = '';
-  refillCount = 0;
-  unitCounters = {};
-  addRefillGroup(); // เริ่มว่าง 1 ช่อง ให้ user เลือกเอง
-}
-
-function addRefillGroup(presetDrug = '') {
-  refillCount++;
-  const gid = refillCount;
-  unitCounters[gid] = 1;
-  const drugOpts = (boxData?.drugs || []).map(d =>
-    `<option value="${d.drug_name}" ${d.drug_name === presetDrug ? 'selected' : ''}>${d.drug_name}</option>`
-  ).join('');
-
-  const div = document.createElement('div');
-  div.className = 'refill-group';
-  div.id = `rg-${gid}`;
-  div.innerHTML = `
-    <div class="refill-group-header">
-      <select class="rg-drug">
-        <option value="">— เลือกยา —</option>
-        ${drugOpts}
-      </select>
-      <button class="remove-item-btn" onclick="document.getElementById('rg-${gid}').remove()">✕</button>
-    </div>
-    <div class="refill-unit-label" style="display:grid;grid-template-columns:1fr 1fr 64px 28px;gap:8px;padding:0 2px">
-      <span>Lot</span>
-      <span>วันหมดอายุ</span>
-      <span style="text-align:center">จำนวน</span>
-      <span></span>
-    </div>
-    <div class="rg-units" id="rg-units-${gid}">
-      ${makeUnitRow(gid, 1)}
-    </div>
-    <button class="add-unit-btn" onclick="addUnitRow(${gid})">+ เพิ่มอีก 1 หน่วย</button>
-  `;
-  document.getElementById('refillGroups').appendChild(div);
-}
-
-let unitCounters = {};
-
-function makeUnitRow(gid, n) {
-  const uid = `rg-${gid}-u-${n}`;
-  return `
-    <div class="refill-unit-row" id="${uid}">
-      <input type="text" class="ru-lot" placeholder="Lot number">
-      <div class="date-input-wrap">
-        <input type="number" class="ru-dd" placeholder="DD" min="1" max="31"
-               oninput="autoAdvanceDate(this, 2, '${uid}', 'ru-mm')">
-        <span class="date-sep">/</span>
-        <input type="number" class="ru-mm" placeholder="MM" min="1" max="12"
-               oninput="autoAdvanceDate(this, 2, '${uid}', 'ru-yyyy')">
-        <span class="date-sep">/</span>
-        <input type="number" class="ru-yyyy" placeholder="YYYY" min="2020" max="2099"
-               oninput="limitDigits(this, 4)">
-        <input type="date" class="ru-exp-hidden" tabindex="-1" aria-hidden="true"
-               onchange="syncDateFromPicker(this, ${gid}, ${n})">
-        <button class="cal-btn" onclick="document.getElementById('${uid}').querySelector('.ru-exp-hidden').showPicker()" title="เลือกจากปฏิทิน">
-          📅
-        </button>
-      </div>
-      <input type="number" class="ru-qty" value="1" min="1" style="width:64px;background:var(--surface);border:1px solid var(--border);color:var(--text);padding:9px 8px;border-radius:10px;font-family:'IBM Plex Sans Thai Looped',sans-serif;font-size:14px;outline:none;text-align:center">
-      <button class="remove-unit-btn" onclick="removeUnitRow('${uid}', ${gid})">✕</button>
-    </div>`;
-}
-
-function autoAdvanceDate(input, maxLen, rowId, nextClass) {
-  // จำกัดความยาว
-  if (input.value.length > maxLen) input.value = input.value.slice(0, maxLen);
-  // auto-advance เมื่อครบ digit
-  if (input.value.length >= maxLen) {
-    const row  = document.getElementById(rowId);
-    const next = row?.querySelector('.' + nextClass);
-    if (next) { next.focus(); next.select(); }
-  }
-}
-
-function limitDigits(input, max) {
-  if (input.value.length > max) input.value = input.value.slice(0, max);
-}
-
-function syncDateFromPicker(input, gid, n) {
-  // รับค่าจาก hidden date picker → แปลงใส่ 3 ช่อง
-  const val = input.value; // YYYY-MM-DD
-  if (!val) return;
-  const [y, m, d] = val.split('-');
-  const row = document.getElementById(`rg-${gid}-u-${n}`);
-  row.querySelector('.ru-dd').value   = parseInt(d);
-  row.querySelector('.ru-mm').value   = parseInt(m);
-  row.querySelector('.ru-yyyy').value = y;
-}
-
-function getExpFromRow(row) {
-  // แปลง dd/mm/yyyy → YYYY-MM-DD สำหรับส่ง GAS
-  const dd   = String(row.querySelector('.ru-dd').value || '').padStart(2, '0');
-  const mm   = String(row.querySelector('.ru-mm').value || '').padStart(2, '0');
-  const yyyy = row.querySelector('.ru-yyyy').value || '';
-  if (!dd || !mm || !yyyy || yyyy.length < 4) return '';
-  return `${yyyy}-${mm}-${dd}`;
-}
-
-function addUnitRow(gid) {
-  unitCounters[gid] = (unitCounters[gid] || 1) + 1;
-  const n = unitCounters[gid];
-  document.getElementById(`rg-units-${gid}`)
-    .insertAdjacentHTML('beforeend', makeUnitRow(gid, n));
-}
-
-function removeUnitRow(rowId, gid) {
-  const el = document.getElementById(rowId);
-  const parent = document.getElementById(`rg-units-${gid}`);
-  if (parent && parent.querySelectorAll('.refill-unit-row').length > 1) {
-    el.remove();
-  } else {
-    showToast('ต้องมีอย่างน้อย 1 หน่วย', 'err');
-  }
-}
-
-async function submitRefill() {
-  const staff = document.getElementById('rStaff').value.trim();
-  if (!staff) return showToast('กรุณาเลือกเจ้าหน้าที่', 'err');
-
-  const items = [];
-  document.querySelectorAll('.refill-group').forEach(group => {
-    const drug = group.querySelector('.rg-drug').value;
-    if (!drug) return;
-    group.querySelectorAll('.refill-unit-row').forEach(row => {
-      const lot = row.querySelector('.ru-lot').value.trim();
-      const exp = getExpFromRow(row);
-      const qty = Number(row.querySelector('.ru-qty').value) || 1;
-      if (lot || exp) items.push({ drug_name: drug, lot, exp_date: exp, qty });
-    });
+    } catch(e) { showToast('เชื่อมต่อไม่ได้ — ยังไม่ได้บันทึก ลองใหม่อีกครั้ง', 'err'); }
   });
+}
 
-  if (!items.length) return showToast('กรุณาเพิ่มรายการที่ต้องการเติม', 'err');
+function resetDispenseForm() {
+  document.getElementById('dHN').value = '';
+  document.getElementById('dName').value = '';
+  document.getElementById('dSearch').value = '';
+  selectedWard = '';
+  document.querySelectorAll('.ward-btn').forEach(b => b.classList.remove('active'));
+  dispQty = {}; dispSel = {};
+}
 
-  const btn = document.getElementById('detailActionBtn');
-  btn.textContent = 'กำลังบันทึก...'; btn.disabled = true;
-  try {
-    const data = await apiPost({ action: 'refill', box_id: currentBoxId, refilled_by: staff, items });
-    if (data.success) {
-      loadDetail();
-      showToast('✅ บันทึกการเติมยาแล้ว', 'ok');
+// ============================================================
+// REFILL — การ์ดยาที่ขาด + ปุ่ม lot ที่เคยเติม, lot ใหม่ตรวจซ้ำก่อนบันทึก
+// ============================================================
+let refillCards = [];
+let cardSeq = 0;
+
+function newCard(drug, qty) {
+  return { id: ++cardSeq, drug: drug.drug_name, qty: Math.max(1, qty || 1), sel: null, lot: '', dd: '', mm: '', yy: '', ack: false };
+}
+function cardDrug(c) { return (boxData?.drugs || []).find(d => d.drug_name === c.drug); }
+function refillHasInput() { return refillCards.some(c => c.sel !== null); }
+
+function initRefill() {
+  refillCards = (boxData?.drugs || []).filter(d => d.refill_qty > 0).map(d => newCard(d, d.refill_qty));
+  renderRefill();
+}
+
+// สถานะของการ์ด: ready = บันทึกได้, msg = ข้อความ, level
+function cardState(c) {
+  const d = cardDrug(c);
+  if (!d || c.sel === null) return { ready: false, skip: true };
+  let lot, ymd, notes = [];
+  if (c.sel === 'new') {
+    lot = normLot(c.lot);
+    const p = parseExp(c.dd, c.mm, c.yy);
+    if (!lot) return { ready: false, level: 'err', msgs: ['ใส่ Lot ตามข้างกล่อง/แอมป์'] };
+    if (p.empty) return { ready: false, level: 'err', msgs: ['ใส่เดือน/ปีที่หมดอายุ'] };
+    if (p.error) return { ready: false, level: 'err', msgs: [p.error] };
+    ymd = p.ymd; notes = p.notes;
+  } else {
+    const k = (d.known_lots || [])[c.sel];
+    if (!k) return { ready: false, skip: true };
+    lot = k.lot; ymd = k.exp_date;
+  }
+  const chk = c.sel === 'new' ? checkIncoming(d, lot, ymd) : checkIncoming({ known_lots: [] }, lot, ymd);
+  const ready = chk.level !== 'err' && (chk.level !== 'warn' || c.ack);
+  return { ready, lot, ymd, notes, level: chk.level, msgs: chk.msgs, fix: chk.fix, days: daysBetween(todayYMD(), ymd) };
+}
+
+function renderRefill() {
+  const el = document.getElementById('refillCards');
+  if (!el) return;
+  el.innerHTML = refillCards.length ? refillCards.map(cardHtml).join('')
+    : '<div class="r-empty">✓ ยาครบทุกรายการ — ถ้าจะเติมเพิ่ม เลือกยาด้านล่าง</div>';
+  const sel = document.getElementById('rAddDrug');
+  sel.innerHTML = '<option value="">+ เติมยาอื่น…</option>' +
+    (boxData?.drugs || []).map((d, i) => `<option value="${i}">${esc(d.drug_name)}</option>`).join('');
+  updateActionBtn();
+}
+
+function cardHtml(c) {
+  const d = cardDrug(c);
+  if (!d) return '';
+  const st = cardState(c);
+  const known = d.known_lots || [];
+  const expiredLots = d.lots.filter(l => lotStatus(l) === 'expired');
+  const cls = st.ready ? ' ready' : (!st.skip && st.level === 'err') ? ' bad' : '';
+  return `
+  <div class="r-card${cls}${isHadDrug(d) ? ' had' : ''}" id="rc-${c.id}">
+    <div class="r-head">
+      <div class="d-main">
+        <div class="d-name">${isHadDrug(d) ? '<span class="had-badge">HAD</span> ' : ''}${esc(d.drug_name)}</div>
+        <div class="d-sub">มี ${d.total_qty}/${d.max_qty} ${esc(d.unit)}${d.refill_qty ? ` · ขาด ${d.refill_qty}` : ''}</div>
+        ${expiredLots.length ? `<div class="d-sub crit">มี lot หมดอายุค้าง ${expiredLots.length} lot — กด "ถอน" ในหน้าคลังยา</div>` : ''}
+      </div>
+      <div class="stepper">
+        <button onclick="stepCard(${c.id},-1)" ${c.qty > 1 ? '' : 'disabled'}>−</button>
+        <div class="num">${c.qty}</div>
+        <button class="plus" onclick="stepCard(${c.id},1)">+</button>
+      </div>
+      <button class="r-x" title="ไม่เติมรายการนี้" onclick="removeCard(${c.id})">✕</button>
+    </div>
+    <div class="chips">
+      ${known.map((k, i) => (daysBetween(todayYMD(), k.exp_date) <= ALERT_WARNING && c.sel !== i) ? '' :
+        `<button class="chip${c.sel === i ? ' on' : ''}" onclick="pickLot(${c.id},${i})"><b>${esc(k.lot)}</b>EXP ${toBE(k.exp_date)}</button>`).join('')}
+      <button class="chip new${c.sel === 'new' ? ' on' : ''}" onclick="pickLot(${c.id},'new')"><b>+ Lot ใหม่</b>พิมพ์เอง</button>
+    </div>
+    ${c.sel === 'new' ? `
+      <div class="r-new">
+        <div><label>Lot (ตามที่พิมพ์บนแอมป์)</label>
+          <input class="lot-in" value="${esc(c.lot)}" autocomplete="off" autocapitalize="characters" spellcheck="false"
+                 oninput="editCard(${c.id},'lot',this.value)"></div>
+        <div><label>หมดอายุ เดือน / ปี <span style="opacity:.7">(วัน)</span></label>
+          <div class="exp-in">
+            <input class="mm" inputmode="numeric" maxlength="2" placeholder="MM" value="${esc(c.mm)}" oninput="editCard(${c.id},'mm',this.value,this)">
+            <span>/</span>
+            <input class="yy" inputmode="numeric" maxlength="4" placeholder="YY" value="${esc(c.yy)}" oninput="editCard(${c.id},'yy',this.value)">
+            <input class="dd" inputmode="numeric" maxlength="2" placeholder="วัน" value="${esc(c.dd)}" oninput="editCard(${c.id},'dd',this.value)">
+          </div></div>
+      </div>` : ''}
+    <div class="r-check" id="rcc-${c.id}">${checkHtml(c, st)}</div>
+    ${c.sel === null ? '<div class="r-skip">ยังไม่ได้เลือก Lot — รายการนี้จะไม่ถูกบันทึก</div>' : ''}
+    <button class="r-split" onclick="splitCard(${c.id})">+ ยานี้มาจากอีก lot</button>
+  </div>`;
+}
+
+function checkHtml(c, st) {
+  if (st.skip) return '';
+  if (!st.ymd) return `<span class="err">${esc(st.msgs?.[0] || '')}</span>`;
+  let h = `<span class="${st.level === 'ok' ? 'ok' : ''}">LOT <b>${esc(st.lot)}</b> · หมดอายุ <b>${toThaiLong(st.ymd)}</b> (${humanSpan(st.days)})</span>`;
+  if (st.notes?.length) h += `<br><span style="color:var(--muted);font-size:12px">${esc(st.notes.join(' · '))}</span>`;
+  (st.msgs || []).forEach(m => { h += `<br><span class="${st.level === 'err' ? 'err' : 'warn'}">${esc(m)}</span>`; });
+  if (st.fix) h += ` <button onclick="applyFix(${c.id})">${esc(st.fix.label)}</button>`;
+  if (st.level === 'warn' && !st.fix) h += ` <button onclick="ackCard(${c.id})">${c.ack ? '✓ ยืนยันแล้ว' : 'ยืนยันว่าถูก'}</button>`;
+  else if (st.level === 'warn' && st.fix) h += ` <button onclick="ackCard(${c.id})">${c.ack ? '✓ ยืนยันแล้ว' : 'ของฉันถูกแล้ว'}</button>`;
+  return h;
+}
+
+function findCard(id) { return refillCards.find(c => c.id === id); }
+function rerenderCard(c) {
+  const el = document.getElementById('rc-' + c.id);
+  if (el) el.outerHTML = cardHtml(c);
+  updateActionBtn();
+}
+function pickLot(id, sel) {
+  const c = findCard(id); if (!c) return;
+  c.sel = c.sel === sel ? null : sel; c.ack = false;
+  rerenderCard(c);
+  if (c.sel === 'new') document.querySelector(`#rc-${id} .lot-in`)?.focus();
+}
+function editCard(id, field, val, input) {
+  const c = findCard(id); if (!c) return;
+  c[field] = field === 'lot' ? val : String(val).replace(/\D/g, '');
+  c.ack = false;
+  if (input && field === 'mm' && c.mm.length === 2) input.parentElement.querySelector('.yy')?.focus();
+  // อัปเดตเฉพาะกล่องตรวจ ไม่ re-render input (ไม่ให้เคอร์เซอร์หลุด)
+  const st = cardState(c);
+  document.getElementById('rcc-' + id).innerHTML = checkHtml(c, st);
+  document.getElementById('rc-' + id).className =
+    'r-card' + (st.ready ? ' ready' : (!st.skip && st.level === 'err') ? ' bad' : '') + (isHadDrug(cardDrug(c)) ? ' had' : '');
+  updateActionBtn();
+}
+function applyFix(id) {
+  const c = findCard(id); const st = cardState(c);
+  if (!st.fix) return;
+  const d = cardDrug(c);
+  const i = (d.known_lots || []).findIndex(k => k.lot === st.fix.lot && k.exp_date === st.fix.exp_date);
+  if (i >= 0) { c.sel = i; c.ack = false; }
+  rerenderCard(c);
+}
+function ackCard(id) { const c = findCard(id); c.ack = !c.ack; rerenderCard(c); }
+function stepCard(id, delta) { const c = findCard(id); c.qty = Math.max(1, c.qty + delta); rerenderCard(c); }
+function removeCard(id) { refillCards = refillCards.filter(c => c.id !== id); renderRefill(); }
+function splitCard(id) {
+  const c = findCard(id); const d = cardDrug(c);
+  const n = newCard(d, 1);
+  if (c.qty > 1) c.qty -= 1;
+  refillCards.splice(refillCards.indexOf(c) + 1, 0, n);
+  renderRefill();
+}
+function addRefillCardFromSelect() {
+  const sel = document.getElementById('rAddDrug');
+  const d = (boxData?.drugs || [])[Number(sel.value)];
+  if (sel.value === '' || !d) return;
+  refillCards.push(newCard(d, Math.max(1, d.refill_qty)));
+  renderRefill();
+  document.getElementById('rc-' + cardSeq)?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+}
+
+function submitRefill() {
+  const staff = document.getElementById('rStaff').value.trim();
+  if (!staff) return showToast('ยังไม่ได้เลือกผู้เติม', 'err');
+  const states = refillCards.map(c => ({ c, st: cardState(c) })).filter(x => !x.st.skip);
+  if (!states.length) return showToast('ยังไม่ได้เลือก Lot ของยาที่เติม', 'err');
+  const bad = states.find(x => !x.st.ready);
+  if (bad) {
+    document.getElementById('rc-' + bad.c.id)?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    return showToast(`${bad.c.drug}: ${bad.st.level === 'warn' ? 'กดยืนยันข้อความเตือนก่อน' : (bad.st.msgs?.[0] || 'ข้อมูลไม่ครบ')}`, 'err');
+  }
+  const items = states.map(({ c, st }) => ({ drug_name: c.drug, lot: st.lot, exp_date: st.ymd, qty: c.qty }));
+
+  // อ่านทวนตัวใหญ่ — ให้เทียบกับข้างกล่องยาอีกรอบก่อนบันทึก
+  const html = states.map(({ c, st }) => `
+    <div class="rb-row">
+      <span class="rb-qty">+${c.qty}</span>
+      <div class="rb-drug">${esc(c.drug)}</div>
+      <div class="rb-lot">${esc(st.lot)}</div>
+      <div class="rb-exp">EXP ${toThaiLong(st.ymd)} <small>(${humanSpan(st.days)})</small></div>
+      ${st.level === 'warn' ? `<div class="rb-warn">${esc(st.msgs.join(' · '))}</div>` : ''}
+    </div>`).join('');
+  openConfirm('ทวน Lot / EXP กับกล่องยา', `ผู้เติม: ${staff}`, html, '✓ ตรงกับกล่องยา บันทึก', async () => {
+    try {
+      const data = await apiPost({ action: 'refill', box_id: currentBoxId, refilled_by: staff, items });
+      if (!data.success) return showToast('บันทึกไม่สำเร็จ: ' + (data.error || ''), 'err');
+      closePopup();
+      refillCards = [];
+      showToast('บันทึกการเติมยาแล้ว', 'ok');
+      if (!applyInventory(data.inventory)) await loadDetail(true);
       switchTab('inv');
-    } else showToast('เกิดข้อผิดพลาด: ' + data.error, 'err');
-  } catch(e) { showToast('เกิดข้อผิดพลาด', 'err'); }
-  finally { btn.textContent = '✅ บันทึกการเติม'; btn.disabled = false; }
+    } catch(e) { showToast('เชื่อมต่อไม่ได้ — ยังไม่ได้บันทึก ลองใหม่อีกครั้ง', 'err'); }
+  });
 }
 
 // ============================================================
 // EDIT LOT
 // ============================================================
-function openEditLotModal(drugName, lot, expDate, qty) {
-  document.getElementById('elDrug').value      = drugName;
-  document.getElementById('elOrigLot').value   = lot;
-  document.getElementById('elOrigExp').value   = expDate;
-  document.getElementById('elDrugName').value  = drugName;
-  document.getElementById('elLot').value       = lot;
-  document.getElementById('elQty').value       = qty;
-  // แปลง YYYY-MM-DD → DD MM YYYY
-  if (expDate) {
-    const [y, m, d] = expDate.split('-');
-    document.getElementById('elDd').value   = parseInt(d) || '';
-    document.getElementById('elMm').value   = parseInt(m) || '';
-    document.getElementById('elYyyy').value = y || '';
-  } else {
-    document.getElementById('elDd').value   = '';
-    document.getElementById('elMm').value   = '';
-    document.getElementById('elYyyy').value = '';
+function expPreview(elId, p, drug, lot) {
+  const el = document.getElementById(elId);
+  if (!el) return;
+  if (p.empty) { el.innerHTML = ''; return; }
+  if (p.error) { el.innerHTML = `<span style="color:var(--critical)">${esc(p.error)}</span>`; return; }
+  const days = daysBetween(todayYMD(), p.ymd);
+  let h = `= <b>${toThaiLong(p.ymd)}</b> (${humanSpan(days)})`;
+  if (p.notes.length) h += ` <span style="color:var(--muted)">· ${esc(p.notes.join(' · '))}</span>`;
+  if (drug && lot) {
+    const chk = checkIncoming(drug, lot, p.ymd);
+    chk.msgs.forEach(m => { h += `<br><span style="color:${chk.level === 'err' ? 'var(--critical)' : 'var(--warning)'}">${esc(m)}</span>`; });
   }
-  document.getElementById('modalEditLot').classList.add('show');
+  el.innerHTML = h;
 }
 
+let editRef = null;
+function openEditLotModal(di, li) {
+  const drug = renderedDrugs[di], lot = drug?.lots[li];
+  if (!lot) return;
+  editRef = { drug, lot };
+  document.getElementById('elDrugName').value = drug.drug_name;
+  document.getElementById('elLot').value = lot.lot === '—' ? '' : lot.lot;
+  document.getElementById('elQty').value = lot.qty;
+  const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(lot.exp_date || '');
+  document.getElementById('elDd').value   = m ? +m[3] : '';
+  document.getElementById('elMm').value   = m ? +m[2] : '';
+  document.getElementById('elYyyy').value = m ? m[1] : '';
+  syncEditPreview();
+  document.getElementById('modalEditLot').classList.add('show');
+}
 function syncEditLotDate() {
-  const val = document.getElementById('elExpPicker').value;
-  if (!val) return;
-  const [y, m, d] = val.split('-');
-  document.getElementById('elDd').value   = parseInt(d);
-  document.getElementById('elMm').value   = parseInt(m);
-  document.getElementById('elYyyy').value = y;
+  const v = document.getElementById('elExpPicker').value;
+  if (!v) return;
+  const [y, m, d] = v.split('-');
+  document.getElementById('elDd').value = +d; document.getElementById('elMm').value = +m; document.getElementById('elYyyy').value = y;
+  syncEditPreview();
+}
+function syncEditPreview() {
+  expPreview('elExpPreview', parseExp(document.getElementById('elDd').value, document.getElementById('elMm').value, document.getElementById('elYyyy').value));
 }
 
 async function submitEditLot() {
-  const drug_name = document.getElementById('elDrug').value;
-  const orig_lot  = document.getElementById('elOrigLot').value;
-  const orig_exp  = document.getElementById('elOrigExp').value;
-  const new_lot   = document.getElementById('elLot').value.trim();
-  const qty       = Number(document.getElementById('elQty').value);
-  const dd   = String(document.getElementById('elDd').value || '').padStart(2,'0');
-  const mm   = String(document.getElementById('elMm').value || '').padStart(2,'0');
-  const yyyy = document.getElementById('elYyyy').value || '';
-  const new_exp = yyyy && mm && dd ? `${yyyy}-${mm}-${dd}` : '';
-
+  if (!editRef) return;
+  const new_lot = normLot(document.getElementById('elLot').value);
+  const qty = Number(document.getElementById('elQty').value);
+  const p = parseExp(document.getElementById('elDd').value, document.getElementById('elMm').value, document.getElementById('elYyyy').value);
   if (!new_lot) return showToast('กรุณากรอก Lot number', 'err');
-  if (!new_exp) return showToast('กรุณากรอกวันหมดอายุ', 'err');
-
+  if (p.empty || p.error) return showToast(p.error || 'กรุณากรอกวันหมดอายุ', 'err');
+  if (!(qty >= 0)) return showToast('จำนวนไม่ถูกต้อง', 'err');
   try {
     const data = await apiPost({
-      action: 'updateLot',
-      box_id: currentBoxId,
-      drug_name,
-      orig_lot,
-      orig_exp,
-      new_lot,
-      new_exp,
-      qty,
+      action: 'updateLot', box_id: currentBoxId, drug_name: editRef.drug.drug_name,
+      orig_lot: editRef.lot.lot === '—' ? '' : editRef.lot.lot, orig_exp: editRef.lot.exp_date,
+      new_lot, new_exp: p.ymd, qty,
     });
-    if (data.success) {
-      closeModal('modalEditLot');
-      loadDetail();
-      showToast('✅ แก้ไข Lot แล้ว', 'ok');
-    } else showToast('เกิดข้อผิดพลาด: ' + data.error, 'err');
-  } catch(e) { showToast('เกิดข้อผิดพลาด', 'err'); }
+    if (!data.success) return showToast('เกิดข้อผิดพลาด: ' + (data.error || ''), 'err');
+    closeModal('modalEditLot');
+    showToast('แก้ไข Lot แล้ว', 'ok');
+    if (!applyInventory(data.inventory)) loadDetail(true);
+  } catch(e) { showToast('เชื่อมต่อไม่ได้ ลองใหม่อีกครั้ง', 'err'); }
+}
+
+// ============================================================
+// WITHDRAW (ถอนยาใกล้หมดอายุ/หมดอายุ)
+// ============================================================
+let wdRef = null;
+function openWithdrawModal(di, li) {
+  const drug = renderedDrugs[di], lot = drug?.lots[li];
+  if (!lot) return;
+  wdRef = { drug, lot };
+  document.getElementById('wdMaxQty').value = lot.qty;
+  document.getElementById('wdOldInfo').textContent = `${drug.drug_name} — LOT: ${lot.lot || '—'}`;
+  const days = lot.days_left;
+  const col = days !== null && days <= ALERT_CRITICAL ? 'color:var(--critical);font-weight:700' : days !== null && days <= ALERT_WARNING ? 'color:var(--warning)' : '';
+  document.getElementById('wdOldExp').innerHTML =
+    `EXP: ${toBE(lot.exp_date)}` + (days !== null && days !== undefined ? ` · <span style="${col}">${humanSpan(days)}</span>` : '') +
+    ` · <strong>${lot.qty} ${esc(drug.unit)}</strong>`;
+  document.getElementById('wdQtyOut').value = lot.qty;
+  document.getElementById('wdQtyOut').max = lot.qty;
+  document.getElementById('wdNewQty').value = lot.qty;
+  ['wdNewLot','wdNewDd','wdNewMm','wdNewYyyy'].forEach(id => document.getElementById(id).value = '');
+  document.getElementById('wdAddNew').checked = true;
+  document.getElementById('wdNewSection').style.display = '';
+  const known = (drug.known_lots || []).filter(k => !(k.lot === lot.lot && k.exp_date === lot.exp_date) && daysBetween(todayYMD(), k.exp_date) > ALERT_WARNING);
+  document.getElementById('wdKnownLots').innerHTML = known.length
+    ? '<div style="font-size:11px;color:var(--muted);margin-bottom:4px">แตะ lot ที่ตรงกับกล่องยา:</div><div class="chips" style="margin-top:0">' +
+      known.map((k, i) => `<button class="chip" onclick="pickWdKnown(${i})"><b>${esc(k.lot)}</b>EXP ${toBE(k.exp_date)}</button>`).join('') + '</div>'
+    : '';
+  wdRef.known = known;
+  syncWdPreview();
+  fillStaffSelects();
+  document.getElementById('modalWithdraw').classList.add('show');
+}
+function pickWdKnown(i) {
+  const k = wdRef.known[i];
+  const [y, m, d] = k.exp_date.split('-');
+  document.getElementById('wdNewLot').value = k.lot;
+  document.getElementById('wdNewDd').value = +d; document.getElementById('wdNewMm').value = +m; document.getElementById('wdNewYyyy').value = y;
+  document.querySelectorAll('#wdKnownLots .chip').forEach((c, j) => c.classList.toggle('on', j === i));
+  syncWdPreview();
+}
+function clampWithdrawQty() {
+  const input = document.getElementById('wdQtyOut');
+  const max = Number(document.getElementById('wdMaxQty').value);
+  let val = Number(input.value);
+  if (val < 1) input.value = 1;
+  if (val > max) input.value = max;
+  document.getElementById('wdNewQty').value = input.value;
+}
+function toggleWithdrawNew() {
+  document.getElementById('wdNewSection').style.display = document.getElementById('wdAddNew').checked ? '' : 'none';
+}
+function syncWithdrawNewDate() {
+  const v = document.getElementById('wdNewExpPicker').value;
+  if (!v) return;
+  const [y, m, d] = v.split('-');
+  document.getElementById('wdNewDd').value = +d; document.getElementById('wdNewMm').value = +m; document.getElementById('wdNewYyyy').value = y;
+  syncWdPreview();
+}
+function wdParsed() { return parseExp(document.getElementById('wdNewDd').value, document.getElementById('wdNewMm').value, document.getElementById('wdNewYyyy').value); }
+function syncWdPreview() { expPreview('wdExpPreview', wdParsed(), wdRef?.drug, normLot(document.getElementById('wdNewLot').value)); }
+
+async function submitWithdraw() {
+  if (!wdRef) return;
+  const qty_out = Number(document.getElementById('wdQtyOut').value);
+  const staff   = document.getElementById('wdStaff').value.trim();
+  if (!staff) return showToast('กรุณาเลือกเจ้าหน้าที่', 'err');
+  if (!qty_out || qty_out < 1) return showToast('กรุณาระบุจำนวนที่ถอน', 'err');
+  rememberStaff(staff);
+
+  const payload = {
+    action: 'withdraw', box_id: currentBoxId, drug_name: wdRef.drug.drug_name,
+    old_lot: wdRef.lot.lot === '—' ? '' : wdRef.lot.lot, old_exp: wdRef.lot.exp_date, qty_out, withdrawn_by: staff,
+  };
+  if (document.getElementById('wdAddNew').checked) {
+    const new_lot = normLot(document.getElementById('wdNewLot').value);
+    const p = wdParsed();
+    const new_qty = Number(document.getElementById('wdNewQty').value) || 0;
+    if (!new_lot) return showToast('กรุณากรอก Lot number ใหม่', 'err');
+    if (p.empty || p.error) return showToast(p.error || 'กรุณากรอกวันหมดอายุ lot ใหม่', 'err');
+    if (new_qty < 1) return showToast('กรุณาระบุจำนวนที่เติมเข้า', 'err');
+    const chk = checkIncoming(wdRef.drug, new_lot, p.ymd);
+    if (chk.level === 'err') return showToast(chk.msgs[0], 'err');
+    if (chk.level === 'warn' && !confirm(chk.msgs.join('\n') + '\n\nยืนยันบันทึก?')) return;
+    Object.assign(payload, { new_lot, new_exp: p.ymd, new_qty });
+  }
+  const btn = document.getElementById('wdSubmitBtn');
+  btn.textContent = 'กำลังบันทึก...'; btn.disabled = true;
+  try {
+    const data = await apiPost(payload);
+    if (!data.success) return showToast('เกิดข้อผิดพลาด: ' + (data.error || ''), 'err');
+    closeModal('modalWithdraw');
+    showToast('ถอนยาเรียบร้อย' + (payload.new_lot ? ' · เพิ่ม lot ใหม่แล้ว' : ''), 'ok');
+    if (!applyInventory(data.inventory)) loadDetail(true);
+  } catch(e) { showToast('เชื่อมต่อไม่ได้ ลองใหม่อีกครั้ง', 'err'); }
+  finally { btn.textContent = '🔄 ยืนยันถอนยา'; btn.disabled = false; }
 }
 
 // ============================================================
 // REPORT
 // ============================================================
-// set default date range = 30 วันที่ผ่านมา
 function initReportDates() {
-  const to   = new Date();
-  const from = new Date(); from.setDate(from.getDate() - 30);
-  const fmt = d => d.toISOString().split('T')[0];
+  const to = new Date(), from = new Date(); from.setDate(from.getDate() - 30);
+  const fmt = d => `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
   document.getElementById('rDateFrom').value = fmt(from);
   document.getElementById('rDateTo').value   = fmt(to);
 }
 
-let reportData = null; // เก็บไว้สำหรับ export CSV
+let reportData = null;
 
 async function loadReport() {
   const dateFrom = document.getElementById('rDateFrom').value;
   const dateTo   = document.getElementById('rDateTo').value;
   loadAlertReport();
   loadDrugRateReport(dateFrom, dateTo);
-  loadLeaderboard();
+  loadLeaderboard(dateFrom, dateTo);
 }
 
 async function loadAlertReport() {
   try {
     const data = await apiGet({ action: 'getAlerts' });
     const el = document.getElementById('rAlertList');
-    if (!data.alerts?.length) {
-      el.innerHTML = '<div style="color:var(--ok);padding:10px 0">✅ ไม่มียาใกล้หมดอายุ</div>';
-      return;
-    }
-    el.innerHTML = data.alerts.map(a => `
+    if (!data.alerts?.length) { el.innerHTML = '<div style="color:var(--ok);padding:10px 0">✅ ไม่มียาใกล้หมดอายุ</div>'; return; }
+    el.innerHTML = data.alerts.map(a => {
+      const lv = a.level === 'expired' ? 'critical' : a.level;
+      return `
       <div class="alert-row">
-        <div class="alert-dot ${a.level}"></div>
+        <div class="alert-dot ${lv}"></div>
         <div class="alert-info">
-          <div class="alert-drug">${a.drug_name}</div>
-          <div class="alert-meta">${a.box_label} · LOT: ${a.lot} · EXP: ${toBE(a.exp_date)}</div>
+          <div class="alert-drug">${esc(a.drug_name)}</div>
+          <div class="alert-meta">${esc(a.box_label)} · LOT: ${esc(a.lot)} · EXP: ${toBE(a.exp_date)}</div>
         </div>
-        <div class="alert-days ${a.level}">${a.days_left <= 0 ? 'หมดแล้ว' : a.days_left + ' วัน'}</div>
-      </div>`).join('');
+        <div class="alert-days ${lv}">${a.days_left < 0 ? 'หมดแล้ว' : a.days_left === 0 ? 'วันนี้' : a.days_left + ' วัน'}</div>
+      </div>`; }).join('');
   } catch(e) { document.getElementById('rAlertList').innerHTML = '<div style="color:var(--muted)">โหลดไม่ได้</div>'; }
 }
 
@@ -2679,10 +3051,7 @@ async function loadDrugRateReport(dateFrom, dateTo) {
     if (dateTo)   params.date_to   = dateTo;
     const data = await apiGet(params);
     reportData = data.report || [];
-
-    const el  = document.getElementById('rDrugRate');
-    const top = document.getElementById('rTop3');
-
+    const el = document.getElementById('rDrugRate'), top = document.getElementById('rTop3');
     if (!reportData.length) {
       el.innerHTML  = '<div style="color:var(--muted)">ยังไม่มีข้อมูลการจ่ายยาในช่วงเวลานี้</div>';
       top.innerHTML = '<div style="color:var(--muted)">—</div>';
@@ -2690,102 +3059,74 @@ async function loadDrugRateReport(dateFrom, dateTo) {
       document.getElementById('rIpdTotal').textContent = '0';
       return;
     }
-
-    // ER/IPD total
-    const erTotal  = reportData.reduce((s,d) => s + Number(d.ER||0), 0);
-    const ipdTotal = reportData.reduce((s,d) => s + Number(d.IPD||0), 0);
-    document.getElementById('rErTotal').textContent  = erTotal;
-    document.getElementById('rIpdTotal').textContent = ipdTotal;
-
-    // Top 3
-    const top3 = [...reportData].sort((a,b) => b.total - a.total).slice(0, 3);
-    const medals = ['🥇','🥈','🥉'];
-    const podiumColors = ['#fbbf24','#9ca3af','#b45309'];
-    top.innerHTML = top3.map((d, i) => `
+    document.getElementById('rErTotal').textContent  = reportData.reduce((s, d) => s + Number(d.ER || 0), 0);
+    document.getElementById('rIpdTotal').textContent = reportData.reduce((s, d) => s + Number(d.IPD || 0), 0);
+    const medals = ['🥇','🥈','🥉'], podium = ['#fbbf24','#9ca3af','#b45309'];
+    top.innerHTML = [...reportData].sort((a, b) => b.total - a.total).slice(0, 3).map((d, i) => `
       <div style="display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid var(--border)">
         <div style="font-size:24px;width:36px;text-align:center">${medals[i]}</div>
         <div style="flex:1">
-          <div style="font-size:15px;font-weight:700">${d.drug_name}</div>
+          <div style="font-size:15px;font-weight:700">${esc(d.drug_name)}</div>
           <div style="font-size:12px;color:var(--muted);margin-top:2px">
             <span style="color:var(--critical)">ER: ${d.ER||0}</span> · <span style="color:var(--accent)">IPD: ${d.IPD||0}</span>
           </div>
         </div>
-        <div style="font-family:'DM Sans';font-size:22px;font-weight:700;color:${podiumColors[i]}">${d.total}</div>
+        <div style="font-family:'Google Sans';font-size:22px;font-weight:700;color:${podium[i]}">${d.total}</div>
       </div>`).join('');
-
-    // Drug rate bar chart
     const max = reportData[0].total;
     el.innerHTML = reportData.map((d, i) => `
       <div class="drug-rate-row">
-        <div class="drug-rate-header">
-          <span class="drug-rate-name">${d.drug_name}</span>
-          <span class="drug-rate-count">${d.total} ครั้ง</span>
-        </div>
-        <div class="bar-track">
-          <div class="bar-fill" style="width:${max?(d.total/max*100):0}%;background:${COLORS[i%COLORS.length]}"></div>
-        </div>
-        <div class="bar-sub">
-          <span class="er-tag">ER: ${d.ER||0}</span>
-          <span class="ipd-tag">IPD: ${d.IPD||0}</span>
-        </div>
+        <div class="drug-rate-header"><span class="drug-rate-name">${esc(d.drug_name)}</span><span class="drug-rate-count">${d.total} หน่วย</span></div>
+        <div class="bar-track"><div class="bar-fill" style="width:${max ? d.total / max * 100 : 0}%;background:${COLORS[i % COLORS.length]}"></div></div>
+        <div class="bar-sub"><span class="er-tag">ER: ${d.ER||0}</span><span class="ipd-tag">IPD: ${d.IPD||0}</span></div>
       </div>`).join('');
   } catch(e) { document.getElementById('rDrugRate').innerHTML = '<div style="color:var(--muted)">โหลดไม่ได้</div>'; }
 }
 
-async function loadLeaderboard() {
+async function loadLeaderboard(dateFrom, dateTo) {
   try {
-    const data = await apiGet({ action: 'getRefillBoard' });
-    const el   = document.getElementById('rLeader');
-    if (!data.leaderboard?.length) {
-      el.innerHTML = '<div style="color:var(--muted)">ยังไม่มีข้อมูล</div>';
-      return;
-    }
-    const board = data.leaderboard;
-    const maxQty = board[0].qty;
-    const medals = ['🥇','🥈','🥉'];
-    const trophyColors = {0:'#fbbf24', 1:'#9ca3af', 2:'#b45309'};
-
-    el.innerHTML = board.map((p, i) => {
-      const pct = maxQty ? (p.qty / maxQty * 100) : 0;
-      const isTop = i < 3;
-      return `
-      <div class="leader-row" style="${isTop ? 'background:rgba(255,255,255,0.02);border-radius:12px;padding:12px 8px;' : ''}">
-        <div class="leader-rank ${['gold','silver','bronze'][i]||''}" style="font-size:${isTop?'22px':'16px'}">
-          ${i < 3 ? medals[i] : `#${i+1}`}
-        </div>
+    const params = { action: 'getRefillBoard' };
+    if (dateFrom) params.date_from = dateFrom;
+    if (dateTo)   params.date_to   = dateTo;
+    const data = await apiGet(params);
+    const el = document.getElementById('rLeader');
+    if (!data.leaderboard?.length) { el.innerHTML = '<div style="color:var(--muted)">ยังไม่มีข้อมูลในช่วงเวลานี้</div>'; return; }
+    const board = data.leaderboard, maxQty = board[0].qty;
+    const medals = ['🥇','🥈','🥉'], colors = {0:'#fbbf24', 1:'#9ca3af', 2:'#b45309'};
+    el.innerHTML = board.map((p, i) => `
+      <div class="leader-row" style="${i < 3 ? 'background:rgba(255,255,255,0.02);border-radius:12px;padding:12px 8px;' : ''}">
+        <div class="leader-rank ${['gold','silver','bronze'][i]||''}" style="font-size:${i < 3 ? '22px' : '16px'}">${i < 3 ? medals[i] : `#${i+1}`}</div>
         <div style="flex:1">
-          <div class="leader-name">${p.name}</div>
+          <div class="leader-name">${esc(p.name)}</div>
           <div style="margin-top:6px;height:6px;background:var(--surface2);border-radius:3px;overflow:hidden">
-            <div style="height:100%;width:${pct}%;background:${trophyColors[i]||'var(--accent)'};border-radius:3px;transition:width 0.8s ease"></div>
+            <div style="height:100%;width:${maxQty ? p.qty / maxQty * 100 : 0}%;background:${colors[i]||'var(--accent)'};border-radius:3px"></div>
           </div>
         </div>
         <div class="leader-count" style="text-align:right;min-width:80px">
           <div><strong style="font-size:16px;color:var(--ok)">${p.qty}</strong> หน่วย</div>
           <div style="font-size:11px;color:var(--muted)">${p.count} ครั้ง</div>
         </div>
-      </div>`;
-    }).join('');
+      </div>`).join('');
   } catch(e) { document.getElementById('rLeader').innerHTML = '<div style="color:var(--muted)">โหลดไม่ได้</div>'; }
 }
 
 function exportCSV() {
   if (!reportData?.length) return showToast('ยังไม่มีข้อมูล กรุณาดูรายงานก่อน', 'err');
-  const from = document.getElementById('rDateFrom').value;
-  const to   = document.getElementById('rDateTo').value;
-  const rows  = [['ชื่อยา','จำนวนรวม','ER','IPD']];
-  reportData.forEach(d => rows.push([d.drug_name, d.total, d.ER||0, d.IPD||0]));
-  const csv  = rows.map(r => r.join(',')).join('\n');
-  const blob = new Blob(['\uFEFF'+csv], { type: 'text/csv;charset=utf-8;' });
-  const url  = URL.createObjectURL(blob);
-  const a    = document.createElement('a');
+  const from = document.getElementById('rDateFrom').value, to = document.getElementById('rDateTo').value;
+  const q = v => `"${String(v).replace(/"/g, '""')}"`;
+  const rows = [['ชื่อยา','จำนวนรวม','ER','IPD'], ...reportData.map(d => [d.drug_name, d.total, d.ER||0, d.IPD||0])];
+  const blob = new Blob(['﻿' + rows.map(r => r.map(q).join(',')).join('\n')], { type: 'text/csv;charset=utf-8;' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
   a.href = url; a.download = `drug-report-${from}-to-${to}.csv`; a.click();
   URL.revokeObjectURL(url);
-  showToast('✅ Export CSV แล้ว', 'ok');
+  showToast('Export CSV แล้ว', 'ok');
 }
 
 // ============================================================
 // ADMIN
 // ============================================================
+let adminBoxes = {}, adminDrugs = {};
 async function loadAdmin() {
   loadBoxList('hospital',  'adminBoxHospital');
   loadBoxList('maternity', 'adminBoxMaternity');
@@ -2796,80 +3137,99 @@ async function loadAdmin() {
 }
 
 async function loadBoxList(category, elId) {
+  const el = document.getElementById(elId);
   try {
     const data = await apiGet({ action: 'getBoxes', category });
-    const el = document.getElementById(elId);
-    if (!el) return;
-    if (!data.boxes?.length) { el.innerHTML = '<div style="color:var(--muted);font-size:13px">ยังไม่มีกล่อง</div>'; return; }
-    el.innerHTML = data.boxes.map(b => `
+    adminBoxes[category] = data.boxes || [];
+    if (!adminBoxes[category].length) { el.innerHTML = '<div style="color:var(--muted);font-size:13px">ยังไม่มีกล่อง</div>'; return; }
+    el.innerHTML = adminBoxes[category].map((b, i) => `
       <div class="drug-master-row">
-        <div style="flex:1">
-          <div class="drug-master-name">${b.label}</div>
-          <div class="drug-master-meta">ID: ${b.box_id}</div>
-        </div>
-        <button class="edit-btn" onclick="openEditBoxModal('${category}','${b.box_id}','${b.label}')">✏️</button>
-        <button class="delete-btn" onclick="deleteBox('${b.box_id}')">✕</button>
+        <div style="flex:1"><div class="drug-master-name">${esc(b.label)}</div><div class="drug-master-meta">ID: ${esc(b.box_id)}</div></div>
+        <button class="edit-btn" onclick="openEditBoxModal('${category}',${i})">✏️</button>
+        <button class="delete-btn" onclick="deleteBox('${category}',${i})">✕</button>
       </div>`).join('');
-  } catch(e) { const el = document.getElementById(elId); if(el) el.innerHTML = '<div style="color:var(--muted)">โหลดไม่ได้</div>'; }
+  } catch(e) { if (el) el.innerHTML = '<div style="color:var(--muted)">โหลดไม่ได้</div>'; }
 }
 
-async function deleteBox(box_id) {
-  if (!confirm(`ลบกล่อง "${box_id}" ออกจากระบบ?\n(ข้อมูล inventory จะถูกลบด้วย)`)) return;
+let currentAddBoxCategory = 'hospital', boxEditMode = 'add', boxOriginalId = '';
+function openAddBoxModal(category) {
+  currentAddBoxCategory = category || currentCategory;
+  boxEditMode = 'add'; boxOriginalId = '';
+  document.getElementById('abId').value = ''; document.getElementById('abId').disabled = false;
+  document.getElementById('abLabel').value = '';
+  document.getElementById('boxModalTitle').textContent = '➕ เพิ่มกล่องใหม่';
+  document.getElementById('modalAddBox').classList.add('show');
+}
+function openEditBoxModal(category, i) {
+  const b = adminBoxes[category][i];
+  currentAddBoxCategory = category; boxEditMode = 'edit'; boxOriginalId = b.box_id;
+  document.getElementById('abId').value = b.box_id; document.getElementById('abId').disabled = true;
+  document.getElementById('abLabel').value = b.label;
+  document.getElementById('boxModalTitle').textContent = '✏️ แก้ไขชื่อกล่อง';
+  document.getElementById('modalAddBox').classList.add('show');
+}
+async function submitAddBox() {
+  const box_id = boxOriginalId || document.getElementById('abId').value.trim();
+  const label  = document.getElementById('abLabel').value.trim();
+  if (!box_id || !label) return showToast('กรุณากรอกข้อมูลให้ครบ', 'err');
   try {
-    const data = await apiPost({ action: 'removeBox', box_id });
+    const data = boxEditMode === 'edit'
+      ? await apiPost({ action: 'updateBox', box_id, label })
+      : await apiPost({ action: 'addBox', box_id, category: currentAddBoxCategory, label });
+    if (!data.success) return showToast('เกิดข้อผิดพลาด: ' + (data.error || ''), 'err');
+    closeModal('modalAddBox'); loadAdmin();
+    showToast(boxEditMode === 'edit' ? 'แก้ไขแล้ว' : 'เพิ่มกล่องแล้ว', 'ok');
+  } catch(e) { showToast('เชื่อมต่อไม่ได้', 'err'); }
+}
+async function deleteBox(category, i) {
+  const b = adminBoxes[category][i];
+  if (!confirm(`ลบกล่อง "${b.label}" (${b.box_id}) ออกจากระบบ?\n(ข้อมูล inventory ของกล่องนี้จะถูกลบด้วย)`)) return;
+  try {
+    const data = await apiPost({ action: 'removeBox', box_id: b.box_id });
     if (data.success) { loadAdmin(); showToast('ลบกล่องแล้ว', 'ok'); }
-  } catch(e) { showToast('เกิดข้อผิดพลาด', 'err'); }
+    else showToast('ลบไม่สำเร็จ: ' + (data.error || ''), 'err');
+  } catch(e) { showToast('เชื่อมต่อไม่ได้', 'err'); }
 }
 
 async function loadDrugMaster(category, elId) {
+  const el = document.getElementById(elId);
   try {
     const data = await apiGet({ action: 'getDrugs', category });
-    const el = document.getElementById(elId);
-    if (!data.drugs?.length) { el.innerHTML = '<div style="color:var(--muted);font-size:13px">ยังไม่มีรายการยา</div>'; return; }
-    el.innerHTML = data.drugs.map(d => {
-      const isHad = String(d.is_had).toLowerCase() === 'true';
-      return `
+    adminDrugs[category] = data.drugs || [];
+    if (!adminDrugs[category].length) { el.innerHTML = '<div style="color:var(--muted);font-size:13px">ยังไม่มีรายการยา</div>'; return; }
+    el.innerHTML = adminDrugs[category].map((d, i) => `
       <div class="drug-master-row">
         <div style="flex:1">
-          <div class="drug-master-name">
-            ${isHad ? '<span style="color:var(--critical);font-size:11px;font-weight:700;background:rgba(239,68,68,0.1);padding:1px 6px;border-radius:4px;margin-right:6px">HAD</span>' : ''}
-            ${d.drug_name}
-          </div>
-          <div class="drug-master-meta">${d.unit} · max ${d.max_qty}</div>
+          <div class="drug-master-name">${isHadDrug(d) ? '<span style="color:var(--critical);font-size:11px;font-weight:700;background:rgba(239,68,68,0.1);padding:1px 6px;border-radius:4px;margin-right:6px">HAD</span>' : ''}${esc(d.drug_name)}</div>
+          <div class="drug-master-meta">${esc(d.unit)} · max ${esc(d.max_qty)}</div>
         </div>
-        <button class="edit-btn" onclick="openEditDrugModal('${category}','${d.drug_name}','${d.unit}','${d.max_qty}','${String(d.is_had)}')">✏️</button>
-        <button class="delete-btn" onclick="deleteDrug('${category}','${d.drug_name}')">✕</button>
-      </div>`;
-    }).join('');
-  } catch(e) { document.getElementById(elId).innerHTML = '<div style="color:var(--muted)">โหลดไม่ได้</div>'; }
+        <button class="edit-btn" onclick="openEditDrugModal('${category}',${i})">✏️</button>
+        <button class="delete-btn" onclick="deleteDrug('${category}',${i})">✕</button>
+      </div>`).join('');
+  } catch(e) { if (el) el.innerHTML = '<div style="color:var(--muted)">โหลดไม่ได้</div>'; }
 }
 
 function openAddDrugModal(category) {
   document.getElementById('adCategory').value = category;
   document.getElementById('adEditMode').value = 'add';
   document.getElementById('adOriginalName').value = '';
-  document.getElementById('adName').value = '';
-  document.getElementById('adName').disabled = false;
-  document.getElementById('adUnit').value = '';
-  document.getElementById('adMax').value  = '';
+  document.getElementById('adName').value = ''; document.getElementById('adName').disabled = false;
+  document.getElementById('adUnit').value = ''; document.getElementById('adMax').value = '';
   document.getElementById('adHad').checked = false;
   document.getElementById('drugModalTitle').textContent = '💊 เพิ่มรายการยา';
   document.getElementById('modalAddDrug').classList.add('show');
 }
-
-function openEditDrugModal(category, drug_name, unit, max_qty, is_had) {
+function openEditDrugModal(category, i) {
+  const d = adminDrugs[category][i];
   document.getElementById('adCategory').value = category;
   document.getElementById('adEditMode').value = 'edit';
-  document.getElementById('adOriginalName').value = drug_name;
-  document.getElementById('adName').value = drug_name;
-  document.getElementById('adName').disabled = true;
-  document.getElementById('adUnit').value = unit;
-  document.getElementById('adMax').value  = Number(max_qty) || '';
-  document.getElementById('adHad').checked = String(is_had).toLowerCase() === 'true';
+  document.getElementById('adOriginalName').value = d.drug_name;
+  document.getElementById('adName').value = d.drug_name; document.getElementById('adName').disabled = true;
+  document.getElementById('adUnit').value = d.unit; document.getElementById('adMax').value = Number(d.max_qty) || '';
+  document.getElementById('adHad').checked = isHadDrug(d);
   document.getElementById('drugModalTitle').textContent = '✏️ แก้ไขรายการยา';
   document.getElementById('modalAddDrug').classList.add('show');
 }
-
 async function submitAddDrug() {
   const category  = document.getElementById('adCategory').value;
   const editMode  = document.getElementById('adEditMode').value;
@@ -2879,70 +3239,56 @@ async function submitAddDrug() {
   const is_had    = document.getElementById('adHad').checked ? 'true' : 'false';
   if (!drug_name || !unit || !max_qty) return showToast('กรุณากรอกข้อมูลให้ครบ', 'err');
   try {
-    const action = editMode === 'edit' ? 'updateDrug' : 'addDrug';
-    const data = await apiPost({ action, category, drug_name, unit, max_qty: Number(max_qty), is_had });
-    if (data.success) {
-      closeModal('modalAddDrug');
-      loadAdmin();
-      showToast(editMode === 'edit' ? '✅ แก้ไขแล้ว' : '✅ เพิ่มรายการยาแล้ว', 'ok');
-    } else showToast('เกิดข้อผิดพลาด', 'err');
-  } catch(e) { showToast('เกิดข้อผิดพลาด', 'err'); }
+    const data = await apiPost({ action: editMode === 'edit' ? 'updateDrug' : 'addDrug', category, drug_name, unit, max_qty: Number(max_qty), is_had });
+    if (!data.success) return showToast('เกิดข้อผิดพลาด: ' + (data.error || ''), 'err');
+    closeModal('modalAddDrug'); loadAdmin();
+    showToast(editMode === 'edit' ? 'แก้ไขแล้ว' : 'เพิ่มรายการยาแล้ว', 'ok');
+  } catch(e) { showToast('เชื่อมต่อไม่ได้', 'err'); }
 }
-
-async function deleteDrug(category, drug_name) {
-  if (!confirm(`ลบ "${drug_name}" ออกจากรายการ ${category}?`)) return;
+async function deleteDrug(category, i) {
+  const d = adminDrugs[category][i];
+  if (!confirm(`ลบ "${d.drug_name}" ออกจากรายการ ${CAT_LABEL[category]}?\n(lot ของยานี้ในกล่องหมวดนี้จะถูกลบด้วย)`)) return;
   try {
-    const data = await apiPost({ action: 'removeDrug', category, drug_name });
+    const data = await apiPost({ action: 'removeDrug', category, drug_name: d.drug_name });
     if (data.success) { loadAdmin(); showToast('ลบแล้ว', 'ok'); }
-  } catch(e) { showToast('เกิดข้อผิดพลาด', 'err'); }
+    else showToast('ลบไม่สำเร็จ: ' + (data.error || ''), 'err');
+  } catch(e) { showToast('เชื่อมต่อไม่ได้', 'err'); }
 }
 
 // ============================================================
-// MODAL / POPUP HELPERS
+// MODAL / POPUP
 // ============================================================
 function closeModal(id) { document.getElementById(id).classList.remove('show'); }
-function closePopup()   { document.getElementById('popupDispense').classList.remove('show'); }
+function closePopup()   { document.getElementById('popupDispense').classList.remove('show'); confirmAction = null; }
 
 // ============================================================
 // DARK / LIGHT MODE
 // ============================================================
-function toggleTheme() {
-  const isLight = document.body.classList.toggle('light');
-  const icon    = document.getElementById('theme-icon');
-  const lbl     = document.getElementById('theme-label');
-  const btn     = document.getElementById('theme-toggle');
+function applyThemeButton(isLight) {
+  const icon = document.getElementById('theme-icon'), lbl = document.getElementById('theme-label'), btn = document.getElementById('theme-toggle');
   if (icon) icon.textContent = isLight ? '🌞' : '🌙';
   if (lbl)  lbl.textContent  = isLight ? 'Light Mode' : 'Dark Mode';
   if (btn) {
-    btn.style.background   = isLight ? 'rgba(0,0,0,0.06)'  : 'rgba(255,255,255,0.1)';
-    btn.style.borderColor  = isLight ? 'rgba(0,0,0,0.15)'  : 'rgba(255,255,255,0.15)';
+    btn.style.background  = isLight ? 'rgba(0,0,0,0.06)' : 'rgba(255,255,255,0.1)';
+    btn.style.borderColor = isLight ? 'rgba(0,0,0,0.15)' : 'rgba(255,255,255,0.15)';
   }
-  localStorage.setItem('embox_theme', isLight ? 'light' : 'dark');
+}
+function toggleTheme() {
+  const isLight = document.body.classList.toggle('light');
+  applyThemeButton(isLight);
+  try { localStorage.setItem('embox_theme', isLight ? 'light' : 'dark'); } catch(e) {}
 }
 
 // ============================================================
 // INIT
 // ============================================================
-// Restore saved theme
-(function(){
-  if (localStorage.getItem('embox_theme') === 'light') {
-    document.body.classList.add('light');
-    // defer until DOM ready
-    setTimeout(() => {
-      const icon = document.getElementById('theme-icon');
-      const lbl  = document.getElementById('theme-label');
-      const btn  = document.getElementById('theme-toggle');
-      if (icon) icon.textContent = '🌞';
-      if (lbl)  lbl.textContent  = 'Light Mode';
-      if (btn) {
-        btn.style.background  = 'rgba(0,0,0,0.06)';
-        btn.style.borderColor = 'rgba(0,0,0,0.15)';
-      }
-    }, 0);
-  }
-})();
+if (localStorage.getItem('embox_theme') === 'light') { document.body.classList.add('light'); applyThemeButton(true); }
+fillStaffSelects();
 updateStaffBadge();
+if (isStaff) showStaffMenu();
 initLanding();
+
+function limitDigits(input, max) { if (input.value.length > max) input.value = input.value.slice(0, max); }
 </script>
 </body>
 </html>
