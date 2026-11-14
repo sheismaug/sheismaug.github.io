@@ -1397,6 +1397,27 @@ body.light select option { background: #fff; color: #111; }
 }
 .r-split { margin-top: 8px; background: none; border: none; color: var(--accent); font-size: 12px; cursor: pointer; font-family: inherit; padding: 0; }
 .r-skip { font-size: 12px; color: var(--muted); margin-top: 6px; }
+.lot-search { margin-top: 8px; }
+.lot-search .lot-in { width: 100%; box-sizing: border-box; background: var(--surface2); border: 1.5px solid var(--border); color: var(--text);
+  padding: 11px 12px; border-radius: 10px; font-size: 16px; outline: none; font-family: 'Google Sans', sans-serif; text-transform: uppercase; letter-spacing: .06em; }
+.lot-search .lot-in:focus { border-color: var(--accent); background: var(--surface); }
+.lot-search .lot-in::placeholder { text-transform: none; letter-spacing: 0; }
+.sg { display: flex; align-items: center; gap: 10px; width: 100%; margin-top: 6px; padding: 9px 12px; border-radius: 10px; cursor: pointer;
+  border: 1.5px solid var(--border); background: var(--surface); color: var(--text); font-family: inherit; text-align: left; }
+.sg:hover { border-color: var(--accent); }
+.sg.on { border-color: var(--accent); background: color-mix(in srgb, var(--accent) 10%, var(--surface)); }
+.sg-lot { font-family: 'Google Sans', monospace; font-size: 15px; font-weight: 700; letter-spacing: .05em; color: var(--muted); }
+.sg-lot u { text-decoration: none; color: var(--text); }
+.sg-exp { flex: 1; font-size: 13px; color: var(--muted); }
+.sg-go { font-size: 12px; font-weight: 700; color: var(--accent); }
+.sg-none { margin-top: 6px; font-size: 12.5px; color: var(--muted); }
+.sg-none b { color: var(--accent); }
+.r-exp { margin-top: 8px; }
+.r-exp:empty { display: none; }
+.r-exp label { display: block; font-size: 12px; color: var(--muted); margin-bottom: 4px; }
+.r-exp .exp-in input { background: var(--surface2); border: 1.5px solid var(--border); color: var(--text); padding: 10px 4px; border-radius: 10px;
+  font-size: 16px; outline: none; font-family: 'Google Sans', sans-serif; text-align: center; }
+.r-exp .exp-in input:focus { border-color: var(--accent); }
 .why { margin-top: 8px; padding: 10px; border-radius: 12px; background: var(--surface2); }
 .why-h { font-size: 12.5px; font-weight: 700; color: var(--critical); margin-bottom: 8px; }
 .why-row { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
@@ -2746,9 +2767,12 @@ function whyHtml(idx, li, miss, use, w, unit) {
     </div>`;
 }
 
-// ── ปุ่ม Lot ตอนเติม: lot ในกล่องนี้ก่อน (ติดป้าย "เพิ่งหยิบไป" ถ้านับแล้วขาด) → lot อื่นที่เคยเติม
-//    ซ่อน lot ที่น่าจะพิมพ์ผิดจาก lot อื่น (EXP เดียวกัน + ตัวอักษรต่างกัน ≤1 / หน้าตาเหมือนกัน)
-function lotChipsHtml(c, d) {
+// ── Lot ตอนเติม
+//   • lot ที่อยู่ในกล่องนี้ = ปุ่มลัด (lot ที่เพิ่งหยิบไปอยู่หน้าสุด)
+//   • lot อื่น = พิมพ์จากหน้าไปหลัง ระบบเดาให้เรื่อยๆ (เทียบแบบ O/0, I/1 ด้วย)
+//     ตรงตัวเดียว → เลือกให้เอง · ไม่ตรงอะไรเลย → lot ใหม่ เปิดช่อง EXP ทันที
+//   • ซ่อน lot ที่น่าจะพิมพ์ผิดจาก lot อื่น (EXP เดียวกัน + ตัวอักษรต่างกัน ≤1)
+function lotPool(c, d) {
   const known = d.known_lots || [];
   const today = todayYMD();
   const inBox = new Map();   // "lot__exp" → ขาดไปกี่ชิ้น
@@ -2756,37 +2780,93 @@ function lotChipsHtml(c, d) {
     if (l.status === 'expired') return;
     inBox.set(l.lot + '__' + l.exp_date, l.qty - leftOf(c.idx, l));
   });
-  const isIn = k => inBox.has(k.lot + '__' + k.exp_date);
-  const looksSame = (a, b) => a.exp_date === b.exp_date &&
-    (lotShape(a.lot) === lotShape(b.lot) || editDist(lotShape(a.lot), lotShape(b.lot)) <= 1);
+  const keyOf = k => k.lot + '__' + k.exp_date;
+  const isIn = k => inBox.has(keyOf(k));
+  const looksSame = (x, y) => x.exp_date === y.exp_date &&
+    (lotShape(x.lot) === lotShape(y.lot) || editDist(lotShape(x.lot), lotShape(y.lot)) <= 1);
   const shown = [];
   known.forEach((k, i) => {
     if (c.sel !== i && daysBetween(today, k.exp_date) <= ALERT_WARNING) return;
     const twin = shown.find(j => looksSame(known[j], k));
     if (twin === undefined) { shown.push(i); return; }
-    // เก็บตัวที่อยู่ในกล่อง / ตัวที่ถูกเลือกอยู่ / ตัวที่เจอก่อน (ใช้ล่าสุด)
     if ((isIn(k) && !isIn(known[twin])) || c.sel === i) shown[shown.indexOf(twin)] = i;
   });
-  const chip = i => {
-    const k = known[i], miss = inBox.get(k.lot + '__' + k.exp_date) || 0;
+  const missOf = k => inBox.get(keyOf(k)) || 0;
+  const boxIdx = shown.filter(i => isIn(known[i])).sort((x, y) => missOf(known[y]) - missOf(known[x]));
+  return { known, shown, boxIdx, missOf };
+}
+
+function lotChipsHtml(c, d, pool) {
+  const { known, boxIdx, missOf } = pool;
+  if (!boxIdx.length) return '';
+  return `<div class="chips">${boxIdx.map(i => {
+    const k = known[i], miss = missOf(k);
     return `<button class="chip${c.sel === i ? ' on' : ''}${miss > 0 ? ' took' : ''}" onclick="pickLot(${c.id},${i})">` +
       `<b>${esc(k.lot)}${k.conflict ? ' ⚠' : ''}</b>EXP ${toBE(k.exp_date)}` +
       (miss > 0 ? `<span class="tag">เพิ่งหยิบไป ${miss}</span>` : '') + `</button>`;
-  };
-  const a = shown.filter(i => isIn(known[i])).sort((x, y) =>
-    (inBox.get(known[y].lot + '__' + known[y].exp_date) || 0) - (inBox.get(known[x].lot + '__' + known[x].exp_date) || 0));
-  const b = shown.filter(i => !isIn(known[i]));
-  const newBtn = `<button class="chip new${c.sel === 'new' ? ' on' : ''}" onclick="pickLot(${c.id},'new')"><b>+ Lot ใหม่</b>พิมพ์เอง</button>`;
-  if (!a.length) return `<div class="chips">${b.map(chip).join('')}${newBtn}</div>`;
-  const open = c.more || c.sel === 'new' || b.includes(c.sel);
-  return `<div class="chips">${a.map(chip).join('')}` +
-    (open ? '' : `<button class="chip more" onclick="toggleMore(${c.id})"><b>lot อื่น ▾</b>${b.length ? b.length + ' lot · พิมพ์เอง' : 'พิมพ์เอง'}</button>`) +
-    `</div>` + (open ? `<div class="chips">${b.map(chip).join('')}${newBtn}</div>` : '');
+  }).join('')}</div>`;
+}
+
+function lotMatches(c, pool) {
+  const q = lotShape(normLot(c.lot));
+  if (!q) return [];
+  return pool.shown.filter(i => lotShape(pool.known[i].lot).startsWith(q));
+}
+
+function suggestHtml(c, pool) {
+  const L = normLot(c.lot);
+  if (!L) return '';
+  const m = lotMatches(c, pool);
+  if (!m.length) return L.length >= 2 ? `<div class="sg-none">ไม่ตรงกับ lot ที่เคยเติม — เป็น <b>lot ใหม่</b> กรอกวันหมดอายุด้านล่าง</div>` : '';
+  const n = L.length;
+  return m.slice(0, 4).map(i => {
+    const k = pool.known[i], lot = normLot(k.lot);
+    return `<button class="sg${c.sel === i ? ' on' : ''}" onclick="pickLot(${c.id},${i})">` +
+      `<span class="sg-lot"><u>${esc(lot.slice(0, n))}</u>${esc(lot.slice(n))}${k.conflict ? ' ⚠' : ''}</span>` +
+      `<span class="sg-exp">EXP ${toBE(k.exp_date)}</span><span class="sg-go">ใช้ lot นี้</span></button>`;
+  }).join('') + (m.length > 4 ? `<div class="sg-none">อีก ${m.length - 4} lot — พิมพ์ต่ออีกตัว</div>` : '');
+}
+
+function expFieldsHtml(c) {
+  if (c.sel !== 'new') return '';
+  return `
+    <label>หมดอายุ <span style="opacity:.7">วัน (ถ้ามี)</span> / เดือน / ปี</label>
+    <div class="exp-in">
+      <input class="dd" inputmode="numeric" maxlength="2" placeholder="DD" autocomplete="off" name="eb-dd-${c.id}" value="${esc(c.dd)}" oninput="editCard(${c.id},'dd',this.value,this)">
+      <span>/</span>
+      <input class="mm" inputmode="numeric" maxlength="2" placeholder="MM" autocomplete="off" name="eb-mm-${c.id}" value="${esc(c.mm)}" oninput="editCard(${c.id},'mm',this.value,this)">
+      <span>/</span>
+      <input class="yy" inputmode="numeric" maxlength="4" placeholder="YY" autocomplete="off" name="eb-yy-${c.id}" value="${esc(c.yy)}" oninput="editCard(${c.id},'yy',this.value,this)">
+    </div>`;
+}
+
+// พิมพ์ lot: อัปเดตเฉพาะรายการเดา / ช่อง EXP / ข้อความตรวจ — ไม่ re-render ช่องที่กำลังพิมพ์
+function typeLot(id, val) {
+  const c = findCard(id); if (!c) return;
+  const d = cardDrug(c), pool = lotPool(c, d);
+  c.lot = val; c.ack = false;
+  const L = normLot(val), m = lotMatches(c, pool);
+  const exact = m.filter(i => normLot(pool.known[i].lot) === L);
+  if (exact.length === 1 && m.length === 1) { pickLot(id, exact[0], true); return; }
+  const prev = c.sel;
+  c.sel = m.length ? null : (L.length >= 2 ? 'new' : null);
+  document.getElementById('sg-' + id).innerHTML = suggestHtml(c, pool);
+  if ((prev === 'new') !== (c.sel === 'new')) document.getElementById('nx-' + id).innerHTML = expFieldsHtml(c);
+  document.getElementById('rcc-' + id).innerHTML = checkHtml(c, cardState(c));
+  refreshBlockClass(c.idx);
+  updateActionBtn();
+}
+function refreshBlockClass(idx) {
+  const el = document.getElementById('blk-' + idx); if (!el) return;
+  const st = cardsOf(idx).map(cardState);
+  el.classList.toggle('bad', st.some(s => !s.skip && !s.ready));
+  el.classList.toggle('ready', st.length > 0 && st.every(s => s.ready));
 }
 
 function cardBodyHtml(c) {
   const d = cardDrug(c);
   const st = cardState(c);
+  const pool = lotPool(c, d);
   const stepper = `
       <div class="stepper">
         <button onclick="stepCard(${c.id},-1)" ${c.qty > 1 ? '' : 'disabled'}>−</button>
@@ -2809,21 +2889,14 @@ function cardBodyHtml(c) {
       <div class="d-main"><div style="font-size:13px;font-weight:700;color:var(--text)">เติม</div></div>
       ${stepper}
     </div>
-    ${lotChipsHtml(c, d)}
-    ${c.sel === 'new' ? `
-      <div class="r-new">
-        <div><label>Lot (ตามที่พิมพ์บนแอมป์)</label>
-          <input class="lot-in" value="${esc(c.lot)}" autocomplete="off" autocapitalize="characters" spellcheck="false"
-                 name="eb-lot-${c.id}" oninput="editCard(${c.id},'lot',this.value)"></div>
-        <div><label>หมดอายุ <span style="opacity:.7">วัน (ถ้ามี)</span> / เดือน / ปี</label>
-          <div class="exp-in">
-            <input class="dd" inputmode="numeric" maxlength="2" placeholder="DD" autocomplete="off" name="eb-dd-${c.id}" value="${esc(c.dd)}" oninput="editCard(${c.id},'dd',this.value,this)">
-            <span>/</span>
-            <input class="mm" inputmode="numeric" maxlength="2" placeholder="MM" autocomplete="off" name="eb-mm-${c.id}" value="${esc(c.mm)}" oninput="editCard(${c.id},'mm',this.value,this)">
-            <span>/</span>
-            <input class="yy" inputmode="numeric" maxlength="4" placeholder="YY" autocomplete="off" name="eb-yy-${c.id}" value="${esc(c.yy)}" oninput="editCard(${c.id},'yy',this.value,this)">
-          </div></div>
-      </div>` : ''}
+    ${lotChipsHtml(c, d, pool)}
+    <div class="lot-search">
+      <input class="lot-in" value="${esc(c.lot)}" autocomplete="off" autocapitalize="characters" spellcheck="false"
+             name="eb-lot-${c.id}" placeholder="${pool.boxIdx.length ? 'หรือพิมพ์ lot อื่นบนแอมป์' : 'พิมพ์เลข lot บนแอมป์'}"
+             oninput="typeLot(${c.id},this.value)">
+      <div id="sg-${c.id}">${suggestHtml(c, pool)}</div>
+      <div id="nx-${c.id}" class="r-exp">${expFieldsHtml(c)}</div>
+    </div>
     <div class="r-check" id="rcc-${c.id}">${checkHtml(c, st)}</div>
   </div>`;
 }
@@ -2900,13 +2973,14 @@ function stepWaste(idx, li, delta) {
   wasteN[k] = Math.max(0, Math.min(missingOf(idx, l), (wasteN[k] || 0) + delta));
   rerenderBlock(idx);
 }
+function toggleAll(id) { const c = findCard(id); if (!c) return; c.all = true; rerenderBlock(c.idx); }
 function toggleMore(id) { const c = findCard(id); if (!c) return; c.more = !c.more; rerenderBlock(c.idx); }
-function pickLot(id, sel) {
+function pickLot(id, sel, force) {
   const c = findCard(id); if (!c) return;
-  c.sel = c.sel === sel ? null : sel; c.ack = false;
-  if (c.sel === null) c.more = false;
+  c.sel = (c.sel === sel && !force) ? null : sel; c.ack = false;
+  if (typeof c.sel === 'number') c.lot = (cardDrug(c).known_lots || [])[c.sel]?.lot || c.lot;
+  else if (c.sel === null) c.lot = '';
   rerenderBlock(c.idx);
-  if (c.sel === 'new') document.querySelector(`#rc-${id} .lot-in`)?.focus();
 }
 function editCard(id, field, val, input) {
   const c = findCard(id); if (!c) return;
@@ -2922,7 +2996,7 @@ function applyFix(id) {
   const c = findCard(id); const st = cardState(c);
   if (!st.fix) return;
   const i = (cardDrug(c).known_lots || []).findIndex(k => k.lot === st.fix.lot && k.exp_date === st.fix.exp_date);
-  if (i >= 0) { c.sel = i; c.ack = false; }
+  if (i >= 0) return pickLot(id, i, true);
   rerenderBlock(c.idx);
 }
 function ackCard(id) { const c = findCard(id); c.ack = !c.ack; rerenderBlock(c.idx); }
