@@ -259,6 +259,17 @@ body{color:var(--ink)}
 .sdot{background:none;border:1.5px solid #c9ccd4;color:var(--muted)}
 .sdot.cur{border-color:var(--ink);color:var(--ink);background:none}
 .sdot.ok{background:var(--ink);border-color:var(--ink);color:#fff}
+.exb{display:flex;align-items:center;gap:12px;width:100%;text-align:left;border:0;border-radius:14px;padding:12px 14px;background:#E8283F;color:#fff}
+.exb .exi{width:44px;height:44px;border-radius:22px;background:#fff;display:flex;align-items:center;justify-content:center;flex:none}
+.exb .exi img{width:32px;height:32px}
+.exb .ext{display:block;font-size:16px;font-weight:700}.exb .exs{display:block;font-size:12px;opacity:.9}
+.exb .exa{font-size:22px;color:#F5C800;flex:none}
+.exb:focus-visible{outline:3px solid #F5C800;outline-offset:2px}
+.gchips{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px}
+.gchip{display:inline-flex;align-items:center;gap:5px;font-size:12px;font-weight:600;padding:3px 10px;border-radius:12px;background:var(--red-bg);color:var(--red)}
+.gchip::before{content:'';width:6px;height:6px;border-radius:3px;background:currentColor}
+.sdot.gate{border-color:var(--red);color:var(--red)}
+.btn:disabled{background:#e6e8ec;color:#9a9fac}
 .go{border:1px solid var(--ink);background:#fff;border-radius:10px;min-height:38px;padding:0 12px;font-size:13px;font-weight:600;color:var(--ink);white-space:nowrap}
 .go2{border:1px solid var(--line2);background:#fff;border-radius:10px;min-height:38px;padding:0 10px;font-size:13px;color:var(--sub);white-space:nowrap}
 /* nurse */
@@ -756,9 +767,10 @@ function setTech(v) { APP.tech = v; saveDraft(); }
 
 function hubGate() {
   const s = cartStats(), left = [];
-  if (s.pending) left.push('แจ้งขาดจากพยาบาล ' + s.pending + ' รายการ');
-  if (s.low) left.push('เติมไม่ครบ ' + s.low + ' รายการ');
-  if (!APP.shift.cartSubmitted) left.push('ยังไม่ยืนยันการตรวจรถ');
+  if (s.expired) left.push('ยาหมดอายุ ' + s.expired);
+  if (s.pending) left.push('แจ้งขาด ' + s.pending);
+  if (s.low) left.push('เติมไม่ครบ ' + s.low);
+  if (!APP.shift.cartSubmitted) left.push('ยังไม่ยืนยันตรวจรถ');
   if (!APP.shift.saved) left.push('ยังไม่บันทึกเวร');
   return left;
 }
@@ -770,6 +782,8 @@ function renderHub() {
   const pend = APP.pending;
 
   let h = '';
+  if (s.expired) h += '<button class="exb" type="button" onclick="go(\'stock\',{filter:\'expired\'})"><span class="exi"><img src="icons/ermedcart_cart.png" alt=""></span>' +
+    '<span class="grow"><span class="ext">ยาหมดอายุ ' + s.expired + ' รายการ</span><span class="exs">ถอดออกจากรถก่อนปิดเวร</span></span><span class="exa" aria-hidden="true">›</span></button>';
   h += '<section class="card" style="gap:6px"><label class="lbl" for="hub-tech">จพ.เภสัชประจำเวร — เลือกครั้งเดียว ใช้ทั้งเวร</label>' +
        '<select id="hub-tech" class="inp" onchange="setTech(this.value)"><option value="">— ไม่ระบุ —</option>' +
        TECHS.map(t => '<option' + (APP.tech === t ? ' selected' : '') + '>' + esc(t) + '</option>').join('') + '</select></section>';
@@ -801,7 +815,7 @@ function renderHub() {
     stepRow(2, step2, 'บันทึกเวร',
       APP.shift.saved ? 'บันทึกแล้ว' + (APP.shift.savedAt ? ' ' + APP.shift.savedAt : '') + ' · ใบสั่ง ' + (APP.shift.rxTotal != null ? APP.shift.rxTotal : '?') + ' · แก้ไขได้' : 'ใบสั่งยา · ยาหาย · ความเสี่ยง · Med error',
       "go('record')") +
-    '<div class="step"><span class="sdot' + (left.length ? '' : ' cur') + '">3</span><span class="grow"><span style="display:block;font-size:15px;font-weight:600">ปิดเวร</span><span class="lbl">' + (left.length ? 'เหลือ: ' + esc(left.join(' · ')) : 'พร้อมปิดเวร') + '</span></span></div>' +
+    '<div class="step"><span class="sdot' + (left.length ? ' gate' : ' cur') + '">3</span><span class="grow"><span style="display:block;font-size:15px;font-weight:600">ปิดเวร</span>' + (left.length ? '<span class="gchips">' + left.map(t => '<span class="gchip">' + esc(t) + '</span>').join('') + '</span>' : '<span class="lbl">ครบทุกอย่างแล้ว</span>') + '</span></div>' +
   '</section>';
 
   h += '<button class="btn" type="button" onclick="closeShift()"' + (left.length ? ' disabled' : '') + '>ปิดเวร</button>';
@@ -848,7 +862,8 @@ async function closeShift() {
   const s = APP.shift.cartSummary || {};
   const body = ckRow('ตรวจ / เติมรถยา', 'ยืนยันแล้ว' + (s.time ? ' ' + s.time : '') + ' · เติมครบ') +
     ckRow('บันทึกเวร', 'บันทึกแล้ว' + (APP.shift.savedAt ? ' ' + APP.shift.savedAt : '') + ' · ใบสั่ง ' + (APP.shift.rxTotal != null ? APP.shift.rxTotal : '?')) +
-    ckRow('แจ้งขาดจากพยาบาล', 'เคลียร์ครบ');
+    ckRow('แจ้งขาดจากพยาบาล', 'เคลียร์ครบ') +
+    ckRow('ยาหมดอายุ', 'ถอดออกครบ');
   if (await confirmSheet({ title: 'ปิดเวรและออกจากระบบ?', sub: 'ตรวจสรุปก่อนส่งต่อเวร', body: body, ok: 'ปิดเวร' })) doLogout(true);
 }
 function ckRow(t, l) { return '<div class="ck"><span class="ic" style="background:var(--ink);color:#fff">' + svg('tick', 16, 'currentColor', 2.4) + '</span><span><span style="display:block;font-size:15px;font-weight:600">' + esc(t) + '</span><span class="lbl">' + esc(l) + '</span></span></div>'; }
