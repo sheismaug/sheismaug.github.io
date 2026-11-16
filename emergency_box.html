@@ -1505,6 +1505,18 @@ input.num:focus, .why-step input:focus { outline: none; border-color: var(--acce
 .stk-cat { font-family:inherit; font-size:14px; font-weight:600; padding:8px 14px; border-radius:12px; border:1px solid var(--border, rgba(127,127,127,.25)); background:var(--surface); color:var(--text); cursor:pointer; }
 .stk-cat.active { background:var(--accent, #3B82F6); border-color:transparent; color:#fff; }
 .stk-hint { font-size:12px; color:var(--muted); }
+.stk-guide { background:var(--surface2); border-radius:14px; padding:10px 14px; }
+.stk-guide summary { cursor:pointer; font-size:14px; font-weight:600; list-style:none; }
+.stk-guide summary::-webkit-details-marker { display:none; }
+.stk-guide summary::after { content:' ▾'; color:var(--muted); }
+.stk-guide[open] summary::after { content:' ▴'; }
+.stk-steps { display:grid; grid-template-columns:repeat(auto-fill,minmax(250px,1fr)); gap:10px; margin-top:12px; }
+.stk-step { display:flex; gap:10px; align-items:flex-start; background:var(--surface); border-radius:12px; padding:10px 12px; font-size:13px; line-height:1.5; }
+.stk-step .n { flex:0 0 24px; height:24px; border-radius:50%; background:var(--accent,#3B82F6); color:#fff; font-weight:700; display:flex; align-items:center; justify-content:center; font-size:13px; }
+.stk-step.ok .n { background:var(--ok,#10B981); }
+.stk-step .ic { font-size:24px; line-height:1; }
+.stk-step small { color:var(--muted); }
+.stk-step .v { display:inline-block; background:#FFE58A; color:#3A2E00; font-weight:700; border-radius:6px; padding:0 6px; }
 .stk-scale { display:flex; flex-wrap:wrap; align-items:center; gap:10px; font-size:14px; font-weight:600; }
 .stk-scale small { font-weight:400; color:var(--muted); font-size:12px; }
 .stk-scale .btn-secondary { width:auto; padding:6px 12px; }
@@ -1860,7 +1872,18 @@ input.num:focus, .why-step input:focus { outline: none; border-color: var(--acce
       <button class="btn-secondary" onclick="stkScaleSet(100)">รีเซ็ต</button>
       <small>ถ้าพิมพ์ออกมาเล็ก/ใหญ่กว่าดวง ปรับตรงนี้ (เครื่องนี้จำค่าไว้)</small>
     </div>
-    <div class="stk-hint">สติกเกอร์ 8 × 7 cm · แถบครีมล่างดวง = ที่ของโลโก้ รพ. บนสติกเกอร์ (ไม่พิมพ์) · ตอนพิมพ์: กระดาษ 80 × 70 mm, Margins: None, Scale 100%</div>
+    <div class="stk-hint">สติกเกอร์ 8 × 7 cm · แถบครีมล่างดวง = ที่ของโลโก้ รพ. บนสติกเกอร์ (ไม่พิมพ์)</div>
+    <details class="stk-guide" id="stkGuide">
+      <summary>🛠️ วิธีตั้งเครื่องพิมพ์ — ขนาด <b>8 × 7 cm</b> · margin <b>0 cm</b> ทุกด้าน</summary>
+      <div class="stk-steps">
+        <div class="stk-step"><div class="n">1</div><div class="ic">⚙️</div>
+          <div><b>เปิดตั้งค่าเครื่องพิมพ์จาก Windows</b><br>Settings → Printers &amp; scanners → เครื่องพิมพ์ฉลาก → <b>Printing preferences</b></div></div>
+        <div class="stk-step"><div class="n">2</div><div class="ic">📐</div>
+          <div><b>แท็บ "ตัวเลือก" → ขนาด</b><br>หน่วย <b>ซม.</b> · ความกว้าง <span class="v">8.00</span> · ความสูง <span class="v">7.00</span></div></div>
+        <div class="stk-step"><div class="n">3</div><div class="ic">⬜</div>
+          <div><b>พื้นที่ที่พิมพ์ไม่ได้ = 0 ทุกช่อง</b><br>ซ้าย <span class="v">0.00</span> · ขวา <span class="v">0.00</span> · ด้านบน <span class="v">0.00</span> · ด้านล่าง <span class="v">0.00</span> → OK</div></div>
+      </div>
+    </details>
   </div>
 
   <div class="stk-grid" id="stkGrid"></div>
@@ -2338,7 +2361,10 @@ function goToPage(pageId) {
   window.scrollTo(0, 0);
   if (pageId === 'page-report') { initReportDates(); loadReport(); }
   if (pageId === 'page-admin')  loadAdmin();
-  if (pageId === 'page-sticker') { stkScaleSet(stkScale); loadStickers(stkCat); }
+  if (pageId === 'page-sticker') {
+    stkScaleSet(stkScale); loadStickers(stkCat);
+    try { if (!localStorage.getItem('stkGuideSeen')) { document.getElementById('stkGuide').open = true; localStorage.setItem('stkGuideSeen', '1'); } } catch (e) {}
+  }
 }
 
 function goToDashboard(category) {
@@ -3685,6 +3711,7 @@ function limitDigits(input, max) { if (input.value.length > max) input.value = i
 // STICKER — สติกเกอร์ยาให้พยาบาลเขียน dose เอง (8 x 7 cm)
 // ============================================================
 // type: 'inf'   = ผสมสารน้ำ หยดต่อเนื่อง → Dose / ผสมใน / Rate
+//       diluent: ['D5W'] = ล็อกสารน้ำตัวเดียว (พิมพ์ตัวหนา ไม่มีช่องติ๊ก) · ไม่ใส่ = ☐NSS ☐D5W
 //       'both'  = push แล้วต่อ drip ในคำสั่งเดียว (ติ๊กว่าดวงนี้ติดภาชนะไหน)
 //                 push: ข้อความแถว push (default 'IV slow push') · every:false = ไม่มีช่อง 'ทุก ___ นาที'
 //       'bolus' = ฉีดครั้งเดียว           → Dose / Route / แถว 3 ตาม r3
@@ -3702,7 +3729,7 @@ const STK_CFG = {
   'Glucose 50% 50 mL':                 { name:'Glucose 50%',        str:'50 mL',          unit:'mL',       type:'bolus', route:['IV'], r3:'time' },
   'Hydrocortisone 100 mg inj':         { name:'Hydrocortisone',     str:'100 mg inj',     unit:'mg',       type:'both', push:'IV stat', every:false },
   'MgSO4 50% 2 mL':                    { name:'MgSO4 50%',          str:'2 mL',           unit:'g',        type:'inf' },
-  'Norepinephrine 4 mg / 4 mL':        { name:'Norepinephrine',     str:'4 mg / 4 mL',    unit:'mg',       type:'inf' },
+  'Norepinephrine 4 mg / 4 mL':        { name:'Norepinephrine',     str:'4 mg / 4 mL',    unit:'mg',       type:'inf', diluent:['D5W'] },
   'Sodium bicarbonate 3.75 g / 50 mL': { name:'Sodium bicarbonate', str:'3.75 g / 50 mL', unit:'amp',      type:'both' },
 };
 
@@ -3768,7 +3795,8 @@ function stkHTML(d, extra) {
              :                    L(`เจือจาง${B(11)}${U('mL')}&nbsp;ให้นาน${B()}${U('นาที')}`);
     body = L(`Dose :${B()}${U(d.unit)}`) + L(`Route : ${r}`) + r3;
   } else {
-    body = L(`Dose :${B()}${U(d.unit)}`) + L(`ผสมใน ${X('NSS')}${X('D5W')}${B()}${U('mL')}`) +
+    const dil = (d.diluent && d.diluent.length === 1) ? U(d.diluent[0]) + '&nbsp;' : (d.diluent || ['NSS','D5W']).map(X).join('');
+    body = L(`Dose :${B()}${U(d.unit)}`) + L(`ผสมใน ${dil}${B()}${U('mL')}`) +
            L(`Rate :${B()}${U('mL/hr')}`);
   }
   body += L(`เริ่มให้ยา${B(13)}น.&nbsp;ผู้ให้ยา${B()}`);
@@ -3871,7 +3899,7 @@ function renderRefillStickers() {
       <span>${it.d.had ? '🔴 ' : ''}${esc(it.d.name)} <small style="color:var(--muted)">${esc(it.d.str || '')}</small></span>
       <span class="stk-qty"><button onclick="stkRefillBump(${i},-1)">−</button><b>${it.qty}</b><button onclick="stkRefillBump(${i},1)">+</button> ดวง</span>
     </div>`).join('') +
-    '<div style="font-size:12px;color:var(--muted);margin-top:8px">ตั้งต้นเท่าจำนวนที่เติม · ยาที่ 1 ซองใช้หลายแอมป์ ลดจำนวนลงได้ · 0 = ไม่พิมพ์</div>';
+    '<div style="font-size:12px;color:var(--muted);margin-top:8px">ตั้งต้นเท่าจำนวนที่เติม · ยาที่ 1 ซองใช้หลายแอมป์ ลดจำนวนลงได้ · 0 = ไม่พิมพ์<br>🛠️ เครื่องพิมพ์ต้องตั้งขนาด 8 × 7 cm · margin 0 cm — ดูวิธีในหน้า 🏷️ สติกเกอร์ยา</div>';
   const n = stkRefill.reduce((a, it) => a + it.qty, 0);
   const b = document.getElementById('popupConfirmBtn');
   b.textContent = n ? `🖨️ พิมพ์ ${n} ดวง` : 'ปิด';
