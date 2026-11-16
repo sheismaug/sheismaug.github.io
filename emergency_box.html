@@ -1856,11 +1856,6 @@ input.num:focus, .why-step input:focus { outline: none; border-color: var(--acce
   </div>
 
   <div class="report-section stk-toolbar">
-    <div class="stk-cats" id="stkCats">
-      <button class="stk-cat active" data-cat="hospital" onclick="loadStickers('hospital')">🏥 โรงพยาบาล</button>
-      <button class="stk-cat" data-cat="maternity" onclick="loadStickers('maternity')">🤰 ห้องคลอด</button>
-      <button class="stk-cat" data-cat="refer" onclick="loadStickers('refer')">🚑 รถ Refer</button>
-    </div>
     <div class="stk-actions">
       <button class="btn-secondary" onclick="stkSetAll(true)">✅ เลือกทั้งหมด</button>
       <button class="btn-secondary" onclick="stkSetAll(false)">⬜ ล้าง</button>
@@ -3227,7 +3222,7 @@ function submitWork() {
       if (!applyInventory(data.inventory)) await loadDetail(true);
       showToast('บันทึกแล้ว' + (skipped.length ? ` · ยังไม่ได้เติม ${skipped.length} รายการ` : ''), 'ok');
       switchTab('inv');
-      if (stkRows.length) offerRefillStickers(stkRows);
+      if (stkRows.length && currentCategory === 'hospital') offerRefillStickers(stkRows);
     } catch(e) { showToast('เชื่อมต่อไม่ได้ — ยังไม่ได้บันทึก ลองใหม่อีกครั้ง', 'err'); }
   });
 }
