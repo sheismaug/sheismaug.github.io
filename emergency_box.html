@@ -1497,6 +1497,25 @@ input.num:focus, .why-step input:focus { outline: none; border-color: var(--acce
 .la-mute { flex: none; width: 64px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px;
   border-radius: 10px; border: 1px solid var(--border); background: var(--surface); color: var(--muted); font-family: inherit; font-size: 11px; font-weight: 600; cursor: pointer; }
 .la-mute:hover { color: var(--text); border-color: var(--text); }
+
+/* ===== Sticker page ===== */
+.stk-toolbar { display:flex; flex-direction:column; gap:12px; }
+.stk-cats, .stk-actions { display:flex; flex-wrap:wrap; gap:8px; }
+.stk-actions .btn-primary, .stk-actions .btn-secondary { width:auto; }
+.stk-cat { font-family:inherit; font-size:14px; font-weight:600; padding:8px 14px; border-radius:12px; border:1px solid var(--border, rgba(127,127,127,.25)); background:var(--surface); color:var(--text); cursor:pointer; }
+.stk-cat.active { background:var(--accent, #3B82F6); border-color:transparent; color:#fff; }
+.stk-hint { font-size:12px; color:var(--muted); }
+.stk-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(330px,1fr)); gap:16px; padding:0 16px 40px; max-width:1100px; margin:0 auto; }
+.stk-cell { background:var(--surface); border-radius:16px; padding:12px; display:flex; flex-direction:column; align-items:center; gap:10px; }
+.stk-cell.off { opacity:.35; }
+.stk-ctrl { display:flex; align-items:center; justify-content:space-between; width:100%; gap:8px; font-size:14px; }
+.stk-ctrl label { display:flex; align-items:center; gap:6px; font-weight:600; cursor:pointer; }
+.stk-ctrl input[type=checkbox] { width:18px; height:18px; }
+.stk-qty { display:flex; align-items:center; gap:4px; white-space:nowrap; }
+.stk-qty button { width:30px; height:30px; border-radius:10px; border:0; background:var(--surface2); color:var(--text); font-size:18px; font-weight:700; cursor:pointer; }
+.stk-qty b { min-width:24px; text-align:center; }
+.stk-cell .stk { background:linear-gradient(to top,#F3EFE6 12mm,#fff 12mm); border:1px dashed #C9BFAE; border-radius:3mm; }
+.stk-empty { grid-column:1/-1; text-align:center; color:var(--muted); padding:40px 0; }
 </style>
 </head>
 <body>
@@ -1584,6 +1603,10 @@ input.num:focus, .why-step input:focus { outline: none; border-color: var(--acce
         <div class="sib-item" onclick="goToPage('page-admin')">
           <img class="icon" src="icons/gear_3d.png" alt="">
           <span class="lbl">จัดการ</span>
+        </div>
+        <div class="sib-item" onclick="goToPage('page-sticker')">
+          <span class="icon">🏷️</span>
+          <span class="lbl">สติกเกอร์ยา</span>
         </div>
         <div class="sib-item sib-logout" onclick="logout()">
           <img class="icon" src="icons/unlocked_3d.png" alt="">
@@ -1807,6 +1830,33 @@ input.num:focus, .why-step input:focus { outline: none; border-color: var(--acce
      ============================================================ -->
 
 <!-- Add Box -->
+<!-- ============================================================
+     PAGE: STICKER — สติกเกอร์ยาให้พยาบาลเขียน dose (8 x 7 cm)
+     ============================================================ -->
+<div id="page-sticker" class="page">
+  <div class="topbar">
+    <button class="back-btn" onclick="goToPage('page-landing')">← กลับ</button>
+    <div class="page-title">🏷️ สติกเกอร์ยา</div>
+    <div class="staff-badge" onclick="logout()">🔓 ออกจากระบบ</div>
+  </div>
+
+  <div class="report-section stk-toolbar">
+    <div class="stk-cats" id="stkCats">
+      <button class="stk-cat active" data-cat="hospital" onclick="loadStickers('hospital')">🏥 โรงพยาบาล</button>
+      <button class="stk-cat" data-cat="maternity" onclick="loadStickers('maternity')">🤰 ห้องคลอด</button>
+      <button class="stk-cat" data-cat="refer" onclick="loadStickers('refer')">🚑 รถ Refer</button>
+    </div>
+    <div class="stk-actions">
+      <button class="btn-secondary" onclick="stkSetAll(true)">✅ เลือกทั้งหมด</button>
+      <button class="btn-secondary" onclick="stkSetAll(false)">⬜ ล้าง</button>
+      <button class="btn-primary" id="stkPrintBtn" onclick="printStickers()">🖨️ พิมพ์ <span id="stkTotal"></span></button>
+    </div>
+    <div class="stk-hint">สติกเกอร์ 8 × 7 cm · แถบครีมล่างดวง = ที่ของโลโก้ รพ. บนสติกเกอร์ (ไม่พิมพ์) · ตอนพิมพ์: กระดาษ 80 × 70 mm, Margins: None, Scale 100%</div>
+  </div>
+
+  <div class="stk-grid" id="stkGrid"></div>
+</div>
+
 <div class="modal-overlay" id="modalAddBox">
   <div class="modal">
     <h3 id="boxModalTitle">➕ เพิ่มกล่องใหม่</h3>
@@ -2270,7 +2320,7 @@ function rememberStaff(v) {
 // NAVIGATION
 // ============================================================
 function goToPage(pageId) {
-  if ((pageId === 'page-report' || pageId === 'page-admin') && !isStaff) {
+  if ((pageId === 'page-report' || pageId === 'page-admin' || pageId === 'page-sticker') && !isStaff) {
     requireAuth(() => goToPage(pageId));
     return;
   }
@@ -2279,6 +2329,7 @@ function goToPage(pageId) {
   window.scrollTo(0, 0);
   if (pageId === 'page-report') { initReportDates(); loadReport(); }
   if (pageId === 'page-admin')  loadAdmin();
+  if (pageId === 'page-sticker') loadStickers(stkCat);
 }
 
 function goToDashboard(category) {
@@ -3063,8 +3114,9 @@ function updatePatientBox() {
 }
 
 let confirmAction = null;
-function openConfirm(title, sub, html, okLabel, onOk) {
+function openConfirm(title, sub, html, okLabel, onOk, cancelLabel) {
   document.getElementById('popupTitle').textContent = title;
+  document.querySelector('#popupDispense .popup-actions .btn-secondary').textContent = cancelLabel || 'ยกเลิก';
   document.getElementById('popupPatient').textContent = sub;
   document.getElementById('popupSummaryBox').innerHTML = html;
   const b = document.getElementById('popupConfirmBtn');
@@ -3126,6 +3178,7 @@ function submitWork() {
   if (skipped.length) html += `<div style="margin-top:10px;font-size:12px;color:var(--warning)">ยังไม่ได้เติม: ${esc(skipped.join(', '))}</div>`;
 
   const sub = (hasUse ? `HN ${HN}${name ? ' · ' + name : ''} · ${selectedWard} · ` : '') + `ผู้บันทึก: ${staff}`;
+  const stkRows = chosen.map(({ c }) => ({ row: cardDrug(c), qty: c.qty }));
   const payload = { action: 'countRefill', box_id: currentBoxId, HN, patient_name: name, ward_type: hasUse ? selectedWard : '', staff, used, refill };
   openConfirm('ยืนยันการนับและเติม', sub, html, '✓ ถูกต้อง บันทึก', async () => {
     try {
@@ -3139,6 +3192,7 @@ function submitWork() {
       if (!applyInventory(data.inventory)) await loadDetail(true);
       showToast('บันทึกแล้ว' + (skipped.length ? ` · ยังไม่ได้เติม ${skipped.length} รายการ` : ''), 'ok');
       switchTab('inv');
+      if (stkRows.length) offerRefillStickers(stkRows);
     } catch(e) { showToast('เชื่อมต่อไม่ได้ — ยังไม่ได้บันทึก ลองใหม่อีกครั้ง', 'err'); }
   });
 }
@@ -3617,6 +3671,192 @@ if (isStaff) showStaffMenu();
 initLanding();
 
 function limitDigits(input, max) { if (input.value.length > max) input.value = input.value.slice(0, max); }
+
+// ============================================================
+// STICKER — สติกเกอร์ยาให้พยาบาลเขียน dose เอง (8 x 7 cm)
+// ============================================================
+// type: 'inf'   = ผสมสารน้ำ หยดต่อเนื่อง → Dose / ผสมใน / Rate
+//       'both'  = push แล้วต่อ drip ในคำสั่งเดียว (ติ๊กว่าดวงนี้ติดภาชนะไหน)
+//                 push: ข้อความแถว push (default 'IV slow push') · every:false = ไม่มีช่อง 'ทุก ___ นาที'
+//       'bolus' = ฉีดครั้งเดียว           → Dose / Route / แถว 3 ตาม r3
+//       r3: (ไม่ใส่) = เจือจาง+ให้นาน · 'time' = ให้นาน อย่างเดียว · 'flush' = ตามด้วย NSS flush
+// key = drug_name ตรงตามชีต drug_master_*  · ยาที่ไม่มีในนี้จะใช้แบบ 'inf' และเดาหน่วยจากความแรง
+const STK_CFG = {
+  'Adenosine 6 mg / 2 mL':             { name:'Adenosine',          str:'6 mg / 2 mL',    unit:'mg',       type:'bolus', route:['IV rapid push'], r3:'flush' },
+  'Adrenaline 1 mg / mL':              { name:'Adrenaline',         str:'1 mg / mL',      unit:'mg',       type:'inf' },
+  'Amiodarone 150 mg / 3 mL':          { name:'Amiodarone',         str:'150 mg / 3 mL',  unit:'mg',       type:'inf' },
+  'Atropine sulfate 0.6 mg / mL':      { name:'Atropine sulfate',   str:'0.6 mg / mL',    unit:'mg',       type:'bolus', route:['IV'], r3:'time' },
+  'Calcium gluconate 10% 10 mL':       { name:'Calcium gluconate',  str:'10% 10 mL',      unit:'mL',       type:'bolus', route:['IV'] },
+  'CPM 10 mg / mL':                    { name:'CPM',                str:'10 mg / mL',     unit:'mg',       type:'bolus', route:['IV','IM'], r3:'time' },
+  'Dexamethasone 4 mg / mL':           { name:'Dexamethasone',      str:'4 mg / mL',      unit:'mg',       type:'bolus', route:['IV','IM'], r3:'time' },
+  'Diazepam 10 mg / 2 mL':             { name:'Diazepam',           str:'10 mg / 2 mL',   unit:'mg',       type:'bolus', route:['IV'], r3:'time' },
+  'Glucose 50% 50 mL':                 { name:'Glucose 50%',        str:'50 mL',          unit:'mL',       type:'bolus', route:['IV'], r3:'time' },
+  'Hydrocortisone 100 mg inj':         { name:'Hydrocortisone',     str:'100 mg inj',     unit:'mg',       type:'both', push:'IV stat', every:false },
+  'MgSO4 50% 2 mL':                    { name:'MgSO4 50%',          str:'2 mL',           unit:'g',        type:'inf' },
+  'Norepinephrine 4 mg / 4 mL':        { name:'Norepinephrine',     str:'4 mg / 4 mL',    unit:'mg',       type:'inf' },
+  'Sodium bicarbonate 3.75 g / 50 mL': { name:'Sodium bicarbonate', str:'3.75 g / 50 mL', unit:'amp',      type:'both' },
+};
+
+const STK_CSS = `
+.stk{width:80mm;height:70mm;background:#fff;color:#000;padding:4mm 4mm 12mm;display:flex;flex-direction:column;overflow:hidden;
+  font-family:'Google Sans',sans-serif;box-sizing:border-box;text-align:left}
+.stk *{box-sizing:border-box;margin:0;padding:0}
+.stk-l{display:flex;align-items:flex-end;gap:1.5mm;font-size:11pt;font-weight:500;line-height:1.1;white-space:nowrap}
+.stk-b{flex:1;border-bottom:.35mm solid #000;height:5mm}
+.stk-b.w{flex:0 0 auto}
+.stk-nm{margin-bottom:2.5mm}
+.stk-drug{background:#E3E3E3;background-image:radial-gradient(#BDBDBD .25mm,transparent .3mm);background-size:1mm 1mm;
+  padding:1.6mm 2mm;margin-bottom:2.5mm;text-align:center}
+.stk-dn{font-size:14pt;font-weight:700;line-height:1.1}
+.stk-ds{font-size:10.5pt;font-weight:700;line-height:1.15}
+.stk-had{display:inline-block;background:#000;color:#fff;font-size:7pt;font-weight:700;padding:.3mm 1.4mm;border-radius:.8mm;letter-spacing:.2mm;margin-bottom:.6mm}
+.stk-body{display:flex;flex-direction:column;justify-content:space-between;flex:1}
+.stk-x{display:inline-block;width:3.2mm;height:3.2mm;border:.3mm solid #000;border-radius:.5mm;margin-right:.8mm;vertical-align:-.4mm}
+.stk-o{display:inline-flex;align-items:center;margin-right:2.2mm}
+.stk-u{font-weight:700}
+`;
+(function(){ const st=document.createElement('style'); st.textContent=STK_CSS; document.head.appendChild(st); })();
+
+let stkCat = 'hospital';
+let stkItems = [];   // [{d, on, qty}]
+
+function stkCfgFor(row) {
+  const raw = String(row.drug_name || '').trim();
+  const c = STK_CFG[raw];
+  const had = String(row.is_had).toLowerCase() === 'true';
+  if (c) return { ...c, had };
+  const m = raw.match(/^(.*?)\s+(?=\d)(.*)$/);
+  const name = m ? m[1] : raw, str = m ? m[2] : '';
+  const unit = /\bmg\b/i.test(str) ? 'mg' : /\bg\b/i.test(str) ? 'g' : /\b(unit|iu)\b/i.test(str) ? 'unit' : 'mL';
+  return { name, str, unit, type:'inf', had };
+}
+
+function stkHTML(d, extra) {
+  const L = h => `<div class="stk-l">${h}</div>`;
+  const B = mm => mm ? `<span class="stk-b w" style="width:${mm}mm"></span>` : `<span class="stk-b"></span>`;
+  const X = t => `<span class="stk-o"><span class="stk-x"></span>${esc(t)}</span>`;
+  const U = t => `<span class="stk-u">${esc(t)}</span>`;
+  let body;
+  if (d.type === 'both') {
+    const every = d.every === false ? '' : `&nbsp;ทุก${B(9)}${U('นาที')}`;
+    body = L(`${X(d.push || 'IV slow push')}${B()}${U(d.unit)}${every}`) +
+           L(`${X('Drip')}${B()}${U(d.unit)}&nbsp;ให้ใน${B(9)}${U('ชม.')}`) +
+           L(`ผสมใน ${X('D5W')}${X('NSS')}${B()}${U('mL')}`) +
+           L(`Rate :${B()}${U('mL/hr')}`);
+  } else if (d.type === 'bolus') {
+    const r = (d.route && d.route.length > 1) ? d.route.map(X).join('') : U((d.route && d.route[0]) || 'IV');
+    const r3 = d.r3 === 'flush' ? L(`ตามด้วย NSS flush${B()}${U('mL')}`)
+             : d.r3 === 'time'  ? L(`ให้นาน${B()}${U('นาที')}`)
+             :                    L(`เจือจาง${B(11)}${U('mL')}&nbsp;ให้นาน${B()}${U('นาที')}`);
+    body = L(`Dose :${B()}${U(d.unit)}`) + L(`Route : ${r}`) + r3;
+  } else {
+    body = L(`Dose :${B()}${U(d.unit)}`) + L(`ผสมใน ${X('NSS')}${X('D5W')}${B()}${U('mL')}`) +
+           L(`Rate :${B()}${U('mL/hr')}`);
+  }
+  body += L(`เริ่มให้ยา${B(13)}น.&nbsp;ผู้ให้ยา${B()}`);
+  return `<div class="stk${extra ? ' stk-extra' : ''}">
+    <div class="stk-l stk-nm">ชื่อ - สกุล :${B()}</div>
+    <div class="stk-drug">
+      ${d.had ? '<div class="stk-had">⚠ HIGH ALERT DRUG</div>' : ''}
+      <div class="stk-dn">${esc(d.name)}</div>
+      ${d.str ? `<div class="stk-ds">${esc(d.str)}</div>` : ''}
+    </div>
+    <div class="stk-body">${body}</div>
+  </div>`;
+}
+
+async function loadStickers(cat) {
+  stkCat = cat || 'hospital';
+  document.querySelectorAll('#stkCats .stk-cat').forEach(b => b.classList.toggle('active', b.dataset.cat === stkCat));
+  const g = document.getElementById('stkGrid');
+  g.innerHTML = '<div class="stk-empty">กำลังโหลดรายการยา…</div>';
+  try {
+    const res = await apiGet({ action: 'getDrugs', category: stkCat });
+    const rows = (res && res.drugs) || [];
+    stkItems = rows.filter(r => r.drug_name).map(r => ({ d: stkCfgFor(r), on: true, qty: 1 }));
+    renderStickers();
+  } catch (e) {
+    g.innerHTML = '<div class="stk-empty">โหลดรายการยาไม่สำเร็จ ลองใหม่อีกครั้ง</div>';
+  }
+}
+
+function renderStickers() {
+  const g = document.getElementById('stkGrid');
+  if (!stkItems.length) { g.innerHTML = '<div class="stk-empty">ยังไม่มีรายการยาในหมวดนี้</div>'; }
+  else g.innerHTML = stkItems.map((it, i) => `
+    <div class="stk-cell ${it.on ? '' : 'off'}">
+      <div class="stk-ctrl">
+        <label><input type="checkbox" ${it.on ? 'checked' : ''} onchange="stkToggle(${i},this.checked)">${it.d.had ? '🔴 ' : ''}${esc(it.d.name)}</label>
+        <div class="stk-qty"><button onclick="stkBump(${i},-1)">−</button><b>${it.qty}</b><button onclick="stkBump(${i},1)">+</button> ดวง</div>
+      </div>
+      ${stkHTML(it.d)}
+    </div>`).join('');
+  const n = stkItems.reduce((a, it) => a + (it.on ? it.qty : 0), 0);
+  document.getElementById('stkTotal').textContent = `(${n} ดวง)`;
+  document.getElementById('stkPrintBtn').disabled = n === 0;
+}
+function stkToggle(i, v) { stkItems[i].on = v; renderStickers(); }
+function stkBump(i, k) { stkItems[i].qty = Math.max(1, Math.min(50, stkItems[i].qty + k)); renderStickers(); }
+function stkSetAll(v) { stkItems.forEach(it => it.on = v); renderStickers(); }
+
+// พิมพ์ผ่าน iframe แยก → ไม่กระทบหน้าอื่นของแอป และตั้ง @page 80x70 mm ได้
+function printStickers() { printStickerList(stkItems.filter(it => it.on)); }
+
+// list: [{ d: stkCfgFor(row), qty }]
+function printStickerList(list) {
+  const pages = [];
+  list.forEach(it => { for (let k = 0; k < it.qty; k++) pages.push(stkHTML(it.d)); });
+  if (!pages.length) return;
+  const old = document.getElementById('stkFrame'); if (old) old.remove();
+  const f = document.createElement('iframe');
+  f.id = 'stkFrame';
+  f.style.cssText = 'position:fixed;right:0;bottom:0;width:0;height:0;border:0;visibility:hidden';
+  document.body.appendChild(f);
+  const doc = f.contentDocument;
+  doc.open();
+  doc.write(`<!DOCTYPE html><html lang="th"><head><meta charset="UTF-8"><title>sticker</title>
+    <link href="https://fonts.googleapis.com/css2?family=Google+Sans:wght@400;500;700&display=swap" rel="stylesheet">
+    <style>${STK_CSS}
+      @page{size:80mm 70mm;margin:0}
+      html,body{margin:0;padding:0;background:#fff}
+      .stk{page-break-after:always;break-after:page}
+      .stk:last-child{page-break-after:auto;break-after:auto}
+      *{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+    </style></head><body>${pages.join('')}</body></html>`);
+  doc.close();
+  const go = () => { f.contentWindow.focus(); f.contentWindow.print(); };
+  f.onload = () => (doc.fonts ? doc.fonts.ready.then(go) : go());
+}
+
+// หลังบันทึกเติมยา → เสนอพิมพ์สติกเกอร์ใส่ซองยา (ค่าเริ่มต้น = จำนวนที่เติม, แก้ได้ / 0 = ไม่พิมพ์ตัวนั้น)
+let stkRefill = [];
+function offerRefillStickers(rows) {
+  const by = {};
+  rows.forEach(({ row, qty }) => {
+    if (!row || !row.drug_name) return;
+    (by[row.drug_name] = by[row.drug_name] || { d: stkCfgFor(row), qty: 0 }).qty += Number(qty) || 0;
+  });
+  stkRefill = Object.values(by).filter(it => it.qty > 0);
+  if (!stkRefill.length) return;
+  openConfirm('🏷️ พิมพ์สติกเกอร์ใส่ซองยา', 'เติมยาแล้ว — พิมพ์สติกเกอร์สำหรับยาที่เติมเข้ากล่อง', '', '', () => {
+    const list = stkRefill.filter(it => it.qty > 0);
+    if (list.length) printStickerList(list);
+    closePopup();
+  }, 'ไม่พิมพ์');
+  renderRefillStickers();
+}
+function renderRefillStickers() {
+  document.getElementById('popupSummaryBox').innerHTML = stkRefill.map((it, i) => `
+    <div class="summary-row" style="align-items:center">
+      <span>${it.d.had ? '🔴 ' : ''}${esc(it.d.name)} <small style="color:var(--muted)">${esc(it.d.str || '')}</small></span>
+      <span class="stk-qty"><button onclick="stkRefillBump(${i},-1)">−</button><b>${it.qty}</b><button onclick="stkRefillBump(${i},1)">+</button> ดวง</span>
+    </div>`).join('') +
+    '<div style="font-size:12px;color:var(--muted);margin-top:8px">ตั้งต้นเท่าจำนวนที่เติม · ยาที่ 1 ซองใช้หลายแอมป์ ลดจำนวนลงได้ · 0 = ไม่พิมพ์</div>';
+  const n = stkRefill.reduce((a, it) => a + it.qty, 0);
+  const b = document.getElementById('popupConfirmBtn');
+  b.textContent = n ? `🖨️ พิมพ์ ${n} ดวง` : 'ปิด';
+}
+function stkRefillBump(i, k) { stkRefill[i].qty = Math.max(0, Math.min(50, stkRefill[i].qty + k)); renderRefillStickers(); }
 </script>
 </body>
 </html>
