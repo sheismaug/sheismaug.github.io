@@ -1505,6 +1505,9 @@ input.num:focus, .why-step input:focus { outline: none; border-color: var(--acce
 .stk-cat { font-family:inherit; font-size:14px; font-weight:600; padding:8px 14px; border-radius:12px; border:1px solid var(--border, rgba(127,127,127,.25)); background:var(--surface); color:var(--text); cursor:pointer; }
 .stk-cat.active { background:var(--accent, #3B82F6); border-color:transparent; color:#fff; }
 .stk-hint { font-size:12px; color:var(--muted); }
+.stk-scale { display:flex; flex-wrap:wrap; align-items:center; gap:10px; font-size:14px; font-weight:600; }
+.stk-scale small { font-weight:400; color:var(--muted); font-size:12px; }
+.stk-scale .btn-secondary { width:auto; padding:6px 12px; }
 .stk-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(330px,1fr)); gap:16px; padding:0 16px 40px; max-width:1100px; margin:0 auto; }
 .stk-cell { background:var(--surface); border-radius:16px; padding:12px; display:flex; flex-direction:column; align-items:center; gap:10px; }
 .stk-cell.off { opacity:.35; }
@@ -1850,6 +1853,12 @@ input.num:focus, .why-step input:focus { outline: none; border-color: var(--acce
       <button class="btn-secondary" onclick="stkSetAll(true)">✅ เลือกทั้งหมด</button>
       <button class="btn-secondary" onclick="stkSetAll(false)">⬜ ล้าง</button>
       <button class="btn-primary" id="stkPrintBtn" onclick="printStickers()">🖨️ พิมพ์ <span id="stkTotal"></span></button>
+    </div>
+    <div class="stk-scale">
+      <span>📏 ขนาดพิมพ์</span>
+      <span class="stk-qty"><button onclick="stkScaleBump(-5)">−</button><b id="stkScaleVal">100%</b><button onclick="stkScaleBump(5)">+</button></span>
+      <button class="btn-secondary" onclick="stkScaleSet(100)">รีเซ็ต</button>
+      <small>ถ้าพิมพ์ออกมาเล็ก/ใหญ่กว่าดวง ปรับตรงนี้ (เครื่องนี้จำค่าไว้)</small>
     </div>
     <div class="stk-hint">สติกเกอร์ 8 × 7 cm · แถบครีมล่างดวง = ที่ของโลโก้ รพ. บนสติกเกอร์ (ไม่พิมพ์) · ตอนพิมพ์: กระดาษ 80 × 70 mm, Margins: None, Scale 100%</div>
   </div>
@@ -2329,7 +2338,7 @@ function goToPage(pageId) {
   window.scrollTo(0, 0);
   if (pageId === 'page-report') { initReportDates(); loadReport(); }
   if (pageId === 'page-admin')  loadAdmin();
-  if (pageId === 'page-sticker') loadStickers(stkCat);
+  if (pageId === 'page-sticker') { stkScaleSet(stkScale); loadStickers(stkCat); }
 }
 
 function goToDashboard(category) {
@@ -3718,6 +3727,15 @@ const STK_CSS = `
 (function(){ const st=document.createElement('style'); st.textContent=STK_CSS; document.head.appendChild(st); })();
 
 let stkCat = 'hospital';
+// ชดเชยกรณีเครื่องพิมพ์ย่อ/ขยาย — เก็บต่อเครื่องใน localStorage
+let stkScale = 100;
+try { stkScale = Number(localStorage.getItem('stkScale')) || 100; } catch (e) {}
+function stkScaleSet(v) {
+  stkScale = Math.max(60, Math.min(160, v));
+  try { localStorage.setItem('stkScale', String(stkScale)); } catch (e) {}
+  const el = document.getElementById('stkScaleVal'); if (el) el.textContent = stkScale + '%';
+}
+function stkScaleBump(k) { stkScaleSet(stkScale + k); }
 let stkItems = [];   // [{d, on, qty}]
 
 function stkCfgFor(row) {
@@ -3805,7 +3823,8 @@ function printStickers() { printStickerList(stkItems.filter(it => it.on)); }
 // list: [{ d: stkCfgFor(row), qty }]
 function printStickerList(list) {
   const pages = [];
-  list.forEach(it => { for (let k = 0; k < it.qty; k++) pages.push(stkHTML(it.d)); });
+  list.forEach(it => { for (let k = 0; k < it.qty; k++) pages.push(`<div class="pg">${stkHTML(it.d)}</div>`); });
+  const z = stkScale / 100;
   if (!pages.length) return;
   const old = document.getElementById('stkFrame'); if (old) old.remove();
   const f = document.createElement('iframe');
@@ -3817,10 +3836,11 @@ function printStickerList(list) {
   doc.write(`<!DOCTYPE html><html lang="th"><head><meta charset="UTF-8"><title>sticker</title>
     <link href="https://fonts.googleapis.com/css2?family=Google+Sans:wght@400;500;700&display=swap" rel="stylesheet">
     <style>${STK_CSS}
-      @page{size:80mm 70mm;margin:0}
+      @page{size:${(80 * z).toFixed(2)}mm ${(70 * z).toFixed(2)}mm;margin:0}
       html,body{margin:0;padding:0;background:#fff}
-      .stk{page-break-after:always;break-after:page}
-      .stk:last-child{page-break-after:auto;break-after:auto}
+      .pg{width:${(80 * z).toFixed(2)}mm;height:${(70 * z).toFixed(2)}mm;overflow:hidden;page-break-after:always;break-after:page}
+      .pg:last-child{page-break-after:auto;break-after:auto}
+      .pg .stk{zoom:${z}}
       *{-webkit-print-color-adjust:exact;print-color-adjust:exact}
     </style></head><body>${pages.join('')}</body></html>`);
   doc.close();
