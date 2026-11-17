@@ -320,7 +320,7 @@ function spotlights(cur, to){
     const body = clean(r.detail);
     out.push({sev:r.sev, harm:HARM.includes(r.sev), tags,
       title: r.had ? labelOf(r)+' · '+r.had.replace(/ (tab|inj)$/,'') : labelOf(r),
-      m1: STAGE_LABEL[r.stage]+' · '+r.code, m2: r.floor,
+      m1: STAGE_LABEL[r.stage], m2: r.floor,
       body: (body.length>110 ? body.slice(0,108)+'…' : body) + ' ('+thDate(r.date,false)+')'});
   };
   const take = (pred, tag) => bySev.forEach(r=>{ if(out.length<3 && !used.has(r.id) && pred(r)) single(r, tag); });
@@ -343,7 +343,7 @@ function spotlights(cur, to){
         const reached = g.filter(r=>REACHED.includes(r.sev)).length;
         const floors = [...new Set(g.map(r=>r.floor))].join(' · ');
         out.push({sev:maxSev(g), harm:HARM.includes(maxSev(g)), tags:[['เกิดซ้ำ ×'+g.length,'']],
-          title: labelOf(g[0]), m1: STAGE_LABEL[g[0].stage]+' · '+g[0].code, m2: floors,
+          title: labelOf(g[0]), m1: STAGE_LABEL[g[0].stage], m2: floors,
           body: g.length+' ครั้งใน 4 สัปดาห์ ('+thDate(g[0].date,false)+' – '+thDate(g[g.length-1].date,false)+') · ถึงผู้ป่วย '+reached+' ครั้ง'});
       });
   }
@@ -443,7 +443,7 @@ function render(){
   h += '<div class="two"><div class="card"><div class="h"><div class="t">'+(sub.length>=5?'ประเภทที่พบบ่อย 5 อันดับแรก':'ประเภทที่พบในช่วงนี้')+'</div></div><div class="bars">';
   if(!sub.length) h += '<div class="note">ไม่มีรายงาน</div>';
   sub.forEach(([lab,c])=>{
-    h += '<div class="brow"><div class="lb"><span>'+esc(lab)+(hadCodes.has(lab)?' <b style="color:var(--had)">HAD</b>':'')+'</span><b class="mont">'+c+'</b></div><div class="tk"><div style="width:'+(c/subMax*100).toFixed(0)+'%"></div></div></div>';
+    h += '<div class="brow"><div class="lb"><span>'+esc(String(lab).replace(/^\d+\.\d+\s*/,''))+(hadCodes.has(lab)?' <b style="color:var(--had)">HAD</b>':'')+'</span><b class="mont">'+c+'</b></div><div class="tk"><div style="width:'+(c/subMax*100).toFixed(0)+'%"></div></div></div>';
   });
   h += '</div></div><div class="col">';
   const sc = countBy(cur, r=>r.sev);
