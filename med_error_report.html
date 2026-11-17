@@ -1,0 +1,500 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Med Error Report — sheisphere</title>
+<meta name="theme-color" content="#FBF8F1">
+<meta name="color-scheme" content="light">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Google+Sans:wght@400;500;700&family=Montserrat:wght@700;800&display=swap" rel="stylesheet">
+<style>
+:root{
+  --ink:#111111; --mute:#5f5f5f; --cream:#FBF8F1; --track:#efebe2; --soft:#F1EEE6;
+  --lime:#C6F135; --limed:#B5DD3C; --ok:#5DB82B; --gray:#9a958a;
+  --harm:#E5243B; --harmbg:#FFE1DE; --harmsh:#FFB3AA; --harmtx:#B0182B;
+  --had:#B34700; --hadbg:#FFE2C7; --hadsh:#FFC08A;
+  --lasa:#5B3DD6; --lasabg:#ECE4FF; --lasash:#CDB9FF;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{background:#ECE8DE}
+body{font-family:'Google Sans',sans-serif;color:var(--ink);font-size:12px;min-height:100vh}
+.mont{font-family:Montserrat,sans-serif}
+button,select,input{font-family:inherit;color:inherit}
+
+/* ── toolbar ── */
+.bar{position:sticky;top:0;z-index:10;display:flex;justify-content:center;padding:12px 12px 0}
+.nav{display:flex;align-items:center;gap:10px;flex-wrap:wrap;padding:8px 10px 8px 16px;border-radius:999px;background:#fff;box-shadow:0 5px 0 rgba(0,0,0,.06);max-width:794px;width:100%}
+.brand{display:flex;align-items:center;gap:8px;text-decoration:none;color:var(--ink)}
+.brand b{font-family:Montserrat,sans-serif;font-weight:800;font-size:14px}
+.brand small{display:block;font-size:11px;color:var(--mute)}
+.sp{flex:1}
+.sel{height:38px;padding:0 34px 0 14px;border-radius:999px;border:none;background:#F4F2EC url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%23111' stroke-width='2.4'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E") no-repeat right 12px center;font-size:13px;font-weight:700;appearance:none;-webkit-appearance:none;cursor:pointer}
+.dates{display:none;align-items:center;gap:6px;font-size:12px;color:var(--mute)}
+.dates.on{display:flex}
+.dates input{height:34px;padding:0 10px;border-radius:12px;border:none;background:#F4F2EC;font-size:12px}
+.btn{height:38px;padding:0 16px;border-radius:999px;border:none;background:var(--ink);color:#fff;font-size:13px;font-weight:700;box-shadow:0 4px 0 #000;display:inline-flex;align-items:center;gap:6px;cursor:pointer}
+.btn:active{transform:translateY(2px);box-shadow:0 2px 0 #000}
+.hint{max-width:794px;margin:10px auto 0;font-size:12px;color:var(--mute);text-align:center;padding:0 12px}
+
+/* ── sheet (A4 at 96dpi) ── */
+.stage{padding:14px 12px 48px;overflow-x:auto}
+.sheet{width:794px;height:1123px;margin:0 auto;padding:30px 40px 24px;background:var(--cream);display:flex;flex-direction:column;gap:10px;overflow:hidden;box-shadow:0 10px 30px rgba(0,0,0,.12);border-radius:6px}
+.msg{margin:auto;font-size:14px;color:var(--mute);text-align:center;line-height:1.8}
+
+.hd{display:flex;align-items:flex-end;justify-content:space-between;gap:16px}
+.hd .eyebrow{display:flex;align-items:center;gap:8px;color:var(--mute)}
+.dot{width:8px;height:8px;border-radius:50%;background:var(--ok);display:inline-block}
+.hd h1{font-size:27px;font-weight:700;line-height:1.2;letter-spacing:-.3px;margin:4px 0 5px}
+.mark{display:inline-block;background:var(--lime);padding:0 12px;border-radius:12px;box-shadow:0 4px 0 var(--limed);transform:rotate(-1.5deg)}
+.hd .sub{display:flex;align-items:center;gap:8px;font-size:13px;color:var(--mute)}
+.hd .sub b{color:var(--ink)}
+.hd .rt{display:flex;flex-direction:column;align-items:flex-end;gap:6px;text-align:right}
+.hosp{display:flex;align-items:center;gap:8px;line-height:1.3}
+.hosp b{font-size:13px}
+.pill{display:inline-flex;align-items:center;height:24px;padding:0 10px;border-radius:999px;background:var(--soft);color:var(--mute);font-size:12px;font-weight:700}
+
+.kpis{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}
+.kpi{background:#fff;border-radius:20px;box-shadow:0 5px 0 rgba(0,0,0,.06);padding:10px 14px;display:flex;flex-direction:column;gap:2px}
+.kpi .l{display:flex;align-items:center;gap:6px;color:var(--mute)}
+.kpi .v{display:flex;align-items:baseline;gap:6px}
+.kpi .v .n{font-family:Montserrat,sans-serif;font-size:28px;font-weight:800}
+.kpi .v .u,.kpi .s{font-size:12px;color:var(--mute)}
+.kpi .s b{color:var(--ink)}
+.kpi.harm,.spot.harm{background:var(--harmbg);box-shadow:0 5px 0 var(--harmsh);outline:2px solid var(--harm);outline-offset:-2px}
+.kpi.harm .l,.kpi.harm .s,.kpi.harm .u{color:var(--harmtx)}
+.kpi.harm .n{color:var(--harm)}
+
+.sec{display:flex;align-items:center;justify-content:space-between;gap:8px}
+.sec .t{font-size:16px;font-weight:700}
+.sec .t .c{font-family:Montserrat,sans-serif;font-weight:800;color:var(--mute);font-size:14px;margin-left:6px}
+.sec .r{font-size:12px;color:var(--mute)}
+.spots{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+.spot{background:#fff;border-radius:20px;box-shadow:0 5px 0 rgba(0,0,0,.07);padding:12px;display:flex;flex-direction:column;gap:6px}
+.spot .top{display:flex;align-items:center;gap:8px}
+.sev{width:34px;height:34px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-family:Montserrat,sans-serif;font-weight:800;font-size:17px;color:#111;flex:none}
+.tags{display:flex;flex-wrap:wrap;gap:4px}
+.tag{height:22px;padding:0 8px;border-radius:999px;font-size:12px;font-weight:700;display:inline-flex;align-items:center;background:var(--soft);color:var(--ink)}
+.tag.harm{background:var(--harm);color:#fff}
+.tag.had{background:var(--hadbg);color:var(--had)}
+.tag.lasa{background:var(--lasabg);color:var(--lasa)}
+.spot .tt{font-size:14px;font-weight:700;line-height:1.3}
+.spot .mt{display:flex;gap:10px;color:var(--mute);font-size:12px}
+.spot .bd{font-size:12px;line-height:1.5;color:#333;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
+[contenteditable]{outline:none;border-radius:6px}
+[contenteditable]:hover{background:rgba(198,241,53,.25)}
+.spot.empty{grid-column:1/-1;min-height:0;align-items:center;justify-content:center;color:var(--mute);font-size:13px;padding:18px}
+
+.card{background:#fff;border-radius:22px;box-shadow:0 5px 0 rgba(0,0,0,.06);padding:12px 14px;display:flex;flex-direction:column;gap:8px}
+.card .h{display:flex;align-items:center;justify-content:space-between;gap:8px}
+.card .h .t{font-size:15px;font-weight:700}
+.card .h .t2{font-size:13px;font-weight:700}
+.card .h .ds{font-size:12px;color:var(--mute);margin-top:1px}
+.lg{display:flex;align-items:center;gap:12px;font-size:12px;color:var(--mute)}
+.lg span{display:inline-flex;align-items:center;gap:5px}
+.lg i{width:12px;height:8px;border-radius:3px;display:inline-block}
+.flow{display:flex;flex-direction:column;gap:5px}
+.frow{display:flex;align-items:center;gap:10px}
+.frow .nm{width:104px;flex:none;font-size:12px;font-weight:700}
+.frow .tr{flex-grow:1;display:flex;gap:2px;height:18px;border-radius:6px;overflow:hidden}
+.seg{display:flex;align-items:center;justify-content:center;font-family:Montserrat,sans-serif;font-size:12px;font-weight:700;min-width:22px}
+.seg.p{background:var(--ok);color:#111}
+.seg.r{background:#111;color:#fff}
+.frow .none{font-size:12px;color:var(--mute);line-height:18px}
+.note{font-size:12px;color:var(--mute)}
+
+.two{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.col{display:flex;flex-direction:column;gap:10px}
+.bars{display:flex;flex-direction:column;gap:6px}
+.brow{display:flex;flex-direction:column;gap:3px}
+.brow .lb{display:flex;justify-content:space-between;gap:8px;font-size:12px}
+.brow .lb span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.brow .tk{height:8px;border-radius:4px;background:var(--track)}
+.brow .tk div{height:100%;border-radius:4px;background:var(--gray)}
+.sevs{display:grid;grid-template-columns:repeat(9,minmax(0,1fr));gap:4px;text-align:center}
+.sevs div{display:flex;flex-direction:column;gap:3px}
+.sevs .k{height:22px;border-radius:8px;font-weight:800;font-family:Montserrat,sans-serif;line-height:22px}
+.sevs .k.z{background:var(--soft);color:var(--mute)}
+.sevs .c{font-family:Montserrat,sans-serif;font-weight:800;font-size:13px}
+.sevs .c.z{font-family:inherit;font-weight:400;color:var(--mute)}
+.trend{flex-grow:1}
+.xl{display:flex;justify-content:space-between;font-size:12px;color:var(--mute)}
+.xl b{color:var(--ink)}
+
+.chips{display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+.chips .t{font-size:13px;font-weight:700;margin-right:4px}
+.chip{height:26px;padding:0 10px;border-radius:999px;background:#fff;box-shadow:0 3px 0 rgba(0,0,0,.05);display:inline-flex;align-items:center;gap:6px;font-size:12px}
+.chip b{font-family:Montserrat,sans-serif}
+.chips .r{margin-left:auto;font-size:12px;color:var(--mute)}
+
+.drugs{flex:1 1 0;min-height:0;overflow:hidden}
+.grp{border-radius:18px;padding:8px 10px 10px;display:flex;flex-direction:column;gap:5px}
+.grp.had{background:var(--hadbg);box-shadow:0 4px 0 var(--hadsh)}
+.grp.lasa{background:var(--lasabg);box-shadow:0 4px 0 var(--lasash)}
+.grp .gh{display:flex;align-items:baseline;gap:6px;padding:0 4px;font-size:12px}
+.grp .gh b{font-size:14px}
+.grp.had .gh{color:var(--had)} .grp.lasa .gh{color:var(--lasa)}
+.drow{display:flex;align-items:center;gap:10px;background:#fff;border-radius:12px;padding:5px 10px}
+.drow .dn{flex-grow:1;font-size:14px;font-weight:700;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.drow .sq{display:flex;gap:3px;align-items:center;flex:none}
+.sq i{width:16px;height:16px;border-radius:5px;display:inline-block;background:var(--ok)}
+.sq i.r{background:#111}
+.sq em{font-style:normal;font-size:12px;color:var(--mute);margin-left:2px}
+.drow.empty{font-size:13px;color:var(--mute);font-weight:400}
+.more{font-size:12px;padding:0 4px}
+
+.ft{display:flex;justify-content:space-between;gap:10px;font-size:12px;color:var(--mute);border-top:1px solid #e4dfd3;padding-top:8px}
+
+@page{size:A4;margin:0}
+@media print{
+  html,body{background:#fff}
+  .no-print{display:none!important}
+  .stage{padding:0;overflow:visible}
+  .sheet{margin:0;box-shadow:none;border-radius:0;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  [contenteditable]:hover{background:none}
+}
+</style>
+</head>
+<body>
+<div class="bar no-print">
+  <div class="nav">
+    <a class="brand" href="med_error.html" title="กลับไปหน้า Med Error">
+      <svg aria-hidden="true" width="28" height="28" viewBox="0 0 24 24"><rect x="3.5" y="11" width="4" height="9" rx="1.2" fill="#B9A6FF" stroke="#111" stroke-width="1.6"/><rect x="10" y="5" width="4" height="15" rx="1.2" fill="#FFC93C" stroke="#111" stroke-width="1.6"/><rect x="16.5" y="8.5" width="4" height="11.5" rx="1.2" fill="#FFB8CB" stroke="#111" stroke-width="1.6"/></svg>
+      <div><b>Med Error Report</b><small>สรุปเสนอ PTC</small></div>
+    </a>
+    <span class="sp"></span>
+    <label for="sel-period" style="position:absolute;left:-9999px">ช่วงเวลา</label>
+    <select id="sel-period" class="sel" onchange="onPeriodChange()"></select>
+    <div class="dates" id="dates">
+      <label for="d-from">จาก</label><input type="date" id="d-from" onchange="onCustomDate()">
+      <label for="d-to">ถึง</label><input type="date" id="d-to" onchange="onCustomDate()">
+    </div>
+    <button class="btn" onclick="window.print()">
+      <svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9V3h12v6M6 18H4a1 1 0 0 1-1-1v-6a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v6a1 1 0 0 1-1 1h-2"/><rect x="6" y="14" width="12" height="7" rx="1"/></svg>
+      พิมพ์ / PDF
+    </button>
+  </div>
+</div>
+<div class="hint no-print">แตะข้อความในการ์ดอุบัติการณ์สำคัญเพื่อแก้ไขก่อนพิมพ์ได้ · ระบบตัด HN และชื่อบุคคลออกให้อัตโนมัติ แต่ควรตรวจอีกครั้ง</div>
+<div class="stage"><div class="sheet" id="sheet"><div class="msg">กำลังโหลดข้อมูล…</div></div></div>
+
+<script>
+// ════════ CONFIG ════════
+const SUPABASE_URL = 'https://qvtlekphxsubuklyirlz.supabase.co';
+const SUPABASE_ANON_KEY = 'sb_publishable_dPhW0DORMGlSTc1hzvT4Cw_9ChOlZ0H';
+const HOSPITAL = 'โรงพยาบาลห้วยผึ้ง';
+const ANCHOR = '2026-10-06';           // วันเริ่มรอบที่ 1 ปีงบ 2570 · ทุกรอบ = 14 วันนับจากวันนี้
+const DAY = 86400000;
+const SEVS = ['A','B','C','D','E','F','G','H','I'];
+const REACHED = 'CDEFGHI', HARM = 'EFGHI';
+const SEV_COLORS = {A:'#D9F2C7',B:'#BDE8A5',C:'#FFF0A8',D:'#FFE066',E:'#FF9F45',F:'#FF5A4F',G:'#E5243B',H:'#B0182B',I:'#1B2D4F'};
+const SEV_TEXT = {G:'#fff',H:'#fff',I:'#fff'};
+const STAGES = ['Prescribing','Transcribing','Pre-Dispensing','Dispensing','Administration'];
+const STAGE_LABEL = {'Prescribing':'Prescribing','Transcribing':'Transcribing','Pre-Dispensing':'Pre-dispensing','Dispensing':'Dispensing','Administration':'Administration'};
+const STAGE_TH = {'Prescribing':'สั่งใช้ยา','Transcribing':'คัดลอกคำสั่ง','Pre-Dispensing':'จัดยา','Dispensing':'จ่ายยา','Administration':'บริหารยา'};
+const WRONG_PT = ['1.1','2.7','3.1','4.1','5.2'];
+const ALLERGY  = ['1.9','4.14','5.13'];
+// ตรวจยา HAD จากข้อความ เมื่อฟอร์มไม่ได้ระบุกลุ่มยา
+const HAD_KW = [['warfarin','Warfarin tab'],['kcl','KCl inj'],['potassium chloride','KCl inj'],['adenosine','Adenosine inj'],['adrenaline','Adrenaline inj'],['epinephrine','Adrenaline inj'],['amiodarone','Amiodarone inj'],['digoxin','Digoxin inj'],['mgso4','MgSO4 inj'],['magnesium sulfate','MgSO4 inj'],['norepinephrine','Norepinephrine inj'],['levophed','Norepinephrine inj'],['morphine','Morphine inj'],['pethidine','Pethidine inj'],['regular insulin','Regular Insulin'],['streptokinase','Streptokinase inj']];
+const TH_MON = ['ม.ค.','ก.พ.','มี.ค.','เม.ย.','พ.ค.','มิ.ย.','ก.ค.','ส.ค.','ก.ย.','ต.ค.','พ.ย.','ธ.ค.'];
+
+// ════════ UTILS ════════
+const $ = id => document.getElementById(id);
+function esc(s){ return String(s==null?'':s).replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+function toD(s){ const [y,m,d] = s.split('-').map(Number); return new Date(Date.UTC(y,m-1,d)); }
+function toS(d){ return d.toISOString().slice(0,10); }
+function addDays(s,n){ return toS(new Date(toD(s).getTime()+n*DAY)); }
+function diffDays(a,b){ return Math.round((toD(b)-toD(a))/DAY); }
+function thDate(s, withYear){ const d = toD(s); return d.getUTCDate()+' '+TH_MON[d.getUTCMonth()]+(withYear===false?'':' '+(d.getUTCFullYear()+543)); }
+function todayBKK(){ return new Date(Date.now()+7*3600000).toISOString().slice(0,10); }
+function normDate(v){
+  if(!v) return '';
+  const s = String(v);
+  if(/^\d{4}-\d{2}-\d{2}/.test(s)){ let y = +s.slice(0,4); if(y>2400) y-=543; return y+s.slice(4,10); }
+  const m = s.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})/);
+  if(m){ let y=+m[3]; if(y>2400) y-=543; return y+'-'+m[2].padStart(2,'0')+'-'+m[1].padStart(2,'0'); }
+  return s.slice(0,10);
+}
+
+// ── รอบ 14 วัน ──
+function roundIdx(s){ return Math.floor(diffDays(ANCHOR, s)/14); }
+function roundStart(k){ return addDays(ANCHOR, k*14); }
+function roundEnd(k){ return addDays(ANCHOR, k*14+13); }
+function roundLabel(k){
+  const st = toD(roundStart(k));
+  const fyCE = st.getUTCMonth()>=9 ? st.getUTCFullYear()+1 : st.getUTCFullYear();
+  const oct1 = toS(new Date(Date.UTC(fyCE-1,9,1)));
+  const k0 = Math.ceil(diffDays(ANCHOR, oct1)/14);
+  return 'รอบ '+(k-k0+1)+'/'+(fyCE+543);
+}
+
+// ════════ DATA ════════
+let ALL = [], VIEW = {from:'', to:''};
+
+function hadOf(r){
+  if(r.group==='HAD') return r.drugName || 'HAD (ไม่ระบุชื่อ)';
+  if(r.group) return '';
+  const t = (r.drugName+' '+r.detail).toLowerCase();
+  let best = null, pos = 1e9;
+  HAD_KW.forEach(([kw,name])=>{ const i = t.indexOf(kw); if(i>=0 && i<pos){ pos = i; best = name; } });
+  return best || '';
+}
+function clean(t){
+  return String(t||'')
+    .replace(/\bh\.?n\.?\s*[:#]?\s*\d+/gi,'')
+    .replace(/\b\d{5,}\b/g,'')
+    .replace(/(นพ\.|พญ\.|ภญ\.|ภก\.|จพ\.|อ\.)\s*[^\s>]+(\s+[^\s>\d]+)?/g,'')
+    .replace(/\s+/g,' ').replace(/^[\s>,.:;-]+/,'').trim();
+}
+function labelOf(r){ return String(r.label||'').replace(/^\d+\.\d+\s*/,'') || r.code; }
+
+async function load(){
+  const url = SUPABASE_URL+'/rest/v1/med_error_log?select=id,date,floor,category,subtype_code,subtype_label,severity,drug_group,drug_name,error_source,detail&order=date.asc&limit=10000';
+  const res = await fetch(url, {headers:{apikey:SUPABASE_ANON_KEY, Authorization:'Bearer '+SUPABASE_ANON_KEY}});
+  if(!res.ok) throw new Error('HTTP '+res.status);
+  const rows = await res.json();
+  ALL = rows.map(r=>({
+    id:r.id, date:normDate(r.date), floor:r.floor||'อื่นๆ', stage:r.category||'',
+    code:r.subtype_code||'', label:r.subtype_label||'', sev:(r.severity||'').trim().toUpperCase(),
+    group:(r.drug_group||'').toUpperCase(), drugName:r.drug_name||'', detail:r.detail||''
+  })).filter(r=>r.date);
+  ALL.forEach(r=>{ r.had = hadOf(r); r.lasa = r.group==='LASA' ? (r.drugName||'LASA (ไม่ระบุชื่อ)') : ''; });
+}
+
+// ════════ PERIOD PICKER ════════
+function buildPicker(){
+  const sel = $('sel-period');
+  const today = todayBKK();
+  const kNow = roundIdx(today);
+  const kMin = ALL.length ? roundIdx(ALL[0].date) : kNow-6;
+  let html = '';
+  for(let k=kNow; k>=kMin; k--){
+    const inc = roundEnd(k) >= today;
+    html += '<option value="r'+k+'">'+roundLabel(k)+' · '+thDate(roundStart(k),false)+' – '+thDate(roundEnd(k))+(inc?' (ยังไม่ครบ)':'')+'</option>';
+  }
+  html += '<option value="custom">กำหนดช่วงเอง…</option>';
+  sel.innerHTML = html;
+
+  const q = new URLSearchParams(location.search);
+  const f = q.get('from'), t = q.get('to');
+  if(f && t && /^\d{4}-\d{2}-\d{2}$/.test(f) && /^\d{4}-\d{2}-\d{2}$/.test(t)){
+    const k = roundIdx(f);
+    if(roundStart(k)===f && roundEnd(k)===t && sel.querySelector('option[value="r'+k+'"]')){ sel.value = 'r'+k; }
+    else { sel.value = 'custom'; }
+    setView(f<=t?f:t, f<=t?t:f);
+  } else {
+    sel.value = 'r'+(kNow-1);
+    setView(roundStart(kNow-1), roundEnd(kNow-1));
+  }
+}
+function onPeriodChange(){
+  const v = $('sel-period').value;
+  if(v==='custom'){ $('dates').classList.add('on'); $('d-from').value = VIEW.from; $('d-to').value = VIEW.to; return; }
+  const k = +v.slice(1);
+  setView(roundStart(k), roundEnd(k));
+}
+function onCustomDate(){
+  const f = $('d-from').value, t = $('d-to').value;
+  if(!f || !t) return;
+  setView(f<=t?f:t, f<=t?t:f);
+}
+function setView(f,t){
+  VIEW = {from:f, to:t};
+  $('dates').classList.toggle('on', $('sel-period').value==='custom');
+  $('d-from').value = f; $('d-to').value = t;
+  try{ history.replaceState(null,'','?from='+f+'&to='+t); }catch(e){}
+  render();
+}
+
+// ════════ ANALYSIS ════════
+function inRange(r,f,t){ return r.date>=f && r.date<=t; }
+function countBy(arr, fn){ const m = {}; arr.forEach(x=>{ const k = fn(x); if(k) m[k] = (m[k]||0)+1; }); return m; }
+function maxSev(arr){ let b = ''; arr.forEach(r=>{ if(SEVS.indexOf(r.sev) > SEVS.indexOf(b)) b = r.sev; }); return b || 'A'; }
+
+function spotlights(cur, to){
+  const out = [], used = new Set();
+  const bySev = cur.slice().sort((a,b)=>SEVS.indexOf(b.sev)-SEVS.indexOf(a.sev));
+  const single = (r, tag) => {
+    used.add(r.id);
+    const tags = [tag];
+    if(r.had) tags.push(['ยา HAD','had']); else if(r.lasa) tags.push(['LASA','lasa']);
+    const body = clean(r.detail);
+    out.push({sev:r.sev, harm:HARM.includes(r.sev), tags,
+      title: r.had ? labelOf(r)+' · '+r.had.replace(/ (tab|inj)$/,'') : labelOf(r),
+      m1: STAGE_LABEL[r.stage]+' · '+r.code, m2: r.floor,
+      body: (body.length>110 ? body.slice(0,108)+'…' : body) + ' ('+thDate(r.date,false)+')'});
+  };
+  const take = (pred, tag) => bySev.forEach(r=>{ if(out.length<3 && !used.has(r.id) && pred(r)) single(r, tag); });
+
+  take(r=>HARM.includes(r.sev), ['เกิดอันตราย','harm']);
+  take(r=>WRONG_PT.includes(r.code), ['ผิดคน','']);
+  take(r=>ALLERGY.includes(r.code), ['แพ้ยา','']);
+
+  // เกิดซ้ำ: subtype เดียวกัน ≥3 ครั้งใน 28 วันที่สิ้นสุดวันท้ายช่วง
+  if(out.length<3){
+    const w0 = addDays(to,-27);
+    const groups = {};
+    ALL.filter(r=>inRange(r,w0,to) && r.code).forEach(r=>{ (groups[r.code] = groups[r.code]||[]).push(r); });
+    Object.values(groups)
+      .filter(g=>g.length>=3 && g.some(r=>cur.includes(r) && !used.has(r.id)))
+      .sort((a,b)=>b.length-a.length)
+      .forEach(g=>{
+        if(out.length>=3) return;
+        g.forEach(r=>used.add(r.id));
+        const reached = g.filter(r=>REACHED.includes(r.sev)).length;
+        const floors = [...new Set(g.map(r=>r.floor))].join(' · ');
+        out.push({sev:maxSev(g), harm:HARM.includes(maxSev(g)), tags:[['เกิดซ้ำ ×'+g.length,'']],
+          title: labelOf(g[0]), m1: STAGE_LABEL[g[0].stage]+' · '+g[0].code, m2: floors,
+          body: g.length+' ครั้งใน 4 สัปดาห์ ('+thDate(g[0].date,false)+' – '+thDate(g[g.length-1].date,false)+') · ถึงผู้ป่วย '+reached+' ครั้ง'});
+      });
+  }
+  take(r=>REACHED.includes(r.sev), ['ถึงผู้ป่วย','']);
+  take(r=>!!r.had, ['ยา HAD','had']);
+  // ตัด tag ซ้ำ
+  out.forEach(c=>{ const seen = new Set(); c.tags = c.tags.filter(t=>{ if(seen.has(t[0])) return false; seen.add(t[0]); return true; }); });
+  return out;
+}
+
+// ════════ RENDER ════════
+const IC = {
+  cal:'<svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24"><rect x="3.5" y="5" width="17" height="15.5" rx="3" fill="#fff" stroke="#111" stroke-width="1.6"/><path d="M3.5 8a3 3 0 0 1 3-3h11a3 3 0 0 1 3 3v2h-17z" fill="#FFC93C" stroke="#111" stroke-width="1.6" stroke-linejoin="round"/><path d="M8 3v4M16 3v4" stroke="#111" stroke-width="1.6" stroke-linecap="round"/></svg>',
+  hosp:'<svg aria-hidden="true" width="30" height="30" viewBox="0 0 24 24"><path d="M5 21V7l7-3.5L19 7v14z" fill="#E4EEFF" stroke="#111" stroke-width="1.6" stroke-linejoin="round"/><path d="M12 8.5v5M9.5 11h5" stroke="#E5484D" stroke-width="2" stroke-linecap="round"/><path d="M3 21h18M10 21v-4h4v4" stroke="#111" stroke-width="1.6" stroke-linejoin="round" fill="none"/></svg>',
+  clip:'<svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24"><rect x="5" y="4.5" width="14" height="16.5" rx="3" fill="#FFE98A" stroke="#111" stroke-width="1.6"/><rect x="8.5" y="3" width="7" height="3.6" rx="1.4" fill="#FF9F6B" stroke="#111" stroke-width="1.6"/><path d="M8.5 11h7M8.5 14.5h5" stroke="#111" stroke-width="1.6" stroke-linecap="round"/></svg>',
+  pt:'<svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24"><circle cx="12" cy="7.5" r="3.8" fill="#FFD9B8" stroke="#111" stroke-width="1.6"/><path d="M5 20.5c0-3.8 3.1-6.3 7-6.3s7 2.5 7 6.3z" fill="#8FD3FF" stroke="#111" stroke-width="1.6" stroke-linejoin="round"/></svg>',
+  alert:'<svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24"><path d="M12 3.5l9 16H3z" fill="#FF9B7A" stroke="#111" stroke-width="1.6" stroke-linejoin="round"/><path d="M12 10v4" stroke="#111" stroke-width="2" stroke-linecap="round"/><circle cx="12" cy="17" r="1.1" fill="#111"/></svg>',
+  pill:'<svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24"><g transform="rotate(-40 12 12)"><rect x="3" y="8" width="18" height="8" rx="4" fill="#fff" stroke="#111" stroke-width="1.6"/><path d="M12 8h5a4 4 0 0 1 0 8h-5z" fill="#FFC93C" stroke="#111" stroke-width="1.6" stroke-linejoin="round"/></g></svg>'
+};
+function sevBadge(s){ return '<span class="sev" style="background:'+(SEV_COLORS[s]||'#eee')+';color:'+(SEV_TEXT[s]||'#111')+'">'+esc(s)+'</span>'; }
+function delta(n, p){ return n>p ? '▲ '+(n-p) : n<p ? '▼ '+(p-n) : 'เท่ากับ'; }
+function pct(n,d){ return d ? Math.round(n/d*100) : 0; }
+
+function render(){
+  const {from, to} = VIEW;
+  const L = diffDays(from,to)+1;
+  const pTo = addDays(from,-1), pFrom = addDays(from,-L);
+  const cur = ALL.filter(r=>inRange(r,from,to));
+  const prev = ALL.filter(r=>inRange(r,pFrom,pTo));
+  const n = cur.length, nP = prev.length;
+  const reached = cur.filter(r=>REACHED.includes(r.sev));
+  const reachedP = prev.filter(r=>REACHED.includes(r.sev));
+  const harm = cur.filter(r=>HARM.includes(r.sev));
+  const hadN = cur.filter(r=>r.had).length, lasaN = cur.filter(r=>r.lasa).length;
+  const k = roundIdx(from);
+  const isRound = roundStart(k)===from && roundEnd(k)===to;
+  const incomplete = to >= todayBKK();
+  const spots = spotlights(cur, to);
+
+  let h = '';
+  // header
+  h += '<div class="hd"><div>'+
+    '<div class="eyebrow"><span class="dot"></span>รายงานความคลาดเคลื่อนทางยา · เสนอคณะกรรมการ PTC</div>'+
+    '<h1>Med Error <span class="mark">'+(isRound?roundLabel(k):'ช่วงที่เลือก')+'</span></h1>'+
+    '<div class="sub">'+IC.cal+'<span><b>'+thDate(from, from.slice(0,4)!==to.slice(0,4))+' – '+thDate(to)+'</b> · '+L+' วัน · เทียบกับ '+thDate(pFrom,false)+' – '+thDate(pTo,false)+'</span></div>'+
+    '</div><div class="rt"><div class="hosp">'+IC.hosp+'<div><b>'+esc(HOSPITAL)+'</b><br><span style="color:var(--mute)">กลุ่มงานเภสัชกรรม</span></div></div>'+
+    '<span class="pill">'+(incomplete?'ยังไม่ครบช่วง · ':'')+n+' รายการ</span></div></div>';
+
+  // KPIs
+  const harmSub = harm.length===0 ? 'ไม่มีในช่วงนี้' : harm.length===1 && spots.some(s=>s.harm) ? 'เคสนี้อยู่ในการ์ดด้านล่าง ↓' : 'ดูรายละเอียดในอุบัติการณ์สำคัญ ↓';
+  h += '<div class="kpis">'+
+    '<div class="kpi"><div class="l">'+IC.clip+'รายงานทั้งหมด</div><div class="v"><span class="n">'+n+'</span><span class="u">ครั้ง</span></div><div class="s">'+delta(n,nP)+' จากช่วงก่อน ('+nP+')</div></div>'+
+    '<div class="kpi"><div class="l">'+IC.pt+'ถึงตัวผู้ป่วย (C–I)</div><div class="v"><span class="n">'+reached.length+'</span><span class="u">ครั้ง</span></div><div class="s"><b>'+pct(reached.length,n)+'%</b> · ช่วงก่อน '+pct(reachedP.length,nP)+'%</div></div>'+
+    '<div class="kpi'+(harm.length?' harm':'')+'"><div class="l">'+IC.alert+'เกิดอันตราย (E–I)</div><div class="v"><span class="n">'+harm.length+'</span><span class="u">ราย'+(harm.length?' · ต้องทำ RCA':'')+'</span></div><div class="s">'+harmSub+'</div></div>'+
+    '<div class="kpi"><div class="l">'+IC.pill+'HAD / LASA</div><div class="v"><span class="n">'+(hadN+lasaN)+'</span><span class="u">ครั้ง</span></div><div class="s"><b style="color:var(--had)">HAD '+hadN+'</b> · <b style="color:var(--lasa)">LASA '+lasaN+'</b></div></div>'+
+    '</div>';
+
+  // spotlights
+  h += '<div style="display:flex;flex-direction:column;gap:8px"><div class="sec"><div class="t">อุบัติการณ์สำคัญ<span class="c">'+spots.length+'</span></div><div class="r">เกณฑ์: E+ › ผิดคน › แพ้ยา › เกิดซ้ำ › ถึงผู้ป่วย › ยา HAD</div></div><div class="spots">';
+  if(!spots.length) h += '<div class="spot empty">ไม่มีอุบัติการณ์ที่เข้าเกณฑ์ในช่วงนี้</div>';
+  spots.forEach(s=>{
+    h += '<div class="spot'+(s.harm?' harm':'')+'"><div class="top">'+sevBadge(s.sev)+'<div class="tags">'+
+      s.tags.map(t=>'<span class="tag '+t[1]+'">'+esc(t[0])+'</span>').join('')+'</div></div>'+
+      '<div class="tt" contenteditable="true" spellcheck="false">'+esc(s.title)+'</div>'+
+      '<div class="mt"><span>'+esc(s.m1)+'</span><span>'+esc(s.m2)+'</span></div>'+
+      '<div class="bd" contenteditable="true" spellcheck="false">'+esc(s.body)+'</div></div>';
+  });
+  h += '</div></div>';
+
+  // flow
+  const st = {}; STAGES.forEach(x=>st[x]={p:0,r:0});
+  cur.forEach(r=>{ if(st[r.stage]) st[r.stage][REACHED.includes(r.sev)?'r':'p']++; });
+  const maxSt = Math.max(1, ...STAGES.map(x=>st[x].p+st[x].r));
+  h += '<div class="card"><div class="h"><div><div class="t">ความคลาดเคลื่อนจำแนกตามขั้นตอน</div><div class="ds">จำนวนที่พบในแต่ละขั้นตอน และส่วนที่หลุดไปถึงตัวผู้ป่วย</div></div>'+
+    '<div class="lg"><span><i style="background:var(--ok)"></i>ป้องกันได้ก่อนถึงผู้ป่วย</span><span><i style="background:#111"></i>ถึงตัวผู้ป่วย</span></div></div><div class="flow">';
+  STAGES.forEach(x=>{
+    const v = st[x];
+    h += '<div class="frow"><span class="nm">'+STAGE_LABEL[x]+'</span>';
+    if(v.p+v.r===0) h += '<span class="none">ไม่พบ</span>';
+    else h += '<div class="tr">'+(v.p?'<span class="seg p" style="width:'+(v.p/maxSt*100).toFixed(1)+'%">'+v.p+'</span>':'')+(v.r?'<span class="seg r" style="width:'+(v.r/maxSt*100).toFixed(1)+'%">'+v.r+'</span>':'')+'</div>';
+    h += '</div>';
+  });
+  let summary = 'ไม่มีรายงานในช่วงนี้';
+  if(n){
+    const top = STAGES.slice().sort((a,b)=>(st[b].p+st[b].r)-(st[a].p+st[a].r))[0];
+    const rs = STAGES.filter(x=>st[x].r>0);
+    summary = 'พบมากที่ขั้นตอน'+STAGE_TH[top]+' ('+(st[top].p+st[top].r)+' จาก '+n+') · '+
+      (rs.length ? 'รายการที่ถึงตัวผู้ป่วยมาจากขั้นตอน'+rs.map(x=>STAGE_TH[x]+' '+st[x].r).join(', ') : 'ไม่มีรายการที่ถึงตัวผู้ป่วย');
+  }
+  h += '</div><div class="note" contenteditable="true" spellcheck="false">'+esc(summary)+'</div></div>';
+
+  // subtypes + severity + trend
+  const sub = Object.entries(countBy(cur, r=>r.label || r.code)).sort((a,b)=>b[1]-a[1]).slice(0,5);
+  const subMax = sub.length ? sub[0][1] : 1;
+  const hadCodes = new Set(cur.filter(r=>r.had).map(r=>r.label||r.code));
+  h += '<div class="two"><div class="card"><div class="h"><div class="t">'+(sub.length>=5?'ประเภทที่พบบ่อย 5 อันดับแรก':'ประเภทที่พบในช่วงนี้')+'</div></div><div class="bars">';
+  if(!sub.length) h += '<div class="note">ไม่มีรายงาน</div>';
+  sub.forEach(([lab,c])=>{
+    h += '<div class="brow"><div class="lb"><span>'+esc(lab)+(hadCodes.has(lab)?' <b style="color:var(--had)">HAD</b>':'')+'</span><b class="mont">'+c+'</b></div><div class="tk"><div style="width:'+(c/subMax*100).toFixed(0)+'%"></div></div></div>';
+  });
+  h += '</div></div><div class="col">';
+  const sc = countBy(cur, r=>r.sev);
+  h += '<div class="card" style="padding:10px 14px;gap:7px"><div class="h"><div class="t2">ระดับความรุนแรง NCC MERP</div></div><div class="sevs">'+
+    SEVS.map(s=>{ const c = sc[s]||0; return c
+      ? '<div><span class="k" style="background:'+SEV_COLORS[s]+';color:'+(SEV_TEXT[s]||'#111')+'">'+s+'</span><span class="c">'+c+'</span></div>'
+      : '<div><span class="k z">'+s+'</span><span class="c z">0</span></div>'; }).join('')+'</div></div>';
+  // trend: 6 ช่วงความยาวเท่ากัน
+  const pts = [];
+  for(let i=5;i>=0;i--){ const t = addDays(to,-L*i), f = addDays(t,-(L-1)); const a = ALL.filter(r=>inRange(r,f,t)); pts.push({f, n:a.length, r:a.filter(r=>REACHED.includes(r.sev)).length}); }
+  const tMax = Math.max(1, ...pts.map(p=>p.n));
+  const xs = [10,70,130,190,250,310], y = v => (44 - v/tMax*38).toFixed(1);
+  const line = key => pts.map((p,i)=>xs[i]+','+y(p[key])).join(' ');
+  h += '<div class="card trend" style="padding:10px 14px;gap:5px"><div class="h"><div class="t2">แนวโน้มย้อนหลัง 6 ช่วง</div><div class="lg"><span><i style="background:var(--gray);height:3px"></i>ทั้งหมด</span><span><i style="background:#111;height:3px"></i>ถึงผู้ป่วย</span></div></div>'+
+    '<svg role="img" aria-label="จำนวนรายงาน 6 ช่วงล่าสุด: '+pts.map(p=>p.n).join(', ')+' ครั้ง · ถึงผู้ป่วย '+pts.map(p=>p.r).join(', ')+' ครั้ง" width="324" height="50" viewBox="0 0 324 50">'+
+    '<polyline points="'+line('n')+'" fill="none" stroke="#9a958a" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>'+
+    '<polyline points="'+line('r')+'" fill="none" stroke="#111" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/>'+
+    '<circle cx="310" cy="'+y(pts[5].n)+'" r="3.5" fill="#9a958a"/><circle cx="310" cy="'+y(pts[5].r)+'" r="4" fill="#111"/></svg>'+
+    '<div class="xl"><span>'+thDate(pts[0].f,false)+'</span><span>'+thDate(pts[2].f,false)+'</span><span>'+thDate(pts[4].f,false)+'</span><b>'+thDate(pts[5].f,false)+'</b></div></div>';
+  h += '</div></div>';
+
+  // floors
+  const fl = Object.entries(countBy(cur, r=>r.floor)).sort((a,b)=>b[1]-a[1]);
+  h += '<div class="chips"><span class="t">หน่วยงานที่รายงาน</span>'+(fl.length?fl.map(([f,c])=>'<span class="chip">'+esc(f)+' <b>'+c+'</b></span>').join(''):'<span class="note">–</span>')+
+    '<span class="r">แสดงเฉพาะวิชาชีพ ไม่ระบุชื่อบุคคล</span></div>';
+
+  // drugs
+  const grp = (key) => { const m = {}; cur.filter(r=>r[key]).forEach(r=>{ const x = m[r[key]] = m[r[key]]||{p:0,r:0}; x[REACHED.includes(r.sev)?'r':'p']++; }); return Object.entries(m).sort((a,b)=>(b[1].p+b[1].r)-(a[1].p+a[1].r)); };
+  const sqs = v => { const all = Array(v.p).fill('<i></i>').concat(Array(v.r).fill('<i class="r"></i>')); return all.length>10 ? all.slice(0,10).join('')+'<em>+'+(all.length-10)+'</em>' : all.join(''); };
+  const col = (cls, name, list, total) => {
+    let s = '<div class="grp '+cls+'"><div class="gh"><b>'+name+'</b>'+total+' ครั้ง</div>';
+    if(!list.length) s += '<div class="drow empty">ไม่มีรายงานในช่วงนี้</div>';
+    list.slice(0,3).forEach(([d,v])=>{ s += '<div class="drow"><span class="dn">'+esc(d)+'</span><span class="sq">'+sqs(v)+'</span></div>'; });
+    if(list.length>3) s += '<div class="more">+ อีก '+(list.length-3)+' รายการ</div>';
+    return s+'</div>';
+  };
+  h += '<div class="card drugs"><div class="h"><div class="t">ยา HAD / LASA ที่เกี่ยวข้อง</div><div class="lg"><span><i style="background:var(--ok);width:12px;height:12px;border-radius:4px"></i>1 ช่อง = 1 ครั้ง ป้องกันได้</span><span><i style="background:#111;width:12px;height:12px;border-radius:4px"></i>ถึงตัวผู้ป่วย</span></div></div>'+
+    '<div class="two" style="align-items:start">'+col('had','HAD',grp('had'),hadN)+col('lasa','LASA',grp('lasa'),lasaN)+'</div></div>';
+
+  // footer
+  h += '<div class="ft"><span>สร้างจาก Med Error Log · ข้อมูลถึง '+thDate(incomplete?todayBKK():to)+'</span><span>sheismaug.github.io/med_error_report.html</span></div>';
+
+  $('sheet').innerHTML = h;
+  document.title = 'Med Error Report '+(isRound?roundLabel(k):from+' – '+to)+' — sheisphere';
+}
+
+// ════════ INIT ════════
+(async function(){
+  try{ await load(); buildPicker(); }
+  catch(e){ console.error(e); $('sheet').innerHTML = '<div class="msg">โหลดข้อมูลไม่สำเร็จ<br>'+esc(e.message)+'<br>ลองรีเฟรชหน้าอีกครั้ง</div>'; }
+})();
+</script>
+</body>
+</html>
