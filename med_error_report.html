@@ -56,7 +56,8 @@ button,select,input{font-family:inherit;color:inherit}
 
 .kpis{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}
 .kpi{background:#fff;border-radius:20px;box-shadow:0 5px 0 rgba(0,0,0,.06);padding:10px 14px;display:flex;flex-direction:column;gap:2px}
-.kpi .l{display:flex;align-items:center;gap:6px;color:var(--mute)}
+.kpi .l{display:flex;align-items:center;gap:6px;color:var(--mute);padding-bottom:7px;margin-bottom:5px;border-bottom:1.5px solid var(--track)}
+.kpi.harm .l{border-bottom-color:var(--harmsh)}
 .kpi .v{display:flex;align-items:baseline;gap:6px}
 .kpi .v .n{font-family:Montserrat,sans-serif;font-size:28px;font-weight:800}
 .kpi .v .u,.kpi .s{font-size:12px;color:var(--mute)}
