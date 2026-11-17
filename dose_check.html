@@ -381,7 +381,7 @@ const RENAL = [
  {name:'Enoxaparin', r:'inj', rt:'ฉีด (รักษา)', n:['1 mg/kg','q 12 h'], a:[[15,30,{f:'q 24 h', x:'ป้องกัน: 30 mg วันละครั้ง'}],[0,15,{avoid:'หลีกเลี่ยง · ใช้ UFH'}]]},
  {name:'Gabapentin', r:'oral', rt:'กิน', n:['300 – 1,200 mg','วันละ 3 ครั้ง'], a:[[30,60,{d:'200 – 700 mg', f:'วันละ 2 ครั้ง'}],[15,30,{d:'200 – 700 mg', f:'วันละครั้ง'}],[0,15,{d:'100 – 300 mg', f:'วันละครั้ง', x:'HD: ให้เสริมหลังฟอก'}]]},
  {name:'Gentamicin', r:'inj', rt:'ฉีด', n:['5 – 7 mg/kg','q 24 h'], a:[[15,50,{f:'ยืดระยะตาม TDM'}],[0,15,{d:'ตามระดับยา', f:'ตามระดับยา'}]]},
- {name:'Levofloxacin', r:'oral', rt:'กิน (500 mg)', n:['500 mg','q 24 h'], a:[[20,50,{d:'250 mg', x:'ครั้งแรก 500 mg'}],[10,20,{d:'250 mg', f:'q 48 h', x:'ครั้งแรก 500 mg'}],[0,10,{d:'250 mg', f:'q 48 h', x:'ครั้งแรก 500 mg · HD: ไม่ต้องเสริมหลังฟอก'}]]},
+ {name:'Levofloxacin', r:'oral', rt:'กิน (500 mg) · ไม่ใช่ขนาดรักษา TB → ดูแท็บ ยา TB', n:['500 mg','q 24 h'], a:[[20,50,{d:'250 mg', x:'ครั้งแรก 500 mg'}],[10,20,{d:'250 mg', f:'q 48 h', x:'ครั้งแรก 500 mg'}],[0,10,{d:'250 mg', f:'q 48 h', x:'ครั้งแรก 500 mg · HD: ไม่ต้องเสริมหลังฟอก'}]]},
  {name:'Metformin', r:'oral', rt:'กิน', n:['500 – 1,000 mg','วันละ 2 ครั้ง'], a:[[30,45,{d:'≤ 500 mg', x:'ไม่เริ่มใหม่ · max 1 g/วัน'}],[0,30,{avoid:'ห้ามใช้'}]]},
  {name:'Norfloxacin', r:'oral', rt:'กิน (400 mg)', n:['400 mg','q 12 h'], a:[[0,31,{f:'q 24 h'}]]},
  {name:'Ofloxacin', r:'oral', rt:'กิน (200 mg)', n:['200 – 400 mg','q 12 h'], a:[[20,51,{f:'q 24 h'}],[0,20,{d:'100 – 200 mg', f:'q 24 h', x:'50% ของขนาดปกติ'}]]},
@@ -1075,9 +1075,10 @@ const S = {
   inj: { g: 'emerg', q: '', sel: [], ds: {} },
   neb: { g: 'neb', q: '', sel: [], ds: {} },
   renal: { mode: 'egfr', egfr: '', scr: '', age: '', sex: 'M', wt: '', route: 'all', q: '' },
-  had: { d: 'ne', sub: 'mix', w: '', dose: '' }
+  had: { d: 'ne', sub: 'mix', w: '', dose: '' },
+  tb: { reg: 'hrze', ph: 'ip', am: 'no', cmode: 'cr', cr: '', scr: '', hd: 'no', ord: {} }
 };
-const TABS = [['oral', 'ยากินเด็ก', 'baby'], ['neb', 'ยาพ่น', 'lungs'], ['inj', 'ยาฉีดเด็ก', 'syringe'], ['renal', 'ปรับตามไต', 'testtube'], ['had', 'HAD Handbook', 'alembic']];
+const TABS = [['oral', 'ยากินเด็ก', 'baby'], ['neb', 'ยาพ่น', 'lungs'], ['inj', 'ยาฉีดเด็ก', 'syringe'], ['renal', 'ปรับตามไต', 'testtube'], ['tb', 'ยา TB', 'petri'], ['had', 'HAD Handbook', 'alembic']];
 const DB = { oral: ORAL, inj: INJ, neb: NEB };
 const GROUPS = { oral: [['abx', 'ยาฆ่าเชื้อ'], ['sym', 'บรรเทาอาการ'], ['other', 'อื่นๆ']], inj: [['emerg', 'ฉุกเฉิน'], ['abx', 'ยาฆ่าเชื้อ'], ['other', 'อื่นๆ']], neb: null };
 
@@ -1184,13 +1185,15 @@ function render() {
   const m = $('#main');
   if (S.tab === 'renal') m.innerHTML = renalHTML();
   else if (S.tab === 'had') m.innerHTML = hadHTML();
+  else if (S.tab === 'tb') m.innerHTML = tbHTML();
   else m.innerHTML = doseHTML(S.tab);
-  $('#foot').textContent = S.tab === 'had' ? 'ข้อมูลจาก HAD_DB (ipd_pharm_hub) · HAD รพ.ห้วยผึ้ง' : 'ข้อมูลขนาดยา: Lexicomp/เอกสารกำกับยา · ตรวจทานโดย ภญ.กรรณิกา สันติพาณิชย์วงศ์ 11 พ.ย. 2569 · ใช้ประกอบการตรวจสอบ ไม่แทนดุลยพินิจทางคลินิก';
+  $('#foot').textContent = S.tab === 'had' ? 'ข้อมูลจาก HAD_DB (ipd_pharm_hub) · HAD รพ.ห้วยผึ้ง' : S.tab === 'tb' ? 'แนวทางการควบคุมวัณโรคประเทศไทย พ.ศ. 2564 (ตาราง 5.1, 7.1) · max/day: Guideline TB 2556 / WHO 2014 · ไต: ATS/CDC/IDSA 2016 · Amikacin weight: UpToDate 2024 · ร่าง · รอตรวจทานก่อนใช้จริง · ใช้ประกอบการตรวจสอบ ไม่แทนดุลยพินิจทางคลินิก' : 'ข้อมูลขนาดยา: Lexicomp/เอกสารกำกับยา · ตรวจทานโดย ภญ.กรรณิกา สันติพาณิชย์วงศ์ 11 พ.ย. 2569 · ใช้ประกอบการตรวจสอบ ไม่แทนดุลยพินิจทางคลินิก';
   refresh();
 }
 function refresh() {
   if (S.tab === 'renal') { const r = $('#renalOut'); if (r) r.innerHTML = renalOut(); return; }
   if (S.tab === 'had') { const h = $('#hadBody'); if (h) h.innerHTML = hadBody(); return; }
+  if (S.tab === 'tb') { tbRefresh(); return; }
   const p = $('#ptStatus'); if (p) p.innerHTML = ptStatusHTML();
   const l = $('#drugList'); if (l) l.innerHTML = drugListHTML(S.tab);
   const sb = $('#selBar'); if (sb) sb.innerHTML = selBarHTML(S.tab);
@@ -1494,12 +1497,199 @@ function hadEmer(d) {
   return h || `<div class="card empty">ไม่มีข้อมูล</div>`;
 }
 
+/* ================= TB (แนวทางการควบคุมวัณโรคประเทศไทย พ.ศ. 2564) ================= */
+// stock รพ.ห้วยผึ้ง (tb-pharm-v3): H100 · R300/450 · Z500 · E400/500 · Lfx500 · Am 500 mg/2 mL
+const TB_DRUG = {
+  H:  { n: 'Isoniazid', ab: 'H', col: '#2F6FED', str: [100] },
+  R:  { n: 'Rifampicin', ab: 'R', col: '#E0623A', str: [300, 450] },
+  Z:  { n: 'Pyrazinamide', ab: 'Z', col: '#8E5CF0', str: [500] },
+  E:  { n: 'Ethambutol', ab: 'E', col: '#12A594', str: [400, 500] },
+  L:  { n: 'Levofloxacin', ab: 'Lfx', col: '#C27C0E', str: [500] },
+  Am: { n: 'Amikacin', ab: 'Am', col: '#D6457A', inj: true }
+};
+// ผู้ใหญ่ ≥15 ปี: ตาราง 5.1 NTP 2564 · max/day: Guideline TB 2556 (2013) / WHO 2014
+const TB_AD = {
+  H: { lo: 4, hi: 6, max: 300 }, R: { lo: 8, hi: 12, max: 600 }, Z: { lo: 20, hi: 30, max: 2000 },
+  E: { lo: 15, hi: 20, max: 1600 }, L: { lo: 10, hi: 15, max: 1000 }, Am: { lo: 15, hi: 15, max: 1000 }
+};
+// เด็ก <15 ปี: ตาราง 7.1 NTP 2564
+const TB_PD = {
+  H: { lo: 10, hi: 15, t: 10, max: 300 }, R: { lo: 10, hi: 20, t: 15, max: 600 }, Z: { lo: 30, hi: 40, t: 35, max: 2000 },
+  E: { lo: 15, hi: 25, t: 20, max: 1200 }
+};
+const TB_BAND = [[35, 50, '35–49', { H: 300, R: 450, Z: 1000, E: 800 }], [50, 70, '50–69', { H: 300, R: 600, Z: 1500, E: 1000 }], [70, 999, '≥ 70*', { H: 300, R: 600, Z: 2000, E: 1200 }]];
+const TB_LBAND = [[30, 46, '30–45', 750], [46, 999, '≥ 46', 1000]];   // WHO weight-based (Lfx)
+const TB_REG = [
+  ['hrze', '2HRZE / 4HR', ['H', 'R', 'Z', 'E'], ['H', 'R']],
+  ['hre', '2HRE / 7HR', ['H', 'R', 'E'], ['H', 'R']],
+  ['hezl', '2HEZL / 10HEL', ['H', 'E', 'Z', 'L'], ['H', 'E', 'L']]
+];
+const TB_RENAL = { Z: 'ขนาดเดิม · ลดความถี่เหลือ จ / พ / ศ', E: 'ขนาดเดิม · ลดความถี่เหลือ จ / พ / ศ', L: '750 – 1,000 mg · 3 ครั้ง/สัปดาห์ (จ / พ / ศ)', Am: '15 mg/kg/ครั้ง · 3 ครั้ง/สัปดาห์ (จ / พ / ศ)' };
+
+function tbAge() { return ageY(); }
+function tbAdult() { const a = tbAge(); return a != null && a >= 15; }
+function tbCr() {
+  const t = S.tb; if (t.cmode === 'cr') return num(t.cr);
+  const a = tbAge(), w = num(S.pt.wt), sc = num(t.scr); if (!a || !w || !sc) return null;
+  return (140 - a) * w / (72 * sc) * (S.pt.sex === 'F' ? 0.85 : 1);
+}
+function tbRenal() { const c = tbCr(); return S.tb.hd === 'yes' || (c != null && c < 30); }
+function tbIBW() {   // ผู้ใหญ่: Devine
+  const h = num(S.pt.ht); if (!h) return null;
+  return (S.pt.sex === 'F' ? 45.5 : 50) + 2.3 * (h / 2.54 - 60);
+}
+function tbAmWt() {
+  const w = num(S.pt.wt), b = tbIBW(); if (!w) return null;
+  if (!b) return { w, why: 'น้ำหนักจริง (ใส่ส่วนสูงเพื่อเช็ค IBW)' };
+  if (w < b) return { w, why: 'ผอม (TBW < IBW) · ใช้น้ำหนักจริง' };
+  if (w <= 1.25 * b) return { w, why: 'TBW 1–1.25 × IBW · ใช้น้ำหนักจริง (หรือ IBW ' + fmt(b, 1) + ' kg)' };
+  const a = b + 0.4 * (w - b); return { w: a, why: 'อ้วน (> 1.25 × IBW) · ใช้ AdjBW ' + fmt(a, 1) + ' kg' };
+}
+// เลือกจำนวนเม็ดจาก stock: ทีละครึ่งเม็ด (strength เดียว) หรือเต็มเม็ดผสม 2 strength
+function tbCombos(str) {
+  const out = [];
+  str.forEach(s => { for (let n = 0.5; n <= 8; n += 0.5) out.push({ mg: s * n, parts: [[s, n]], half: n % 1 !== 0, cnt: n }); });
+  if (str.length > 1) for (let a = 1; a <= 4; a++) for (let b = 1; b <= 4; b++) out.push({ mg: str[0] * a + str[1] * b, parts: [[str[0], a], [str[1], b]], half: false, cnt: a + b + 0.3 });
+  return out;
+}
+function tbPick(str, lo, hi, tgt, max) {
+  const c = tbCombos(str).filter(x => x.mg <= max + 0.01);
+  const inR = c.filter(x => x.mg >= lo - 0.5 && x.mg <= hi + 0.5);
+  const pool = inR.length ? inR : c;
+  pool.sort((a, b) => (Math.abs(a.mg - tgt) + (a.half ? 0.04 * tgt : 0) + a.cnt) - (Math.abs(b.mg - tgt) + (b.half ? 0.04 * tgt : 0) + b.cnt));
+  return pool.length ? { ...pool[0], fit: inR.length > 0 } : null;
+}
+const tbTabTxt = (k, parts) => parts.map(p => TB_DRUG[k].ab + p[0] + ' × ' + (p[1] === 0.5 ? '½' : p[1] % 1 ? Math.floor(p[1]) + '½' : p[1]) + ' เม็ด').join(' + ');
+
+function tbCalc(k) {
+  const w = num(S.pt.wt), a = tbAge(); if (!w || a == null) return null;
+  const D = TB_DRUG[k], ad = a >= 15, ren = tbRenal();
+  if (k === 'Am') {
+    if (!ad) return { k, none: 'ตาราง NTP 2564 ไม่มีขนาด Amikacin เด็กในตารางนี้ · ปรึกษาแพทย์' };
+    const aw = tbAmWt(), max = a >= 60 ? 750 : 1000, raw = 15 * aw.w, mg = Math.min(raw, max);
+    return { k, mg, lo: 15 * aw.w, hi: 15 * aw.w, rlo: 15, rhi: 15, w: aw.w, max, why: aw.why, capped: raw > max, ml: mg / 250, freq: ren ? 'จ / พ / ศ' : 'วันละครั้ง', ren,
+      maxTxt: 'max ' + max + ' mg (อายุ ' + (a >= 60 ? '≥ 60' : '< 60') + ' ปี)' };
+  }
+  let P, perDay = 1;
+  if (k === 'L') {
+    if (ad) P = { lo: 10, hi: 15, max: 1000 };
+    else if (a < 5) { P = { lo: 15, hi: 20, max: 1000 }; perDay = 2; }
+    else P = { lo: 10, hi: 15, max: 1000 };
+  } else P = ad ? TB_AD[k] : TB_PD[k];
+  let lo = Math.min(P.lo * w, P.max) / perDay, hi = Math.min(P.hi * w, P.max) / perDay, max = P.max / perDay;
+  const tgt = Math.min(((P.t || (P.lo + P.hi) / 2) * w) / perDay, max);
+  if (k === 'L' && ad && ren) { lo = 750; hi = 1000; }
+  const pk = tbPick(D.str, Math.min(lo, hi), hi, k === 'L' && ad && ren ? Math.min(Math.max(tgt, 750), 1000) : tgt, max);
+  let band = null;
+  if (ad && k !== 'L') { const b = TB_BAND.find(x => w >= x[0] && w < x[1]); band = b ? { lbl: b[2], mg: b[3][k], star: b[0] === 70 } : { lbl: '< 35', mg: null }; }
+  if (ad && k === 'L') { const b = TB_LBAND.find(x => w >= x[0] && w < x[1]); band = b ? { lbl: b[2], mg: b[3] } : { lbl: '< 30', mg: null }; }
+  return { k, P, w, lo, hi, tgt, max, perDay, pk, band, ad, ren: ren && TB_RENAL[k],
+    freq: perDay === 2 ? 'วันละ 2 ครั้ง' : (ren && TB_RENAL[k] ? (k === 'L' ? '3 ครั้ง/สัปดาห์ · จ / พ / ศ' : 'จ / พ / ศ') : 'วันละครั้ง'),
+    maxTxt: 'max ' + fmt(P.max, 0) + ' mg/วัน' + (k === 'E' && !ad ? ' · ไม่เกิน 25 mg/kg' : '') };
+}
+function tbJudge(c, mg) {
+  if (!c || !mg) return null;
+  const mkd = mg * (c.perDay || 1) / c.w, lo = c.k === 'Am' ? 15 : c.P.lo, hi = c.k === 'Am' ? 15 : c.P.hi;
+  if (mg > c.max + 0.5) return { cls: 'bad', t: 'เกิน max', mkd };
+  if (c.k !== 'Am' && !(c.k === 'L' && c.ad && c.ren) && mg >= c.max - 0.5 && c.max <= hi * c.w / (c.perDay || 1) + 0.5) return { cls: 'ok', t: 'ขนาดสูงสุด (max)', mkd };
+  if (c.k === 'L' && c.ad && c.ren) return mg >= 749 ? { cls: 'ok', t: 'อยู่ในช่วง', mkd } : { cls: 'warn', t: 'ต่ำกว่า 750 mg', mkd };
+  if (c.k === 'Am') return Math.abs(mkd - 15) <= 1.5 ? { cls: 'ok', t: 'ใกล้ 15 mg/kg', mkd } : { cls: 'warn', t: mkd > 15 ? 'สูงกว่า 15 mg/kg' : 'ต่ำกว่า 15 mg/kg', mkd };
+  if (mkd > hi + 0.05) return { cls: 'warn', t: 'เกินช่วง mg/kg', mkd };
+  if (mkd < lo - 0.05) return { cls: 'warn', t: 'ต่ำกว่าช่วง mg/kg', mkd };
+  return { cls: 'ok', t: 'อยู่ในช่วง', mkd };
+}
+const TBV = { ok: ['#E7F7EC', '#1D7A40', 'check'], warn: ['#FFF4DC', '#9A5B00', 'warning'], bad: ['#FDE8E8', '#B42323', 'cross'] };
+function tbTag(j) { if (!j) return ''; const v = TBV[j.cls]; return `<span style="display:inline-flex;align-items:center;gap:6px;background:${v[0]};color:${v[1]};font-weight:700;font-size:13px;padding:4px 10px;border-radius:999px"><img src="${I(v[2])}" alt="" style="width:18px;height:18px">${j.t} · ${fmt(j.mkd, 1)} mg/kg</span>`; }
+
+function tbPtHTML() {
+  const t = S.tb;
+  const rin = (k, lab, unit, ph) => `<label class="tile wide"><span class="lab">${lab}</span><span class="field"><input inputmode="decimal" data-tbf="${k}" value="${esc(t[k])}" placeholder="${ph || '—'}" aria-label="${lab}"><span>${unit}</span></span></label>`;
+  return `<section class="card pt" aria-label="ผู้ป่วย"><div class="ttl"><span class="step">1</span>ผู้ป่วย</div>
+  <div class="tiles">
+    <div class="tile wide"><span class="lab"><img src="${I('child')}" alt="">อายุ</span><div class="agepair"><label class="field"><input inputmode="decimal" data-pt="y" value="${esc(S.pt.y)}" placeholder="0" aria-label="อายุ ปี"><span>ปี</span></label><label class="field"><input inputmode="decimal" data-pt="m" value="${esc(S.pt.m)}" placeholder="0" aria-label="อายุ เดือน"><span>เดือน</span></label></div></div>
+    ${fieldHTML('wt', 'น้ำหนัก', 'scale', 'kg', '—')}
+    ${fieldHTML('ht', 'ส่วนสูง', 'ruler', 'cm', '—')}
+    ${segHTML('sex', 'เพศ', null, [['M', 'ชาย'], ['F', 'หญิง']], 'wide')}
+  </div>
+  <div class="ttl" style="margin:16px 0 10px"><img class="ic" src="${I('testtube')}" alt="">ไต</div>
+  <div class="tiles">
+    <div class="tile wide"><div class="seg" role="group" aria-label="วิธีใส่ค่าไต"><button data-tbset="cmode:cr" class="${t.cmode === 'cr' ? 'on' : ''}">ใส่ CrCl</button><button data-tbset="cmode:scr" class="${t.cmode === 'scr' ? 'on' : ''}">จาก SCr</button></div></div>
+    ${t.cmode === 'cr' ? rin('cr', 'CrCl / eGFR', 'mL/min') : rin('scr', 'SCr', 'mg/dL')}
+    <div class="tile wide"><span class="lab">ฟอกไต</span><div class="seg" role="group" aria-label="ฟอกไต"><button data-tbset="hd:no" class="${t.hd === 'no' ? 'on' : ''}">ไม่</button><button data-tbset="hd:yes" class="${t.hd === 'yes' ? 'on' : ''}">HD</button></div></div>
+  </div>
+  <div id="tbRen"></div>
+  <button data-act="tbclear" style="margin-top:10px;border:0;background:none;color:var(--mute);font-size:13px;text-decoration:underline">ล้างข้อมูลผู้ป่วย</button>
+  </section>`;
+}
+function tbRenHTML() {
+  const c = tbCr(), r = tbRenal();
+  if (S.tb.hd === 'yes') return `<div class="status"><span class="dot" style="background:var(--red)"></span><b>ฟอกไต · ปรับยา Z, E, Lfx, Am</b></div>`;
+  if (c == null) return `<div class="status"><span class="dot" style="background:#C9C3B6"></span>${S.tb.cmode === 'scr' ? 'ใส่อายุ น้ำหนัก SCr เพื่อคำนวณ CrCl' : 'ไม่ใส่ = ถือว่าไตปกติ'}</div>`;
+  return `<div class="status"><span class="dot" style="background:${r ? 'var(--red)' : 'var(--green)'}"></span><span><b>CrCl ${fmt(c, 0)}</b> mL/min${S.tb.cmode === 'scr' ? ' (Cockcroft-Gault)' : ''} · ${r ? 'ต้องปรับยา' : 'ไม่ต้องปรับ'}</span></div>`;
+}
+function tbHTML() {
+  const t = S.tb;
+  return `<div class="cols">${tbPtHTML()}<section class="res" aria-label="สูตรยา">
+   <div class="card"><div class="ttl"><span class="step">2</span>สูตรยา</div>
+    <div class="chips" role="group" aria-label="สูตรยา">${TB_REG.map(r => `<button data-tbset="reg:${r[0]}" class="${t.reg === r[0] ? 'on' : ''}">${r[1]}</button>`).join('')}</div>
+    <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center">
+     <div class="seg" style="flex:1 1 260px" role="group" aria-label="ระยะ"><button data-tbset="ph:ip" class="${t.ph === 'ip' ? 'on' : ''}">ระยะเข้มข้น</button><button data-tbset="ph:cp" class="${t.ph === 'cp' ? 'on' : ''}">ระยะต่อเนื่อง</button></div>
+     <div class="seg" style="flex:0 1 200px" role="group" aria-label="Amikacin"><button data-tbset="am:no" class="${t.am === 'no' ? 'on' : ''}">ไม่มี Am</button><button data-tbset="am:yes" class="${t.am === 'yes' ? 'on' : ''}">+ Amikacin</button></div>
+    </div></div>
+   <div id="tbOut" style="display:flex;flex-direction:column;gap:14px"></div></section></div>`;
+}
+function tbCard(k) {
+  const D = TB_DRUG[k], c = tbCalc(k), o = S.tb.ord[k] || '';
+  const head = `<div class="band" style="background:${D.col}"><span class="t">${D.n} (${D.ab})</span><span class="s">${c && !c.none ? (k === 'Am' ? '15 mg/kg · ' + c.maxTxt : fmt(c.P.lo, 0) + '–' + fmt(c.P.hi, 0) + ' mg/kg/วัน · ' + c.maxTxt) : ''}</span></div>`;
+  if (!c) return `<div class="rcard">${head}<div class="pad minor">ใส่อายุและน้ำหนัก</div></div>`;
+  if (c.none) return `<div class="rcard">${head}<div class="pad"><div class="warnbox"><img src="${I('warning')}" alt="">${esc(c.none)}</div></div></div>`;
+  let main, sub, minor;
+  if (k === 'Am') {
+    main = `${fmt(Math.round(c.mg / 10) * 10, 0)} <small>mg</small>`;
+    sub = `${fmt(c.ml, 1)} mL (500 mg/2 mL) · IM/IV · ${c.freq}`;
+    minor = `15 mg/kg × ${fmt(c.w, 1)} kg · ${esc(c.why)}${c.capped ? ' · <b>ตัดที่ max</b>' : ''}`;
+  } else if (c.pk && c.pk.fit) {
+    main = `${fmt(c.pk.mg, 0)} <small>mg${c.perDay === 2 ? '/ครั้ง' : ''}</small>`;
+    sub = `${tbTabTxt(k, c.pk.parts)} · ${c.freq}`;
+    minor = `= ${fmt(c.pk.mg * c.perDay / c.w, 1)} mg/kg/วัน · ช่วงที่คำนวณได้ ${fmt(c.lo, 0)}–${fmt(c.hi, 0)} mg${c.perDay === 2 ? '/ครั้ง' : ''}`;
+  } else {
+    main = `${fmt(c.tgt, 0)} <small>mg${c.perDay === 2 ? '/ครั้ง' : ''}</small>`;
+    sub = `${c.freq} · ไม่มีเม็ดที่ลงตัว`;
+    minor = `ใกล้สุดจาก stock: ${c.pk ? tbTabTxt(k, c.pk.parts) + ' = ' + fmt(c.pk.mg, 0) + ' mg (' + fmt(c.pk.mg * c.perDay / c.w, 1) + ' mg/kg)' : '–'} · พิจารณาแบ่งเม็ด/บดผสม`;
+  }
+  let band = '';
+  if (c.band) {
+    if (c.band.mg == null) band = `<div class="box"><img src="${I('clipboard')}" alt=""><div class="calc"><b>ตาราง: น้ำหนัก ${c.band.lbl} kg ไม่มีในตาราง</b> · ให้คำนวณตามน้ำหนักตัว</div></div>`;
+    else { const j = tbJudge(c, c.band.mg); band = `<div class="box"><img src="${I('clipboard')}" alt=""><span class="k">ตาราง ${c.band.lbl} kg</span><span class="v">${fmt(c.band.mg, 0)}</span><span class="k">mg</span>${tbTag(j)}${c.band.star ? '<div class="calc">* > 70 kg guideline ให้คำนวณตามน้ำหนักตัว</div>' : ''}${k === 'L' ? '<div class="calc">ตาราง WHO · guideline ไทยให้ใช้ 10–15 mg/kg หรือตามตารางนี้ก็ได้</div>' : ''}</div>`; }
+  }
+  const ren = c.ren ? `<div style="margin:0 20px 16px" class="dangerbox"><img src="${I('droplet')}" alt=""><div><b>ไต (CrCl < 30 / HD): ${esc(TB_RENAL[k])}</b>${S.tb.hd === 'yes' ? '<div style="font-size:13px">วันฟอกไต ให้ยาหลังฟอก</div>' : ''}</div></div>`
+    : (tbRenal() && (k === 'H' || k === 'R') ? `<div class="minor" style="margin:0 20px 12px">ไต: ไม่ต้องปรับขนาด</div>` : '');
+  const ord = `<div class="pad" style="border-top:1.5px solid var(--line);padding-top:12px"><div class="order"><img src="${I('stopwatch')}" alt=""><span class="k" style="font-size:14px;color:var(--mute)">แพทย์สั่ง</span><span class="field"><input inputmode="decimal" data-tbo="${k}" value="${esc(o)}" placeholder="—" aria-label="ขนาดที่แพทย์สั่ง ${D.n}"><span>mg</span></span><span id="tbv-${k}">${tbTag(tbJudge(c, num(o)))}</span></div></div>`;
+  return `<div class="rcard">${head}<div class="answer"><img src="${I(D.inj ? 'syringe' : 'pill')}" alt=""><div><div class="big">${main}</div><div class="sub1">${sub}</div><div class="minor">${minor}</div></div></div>${band}${ren}${ord}</div>`;
+}
+function tbOut() {
+  const t = S.tb, R = TB_REG.find(r => r[0] === t.reg) || TB_REG[0], a = tbAge(), w = num(S.pt.wt);
+  const keys = (t.ph === 'ip' ? R[2] : R[3]).slice(); if (t.am === 'yes') keys.push('Am');
+  let h = '';
+  if (a == null || !w) h += `<div class="rcard"><div class="empty"><img src="${I('clipboard')}" alt="">ใส่อายุและน้ำหนักผู้ป่วย</div></div>`;
+  else {
+    const ad = a >= 15, odd = ad && (w < 35 || w > 70 || (w >= 35 && w < 38));
+    h += `<div class="warnbox" style="background:${ad ? '#EEF3FE' : '#F1ECFF'};color:${ad ? '#1D4E89' : '#4B2A99'}"><img src="${I(ad ? 'scale' : 'child')}" alt=""><div><b>${ad ? 'ผู้ใหญ่ (≥ 15 ปี) · ตาราง 5.1' : 'เด็ก (< 15 ปี) · ตาราง 7.1'}</b> · ${R[1]} · ${t.ph === 'ip' ? 'ระยะเข้มข้น' : 'ระยะต่อเนื่อง'} · คิดจากน้ำหนักจริง ${fmt(w, 1)} kg${odd ? '<div style="font-size:13px;margin-top:2px">น้ำหนักช่วงนี้ ขนาดตามตารางมักหลุดช่วง mg/kg · แนะนำใช้ขนาดที่คำนวณได้จริง</div>' : ''}</div></div>`;
+    h += `<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(330px,1fr));gap:14px">${keys.map(tbCard).join('')}</div>`;
+    h += `<div class="warnbox"><img src="${I('pill')}" alt=""><div><b>Vitamin B6 50 mg วันละครั้ง</b> ทุกราย (ป้องกัน peripheral neuropathy จาก H)</div></div>`;
+  }
+  return h;
+}
+function tbRefresh() { const r = $('#tbRen'); if (r) r.innerHTML = tbRenHTML(); const o = $('#tbOut'); if (o) o.innerHTML = tbOut(); }
+
 /* ================= events ================= */
 document.addEventListener('click', e => {
   const b = e.target.closest('button'); if (!b) return;
   const D = b.dataset, tab = S.tab, st = S[tab];
   if (D.tab) { S.tab = D.tab; render(); return; }
   if (D.ptset) { const [k, v] = D.ptset.split(':'); S.pt[k] = v; b.parentNode.querySelectorAll('button').forEach(x => x.classList.toggle('on', x === b)); refresh(); return; }
+  if (D.tbset) { const [k, v] = D.tbset.split(':'); S.tb[k] = v; if (k === 'cmode') { render(); return; } b.parentNode.querySelectorAll('button').forEach(x => x.classList.toggle('on', x === b)); tbRefresh(); return; }
+  if (D.act === 'tbclear') { S.pt = { y: '', m: '', sex: 'M', wt: '', ht: '', g6pd: S.pt.g6pd }; Object.assign(S.tb, { cr: '', scr: '', hd: 'no', ord: {} }); render(); return; }
   if (D.act === 'clearpt') { S.pt = { y: '', m: '', sex: 'M', wt: '', ht: '', g6pd: 'normal' }; render(); return; }
   if (D.grp) { st.g = D.grp; st.q = ''; const q = $('[data-q]'); if (q) q.value = ''; b.parentNode.querySelectorAll('button').forEach(x => x.classList.toggle('on', x === b)); refresh(); return; }
   if (D.drug != null) { const i = +D.drug, k = st.sel.indexOf(i); if (k >= 0) st.sel.splice(k, 1); else { st.sel.push(i); delete st.ds[i]; } refresh(); return; }
@@ -1518,6 +1708,9 @@ document.addEventListener('click', e => {
 });
 document.addEventListener('input', e => {
   const t = e.target, D = t.dataset, st = S[S.tab];
+  if (D.pt && S.tab === 'tb') { S.pt[D.pt] = t.value; tbRefresh(); return; }
+  if (D.tbf) { S.tb[D.tbf] = t.value; tbRefresh(); return; }
+  if (D.tbo) { S.tb.ord[D.tbo] = t.value; const v = $('#tbv-' + D.tbo); if (v) v.innerHTML = tbTag(tbJudge(tbCalc(D.tbo), num(t.value))); return; }
   if (D.pt) { S.pt[D.pt] = t.value; partial(); return; }
   if (D.q) { st.q = t.value; const l = $('#drugList'); if (l) l.innerHTML = drugListHTML(S.tab); return; }
   const card = t.closest('[data-di]');
