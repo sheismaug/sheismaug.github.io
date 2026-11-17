@@ -183,7 +183,7 @@ button,select,input{font-family:inherit;color:inherit}
 const SUPABASE_URL = 'https://qvtlekphxsubuklyirlz.supabase.co';
 const SUPABASE_ANON_KEY = 'sb_publishable_dPhW0DORMGlSTc1hzvT4Cw_9ChOlZ0H';
 const HOSPITAL = 'โรงพยาบาลห้วยผึ้ง';
-const ANCHOR = '2026-10-06';           // วันเริ่มรอบที่ 1 ปีงบ 2570 · ทุกรอบ = 14 วันนับจากวันนี้
+// รอบละ 14 วัน เริ่มรอบ 1 ทุกวันที่ 1 ต.ค. (ต้นปีงบ) · ปีงบมี 26 รอบ รอบ 26 ยาวถึง 30 ก.ย.
 const DAY = 86400000;
 const SEVS = ['A','B','C','D','E','F','G','H','I'];
 const REACHED = 'CDEFGHI', HARM = 'EFGHI';
@@ -217,16 +217,14 @@ function normDate(v){
 }
 
 // ── รอบ 14 วัน ──
-function roundIdx(s){ return Math.floor(diffDays(ANCHOR, s)/14); }
-function roundStart(k){ return addDays(ANCHOR, k*14); }
-function roundEnd(k){ return addDays(ANCHOR, k*14+13); }
-function roundLabel(k){
-  const st = toD(roundStart(k));
-  const fyCE = st.getUTCMonth()>=9 ? st.getUTCFullYear()+1 : st.getUTCFullYear();
-  const oct1 = toS(new Date(Date.UTC(fyCE-1,9,1)));
-  const k0 = Math.ceil(diffDays(ANCHOR, oct1)/14);
-  return 'รอบ '+(k-k0+1)+'/'+(fyCE+543);
-}
+// k = เลขรอบต่อเนื่องข้ามปีงบ (ปีงบ CE × 26 + ลำดับรอบ) เพื่อให้ k-1 = รอบก่อนหน้าเสมอ
+function fyOf(s){ const d = toD(s); return d.getUTCMonth()>=9 ? d.getUTCFullYear()+1 : d.getUTCFullYear(); }
+function fyStart(fy){ return toS(new Date(Date.UTC(fy-1,9,1))); }
+function fyEnd(fy){ return toS(new Date(Date.UTC(fy,8,30))); }
+function roundIdx(s){ const fy = fyOf(s); return fy*26 + Math.min(25, Math.floor(diffDays(fyStart(fy), s)/14)); }
+function roundStart(k){ return addDays(fyStart(Math.floor(k/26)), (k%26)*14); }
+function roundEnd(k){ const fy = Math.floor(k/26), i = k%26; return i===25 ? fyEnd(fy) : addDays(fyStart(fy), i*14+13); }
+function roundLabel(k){ return 'รอบ '+(k%26+1)+'/'+(Math.floor(k/26)+543); }
 
 // ════════ DATA ════════
 let ALL = [], VIEW = {from:'', to:''};
@@ -371,7 +369,9 @@ function pct(n,d){ return d ? Math.round(n/d*100) : 0; }
 function render(){
   const {from, to} = VIEW;
   const L = diffDays(from,to)+1;
-  const pTo = addDays(from,-1), pFrom = addDays(from,-L);
+  const k = roundIdx(from);
+  const isRound = roundStart(k)===from && roundEnd(k)===to;
+  const pTo = isRound ? roundEnd(k-1) : addDays(from,-1), pFrom = isRound ? roundStart(k-1) : addDays(from,-L);
   const cur = ALL.filter(r=>inRange(r,from,to));
   const prev = ALL.filter(r=>inRange(r,pFrom,pTo));
   const n = cur.length, nP = prev.length;
@@ -379,8 +379,6 @@ function render(){
   const reachedP = prev.filter(r=>REACHED.includes(r.sev));
   const harm = cur.filter(r=>HARM.includes(r.sev));
   const hadN = cur.filter(r=>r.had).length, lasaN = cur.filter(r=>r.lasa).length;
-  const k = roundIdx(from);
-  const isRound = roundStart(k)===from && roundEnd(k)===to;
   const incomplete = to >= todayBKK();
   const spots = spotlights(cur, to);
 
@@ -453,11 +451,16 @@ function render(){
       : '<div><span class="k z">'+s+'</span><span class="c z">0</span></div>'; }).join('')+'</div></div>';
   // trend: 6 ช่วงความยาวเท่ากัน
   const pts = [];
-  for(let i=5;i>=0;i--){ const t = addDays(to,-L*i), f = addDays(t,-(L-1)); const a = ALL.filter(r=>inRange(r,f,t)); pts.push({f, n:a.length, r:a.filter(r=>REACHED.includes(r.sev)).length}); }
+  for(let i=5;i>=0;i--){
+    // ดูเป็นรอบ → ใช้ 6 รอบจริง (รอบ 26 อาจยาว 15–16 วัน) · ช่วงกำหนดเอง → 6 ช่วงยาวเท่ากัน
+    const f = isRound ? roundStart(k-i) : addDays(to,-L*i-(L-1));
+    const t = isRound ? roundEnd(k-i) : addDays(to,-L*i);
+    const a = ALL.filter(r=>inRange(r,f,t)); pts.push({f, n:a.length, r:a.filter(r=>REACHED.includes(r.sev)).length});
+  }
   const tMax = Math.max(1, ...pts.map(p=>p.n));
   const xs = [10,70,130,190,250,310], y = v => (44 - v/tMax*38).toFixed(1);
   const line = key => pts.map((p,i)=>xs[i]+','+y(p[key])).join(' ');
-  h += '<div class="card trend" style="padding:10px 14px;gap:5px"><div class="h"><div class="t2">แนวโน้มย้อนหลัง 6 ช่วง</div><div class="lg"><span><i style="background:var(--gray);height:3px"></i>ทั้งหมด</span><span><i style="background:#111;height:3px"></i>ถึงผู้ป่วย</span></div></div>'+
+  h += '<div class="card trend" style="padding:10px 14px;gap:5px"><div class="h"><div class="t2">แนวโน้มย้อนหลัง 6 '+(isRound?'รอบ':'ช่วง')+'</div><div class="lg"><span><i style="background:var(--gray);height:3px"></i>ทั้งหมด</span><span><i style="background:#111;height:3px"></i>ถึงผู้ป่วย</span></div></div>'+
     '<svg role="img" aria-label="จำนวนรายงาน 6 ช่วงล่าสุด: '+pts.map(p=>p.n).join(', ')+' ครั้ง · ถึงผู้ป่วย '+pts.map(p=>p.r).join(', ')+' ครั้ง" width="324" height="50" viewBox="0 0 324 50">'+
     '<polyline points="'+line('n')+'" fill="none" stroke="#9a958a" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>'+
     '<polyline points="'+line('r')+'" fill="none" stroke="#111" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/>'+
