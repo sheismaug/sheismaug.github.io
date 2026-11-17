@@ -856,6 +856,15 @@ table.lgt .tim{display:inline-flex;align-items:center;gap:3px;color:var(--mute);
 .ed-del{border:none;background:transparent;color:#B3372B;font-size:13px;padding:8px;cursor:pointer;border-radius:999px}
 .ed-del:hover{background:#FDECEA}
 
+/* list rows = original card look, compact */
+.lgh span{font-family:Montserrat,'Google Sans',sans-serif;font-weight:700;color:var(--faint);margin-left:2px}
+.lgr{gap:8px!important;padding:6px 8px 6px 6px!important}
+.lgr .tx b{font-weight:600!important}
+.lgr .tx b .cd{font-family:Montserrat,'Google Sans',sans-serif;font-weight:700;font-size:12.5px;margin-right:6px}
+.lgr .vtag{height:24px;font-size:11px;padding:0 9px;flex:none}
+.lg-right{gap:14px!important}
+
+.lgr .vtag.img{background:#E4F1FF;color:#1D4F86;font-weight:700;gap:4px}
 </style>
 
 <!-- Supabase JS SDK -->
@@ -3743,48 +3752,46 @@ function shortType2(r){
   const t = V2_TYPES.find(x=>x[0]===k);
   return (t && k!=='other') ? t[1] : getSubLabel(r);
 }
-function entryDetailHTML(r){
-  const d = V2_SEV[r.severity] || ['','','#eee','#111'];
-  const cat = V2_CATS.find(c=>CAT_NAMES[c.id]===r.category);
-  const src = r.errorSource ? (SRCN[r.errorSource]||r.errorSource)+(r.errorSourceName?' · '+r.errorSourceName:'') : '';
-  const row = (k,v)=>'<div class="dr"><span>'+k+'</span>'+(v?'<b>'+v+'</b>':'<i>—</i>')+'</div>';
-  const imgs = r.images || [];
-  let h = '<div class="ed-top">'+
-      '<span class="ed-sev" style="background:'+d[2]+';color:'+d[3]+'">'+esc(r.severity)+'</span>'+
-      '<div class="ed-ti"><span class="ed-code">'+esc(r.subtypeCode||'')+' · '+(cat?cat.th:esc(r.category))+'</span><b>'+esc(getSubLabel(r))+'</b></div>'+
-    '</div>'+
-    '<div class="ed-pill" style="background:'+d[2]+';color:'+d[3]+'"><b>ระดับ '+esc(r.severity)+'</b> · '+d[0]+'</div>'+
-    '<div class="dl">'+
-      row('วันที่', thDate(r.date,true)+' · '+esc(r.time||'')+' น.')+
-      row('แผนก', esc(r.floor))+
-      row('กลุ่มยา', r.drugGroup ? '<span class="lgtag '+String(r.drugGroup).toLowerCase()+'">'+esc(r.drugGroup)+'</span> '+esc(r.drugName||'') : '')+
-      row('ผู้เกี่ยวข้อง', esc(src))+
-      row('ผู้บันทึก', esc(r.reporter))+
-    '</div>';
-  if(r.detail) h += '<div class="ed-sec"><span class="ed-lbl">เหตุการณ์</span><div class="ed-note">'+esc(r.detail)+'</div></div>';
-  h += '<div class="ed-sec"><span class="ed-lbl">รูปแนบ'+(imgs.length?' <em>'+imgs.length+'</em>':'')+'</span>'+
-    (imgs.length ? '<div class="ed-imgs">'+imgs.map((im,i)=>'<button class="ed-img" onclick="viewEntryImagesAt('+r.id+','+i+')" aria-label="ดูรูปที่ '+(i+1)+'"><img src="'+esc(im.url)+'" alt="" loading="lazy"></button>').join('')+'</div>'
-                 : '<div class="ed-noimg">ไม่มีรูปแนบ</div>')+'</div>';
-  if(isAuthenticated) h += '<div class="ed-act"><button class="black" onclick="editEntry('+r.id+')">แก้ไขรายการ</button><button class="ed-del" onclick="v2Delete('+r.id+')">ลบรายการนี้</button></div>';
-  return h;
-}
 window.openEntry = function(id){
   const r = logs.find(x=>x.id===id); if(!r) return;
   if(window.innerWidth >= 900 && $id('lg-detail')){ LG.sel = id; document.querySelectorAll('.lgr').forEach(b=>b.classList.toggle('on', +b.dataset.id===id)); $id('lg-detail').innerHTML = entryDetailHTML(r); return; }
   openSheet('<div class="grab"></div><div style="display:flex;justify-content:flex-end;margin-bottom:-40px"><button class="lt-out" onclick="closeSheet()" aria-label="ปิด">✕</button></div>'+entryDetailHTML(r));
 };
+function entryDetailHTML(r){
+  const d = V2_SEV[r.severity] || ['','','#eee','#111'];
+  const cat = V2_CATS.find(c=>CAT_NAMES[c.id]===r.category);
+  const src = r.errorSource ? (SRCN[r.errorSource]||r.errorSource)+(r.errorSourceName?' · '+r.errorSourceName:'') : '';
+  const chip = (icn, txt)=>'<span class="mchip"><span class="d">'+ic(icn,16)+'</span>'+txt+'</span>';
+  const imgs = r.images || [];
+  let h = '<div style="display:flex;align-items:flex-start;gap:12px"><span class="sevb" style="width:52px;height:52px;font-size:26px;border-radius:16px;background:'+d[2]+';color:'+d[3]+'">'+esc(r.severity)+'</span>'+
+    '<div style="display:flex;flex-direction:column;gap:2px;flex:1;min-width:0"><span class="mont" style="font-size:22px;font-weight:800;line-height:1.1">'+esc(r.subtypeCode||'')+'</span><b style="font-size:15px">'+esc(getSubLabel(r))+'</b><span class="sub" style="font-size:12px">'+d[0]+(d[1]?' · '+d[1]:'')+'</span></div></div>'+
+    '<div style="display:flex;gap:6px;flex-wrap:wrap">'+
+      chip('hosp', esc(r.floor))+
+      chip(cat?cat.ic:'list', cat?cat.th:esc(r.category))+
+      chip('cal', thDate(r.date,true)+' · '+esc(r.time||''))+
+      (r.drugGroup ? chip('pill2', esc(r.drugGroup)+(r.drugName?' · '+esc(r.drugName):'')) : '')+
+      (src ? chip('people', esc(src)) : '')+
+    '</div>'+
+    (r.detail ? '<div class="note" style="color:var(--ink);font-size:14px">'+esc(r.detail)+'</div>' : '')+
+    (imgs.length ? '<div class="ed-imgs">'+imgs.map((im,i)=>'<button class="ed-img" onclick="viewEntryImagesAt('+r.id+','+i+')" aria-label="ดูรูปที่ '+(i+1)+'"><img src="'+esc(im.url)+'" alt="" loading="lazy"></button>').join('')+'</div>' : '')+
+    '<span class="sub" style="font-size:12px">บันทึกโดย '+esc(r.reporter)+'</span>';
+  if(isAuthenticated) h += '<div style="display:grid;grid-template-columns:1fr 2fr;gap:10px"><button class="whitebtn" style="background:#FDECEA;color:#B3372B;box-shadow:none" onclick="v2Delete('+r.id+')">ลบ</button><button class="black" onclick="editEntry('+r.id+')">'+ic('edit',16)+'แก้ไขรายการ</button></div>';
+  return h;
+}
 function lgRowsHTML(rows){
   const now = new Date(), tdy = ymd(now), ydy = ymd(new Date(now.getTime()-86400000));
   const groups = []; let cur = null;
   rows.slice(0, LG.limit).forEach(r=>{ if(!cur || cur.d!==r.date){ cur = {d:r.date, rows:[]}; groups.push(cur); } cur.rows.push(r); });
+  const cnt = {}; rows.forEach(r=>{ cnt[r.date] = (cnt[r.date]||0)+1; });
   return groups.map(g=>{
     const lbl = g.d===tdy ? 'วันนี้' : g.d===ydy ? 'เมื่อวาน' : thDate(g.d,true);
-    return '<div class="lgg"><div class="lgh">'+lbl+'</div>'+g.rows.map(r=>{
+    return '<div class="lgg"><div class="lgh">'+lbl+' <span>'+cnt[g.d]+'</span></div>'+g.rows.map(r=>{
       const d = V2_SEV[r.severity] || ['','','#eee','#111'];
       const cat = V2_CATS.find(c=>CAT_NAMES[c.id]===r.category);
-      const tag = r.drugGroup ? '<span class="lgtag '+String(r.drugGroup).toLowerCase()+'">'+esc(r.drugGroup)+'</span>' : '';
+      const tag = r.drugGroup ? '<span class="vtag '+String(r.drugGroup).toLowerCase()+'">'+esc(r.drugGroup)+'</span>' : '';
+      const im = (r.images&&r.images.length) ? '<span class="vtag img" title="มีรูปแนบ '+r.images.length+' รูป">'+ic('camera',14)+r.images.length+'</span>' : '';
       return '<button class="lgr'+(LG.sel===r.id?' on':'')+'" data-id="'+r.id+'" onclick="openEntry('+r.id+')"><span class="sv" style="background:'+d[2]+';color:'+d[3]+'">'+esc(r.severity)+'</span>'+
-        '<span class="tx"><b>'+esc(shortType2(r))+'</b><small>'+(cat?cat.th:esc(r.category))+' · '+esc(r.floor)+'</small></span>'+tag+'<span class="tm">'+esc(r.time||'')+'</span></button>';
+        '<span class="tx"><b>'+esc(shortType2(r))+'</b><small>'+(cat?cat.th:esc(r.category))+' · '+esc(r.floor)+'</small></span>'+tag+im+'<span class="tm">'+esc(r.time||'')+'</span></button>';
     }).join('')+'</div>';
   }).join('') + (rows.length > LG.limit ? '<button class="whitebtn" style="align-self:center;margin-top:8px" onclick="LG.limit+=60;renderLogList()">แสดงเพิ่ม ('+(rows.length-LG.limit)+')</button>' : '');
 }
