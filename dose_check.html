@@ -1522,7 +1522,8 @@ const TB_LBAND = [[30, 46, '30–45', 750], [46, 999, '≥ 46', 1000]];   // WHO
 const TB_REG = [
   ['hrze', '2HRZE / 4HR', ['H', 'R', 'Z', 'E'], ['H', 'R']],
   ['hre', '2HRE / 7HR', ['H', 'R', 'E'], ['H', 'R']],
-  ['hezl', '2HEZL / 10HEL', ['H', 'E', 'Z', 'L'], ['H', 'E', 'L']]
+  ['hezl', '2HEZL / 10HEL', ['H', 'E', 'Z', 'L'], ['H', 'E', 'L']],
+  ['rze', '9RZE', ['R', 'Z', 'E'], ['R', 'Z', 'E'], 1]   // ไม่มี H · ระยะเดียว 9 เดือน
 ];
 const TB_RENAL = { Z: 'ขนาดเดิม · ลดความถี่เหลือ จ / พ / ศ', E: 'ขนาดเดิม · ลดความถี่เหลือ จ / พ / ศ', L: '750 – 1,000 mg · 3 ครั้ง/สัปดาห์ (จ / พ / ศ)', Am: '15 mg/kg/ครั้ง · 3 ครั้ง/สัปดาห์ (จ / พ / ศ)' };
 
@@ -1579,11 +1580,21 @@ function tbCalc(k) {
   let lo = Math.min(P.lo * w, P.max) / perDay, hi = Math.min(P.hi * w, P.max) / perDay, max = P.max / perDay;
   const tgt = Math.min(((P.t || (P.lo + P.hi) / 2) * w) / perDay, max);
   if (k === 'L' && ad && ren) { lo = 750; hi = 1000; }
-  const pk = tbPick(D.str, Math.min(lo, hi), hi, k === 'L' && ad && ren ? Math.min(Math.max(tgt, 750), 1000) : tgt, max);
+  let pk = tbPick(D.str, Math.min(lo, hi), hi, k === 'L' && ad && ren ? Math.min(Math.max(tgt, 750), 1000) : tgt, max);
   let band = null;
   if (ad && k !== 'L') { const b = TB_BAND.find(x => w >= x[0] && w < x[1]); band = b ? { lbl: b[2], mg: b[3][k], star: b[0] === 70 } : { lbl: '< 35', mg: null }; }
   if (ad && k === 'L') { const b = TB_LBAND.find(x => w >= x[0] && w < x[1]); band = b ? { lbl: b[2], mg: b[3] } : { lbl: '< 30', mg: null }; }
-  return { k, P, w, lo, hi, tgt, max, perDay, pk, band, ad, ren: ren && TB_RENAL[k],
+  let useBand = false, cpk = null;
+  if (ad && band && band.mg && band.mg <= P.max) {
+    const bm = band.mg / w;
+    const inR = bm >= P.lo - 0.05 && bm <= P.hi + 0.05;
+    // ตาราง 5.1 ช่วง 35–69 kg: ใช้ขนาดตามตารางเป็นหลักเสมอ (> 70 kg ใช้ตารางเฉพาะเมื่ออยู่ในช่วง mg/kg) · Lfx: ตาราง WHO เมื่อไม่ปรับตามไต
+    if (k === 'L' ? !ren : (!band.star || inR)) {
+      const bp = tbPick(D.str, band.mg, band.mg, band.mg, P.max);
+      if (bp && Math.abs(bp.mg - band.mg) < 1) { cpk = pk; pk = bp; useBand = true; }
+    }
+  }
+  return { k, P, w, lo, hi, tgt, max, perDay, pk, cpk, band, ad, useBand, ren: ren && TB_RENAL[k],
     freq: perDay === 2 ? 'วันละ 2 ครั้ง' : (ren && TB_RENAL[k] ? (k === 'L' ? '3 ครั้ง/สัปดาห์ · จ / พ / ศ' : 'จ / พ / ศ') : 'วันละครั้ง'),
     maxTxt: 'max ' + fmt(P.max, 0) + ' mg/วัน' + (k === 'E' && !ad ? ' · ไม่เกิน 25 mg/kg' : '') };
 }
@@ -1591,7 +1602,10 @@ function tbJudge(c, mg) {
   if (!c || !mg) return null;
   const mkd = mg * (c.perDay || 1) / c.w, lo = c.k === 'Am' ? 15 : c.P.lo, hi = c.k === 'Am' ? 15 : c.P.hi;
   if (mg > c.max + 0.5) return { cls: 'bad', t: 'เกิน max', mkd };
+  if (c.useBand && Math.abs(mg - c.band.mg) < 0.5) return { cls: 'ok', t: 'ตามตาราง guideline', mkd };
   if (c.k !== 'Am' && !(c.k === 'L' && c.ad && c.ren) && mg >= c.max - 0.5 && c.max <= hi * c.w / (c.perDay || 1) + 0.5) return { cls: 'ok', t: 'ขนาดสูงสุด (max)', mkd };
+  if (c.ad && c.k === 'E' && mkd > hi + 0.05 && mkd <= 25.05) return { cls: 'ok', t: 'ตาม guideline (WHO 15–25)', mkd };
+  if (c.ad && c.k === 'L' && !c.ren && c.band && c.band.mg && Math.abs(mg - c.band.mg) < 1) return { cls: 'ok', t: 'ตามตาราง WHO', mkd };
   if (c.k === 'L' && c.ad && c.ren) return mg >= 749 ? { cls: 'ok', t: 'อยู่ในช่วง', mkd } : { cls: 'warn', t: 'ต่ำกว่า 750 mg', mkd };
   if (c.k === 'Am') return Math.abs(mkd - 15) <= 1.5 ? { cls: 'ok', t: 'ใกล้ 15 mg/kg', mkd } : { cls: 'warn', t: mkd > 15 ? 'สูงกว่า 15 mg/kg' : 'ต่ำกว่า 15 mg/kg', mkd };
   if (mkd > hi + 0.05) return { cls: 'warn', t: 'เกินช่วง mg/kg', mkd };
@@ -1633,7 +1647,7 @@ function tbHTML() {
    <div class="card"><div class="ttl"><span class="step">2</span>สูตรยา</div>
     <div class="chips" role="group" aria-label="สูตรยา">${TB_REG.map(r => `<button data-tbset="reg:${r[0]}" class="${t.reg === r[0] ? 'on' : ''}">${r[1]}</button>`).join('')}</div>
     <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center">
-     <div class="seg" style="flex:1 1 260px" role="group" aria-label="ระยะ"><button data-tbset="ph:ip" class="${t.ph === 'ip' ? 'on' : ''}">ระยะเข้มข้น</button><button data-tbset="ph:cp" class="${t.ph === 'cp' ? 'on' : ''}">ระยะต่อเนื่อง</button></div>
+     ${(TB_REG.find(r => r[0] === t.reg) || [])[4] ? `<div style="flex:1 1 260px;font-size:14px;color:var(--soft)">ระยะเดียว 9 เดือน · ไม่มี H</div>` : `<div class="seg" style="flex:1 1 260px" role="group" aria-label="ระยะ"><button data-tbset="ph:ip" class="${t.ph === 'ip' ? 'on' : ''}">ระยะเข้มข้น</button><button data-tbset="ph:cp" class="${t.ph === 'cp' ? 'on' : ''}">ระยะต่อเนื่อง</button></div>`}
      <div class="seg" style="flex:0 1 200px" role="group" aria-label="Amikacin"><button data-tbset="am:no" class="${t.am === 'no' ? 'on' : ''}">ไม่มี Am</button><button data-tbset="am:yes" class="${t.am === 'yes' ? 'on' : ''}">+ Amikacin</button></div>
     </div></div>
    <div id="tbOut" style="display:flex;flex-direction:column;gap:14px"></div></section></div>`;
@@ -1651,14 +1665,18 @@ function tbCard(k) {
   } else if (c.pk && c.pk.fit) {
     main = `${fmt(c.pk.mg, 0)} <small>mg${c.perDay === 2 ? '/ครั้ง' : ''}</small>`;
     sub = `${tbTabTxt(k, c.pk.parts)} · ${c.freq}`;
-    minor = `= ${fmt(c.pk.mg * c.perDay / c.w, 1)} mg/kg/วัน · ช่วงที่คำนวณได้ ${fmt(c.lo, 0)}–${fmt(c.hi, 0)} mg${c.perDay === 2 ? '/ครั้ง' : ''}`;
+    const bm = c.pk.mg / c.w, out = bm > c.P.hi + 0.05 || bm < c.P.lo - 0.05;
+    minor = c.useBand ? `<b>ตามตาราง guideline (${c.band.lbl} kg)</b> = ${fmt(bm, 1)} mg/kg/วัน${out ? ` <b style="color:#9A5B00">· ${bm > c.P.hi ? 'สูงกว่า' : 'ต่ำกว่า'}ช่วง ${fmt(c.P.lo, 0)}–${fmt(c.P.hi, 0)} mg/kg</b>` : ''}` : `= ${fmt(c.pk.mg * c.perDay / c.w, 1)} mg/kg/วัน · ช่วงที่คำนวณได้ ${fmt(c.lo, 0)}–${fmt(c.hi, 0)} mg${c.perDay === 2 ? '/ครั้ง' : ''}`;
   } else {
     main = `${fmt(c.tgt, 0)} <small>mg${c.perDay === 2 ? '/ครั้ง' : ''}</small>`;
     sub = `${c.freq} · ไม่มีเม็ดที่ลงตัว`;
     minor = `ใกล้สุดจาก stock: ${c.pk ? tbTabTxt(k, c.pk.parts) + ' = ' + fmt(c.pk.mg, 0) + ' mg (' + fmt(c.pk.mg * c.perDay / c.w, 1) + ' mg/kg)' : '–'} · พิจารณาแบ่งเม็ด/บดผสม`;
   }
   let band = '';
-  if (c.band) {
+  if (c.useBand) {
+    const alt = c.cpk, same = alt && Math.abs(alt.mg - c.pk.mg) < 0.5;
+    if (alt && !same) band = `<div class="box"><img src="${I('scale')}" alt=""><span class="k">ทางเลือก: คำนวณตามน้ำหนักจริง</span><span class="v">${fmt(alt.mg, 0)}</span><span class="k">mg</span><div class="calc">${tbTabTxt(k, alt.parts)} · ${fmt(alt.mg / c.w, 1)} mg/kg · ช่วง ${fmt(c.lo, 0)}–${fmt(c.hi, 0)} mg</div></div>`;
+  } else if (c.band) {
     if (c.band.mg == null) band = `<div class="box"><img src="${I('clipboard')}" alt=""><div class="calc"><b>ตาราง: น้ำหนัก ${c.band.lbl} kg ไม่มีในตาราง</b> · ให้คำนวณตามน้ำหนักตัว</div></div>`;
     else { const j = tbJudge(c, c.band.mg); band = `<div class="box"><img src="${I('clipboard')}" alt=""><span class="k">ตาราง ${c.band.lbl} kg</span><span class="v">${fmt(c.band.mg, 0)}</span><span class="k">mg</span>${tbTag(j)}${c.band.star ? '<div class="calc">* > 70 kg guideline ให้คำนวณตามน้ำหนักตัว</div>' : ''}${k === 'L' ? '<div class="calc">ตาราง WHO · guideline ไทยให้ใช้ 10–15 mg/kg หรือตามตารางนี้ก็ได้</div>' : ''}</div>`; }
   }
@@ -1674,9 +1692,9 @@ function tbOut() {
   if (a == null || !w) h += `<div class="rcard"><div class="empty"><img src="${I('clipboard')}" alt="">ใส่อายุและน้ำหนักผู้ป่วย</div></div>`;
   else {
     const ad = a >= 15, odd = ad && (w < 35 || w > 70 || (w >= 35 && w < 38));
-    h += `<div class="warnbox" style="background:${ad ? '#EEF3FE' : '#F1ECFF'};color:${ad ? '#1D4E89' : '#4B2A99'}"><img src="${I(ad ? 'scale' : 'child')}" alt=""><div><b>${ad ? 'ผู้ใหญ่ (≥ 15 ปี) · ตาราง 5.1' : 'เด็ก (< 15 ปี) · ตาราง 7.1'}</b> · ${R[1]} · ${t.ph === 'ip' ? 'ระยะเข้มข้น' : 'ระยะต่อเนื่อง'} · คิดจากน้ำหนักจริง ${fmt(w, 1)} kg${odd ? '<div style="font-size:13px;margin-top:2px">น้ำหนักช่วงนี้ ขนาดตามตารางมักหลุดช่วง mg/kg · แนะนำใช้ขนาดที่คำนวณได้จริง</div>' : ''}</div></div>`;
+    h += `<div class="warnbox" style="background:${ad ? '#EEF3FE' : '#F1ECFF'};color:${ad ? '#1D4E89' : '#4B2A99'}"><img src="${I(ad ? 'scale' : 'child')}" alt=""><div><b>${ad ? 'ผู้ใหญ่ (≥ 15 ปี) · ตาราง 5.1' : 'เด็ก (< 15 ปี) · ตาราง 7.1'}</b> · ${R[1]} · ${R[4] ? '9 เดือน' : t.ph === 'ip' ? 'ระยะเข้มข้น' : 'ระยะต่อเนื่อง'} · คิดจากน้ำหนักจริง ${fmt(w, 1)} kg${odd ? '<div style="font-size:13px;margin-top:2px">น้ำหนักช่วงนี้ ขนาดตามตารางอาจหลุดช่วง mg/kg · มีขนาดคำนวณตามน้ำหนักจริงเป็นทางเลือกในการ์ด</div>' : ''}</div></div>`;
     h += `<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(330px,1fr));gap:14px">${keys.map(tbCard).join('')}</div>`;
-    h += `<div class="warnbox"><img src="${I('pill')}" alt=""><div><b>Vitamin B6 50 mg วันละครั้ง</b> ทุกราย (ป้องกัน peripheral neuropathy จาก H)</div></div>`;
+    h += `<div class="warnbox"><img src="${I('pill')}" alt=""><div><b>Vitamin B6 50 mg วันละครั้ง</b> ${keys.includes('H') ? 'ทุกราย (ป้องกัน peripheral neuropathy จาก H)' : ''}</div></div>`;
   }
   return h;
 }
@@ -1688,7 +1706,7 @@ document.addEventListener('click', e => {
   const D = b.dataset, tab = S.tab, st = S[tab];
   if (D.tab) { S.tab = D.tab; render(); return; }
   if (D.ptset) { const [k, v] = D.ptset.split(':'); S.pt[k] = v; b.parentNode.querySelectorAll('button').forEach(x => x.classList.toggle('on', x === b)); refresh(); return; }
-  if (D.tbset) { const [k, v] = D.tbset.split(':'); S.tb[k] = v; if (k === 'cmode') { render(); return; } b.parentNode.querySelectorAll('button').forEach(x => x.classList.toggle('on', x === b)); tbRefresh(); return; }
+  if (D.tbset) { const [k, v] = D.tbset.split(':'); S.tb[k] = v; if (k === 'cmode' || k === 'reg') { render(); return; } b.parentNode.querySelectorAll('button').forEach(x => x.classList.toggle('on', x === b)); tbRefresh(); return; }
   if (D.act === 'tbclear') { S.pt = { y: '', m: '', sex: 'M', wt: '', ht: '', g6pd: S.pt.g6pd }; Object.assign(S.tb, { cr: '', scr: '', hd: 'no', ord: {} }); render(); return; }
   if (D.act === 'clearpt') { S.pt = { y: '', m: '', sex: 'M', wt: '', ht: '', g6pd: 'normal' }; render(); return; }
   if (D.grp) { st.g = D.grp; st.q = ''; const q = $('[data-q]'); if (q) q.value = ''; b.parentNode.querySelectorAll('button').forEach(x => x.classList.toggle('on', x === b)); refresh(); return; }
