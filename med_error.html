@@ -910,6 +910,15 @@ body.light .fsel.on select,body .fsel.on select{background:var(--beec)!important
 .fcsv{width:40px;height:40px;border-radius:50%;border:1px solid #E6E2D8;background:#fff;display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--ink)}
 .fcsv:hover{border-color:#CFCBC0}
 
+/* fsel: label outside select */
+.fsel{align-items:center;height:40px;border-radius:999px;border:1px solid #E6E2D8;background:#fff;box-shadow:0 2px 0 rgba(0,0,0,.04);padding-left:14px}
+.fsel:hover{border-color:#CFCBC0}
+.fsel .fpre{font-size:12.5px;color:var(--mute);white-space:nowrap;pointer-events:none}
+.fsel .fpre::after{content:':';margin-right:4px}
+body.light .fsel select,body .fsel select{height:38px!important;border:none!important;background:transparent!important;box-shadow:none!important;padding:0 30px 0 0!important;font-weight:600}
+.fsel.on{background:var(--beec);border-color:var(--ink)}
+body.light .fsel.on select,body .fsel.on select{background:transparent!important;border:none!important;font-weight:700}
+
 </style>
 
 <!-- Supabase JS SDK -->
@@ -3701,7 +3710,7 @@ window.renderLog = function(){
     '<div class="h1">'+TH_MON[now.getMonth()]+' นี้ <span class="mark">'+monCount+' รายการ</span></div></div>';
   {
     const opt = (v, label, cur)=>'<option value="'+esc(v)+'"'+(cur===v?' selected':'')+'>'+label+'</option>';
-    const sel = (key, ph, items)=>'<label class="fsel'+(LG[key]?' on':'')+'"><select aria-label="'+ph+'" onchange="lgSet({'+key+':this.value})">'+opt('', ph+': ทั้งหมด', LG[key])+items.map(x=>opt(x[0], ph+': '+x[1], LG[key])).join('')+'</select></label>';
+    const sel = (key, ph, items)=>'<label class="fsel'+(LG[key]?' on':'')+'"><span class="fpre">'+ph+'</span><select aria-label="'+ph+'" onchange="lgSet({'+key+':this.value})">'+opt('', 'ทั้งหมด', LG[key])+items.map(x=>opt(x[0], x[1], LG[key])).join('')+'</select></label>';
     h += '<div class="ftools">'+
       '<label class="search">'+ic('search',18)+'<input id="log-search" placeholder="ค้น HN ชื่อยา รายละเอียด" value="'+esc(LG.q)+'" oninput="LG.q=this.value;clearTimeout(window._lgT);window._lgT=setTimeout(renderLogList,200)"></label>'+
       '<div class="fsels">'+
