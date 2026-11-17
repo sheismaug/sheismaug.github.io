@@ -1527,6 +1527,27 @@ const TB_REG = [
 ];
 const TB_RENAL = { Z: 'ขนาดเดิม · ลดความถี่เหลือ จ / พ / ศ', E: 'ขนาดเดิม · ลดความถี่เหลือ จ / พ / ศ', L: '750 – 1,000 mg · 3 ครั้ง/สัปดาห์ (จ / พ / ศ)', Am: '15 mg/kg/ครั้ง · 3 ครั้ง/สัปดาห์ (จ / พ / ศ)' };
 
+
+// รูปเม็ดยา (วาดประกอบ · สี/รูปทรงโดยประมาณ ไม่ใช่ยี่ห้อจริงในคลัง)
+const TB_PILL = {
+  H100: { s: 'round', c: '#FBFAF6', e: '#B9B1A0', r: 0.72 },
+  R300: { s: 'cap', c: '#8E1F2A', c2: '#B8323F', r: 0.82 },
+  R450: { s: 'cap', c: '#6E1520', c2: '#A3283A', r: 1 },
+  Z500: { s: 'round', c: '#F6D94A', e: '#D6B524', score: 1, r: 0.92 },
+  E400: { s: 'round', c: '#8A5A3B', e: '#6A4329', r: 0.86 },
+  E500: { s: 'oval', c: '#7A4C30', e: '#5C3721', r: 1 },
+  L500: { s: 'oval', c: '#F2B38A', e: '#D98E5F', score: 1, r: 1 }
+};
+function tbPill(k, str, px, half) {
+  const p = TB_PILL[k + str]; if (!p) return '';
+  const S = 40, sc = p.r, cx = 20, cy = 20;
+  let g;
+  if (p.s === 'round') { const r = 15 * sc; g = `<circle cx="${cx}" cy="${cy + 1.5}" r="${r}" fill="${p.e}"/><circle cx="${cx}" cy="${cy}" r="${r}" fill="${p.c}" stroke="${p.e}" stroke-width="1.2"/>${p.score ? `<line x1="${cx - r * 0.8}" y1="${cy}" x2="${cx + r * 0.8}" y2="${cy}" stroke="${p.e}" stroke-width="1.6" stroke-linecap="round"/>` : ''}<ellipse cx="${cx - r * 0.35}" cy="${cy - r * 0.4}" rx="${r * 0.35}" ry="${r * 0.18}" fill="#fff" opacity=".55"/>`; }
+  else if (p.s === 'oval') { const rx = 18 * sc, ry = 10 * sc; g = `<ellipse cx="${cx}" cy="${cy + 1.5}" rx="${rx}" ry="${ry}" fill="${p.e}"/><ellipse cx="${cx}" cy="${cy}" rx="${rx}" ry="${ry}" fill="${p.c}" stroke="${p.e}" stroke-width="1.2"/>${p.score ? `<line x1="${cx}" y1="${cy - ry * 0.75}" x2="${cx}" y2="${cy + ry * 0.75}" stroke="${p.e}" stroke-width="1.6" stroke-linecap="round"/>` : ''}<ellipse cx="${cx - rx * 0.4}" cy="${cy - ry * 0.45}" rx="${rx * 0.3}" ry="${ry * 0.2}" fill="#fff" opacity=".45"/>`; }
+  else { const L = 19 * sc, R = 8 * sc; g = `<g transform="rotate(-30 20 20)"><path d="M${cx - L + R} ${cy - R} H${cx} V${cy + R} H${cx - L + R} A${R} ${R} 0 0 1 ${cx - L + R} ${cy - R} Z" fill="${p.c}"/><path d="M${cx} ${cy - R} H${cx + L - R} A${R} ${R} 0 0 1 ${cx + L - R} ${cy + R} H${cx} Z" fill="${p.c2}"/><rect x="${cx - L + R}" y="${cy - R * 0.55}" width="${L * 1.4}" height="${R * 0.35}" rx="${R * 0.17}" fill="#fff" opacity=".3"/></g>`; }
+  const id = 'hp' + Math.random().toString(36).slice(2, 8);
+  return `<svg width="${px}" height="${px}" viewBox="0 0 ${S} ${S}" aria-hidden="true" style="vertical-align:middle;flex:none">${half ? `<defs><clipPath id="${id}"><rect x="0" y="0" width="20" height="40"/></clipPath></defs><g clip-path="url(#${id})">${g}</g>` : g}</svg>`;
+}
 function tbAge() { return ageY(); }
 function tbAdult() { const a = tbAge(); return a != null && a >= 15; }
 function tbCr() {
@@ -1560,7 +1581,8 @@ function tbPick(str, lo, hi, tgt, max) {
   pool.sort((a, b) => (Math.abs(a.mg - tgt) + (a.half ? 0.04 * tgt : 0) + a.cnt) - (Math.abs(b.mg - tgt) + (b.half ? 0.04 * tgt : 0) + b.cnt));
   return pool.length ? { ...pool[0], fit: inR.length > 0 } : null;
 }
-const tbTabTxt = (k, parts) => parts.map(p => TB_DRUG[k].ab + p[0] + ' × ' + (p[1] === 0.5 ? '½' : p[1] % 1 ? Math.floor(p[1]) + '½' : p[1]) + ' เม็ด').join(' + ');
+const tbPills = (k, s, n) => '<span style="display:inline-flex;gap:1px;vertical-align:middle">' + Array.from({ length: Math.floor(n) }, () => tbPill(k, s, 22)).join('') + (n % 1 ? tbPill(k, s, 22, 1) : '') + '</span>';
+const tbTabTxt = (k, parts) => parts.map(p => tbPills(k, p[0], p[1]) + ' ' + TB_DRUG[k].ab + p[0] + ' × ' + (p[1] === 0.5 ? '½' : p[1] % 1 ? Math.floor(p[1]) + '½' : p[1]) + ' เม็ด').join(' + ');
 
 function tbCalc(k) {
   const w = num(S.pt.wt), a = tbAge(); if (!w || a == null) return null;
@@ -1683,7 +1705,7 @@ function tbCard(k) {
   const ren = c.ren ? `<div style="margin:0 20px 16px" class="dangerbox"><img src="${I('droplet')}" alt=""><div><b>ไต (CrCl < 30 / HD): ${esc(TB_RENAL[k])}</b>${S.tb.hd === 'yes' ? '<div style="font-size:13px">วันฟอกไต ให้ยาหลังฟอก</div>' : ''}</div></div>`
     : (tbRenal() && (k === 'H' || k === 'R') ? `<div class="minor" style="margin:0 20px 12px">ไต: ไม่ต้องปรับขนาด</div>` : '');
   const ord = `<div class="pad" style="border-top:1.5px solid var(--line);padding-top:12px"><div class="order"><img src="${I('stopwatch')}" alt=""><span class="k" style="font-size:14px;color:var(--mute)">แพทย์สั่ง</span><span class="field"><input inputmode="decimal" data-tbo="${k}" value="${esc(o)}" placeholder="—" aria-label="ขนาดที่แพทย์สั่ง ${D.n}"><span>mg</span></span><span id="tbv-${k}">${tbTag(tbJudge(c, num(o)))}</span></div></div>`;
-  return `<div class="rcard">${head}<div class="answer"><img src="${I(D.inj ? 'syringe' : 'pill')}" alt=""><div><div class="big">${main}</div><div class="sub1">${sub}</div><div class="minor">${minor}</div></div></div>${band}${ren}${ord}</div>`;
+  return `<div class="rcard">${head}<div class="answer">${D.inj ? `<img src="${I('syringe')}" alt="">` : `<span style="width:68px;height:68px;display:flex;align-items:center;justify-content:center;flex:none">${tbPill(k, c.pk ? c.pk.parts[0][0] : D.str[0], 64)}</span>`}<div><div class="big">${main}</div><div class="sub1">${sub}</div><div class="minor">${minor}</div></div></div>${band}${ren}${ord}</div>`;
 }
 function tbOut() {
   const t = S.tb, R = TB_REG.find(r => r[0] === t.reg) || TB_REG[0], a = tbAge(), w = num(S.pt.wt);
