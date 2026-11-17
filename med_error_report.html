@@ -7,7 +7,7 @@
 <meta name="theme-color" content="#FBF8F1">
 <meta name="color-scheme" content="light">
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Google+Sans:wght@400;500;700&family=Montserrat:wght@700;800&display=swap" rel="stylesheet">
+<link crossorigin="anonymous" href="https://fonts.googleapis.com/css2?family=Google+Sans:wght@400;500;700&family=Montserrat:wght@700;800&display=swap" rel="stylesheet">
 <style>
 :root{
   --ink:#111111; --mute:#5f5f5f; --cream:#FBF8F1; --track:#efebe2; --soft:#F1EEE6;
@@ -35,6 +35,10 @@ button,select,input{font-family:inherit;color:inherit}
 .dates input{height:34px;padding:0 10px;border-radius:12px;border:none;background:#F4F2EC;font-size:12px}
 .btn{height:38px;padding:0 16px;border-radius:999px;border:none;background:var(--ink);color:#fff;font-size:13px;font-weight:700;box-shadow:0 4px 0 #000;display:inline-flex;align-items:center;gap:6px;cursor:pointer}
 .btn:active{transform:translateY(2px);box-shadow:0 2px 0 #000}
+.btn.lime{background:var(--lime);color:#111;box-shadow:0 4px 0 var(--limed)}
+.btn.lime:active{box-shadow:0 2px 0 var(--limed)}
+.btn:disabled{opacity:.6;cursor:wait}
+.capturing [contenteditable]:hover{background:none}
 .hint{max-width:794px;margin:10px auto 0;font-size:12px;color:var(--mute);text-align:center;padding:0 12px}
 
 /* ── sheet (A4 at 96dpi) ── */
@@ -171,6 +175,10 @@ button,select,input{font-family:inherit;color:inherit}
       <label for="d-from">จาก</label><input type="date" id="d-from" onchange="onCustomDate()">
       <label for="d-to">ถึง</label><input type="date" id="d-to" onchange="onCustomDate()">
     </div>
+    <button class="btn lime" id="btn-img" onclick="saveImage()">
+      <svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#111" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="3"/><circle cx="9" cy="10" r="2"/><path d="M21 16l-5-5-9 9"/></svg>
+      <span>บันทึกเป็นรูป</span>
+    </button>
     <button class="btn" onclick="window.print()">
       <svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9V3h12v6M6 18H4a1 1 0 0 1-1-1v-6a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v6a1 1 0 0 1-1 1h-2"/><rect x="6" y="14" width="12" height="7" rx="1"/></svg>
       พิมพ์ / PDF
@@ -494,6 +502,48 @@ function render(){
 
   $('sheet').innerHTML = h;
   document.title = 'Med Error Report '+(isRound?roundLabel(k):from+' – '+to)+' — sheisphere';
+}
+
+// ════════ SAVE AS IMAGE (สำหรับแปะ LINE) ════════
+function loadScript(src){ return new Promise((ok,no)=>{ const el = document.createElement('script'); el.src = src; el.onload = ok; el.onerror = no; document.head.appendChild(el); }); }
+async function ensureH2I(){
+  if(window.htmlToImage) return;
+  try{ await loadScript('https://cdnjs.cloudflare.com/ajax/libs/html-to-image/1.11.11/html-to-image.min.js'); }
+  catch(e){ await loadScript('https://unpkg.com/html-to-image@1.11.11/dist/html-to-image.js'); }
+}
+async function saveImage(){
+  const btn = $('btn-img'), lbl = btn.querySelector('span');
+  btn.disabled = true; lbl.textContent = 'กำลังสร้างรูป…';
+  const sheet = $('sheet');
+  try{
+    await ensureH2I();
+    await document.fonts.ready;
+    document.body.classList.add('capturing');
+    const blob = await window.htmlToImage.toBlob(sheet, {
+      pixelRatio: 2, backgroundColor: '#FBF8F1', cacheBust: true,
+      style: {margin:'0', boxShadow:'none', borderRadius:'0'}
+    });
+    const name = 'med_error_report_'+VIEW.from+'_'+VIEW.to+'.png';
+    const file = new File([blob], name, {type:'image/png'});
+    // มือถือ: เปิดหน้าแชร์ (เลือก LINE ได้เลย) · คอมพิวเตอร์: ดาวน์โหลดไฟล์
+    if(navigator.canShare && navigator.canShare({files:[file]}) && /Android|iPhone|iPad/i.test(navigator.userAgent)){
+      try{ await navigator.share({files:[file], title:'Med Error Report'}); }catch(e){ if(e.name!=='AbortError') throw e; }
+    } else {
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a'); a.href = url; a.download = name; document.body.appendChild(a); a.click(); a.remove();
+      setTimeout(()=>URL.revokeObjectURL(url), 4000);
+    }
+  }catch(e){
+    console.error(e); alertBox('สร้างรูปไม่สำเร็จ — ลองใหม่อีกครั้ง หรือใช้ปุ่มพิมพ์ / PDF แทน');
+  }finally{
+    document.body.classList.remove('capturing');
+    btn.disabled = false; lbl.textContent = 'บันทึกเป็นรูป';
+  }
+}
+function alertBox(msg){
+  const h = document.querySelector('.hint'); if(!h) return;
+  const old = h.textContent; h.textContent = msg; h.style.color = '#B0182B';
+  setTimeout(()=>{ h.textContent = old; h.style.color = ''; }, 5000);
 }
 
 // ════════ INIT ════════
