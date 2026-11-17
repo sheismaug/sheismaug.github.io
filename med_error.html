@@ -919,6 +919,21 @@ body.light .fsel select,body .fsel select{height:38px!important;border:none!impo
 .fsel.on{background:var(--beec);border-color:var(--ink)}
 body.light .fsel.on select,body .fsel.on select{background:transparent!important;border:none!important;font-weight:700}
 
+/* custom filter dropdown */
+.fdd{position:relative}
+.fdd-b{display:inline-flex;align-items:center;gap:4px;height:40px;padding:0 14px;border-radius:999px;border:1px solid #E6E2D8;background:#fff;color:var(--ink);font-family:inherit;font-size:13px;cursor:pointer;box-shadow:0 2px 0 rgba(0,0,0,.04);white-space:nowrap}
+.fdd-b:hover{border-color:#CFCBC0}
+.fdd-b .fpre{color:var(--mute);font-size:12.5px}
+.fdd-b b{font-weight:600}
+.fdd-b .car{width:6px;height:6px;border-right:1.6px solid #6b6b66;border-bottom:1.6px solid #6b6b66;transform:translateY(-2px) rotate(45deg);margin-left:8px;transition:transform .15s}
+.fdd.open .fdd-b .car{transform:translateY(1px) rotate(-135deg)}
+.fdd.on .fdd-b{background:var(--beec);border-color:var(--ink)}
+.fdd.on .fdd-b b{font-weight:700}
+.fdd-m{position:absolute;top:calc(100% + 6px);left:0;z-index:50;min-width:100%;background:#fff;border-radius:16px;box-shadow:0 10px 30px rgba(0,0,0,.12),0 0 0 1px #EFEBE2;padding:6px;display:flex;flex-direction:column;gap:2px}
+.fdd-m button{display:flex;align-items:center;justify-content:space-between;gap:16px;height:36px;padding:0 10px 0 14px;border:none;background:transparent;border-radius:10px;font-family:inherit;font-size:13.5px;color:var(--ink);cursor:pointer;white-space:nowrap;text-align:left}
+.fdd-m button:hover{background:#F6F4EE}
+.fdd-m button.on{background:var(--beec);font-weight:700}
+
 </style>
 
 <!-- Supabase JS SDK -->
@@ -3709,8 +3724,13 @@ window.renderLog = function(){
   let h = '<div style="padding:4px 4px 0"><span class="hello"><i></i>Log ทั้งหมด '+logs.length+' รายการ</span>'+
     '<div class="h1">'+TH_MON[now.getMonth()]+' นี้ <span class="mark">'+monCount+' รายการ</span></div></div>';
   {
-    const opt = (v, label, cur)=>'<option value="'+esc(v)+'"'+(cur===v?' selected':'')+'>'+label+'</option>';
-    const sel = (key, ph, items)=>'<label class="fsel'+(LG[key]?' on':'')+'"><span class="fpre">'+ph+'</span><select aria-label="'+ph+'" onchange="lgSet({'+key+':this.value})">'+opt('', 'ทั้งหมด', LG[key])+items.map(x=>opt(x[0], x[1], LG[key])).join('')+'</select></label>';
+    const sel = (key, ph, items)=>{
+      const all = [['','ทั้งหมด']].concat(items);
+      const cur = all.find(x=>x[0]===LG[key]) || all[0];
+      return '<div class="fdd'+(LG[key]?' on':'')+(LG.open===key?' open':'')+'"><button class="fdd-b" onclick="event.stopPropagation();lgOpen(\''+key+'\')" aria-haspopup="listbox" aria-expanded="'+(LG.open===key)+'"><span class="fpre">'+ph+':</span><b>'+esc(cur[1])+'</b><i class="car"></i></button>'+
+        (LG.open===key ? '<div class="fdd-m" role="listbox">'+all.map(x=>'<button role="option" class="'+(x[0]===LG[key]?'on':'')+'" onclick="event.stopPropagation();LG.open=\'\';lgSet({'+key+':\''+String(x[0]).replace(/'/g,"\\'")+'\'})"><span>'+esc(x[1])+'</span>'+(x[0]===LG[key]?ic('check',18):'')+'</button>').join('')+'</div>' : '')+
+      '</div>';
+    };
     h += '<div class="ftools">'+
       '<label class="search">'+ic('search',18)+'<input id="log-search" placeholder="ค้น HN ชื่อยา รายละเอียด" value="'+esc(LG.q)+'" oninput="LG.q=this.value;clearTimeout(window._lgT);window._lgT=setTimeout(renderLogList,200)"></label>'+
       '<div class="fsels">'+
@@ -3726,6 +3746,9 @@ window.renderLog = function(){
   _lgRows = rows; renderLogList();
 };
 function lgFunnelIc(){ return '<svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24"><path d="M4 5h16l-6 7.5V19l-4 1.5v-8z" fill="#FFC93C" stroke="#111" stroke-width="1.6" stroke-linejoin="round"/></svg>'; }
+function lgOpen(key){ LG.open = LG.open===key ? '' : key; renderLog(); }
+document.addEventListener('click', ()=>{ if(LG.open){ LG.open=''; renderLog(); } });
+document.addEventListener('keydown', e=>{ if(e.key==='Escape' && LG.open){ LG.open=''; renderLog(); } });
 let _lgRows = [];
 function renderLogTable(rows, box){
   const shown = rows.slice(0, LG.limit);
