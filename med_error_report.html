@@ -380,6 +380,7 @@ function render(){
   const reachedP = prev.filter(r=>REACHED.includes(r.sev));
   const harm = cur.filter(r=>HARM.includes(r.sev));
   const hadN = cur.filter(r=>r.had).length, lasaN = cur.filter(r=>r.lasa).length;
+  const prevWord = isRound ? 'รอบก่อน' : 'ช่วงก่อน';
   const incomplete = to >= todayBKK();
   const spots = spotlights(cur, to);
 
@@ -395,8 +396,8 @@ function render(){
   // KPIs
   const harmSub = harm.length===0 ? 'ไม่มีในช่วงนี้' : harm.length===1 && spots.some(s=>s.harm) ? 'เคสนี้อยู่ในการ์ดด้านล่าง ↓' : 'ดูรายละเอียดในอุบัติการณ์สำคัญ ↓';
   h += '<div class="kpis">'+
-    '<div class="kpi"><div class="l">'+IC.clip+'รายงานทั้งหมด</div><div class="v"><span class="n">'+n+'</span><span class="u">ครั้ง</span></div><div class="s">'+delta(n,nP)+' จากช่วงก่อน ('+nP+')</div></div>'+
-    '<div class="kpi"><div class="l">'+IC.pt+'ถึงตัวผู้ป่วย (C–I)</div><div class="v"><span class="n">'+reached.length+'</span><span class="u">ครั้ง</span></div><div class="s"><b>'+pct(reached.length,n)+'%</b> · ช่วงก่อน '+pct(reachedP.length,nP)+'%</div></div>'+
+    '<div class="kpi"><div class="l">'+IC.clip+'รายงานทั้งหมด</div><div class="v"><span class="n">'+n+'</span><span class="u">ครั้ง</span></div><div class="s">'+delta(n,nP)+' จาก'+prevWord+' ('+nP+')</div></div>'+
+    '<div class="kpi"><div class="l">'+IC.pt+'ถึงตัวผู้ป่วย (C–I)</div><div class="v"><span class="n">'+reached.length+'</span><span class="u">ครั้ง · <b style="color:var(--ink)">'+pct(reached.length,n)+'%</b> ของรายงาน</span></div><div class="s">'+delta(reached.length,reachedP.length)+' จาก'+prevWord+' ('+reachedP.length+')</div></div>'+
     '<div class="kpi'+(harm.length?' harm':'')+'"><div class="l">'+IC.alert+'เกิดอันตราย (E–I)</div><div class="v"><span class="n">'+harm.length+'</span><span class="u">ราย'+(harm.length?' · ต้องทำ RCA':'')+'</span></div><div class="s">'+harmSub+'</div></div>'+
     '<div class="kpi"><div class="l">'+IC.pill+'HAD / LASA</div><div class="v"><span class="n">'+(hadN+lasaN)+'</span><span class="u">ครั้ง</span></div><div class="s"><b style="color:var(--had)">HAD '+hadN+'</b> · <b style="color:var(--lasa)">LASA '+lasaN+'</b></div></div>'+
     '</div>';
