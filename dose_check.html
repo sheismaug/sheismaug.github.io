@@ -216,6 +216,90 @@ nav.tabs button.on{background:var(--sel);color:var(--selInk);font-weight:700}
 .urgent{background:#FDE8E8;color:#B4232A}
 .prewrap{white-space:pre-line;font-size:15px;line-height:1.6}
 @media (max-width:760px){.wrap{padding:12px}.pt,.list,.hadside{max-width:none}.big{font-size:36px}}
+
+/* warfarin tab */
+#wf .cols{display:flex;flex-wrap:wrap;gap:18px;align-items:flex-start}
+#wf .card{background:#fff;border:1.5px solid var(--line);border-radius:24px;padding:18px}
+#wf .ttl{display:flex;align-items:center;gap:10px;font-size:17px;font-weight:700;margin-bottom:12px}
+#wf .step{width:28px;height:28px;border-radius:50%;background:var(--ink);color:#fff;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:700;flex-shrink:0}
+#wf .c1{flex:1 1 400px;max-width:460px}
+#wf .c2{flex:1 1 280px;max-width:330px}
+#wf .res{flex:999 1 440px;min-width:0;display:flex;flex-direction:column;gap:14px}
+#wf .sublab{font-size:13px;color:var(--mute);margin:12px 0 6px}
+#wf .field{display:flex;align-items:center;gap:6px;height:46px;padding:0 12px;background:#fff;border:1.5px solid var(--field);border-radius:12px}
+#wf .field input{width:100%;min-width:0;text-align:center;border:0;outline:0;background:transparent;font-family:var(--num);font-size:22px;font-weight:800}
+#wf .field input::placeholder{color:#C9C3B6;font-weight:600}
+#wf .field span{font-size:14px;color:var(--mute);white-space:nowrap}
+#wf .field:focus-within{border-color:var(--blue)}
+#wf .seg{display:flex;gap:4px;min-height:46px;background:#fff;border:1.5px solid var(--field);border-radius:12px;padding:4px}
+#wf .seg button{flex:1;border:0;border-radius:8px;background:transparent;color:var(--soft);font-size:14px;padding:4px}
+#wf .seg button.on{background:var(--sel);color:var(--selInk);font-weight:700}
+#wf .seg.bl button.on.major{background:#FDE8E8;color:#B42323}
+#wf .days{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:6px}
+#wf .day{background:var(--bg);border-radius:14px;padding:8px 4px;display:flex;flex-direction:column;align-items:center;gap:6px}
+#wf .day .dn{font-size:13px;font-weight:700;color:var(--soft)}
+#wf .day input{width:100%;text-align:center;border:1.5px solid var(--field);border-radius:10px;height:38px;font-family:var(--num);font-weight:800;font-size:16px;background:#fff;outline:0}
+#wf .day input:focus{border-color:var(--blue)}
+#wf .pm{display:flex;gap:4px}
+#wf .pm button{width:24px;height:24px;border:0;border-radius:8px;background:#fff;box-shadow:0 2px 0 var(--line);font-weight:700;line-height:1;padding:0}
+#wf .quick{display:flex;gap:6px;align-items:center;margin-top:12px;flex-wrap:wrap}
+#wf .quick .btn3d{padding:6px 10px;font-size:13px}
+#wf .strsel{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+#wf .strsel button{display:flex;flex-direction:column;align-items:center;gap:2px;padding:8px 4px;border-radius:14px;border:2px solid var(--line);background:#fff;box-shadow:0 3px 0 var(--line)}
+#wf .strsel button span{font-size:12px;color:var(--mute)}
+#wf .strsel button.on{border-color:var(--d);background:color-mix(in srgb,var(--c) 18%,#fff);box-shadow:0 3px 0 var(--d)}
+#wf .strsel button svg{width:26px;height:26px}
+#wf .tb{display:flex;flex-direction:column;align-items:center;gap:3px;width:100%;padding:4px 0;border-top:1px dashed #E2DCCF}
+#wf .tb .cnt{font-family:var(--num);font-weight:800;font-size:15px}
+#wf .tx0{color:#C9C3B6;font-weight:700}
+#wf .dmg{font-size:12px;color:var(--mute);font-weight:700}
+#wf .quick .field{flex:1;height:40px}
+#wf .quick .field input{font-size:18px}
+#wf .btn3d{border:0;border-radius:12px;padding:9px 16px;background:var(--blue);color:#fff;font-weight:700;box-shadow:0 3px 0 #1F55C4;white-space:nowrap}
+#wf .btn3d.ghost{background:#fff;color:var(--soft);box-shadow:0 3px 0 var(--line);border:1.5px solid var(--line)}
+#wf .twd{display:flex;align-items:center;gap:10px;margin-top:14px;padding:12px 16px;border-radius:16px;background:var(--sel)}
+#wf .twd b{font-family:var(--num);font-size:30px;color:var(--selInk)}
+#wf .twd span{color:var(--selInk);font-size:14px}
+#wf .legend{display:flex;gap:12px;flex-wrap:wrap;margin-top:12px;font-size:13px;color:var(--soft)}
+#wf .legend span{display:flex;align-items:center;gap:4px}
+#wf .pills{display:flex;flex-wrap:wrap;gap:6px}
+#wf .pills button{min-height:34px;padding:4px 12px;border-radius:999px;border:0;background:var(--bg);color:var(--soft);font-size:13px;text-align:left}
+#wf .pills button.on{background:#FFF1D6;color:#8A5300;font-weight:700}
+#wf .dinote{font-size:12px;color:var(--mute);margin-top:8px;line-height:1.6}
+#wf .rcard{background:#fff;border:1.5px solid var(--line);border-radius:24px;overflow:hidden}
+#wf .band{color:#fff;padding:14px 20px;display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+#wf .band .inr{font-family:var(--num);font-weight:800;font-size:34px;line-height:1}
+#wf .band .t{font-size:17px;font-weight:700}
+#wf .band .s{font-size:13px;opacity:.95}
+#wf .pad{padding:16px 20px;display:flex;flex-direction:column;gap:10px}
+#wf .act{display:flex;gap:10px;align-items:center;padding:10px 12px;border-radius:14px;background:var(--bg);font-weight:600}
+#wf .act .n{width:24px;height:24px;border-radius:50%;color:#fff;display:grid;place-items:center;font-size:13px;flex:none}
+#wf .warnbox{background:#FFF8E6;border-radius:14px;padding:10px 12px;font-size:14px;color:#6B4600;line-height:1.5}
+#wf .dangerbox{background:#FFE9E9;border-radius:14px;padding:10px 12px;font-size:14px;color:#7A1414;line-height:1.5}
+#wf .infobox{background:#EEF3FE;border-radius:14px;padding:10px 12px;font-size:14px;color:var(--selInk);line-height:1.5}
+#wf .opt{border:2px solid var(--line);border-radius:18px;padding:12px;cursor:pointer;background:#fff;text-align:left;width:100%}
+#wf .opt.on{border-color:var(--blue);background:#F7F9FF;box-shadow:0 3px 0 #C9D8FB}
+#wf .opthd{display:flex;align-items:center;gap:10px;margin-bottom:10px;flex-wrap:wrap}
+#wf .opthd .w{font-family:var(--num);font-weight:800;font-size:22px}
+#wf .tag{font-size:12px;font-weight:700;padding:3px 9px;border-radius:999px;background:#F1EEE6;color:var(--soft)}
+#wf .tag.up{background:#E5F1FF;color:#1D4E89}
+#wf .tag.down{background:#FFEFD9;color:#8A5300}
+#wf .tag.best{background:#DDF3E6;color:#14703C}
+#wf .cal{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:5px}
+#wf .cd{display:flex;flex-direction:column;align-items:center;gap:4px;padding:8px 2px;border-radius:12px;background:var(--bg)}
+#wf .cd.hi{background:#FFF1D6;box-shadow:inset 0 0 0 2px #F5A524}
+#wf .cd.off{background:#EFEDE8}
+#wf .cd .dn{font-size:12px;font-weight:700;color:var(--soft)}
+#wf .cd .mg{font-family:var(--num);font-weight:800;font-size:15px}
+#wf .cd .tx{font-size:11px;color:var(--mute);text-align:center;line-height:1.3}
+#wf .prow{display:flex;flex-wrap:wrap;justify-content:center;gap:2px;min-height:22px}
+#wf .disp{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+#wf .disp .chip{display:flex;align-items:center;gap:6px;padding:8px 12px;border-radius:14px;background:var(--bg);font-weight:700}
+#wf .disp .chip b{font-family:var(--num);font-size:18px}
+#wf .note{width:100%;border:1.5px solid var(--field);border-radius:12px;padding:12px 14px;font-family:'Google Sans','IBM Plex Sans Thai',sans-serif;font-size:15px;line-height:1.7;resize:vertical;background:#FCFBF8;white-space:pre}
+#wf .empty{color:var(--mute);text-align:center;padding:36px 16px}
+#wf .src{font-size:12px;color:var(--mute);line-height:1.6}
+#wf .hide{display:none}
 </style>
 </head>
 <body>
@@ -1076,9 +1160,10 @@ const S = {
   neb: { g: 'neb', q: '', sel: [], ds: {} },
   renal: { mode: 'egfr', egfr: '', scr: '', age: '', sex: 'M', wt: '', route: 'all', q: '' },
   had: { d: 'ne', sub: 'mix', w: '', dose: '' },
+  warfarin: {},
   tb: { reg: 'hrze', ph: 'ip', am: 'no', cmode: 'cr', cr: '', scr: '', hd: 'no', ord: {} }
 };
-const TABS = [['oral', 'ยากินเด็ก', 'baby'], ['neb', 'ยาพ่น', 'lungs'], ['inj', 'ยาฉีดเด็ก', 'syringe'], ['renal', 'ปรับตามไต', 'testtube'], ['tb', 'ยา TB', 'petri'], ['had', 'HAD Handbook', 'alembic']];
+const TABS = [['oral', 'ยากินเด็ก', 'baby'], ['neb', 'ยาพ่น', 'lungs'], ['inj', 'ยาฉีดเด็ก', 'syringe'], ['renal', 'ปรับตามไต', 'testtube'], ['tb', 'ยา TB', 'petri'], ['warfarin', 'Warfarin', 'pill'], ['had', 'HAD Handbook', 'alembic']];
 const DB = { oral: ORAL, inj: INJ, neb: NEB };
 const GROUPS = { oral: [['abx', 'ยาฆ่าเชื้อ'], ['sym', 'บรรเทาอาการ'], ['other', 'อื่นๆ']], inj: [['emerg', 'ฉุกเฉิน'], ['abx', 'ยาฆ่าเชื้อ'], ['other', 'อื่นๆ']], neb: null };
 
@@ -1186,14 +1271,16 @@ function render() {
   if (S.tab === 'renal') m.innerHTML = renalHTML();
   else if (S.tab === 'had') m.innerHTML = hadHTML();
   else if (S.tab === 'tb') m.innerHTML = tbHTML();
+  else if (S.tab === 'warfarin') m.innerHTML = '<div id="wf"><div class="cols"><div class="card c1" id="wf_c1"></div><div class="card c2" id="wf_c2"></div><div class="res" id="wf_res"></div></div></div>';
   else m.innerHTML = doseHTML(S.tab);
-  $('#foot').textContent = S.tab === 'had' ? 'ข้อมูลจาก HAD_DB (ipd_pharm_hub) · HAD รพ.ห้วยผึ้ง' : S.tab === 'tb' ? 'แนวทางการควบคุมวัณโรคประเทศไทย พ.ศ. 2564 (ตาราง 5.1, 7.1) · max/day: Guideline TB 2556 / WHO 2014 · ไต: ATS/CDC/IDSA 2016 · Amikacin weight: UpToDate 2024 · ร่าง · รอตรวจทานก่อนใช้จริง · ใช้ประกอบการตรวจสอบ ไม่แทนดุลยพินิจทางคลินิก' : 'ข้อมูลขนาดยา: Lexicomp/เอกสารกำกับยา · ตรวจทานโดย ภญ.กรรณิกา สันติพาณิชย์วงศ์ 11 พ.ย. 2569 · ใช้ประกอบการตรวจสอบ ไม่แทนดุลยพินิจทางคลินิก';
+  $('#foot').textContent = S.tab === 'warfarin' ? 'ตารางที่ 3 แนวทางการปรับขนาดยาเพื่อให้ได้ INR เป้าหมาย 2.0–3.0 (แหล่งอ้างอิง: รอระบุ) · ปรับไม่เกิน 20%/ครั้ง · เม็ด 2/3/5 mg หักครึ่งได้ · ใช้ประกอบการตรวจสอบ ต้อง double check ก่อนจ่ายยาทุกครั้ง' : S.tab === 'had' ? 'ข้อมูลจาก HAD_DB (ipd_pharm_hub) · HAD รพ.ห้วยผึ้ง' : S.tab === 'tb' ? 'แนวทางการควบคุมวัณโรคประเทศไทย พ.ศ. 2564 (ตาราง 5.1, 7.1) · max/day: Guideline TB 2556 / WHO 2014 · ไต: ATS/CDC/IDSA 2016 · Amikacin weight: UpToDate 2024 · ร่าง · รอตรวจทานก่อนใช้จริง · ใช้ประกอบการตรวจสอบ ไม่แทนดุลยพินิจทางคลินิก' : 'ข้อมูลขนาดยา: Lexicomp/เอกสารกำกับยา · ตรวจทานโดย ภญ.กรรณิกา สันติพาณิชย์วงศ์ 11 พ.ย. 2569 · ใช้ประกอบการตรวจสอบ ไม่แทนดุลยพินิจทางคลินิก';
   refresh();
 }
 function refresh() {
   if (S.tab === 'renal') { const r = $('#renalOut'); if (r) r.innerHTML = renalOut(); return; }
   if (S.tab === 'had') { const h = $('#hadBody'); if (h) h.innerHTML = hadBody(); return; }
   if (S.tab === 'tb') { tbRefresh(); return; }
+  if (S.tab === 'warfarin') { wf_render(); return; }
   const p = $('#ptStatus'); if (p) p.innerHTML = ptStatusHTML();
   const l = $('#drugList'); if (l) l.innerHTML = drugListHTML(S.tab);
   const sb = $('#selBar'); if (sb) sb.innerHTML = selBarHTML(S.tab);
@@ -1765,6 +1852,246 @@ function keepFocus(t, fn) {
   const sel = pre + Object.keys(t.dataset).map(k => '[data-' + k.replace(/[A-Z]/g, m => '-' + m.toLowerCase()) + ']').join(''), pos = t.selectionStart;
   fn(); const n = sel && document.querySelector(sel); if (n) { n.focus(); try { n.setSelectionRange(pos, pos); } catch (e) {} }
 }
+/* ================= Warfarin (TWD & INR) ================= */
+
+/* ===== data ===== */
+const wf_STR=[{mg:2,c:'#F59A3C',d:'#C26F17',n:'ส้ม'},{mg:3,c:'#5AA6EE',d:'#2A73BE',n:'ฟ้า'},{mg:5,c:'#F08DB9',d:'#C4507F',n:'ชมพู'}];
+const wf_DAYS=['จ.','อ.','พ.','พฤ.','ศ.','ส.','อา.'];
+const wf_CAUSES=[
+  ['miss','ลืมกิน / กินผิดขนาด'],
+  ['di','เริ่ม/หยุดยาที่มี DI'],
+  ['food','อาหารที่มี Vit K เปลี่ยน (ผักใบเขียว)'],
+  ['alc','ดื่มแอลกอฮอล์'],
+  ['ill','เจ็บป่วย: ไข้ ท้องเสีย กินไม่ได้'],
+  ['herb','สมุนไพร / อาหารเสริมใหม่'],
+];
+const wf_S={str:[1],tab:[0,1,2,3,4,5,6].map(()=>[0,2,0]),days:[3,3,3,3,3,3,3],target:'23',inr:'',bleed:'none',weeks:4,causes:{},pick:0,quick:''};
+
+/* ===== helpers ===== */
+const wf_r2=x=>Math.round(x*100)/100;
+const wf_f=x=>String(wf_r2(x));
+const wf_FR={1:'½',2:'1',3:'1½',4:'2',5:'2½',6:'3'};
+const wf_twd=()=>wf_r2(wf_S.days.reduce((a,b)=>a+(parseFloat(b)||0),0));
+function wf_pill(i,half){const s=wf_STR[i];
+  return half?`<svg width="20" height="20" viewBox="0 0 22 22"><path d="M11 2a9 9 0 0 0 0 18z" fill="${s.c}" stroke="${s.d}" stroke-width="1.6"/></svg>`
+  :`<svg width="20" height="20" viewBox="0 0 22 22"><circle cx="11" cy="11" r="9" fill="${s.c}" stroke="${s.d}" stroke-width="1.6"/><line x1="11" y1="4" x2="11" y2="18" stroke="${s.d}" stroke-width="1.2" opacity=".55"/></svg>`;}
+function wf_pillsOf(combo){let h='';combo.forEach(([i,n])=>{for(let k=0;k<Math.floor(n/2);k++)h+=wf_pill(i,false);if(n%2)h+=wf_pill(i,true);});return h;}
+function wf_comboTxt(combo){return combo.map(([i,n])=>`${wf_STR[i].mg} mg × ${wf_FR[n]}`).join(' + ');}
+
+/* ===== INR band (ตารางที่ 3 · target 2.0–3.0) ===== */
+function wf_bandOf(inr,bleed){
+  if(bleed==='major')return{k:'major',col:'#8E1B1B',rng:'Major bleeding',t:'เลือดออกรุนแรง (INR ใดก็ได้)',lo:null,
+    acts:['หยุด warfarin และแจ้งแพทย์ทันที','Vit K₁ 10 mg IV (amp 10 mg × 1)','ร่วมกับ FFP','ให้ Vit K₁ ซ้ำทุก 12 ชม. ถ้าจำเป็น']};
+  if(inr<1.5)return{k:'vlow',col:'#2F6FED',rng:'< 1.5',t:'INR ต่ำมาก',lo:.10,hi:.20,na:[],acts:['เพิ่ม TWD 10–20%']};
+  if(inr<2.0)return{k:'low',col:'#5B8DEF',rng:'1.5–1.9',t:'INR ต่ำกว่าเป้า',lo:.05,hi:.10,na:[],acts:['เพิ่ม TWD 5–10%']};
+  if(inr<=3.0)return{k:'ok',col:'#1F9D55',rng:'2.0–3.0',t:'อยู่ในเป้าหมาย',lo:0,hi:0,na:[],acts:['คงขนาดเดิม (continue same dose)']};
+  if(inr<4.0)return{k:'hi',col:'#D99A00',rng:'3.1–3.9',t:'INR สูงกว่าเป้า',lo:-.10,hi:-.05,na:[],acts:['ลด TWD 5–10%']};
+  if(inr<5.0)return{k:'hi2',col:'#EE7A12',rng:'4.0–4.9',t:'INR สูง',lo:-.12,hi:-.08,na:['งดยา 1 วัน'],acts:['งดยา 1 วัน','จากนั้นลด TWD 10%']};
+  if(inr<9.0)return{k:'hi3',col:'#E5484D',rng:'5.0–8.9',t:'INR สูงมาก (ไม่มี bleeding)',lo:-.20,hi:-.10,flag:true,na:['งดยา 1–2 มื้อ','Vit K₁ 1 mg PO'],
+    acts:['งดยา 1–2 มื้อ (omit 1–2 doses)','Vit K₁ 1 mg กิน (amp 1 mg × 1)']};
+  return{k:'hi4',col:'#B42323',rng:'≥ 9.0',t:'INR สูงอันตราย (ไม่มี bleeding)',lo:-.20,hi:-.10,flag:true,na:['งด warfarin','Vit K₁ 5–10 mg PO'],
+    acts:['งด warfarin','Vit K₁ 5–10 mg กิน (amp 10 mg: 5 mg = ½ amp · 10 mg = 1 amp)']};
+}
+
+/* ===== regimen generator ===== */
+function wf_dayCombos(set){
+  const out={};const H=[0,1,2,3,4];
+  const sc=c=>{let tabs=0,hv=0;c.forEach(([i,n])=>{tabs+=n/2;hv+=n%2});return hv+Math.max(0,tabs-2)+(c.length>1?.6:0)};
+  const add=(mg,c)=>{mg=wf_r2(mg);const s=sc(c);if(!out[mg]||s<out[mg].sc)out[mg]={mg,combo:c,sc:s};};
+  if(set.length===1)H.forEach(n=>add(wf_STR[set[0]].mg*n/2,n?[[set[0],n]]:[]));
+  else H.forEach(a=>H.forEach(b=>{if(a+b<=6)add((wf_STR[set[0]].mg*a+wf_STR[set[1]].mg*b)/2,[[set[0],a],[set[1],b]].filter(x=>x[1]>0));}));
+  return Object.values(out).sort((a,b)=>a.mg-b.mg);
+}
+function wf_hiIdx(k){
+  if(k<=3)return[[],[0],[0,3],[0,2,4]][k];
+  const lo=7-k,lod=[];for(let i=0;i<lo;i++)lod.push(6-Math.floor(i*7/lo));
+  return[0,1,2,3,4,5,6].filter(d=>!lod.includes(d));
+}
+const wf_SPREAD=[0,3,5,1,4,6,2];               // ลำดับกระจายวัน: จ. พฤ. ส. อ. ศ. อา. พ.
+const wf_SETS=[[0],[1],[2],[0,1],[0,2],[1,2]];
+function wf_curRep(){                             // ตารางเดิมจากเม็ดที่กรอกจริง
+  const days=wf_S.tab.map((t,d)=>({mg:wf_S.days[d],combo:t.map((n,i)=>[i,n]).filter(x=>x[1]>0)}));
+  const used=new Set();days.forEach(x=>x.combo.forEach(([i])=>used.add(i)));
+  if(!used.size)return null;
+  return{set:[...used].sort(),days,used:[...used]};
+}
+function wf_arrange(days){       // ขนาดเดียวกันอยู่ติดกัน กลุ่มใหญ่เริ่ม จ. กลุ่มเล็กไปท้ายสัปดาห์ (ส.–อา.)
+  const ck=c=>c.map(x=>x.join('x')).join('+');const g={};
+  days.forEach(d=>{const k=ck(d.combo);(g[k]=g[k]||{d,n:0}).n++;});
+  const gs=Object.values(g).sort((a,b)=>(b.n-a.n)||(b.d.mg-a.d.mg));
+  const top=gs[0];const groups=[top,...gs.slice(1).sort((a,b)=>(Math.abs(a.d.mg-top.d.mg)-Math.abs(b.d.mg-top.d.mg))||(b.n-a.n))];
+  const out=[];groups.forEach(x=>{for(let i=0;i<x.n;i++)out.push({mg:x.d.mg,combo:x.d.combo});});
+  return out;
+}
+function wf_plans(cur,lo,hi,dir){
+  const cd=wf_S.days.map(v=>wf_r2(parseFloat(v)||0));const rep=wf_curRep();const cand=[];
+  // A) ปรับจากตารางเดิม: เพิ่ม/ลดเม็ดความแรงที่ใช้อยู่ ทีละ ½ หรือ 1 เม็ด ในบางวัน
+  if(rep&&dir!==0){
+    rep.set.forEach(si=>[1,2].forEach(step=>{
+      const elig=[0,1,2,3,4,5,6].filter(d=>{const n=wf_S.tab[d][si]+dir*step;return n>=0&&n<=4&&(dir>0?wf_S.tab[d].reduce((a,x)=>a+x,0)+step<=6:true);});
+      elig.sort((x,y)=>(dir>0?cd[x]-cd[y]:cd[y]-cd[x])||(wf_SPREAD.indexOf(x)-wf_SPREAD.indexOf(y)));
+      for(let m=1;m<=elig.length;m++){
+        const pick=elig.slice(0,m);
+        cand.push(wf_S.tab.map((t,d)=>{const n=t.slice();if(pick.includes(d))n[si]+=dir*step;
+          return{mg:wf_r2(n.reduce((a,x,i)=>a+wf_STR[i].mg*x/2,0)),combo:n.map((x,i)=>[i,x]).filter(x=>x[1]>0)};}));
+      }
+    }));
+  }
+  // B) จัดตารางใหม่ทั้งสัปดาห์ (สำรอง เมื่อจัดจากเดิมไม่ได้)
+  wf_SETS.forEach(set=>{
+    const D=wf_dayCombos(set);
+    for(let i=0;i<D.length;i++)for(let j=i;j<D.length;j++){
+      const L=D[i],Hd=D[j];
+      (i===j?[0]:[1,2,3,4,5,6]).forEach(k=>{
+        const hiD=wf_hiIdx(k);
+        cand.push([0,1,2,3,4,5,6].map(d=>hiD.includes(d)?{mg:Hd.mg,combo:Hd.combo,hi:i!==j}:{mg:L.mg,combo:L.combo,hi:false}));
+      });
+    }
+  });
+  const mid=(lo+hi)/2;const curUsed=rep?rep.used:[];const all=[];const sig=new Set();
+  cand.forEach(days0=>{
+    const days=wf_arrange(days0);
+    const w=wf_r2(days.reduce((a,d)=>a+d.mg,0));if(w<=0)return;
+    const key=days.map(d=>d.mg+':'+d.combo.map(c=>c.join('x')).join('+')).join('|');if(sig.has(key))return;sig.add(key);
+    const pct=(w-cur)/cur;
+    if(Math.abs(pct)>0.2+1e-9)return;
+    if(dir>0&&w<=cur)return; if(dir<0&&w>=cur)return;
+    const used=new Set();days.forEach(d=>d.combo.forEach(([i])=>used.add(i)));
+    const inR=w>=lo-1e-9&&w<=hi+1e-9;
+    const dist=inR?0:Math.min(Math.abs(w-lo),Math.abs(w-hi));
+    let changed=0,newSkip=0,jump=0,halves=0,mixed=0;
+    days.forEach((d,i)=>{
+      const ck=c=>c.map(x=>x.join('x')).join('+');const cc=ck(rep?rep.days[i].combo:[]);const dc=ck(d.combo);
+      if(dc!==cc)changed++;
+      if(d.mg===0&&cd[i]>0)newSkip++;
+      if(cd[i]>0&&Math.abs(d.mg-cd[i])/cd[i]>0.5)jump++;
+      d.hi=dc!==cc;
+      if(dc!==cc){d.combo.forEach(([,n])=>{if(n%2)halves++});if(d.combo.length>1)mixed++;}
+    });
+    if(newSkip>2)return;
+    const newStr=[...used].filter(i=>!curUsed.includes(i)).length;
+    const lv=new Set(days.map(d=>d.combo.map(c=>c.join('x')).join('+'))).size;
+    const mgs=days.map(d=>d.mg).filter(x=>x>0);const spread=mgs.length?Math.max(...mgs)/Math.min(...mgs):1;
+    let sc=(lv-1)*1.5+Math.max(0,lv-2)*6+(spread>2?4:spread>1.6?1.5:0)+changed*1.2+newSkip*15+jump*3+newStr*5+(used.size-1)*3+halves*.2+mixed*2+(inR?0:6)+dist/cur*40+Math.abs(w-mid)/cur*3;
+    all.push({w,pct,inR,s:sc,days,used:[...used],changed,newSkip});
+  });
+  all.sort((a,b)=>a.s-b.s);
+  const seen=new Set(),pick=[];
+  for(const p of all){if(seen.has(p.w))continue;seen.add(p.w);pick.push(p);if(pick.length===3)break;}
+  return pick;
+}
+function wf_dispense(p,weeks){
+  const hv={};p.days.forEach(d=>d.combo.forEach(([i,n])=>hv[i]=(hv[i]||0)+n));
+  return Object.keys(hv).map(i=>({i:+i,tabs:Math.ceil(hv[i]*weeks/2)}));
+}
+function wf_dayRange(ix){
+  if(ix.length===7)return'ทุกวัน';
+  const contig=ix.every((d,k)=>k===0||d===ix[k-1]+1);
+  if(contig&&ix.length>2)return`${wf_DAYS[ix[0]]}–${wf_DAYS[ix[ix.length-1]]}`;
+  return ix.map(d=>wf_DAYS[d]).join(' ');
+}
+function wf_noteDays(p){
+  const g=[];p.days.forEach((d,i)=>{const k=d.combo.map(c=>c.join('x')).join('+');let x=g.find(y=>y.k===k);if(!x)g.push(x={k,d,ix:[]});x.ix.push(i);});
+  return g.map(x=>`  ${wf_dayRange(x.ix)}: ${x.d.combo.length?x.d.combo.map(([i,n])=>`${wf_STR[i].mg} mg ${wf_FR[n]} เม็ด`).join(' + ')+` (${wf_f(x.d.mg)} mg)`:'งดยา'}`);
+}
+function wf_groupTxt(p){
+  const g={};p.days.forEach((d,i)=>{const k=d.combo.length?wf_comboTxt(d.combo)+' เม็ด':'งดยา';(g[k]=g[k]||[]).push(wf_DAYS[i]);});
+  return Object.entries(g).map(([k,v])=>`${k} (${v.length===7?'ทุกวัน':v.join(' ')})`).join(' · ');
+}
+
+/* ===== wf_render ===== */
+function wf_syncDays(){wf_S.days=wf_S.tab.map(t=>wf_r2(t.reduce((a,n,i)=>a+wf_STR[i].mg*n/2,0)));}
+function wf_c1(){
+  const sel=wf_S.str;
+  return `<div class="ttl"><span class="step">1</span>ยาที่กินอยู่ตอนนี้</div>
+  <div class="sublab" style="margin-top:0">เม็ดที่ใช้ (เลือกได้ 2 ความแรง)</div>
+  <div class="strsel">${wf_STR.map((s,i)=>`<button class="${sel.includes(i)?'on':''}" style="--c:${s.c};--d:${s.d}" onclick="wf_toggleStr(${i})">${wf_pill(i,false)}<b>${s.mg} mg</b><span>${s.n}</span></button>`).join('')}</div>
+  <div class="sublab">จำนวนเม็ดต่อวัน (กด + ทีละ ½ เม็ด)</div>
+  <div class="days">${wf_S.tab.map((t,d)=>`<div class="day"><div class="dn">${wf_DAYS[d]}</div>
+    ${sel.map(i=>`<div class="tb"><div class="prow">${t[i]?wf_pillsOf([[i,t[i]]]):'<span class="tx0">–</span>'}</div>
+      <div class="cnt">${t[i]?wf_FR[t[i]]:'0'}</div>
+      <div class="pm"><button onclick="wf_stepTab(${d},${i},-1)">−</button><button onclick="wf_stepTab(${d},${i},1)">+</button></div></div>`).join('')}
+    <div class="dmg">${wf_f(wf_S.days[d])} mg</div></div>`).join('')}</div>
+  <div class="quick"><span class="sublab" style="margin:0">ทุกวัน ${wf_STR[sel[0]].mg} mg:</span>${[1,2,3,4].map(n=>`<button class="btn3d ghost" onclick="wf_fillAll(${n})">${wf_FR[n]} เม็ด</button>`).join('')}</div>
+  <div class="twd"><span>TWD</span><b id="wf_twdv">${wf_f(wf_twd())}</b><span>mg / สัปดาห์</span></div>`;
+}
+function wf_c2(){
+  return `<div class="ttl"><span class="step">2</span>ผล INR</div>
+  <div class="sublab">Target INR</div>
+  <div class="seg">${[['23','2.0–3.0'],['2535','2.5–3.5']].map(([k,l])=>`<button class="${wf_S.target===k?'on':''}" onclick="wf_S.target='${k}';wf_render()">${l}</button>`).join('')}</div>
+  <div class="sublab">INR ครั้งนี้</div>
+  <div class="field"><input id="wf_inr" inputmode="decimal" placeholder="เช่น 1.8" value="${wf_S.inr}" oninput="wf_S.inr=this.value;wf_S.pick=0;wf_renderRes()"></div>
+  <div class="sublab">ภาวะเลือดออก</div>
+  <div class="seg bl">${[['none','ไม่มี'],['minor','Minor'],['major','Major']].map(([k,l])=>`<button class="${wf_S.bleed===k?'on '+k:''}" onclick="wf_S.bleed='${k}';wf_S.pick=0;wf_render()">${l}</button>`).join('')}</div>
+  <div class="sublab">หาสาเหตุก่อนปรับยา (ติ๊กที่พบ)</div>
+  <div class="pills">${wf_CAUSES.map(([k,l])=>`<button class="${wf_S.causes[k]?'on':''}" onclick="wf_S.causes['${k}']=!wf_S.causes['${k}'];wf_render()">${wf_S.causes[k]?'✓ ':''}${l}</button>`).join('')}</div>
+  <div class="dinote"><b>DI ที่พบบ่อย</b><br>↑ INR: amiodarone, metronidazole, fluconazole, co-trimoxazole, erythromycin/clarithromycin<br>↓ INR: rifampicin, carbamazepine, phenobarbital</div>`;
+}
+function wf_renderRes(){
+  const el=document.getElementById('wf_res');const cur=wf_twd();const inr=parseFloat(wf_S.inr);
+  if(wf_S.target==='2535'){el.innerHTML=`<div class="rcard"><div class="pad"><div class="dangerbox"><b>ตารางอ้างอิงนี้ใช้กับ target INR 2.0–3.0 เท่านั้น</b><br>Target 2.5–3.5 (เช่น mechanical mitral valve) ยังไม่มีตารางในเครื่องมือนี้ → ปรึกษาแพทย์ผู้สั่งยา</div></div></div>`+wf_srcHTML();return;}
+  if(!(cur>0)){el.innerHTML=`<div class="rcard"><div class="empty">ใส่ขนาดยาปัจจุบันรายวันก่อน</div></div>`;return;}
+  if(isNaN(inr)&&wf_S.bleed!=='major'){el.innerHTML=`<div class="rcard"><div class="empty">ใส่ค่า INR เพื่อดูคำแนะนำ</div></div>`+wf_srcHTML();return;}
+  const b=wf_bandOf(inr,wf_S.bleed);
+  let h=`<div class="rcard"><div class="band" style="background:${b.col}">
+     ${isNaN(inr)?'':`<div class="inr">${wf_f(inr)}</div>`}<div><div class="t">${b.t}</div><div class="s">ช่วง ${b.rng} · TWD เดิม ${wf_f(cur)} mg</div></div></div>
+     <div class="pad">${b.acts.map((a,i)=>`<div class="act"><span class="n" style="background:${b.col}">${i+1}</span>${a}</div>`).join('')}`;
+  if(wf_S.bleed==='minor')h+=`<div class="warnbox"><b>Minor bleeding:</b> ตารางไม่ได้ระบุแยก — แสดงคำแนะนำตามระดับ INR ประเมินตำแหน่ง/ความรุนแรงและแจ้งแพทย์</div>`;
+  const nc=Object.values(wf_S.causes).filter(Boolean).length;
+  if(nc&&b.k!=='ok'&&b.k!=='major')h+=`<div class="infobox">พบสาเหตุที่แก้ได้ ${nc} ข้อ — ถ้าเป็นเหตุชั่วคราว (เช่น ลืมกินยา) อาจแก้ที่สาเหตุและคงขนาดเดิม แล้วนัดเจาะ INR ซ้ำ (ใช้ดุลพินิจ)</div>`;
+  if(b.flag)h+=`<div class="warnbox">ตารางไม่ได้ระบุขนาดเมื่อเริ่มยาใหม่ — ตารางยาด้านล่างเป็น<b>ค่าเสนอ ลด 10–20%</b> ใช้เมื่อ INR กลับเข้าเป้าแล้ว</div>`;
+  h+=`</div></div>`;
+  if(b.lo!==null){
+    const lo=wf_r2(cur*(1+b.lo)),hi=wf_r2(cur*(1+b.hi));const dir=b.lo>0?1:b.hi<0?-1:0;
+    const ps=b.k==='ok'?wf_plans(cur,cur,cur,0).filter(p=>p.inR):wf_plans(cur,Math.min(lo,hi),Math.max(lo,hi),dir);
+    if(wf_S.pick>=ps.length)wf_S.pick=0;
+    const rep=wf_curRep();
+    h+=`<div class="rcard"><div class="pad"><div class="ttl" style="margin:0"><span class="step">3</span>${b.k==='ok'?'ตารางที่ได้ TWD เท่าเดิม (ถ้าต้องการจัดใหม่)':`ตารางยาใหม่ · เป้า TWD ${wf_f(Math.min(lo,hi))}–${wf_f(Math.max(lo,hi))} mg`}</div>`;
+    if(ps.length&&ps[0].newSkip)h+=`<div class="warnbox">ขนาดยาต่ำจนลดต่อโดยไม่มีวันงดยาไม่ได้ — ตรวจสอบกับแพทย์ก่อนใช้ตารางที่มีวันงดยา</div>`;
+    if(!ps.length)h+=`<div class="warnbox">จัดตารางด้วยเม็ด 2/3/5 mg ภายในการปรับไม่เกิน 20% ไม่ได้ — ปรับเองหรือปรึกษาแพทย์</div>`;
+    ps.forEach((p,n)=>{
+      const pc=Math.round(p.pct*1000)/10;
+      h+=`<button class="opt ${wf_S.pick===n?'on':''}" onclick="wf_S.pick=${n};wf_renderRes()">
+        <div class="opthd"><span class="w">${wf_f(p.w)}</span><span>mg/สัปดาห์</span>
+          ${b.k==='ok'?'':`<span class="tag ${pc>0?'up':'down'}">${pc>0?'+':''}${pc}%</span>`}
+          ${n===0?'<span class="tag best">แนะนำ</span>':''}${p.inR?'':'<span class="tag">นอกช่วงเป้า</span>'}<span class="tag">ปรับ ${p.changed} วัน</span>${p.newSkip?`<span class="tag" style="background:#FDE8E8;color:#B42323">⚠ มีวันงดยาใหม่ ${p.newSkip} วัน</span>`:''}
+          <span style="margin-left:auto;display:flex;gap:4px">${p.used.map(i=>wf_pill(i,false)).join('')}</span></div>
+        <div class="cal">${p.days.map((d,i)=>`<div class="cd ${d.mg===0?'off':d.hi?'hi':''}"><div class="dn">${wf_DAYS[i]}</div>
+          <div class="prow">${d.combo.length?wf_pillsOf(d.combo):'<span class="tx">งด</span>'}</div>
+          <div class="mg">${wf_f(d.mg)}</div><div class="tx">${d.combo.map(([s,k])=>`${wf_STR[s].mg}×${wf_FR[k]}`).join('<br>')}</div></div>`).join('')}</div></button>`;
+    });
+    if(ps.length){
+      const p=ps[wf_S.pick];const dp=wf_dispense(p,wf_S.weeks||0);
+      h+=`<div class="sublab" style="margin-top:6px">จ่ายยาถึงนัดครั้งหน้า</div>
+        <div class="disp"><div class="field" style="width:150px;height:42px"><input inputmode="numeric" value="${wf_S.weeks}" oninput="wf_S.weeks=parseInt(this.value)||0;wf_renderRes();wf_keep(this)" id="wf_wk"><span>สัปดาห์</span></div>
+        ${dp.map(x=>`<div class="chip">${wf_pill(x.i,false)}${wf_STR[x.i].mg} mg <b>${x.tabs}</b> เม็ด</div>`).join('')}</div>`;
+      const pc=Math.round(p.pct*1000)/10;
+      const lines=[`Warfarin · INR ${isNaN(inr)?'-':wf_f(inr)} (target 2–3)`];
+      b.na.forEach(x=>lines.push(`• ${x}`));
+      lines.push(`TWD ${wf_f(cur)} → ${wf_f(p.w)} mg/wk (${pc>0?'+':''}${pc}%)`);
+      wf_noteDays(p).forEach(x=>lines.push(x));
+      const txt=lines.join('\n');
+      h+=`<div class="sublab">ข้อความสำหรับบันทึก</div><textarea class="note" id="wf_nt" readonly rows="${lines.length+1}">${txt}</textarea>
+        <div><button class="btn3d" onclick="wf_copyNote(this)">คัดลอกข้อความ</button></div>`;
+    }
+    h+=`</div></div>`;
+  }
+  el.innerHTML=h+wf_srcHTML();
+}
+function wf_srcHTML(){return '';`<div class="src">อ้างอิง: ตารางที่ 3 แนวทางการปรับขนาดยาเพื่อให้ได้ INR เป้าหมาย 2.0–3.0 (<b>ต้องใส่ชื่อแหล่งอ้างอิง</b>) · ปรับไม่เกิน 20%/ครั้ง · เครื่องมือช่วยคำนวณ ต้อง double check ก่อนจ่ายยาทุกครั้ง</div>`;}
+function wf_render(){document.getElementById('wf_c1').innerHTML=wf_c1();document.getElementById('wf_c2').innerHTML=wf_c2();wf_renderRes();}
+
+/* ===== actions ===== */
+function wf_toggleStr(i){
+  if(wf_S.str.includes(i)){if(wf_S.str.length===1)return;wf_S.str=wf_S.str.filter(x=>x!==i);wf_S.tab.forEach(t=>t[i]=0);}
+  else{if(wf_S.str.length===2){const o=wf_S.str.shift();wf_S.tab.forEach(t=>t[o]=0);}wf_S.str.push(i);}
+  wf_syncDays();wf_S.pick=0;wf_render();}
+function wf_stepTab(d,i,dl){wf_S.tab[d][i]=Math.max(0,Math.min(4,wf_S.tab[d][i]+dl));wf_syncDays();wf_S.pick=0;wf_render();}
+function wf_fillAll(n){const i=wf_S.str[0];wf_S.tab.forEach(t=>{t.fill(0);t[i]=n;});wf_syncDays();wf_S.pick=0;wf_render();}
+function wf_keep(inp){const e=document.getElementById('wf_wk');if(e){e.focus();const l=e.value.length;e.setSelectionRange(l,l);}}
+function wf_copyNote(btn){const t=document.getElementById('wf_nt');t.select();try{navigator.clipboard.writeText(t.value)}catch(e){document.execCommand('copy')}btn.textContent='คัดลอกแล้ว ✓';setTimeout(()=>btn.textContent='คัดลอกข้อความ',1500);}
+wf_syncDays();
+
 render();
 </script>
 </body>
