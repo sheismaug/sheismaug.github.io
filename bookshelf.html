@@ -54,8 +54,6 @@ footer{padding:48px 0 40px;font-size:12px;color:var(--faint);display:flex;justif
 
 
 /* ── A: bookcase ── */
-.v-a .case{margin-top:40px;background:linear-gradient(#faf8f5,#f4f1ec);border-radius:22px;padding:30px 30px 0;display:flex;flex-wrap:wrap;gap:0;box-shadow:inset 0 0 0 1px #ece7df}
-.v-a .case .sec{padding:0 26px 30px;flex:0 1 auto;position:relative}
 .v-a .sech{display:inline-flex;align-items:center;gap:8px;font-size:12.5px;font-weight:600;color:#4a4740;background:#fff;border:1px solid #ebe5dc;border-radius:99px;padding:5px 12px 5px 10px;box-shadow:0 1px 2px rgba(60,50,30,.04)}
 .v-a .sech::before{content:"";width:6px;height:6px;border-radius:50%;background:var(--dot,#c9c2b6)}
 .v-a .sech span{font-size:11.5px;color:#a8a196;font-weight:500}
@@ -74,6 +72,45 @@ footer{padding:48px 0 40px;font-size:12px;color:var(--faint);display:flex;justif
 .v-a .panel img{width:100%;border-radius:14px;display:block;box-shadow:0 12px 30px -8px rgba(0,0,0,.25)}
 .v-b .sech .bars{display:inline-flex;gap:2px;margin-left:auto;align-self:center}
 .v-b .sech .bars i{width:5px;height:14px;border-radius:1.5px}
+
+
+/* ── cozy bookstore scene ── */
+.v-a .case{display:flex;flex-wrap:wrap;align-items:flex-start;position:relative;overflow:hidden;isolation:isolate;margin-top:40px;border-radius:24px;padding:118px 300px 64px 34px;background:
+  radial-gradient(60% 50% at 30% 18%,rgba(255,196,120,.22),transparent 70%),
+  radial-gradient(40% 40% at 70% 22%,rgba(255,190,110,.16),transparent 70%),
+  repeating-linear-gradient(90deg,rgba(255,255,255,.025) 0 2px,transparent 2px 86px),
+  linear-gradient(#3a271b,#2a1c13 70%,#22170f);box-shadow:0 30px 60px -30px rgba(40,25,10,.55),inset 0 0 0 1px rgba(255,220,170,.08);gap:6px 0}
+.v-a .case::after{content:"";position:absolute;left:0;right:0;bottom:0;height:46px;z-index:-1;background:repeating-linear-gradient(90deg,#5a3b25 0 120px,#523521 120px 240px);box-shadow:inset 0 10px 18px -8px rgba(0,0,0,.6)}
+.v-a .case .sec{padding:0 24px 34px;z-index:1}
+.v-a .sech{background:linear-gradient(#f3d9a4,#cfa45c);border:0;color:#3d2a12;box-shadow:0 2px 6px rgba(0,0,0,.35),inset 0 1px 0 rgba(255,255,255,.6);border-radius:6px;padding:5px 12px}
+.v-a .sech::before{background:#3d2a12;opacity:.55;width:5px;height:5px}
+.v-a .sech span{color:#6b4d22}
+.v-a .shelf::after{background:linear-gradient(#a26c41,#6e4527 60%,#563419);box-shadow:0 14px 18px -8px rgba(0,0,0,.65),inset 0 1px 0 rgba(255,215,160,.45)}
+.v-a .shelf::before{content:"";position:absolute;left:-30px;right:-30px;top:-40px;bottom:-12px;z-index:-1;background:radial-gradient(55% 60% at 50% 0%,rgba(255,200,130,.20),transparent 75%);pointer-events:none}
+.spine{box-shadow:0 1px 0 rgba(0,0,0,.25),3px 0 6px -2px rgba(0,0,0,.45)}
+.deco{position:absolute;inset:0;pointer-events:none;z-index:0}
+.lamp{position:absolute;top:0;width:2px;height:34px;background:#1a110b}
+.lamp i{position:absolute;left:50%;top:34px;transform:translateX(-50%);width:46px;height:22px;border-radius:46px 46px 6px 6px;background:linear-gradient(#2c2a27,#14120f);box-shadow:0 1px 0 rgba(255,255,255,.08)}
+.lamp b{position:absolute;left:50%;top:54px;transform:translateX(-50%);width:16px;height:7px;border-radius:0 0 10px 10px;background:#ffe2a8;box-shadow:0 0 14px 4px rgba(255,210,140,.75)}
+.lamp em{position:absolute;left:50%;top:58px;transform:translateX(-50%);width:420px;height:340px;background:radial-gradient(50% 55% at 50% 0%,rgba(255,206,140,.26),rgba(255,206,140,.08) 45%,transparent 72%);clip-path:polygon(44% 0,56% 0,100% 100%,0 100%)}
+.garland{position:absolute;left:0;right:0;top:6px;width:100%;height:70px}
+.bulb{animation:tw 2.6s ease-in-out infinite}
+.tree{position:absolute;right:26px;bottom:20px;width:270px;height:auto}
+.treeglow{position:absolute;right:-40px;bottom:0;width:440px;height:560px;background:radial-gradient(50% 50% at 50% 60%,rgba(255,200,120,.22),transparent 70%)}
+.gifts{position:absolute;right:236px;bottom:22px;width:110px}
+.tree .tl{animation:tw 1.9s ease-in-out infinite}
+.star{transform-origin:120px 22px;animation:glow 3s ease-in-out infinite}
+@keyframes tw{0%,100%{opacity:1}50%{opacity:.35}}
+@keyframes glow{0%,100%{filter:drop-shadow(0 0 6px rgba(255,214,120,.9))}50%{filter:drop-shadow(0 0 14px rgba(255,214,120,1))}}
+.banner{display:none}
+@media(max-width:700px){
+  .banner{display:block;position:relative;overflow:hidden;height:150px;border-radius:18px;margin-top:20px;background:radial-gradient(70% 80% at 30% 0%,rgba(255,196,120,.25),transparent 70%),linear-gradient(#3a271b,#22170f)}
+  .banner .tree{width:110px;right:14px;bottom:-6px}
+  .banner .garland{height:50px}
+  .banner .bt{position:absolute;left:18px;bottom:18px;color:#f6e3c1;font-size:13px;line-height:1.5}
+  .banner .bt b{display:block;font-size:20px;font-weight:500;color:#fff4de}
+}
+@media(prefers-reduced-motion:reduce){.bulb,.tree .tl,.star{animation:none}}
 
 /* ── B: index list ── */
 .v-b .list{list-style:none}
@@ -154,14 +191,37 @@ function listB(list){
       el('div',{class:'meta'}, b.rating?el('span',{class:'stars'},stars(b.rating)):null, el('span',{class:'tag'},(b.tags||[]).slice(0,2).map(t=>'#'+t).join('  ')))),
     open===b.id ? el('div',{class:'more'}, el('div',{}, b.quote?el('blockquote',{class:'pq'},b.quote):null, b.liked?el('p',{class:'pl'},b.liked):null, (b.tags||[]).length?el('div',{class:'ptags'},b.tags.map(t=>el('span',{class:'tag'},'#'+t))):null, el('img',{src:b.image,alt:'Instagram story ของ '+b.title}))) : null)));
 }
+
+const COLORS=['#ffcf6b','#ff7a6b','#8fd3ff','#b6f09c','#ffd9f2'];
+function garland(n,W){ const y=x=>10+34*Math.abs(Math.sin(Math.PI*x/(W/4)));
+  let d='M0 '+y(0); for(let x=4;x<=W;x+=4) d+=' L'+x+' '+y(x).toFixed(1);
+  let s=`<svg class="garland" viewBox="0 0 ${W} 70" preserveAspectRatio="xMidYMin slice" aria-hidden="true"><path d="${d}" fill="none" stroke="#1f3a26" stroke-width="2.5"/>`;
+  for(let i=0;i<n;i++){ const x=(i+.5)/n*W, c=COLORS[i%5];
+    s+=`<line x1="${x}" y1="${y(x)}" x2="${x}" y2="${y(x)+5}" stroke="#1f3a26" stroke-width="2"/><ellipse class="bulb" cx="${x}" cy="${y(x)+10}" rx="4" ry="5.5" fill="${c}" style="animation-delay:${((i*0.37)%2.6).toFixed(2)}s;filter:drop-shadow(0 0 5px ${c})"/>`; }
+  return s+'</svg>'; }
+function tree(){ let s=`<svg class="tree" viewBox="0 0 240 330" aria-hidden="true">
+  <ellipse cx="120" cy="318" rx="92" ry="10" fill="rgba(0,0,0,.35)"/>
+  <rect x="108" y="270" width="24" height="26" fill="#5b3a22"/>
+  <path d="M84 292h72l-8 30H92z" fill="#b8473a"/><path d="M84 292h72v6H84z" fill="#d9644f"/>
+  <path d="M120 150 30 280h180z" fill="#1f5a3a"/><path d="M120 150 30 280h90z" fill="#24683f"/>
+  <path d="M120 96 46 214h148z" fill="#23653f"/><path d="M120 96 46 214h74z" fill="#2a7748"/>
+  <path d="M120 40 62 150h116z" fill="#287045"/><path d="M120 40 62 150h58z" fill="#30844f"/>
+  <path d="M58 250q62 24 128-22M70 186q50 20 104-18M84 128q36 14 74-14" fill="none" stroke="#e9c46a" stroke-width="2.5" stroke-linecap="round" opacity=".9"/>`;
+  const orn=[[96,232,'#c0392b'],[150,252,'#e9c46a'],[120,198,'#8fd3ff'],[82,262,'#e9c46a'],[168,224,'#c0392b'],[104,160,'#e9c46a'],[142,176,'#c0392b'],[118,120,'#8fd3ff']];
+  orn.forEach(([x,y,c])=>s+=`<circle cx="${x}" cy="${y}" r="6.5" fill="${c}"/><circle cx="${x-2}" cy="${y-2}" r="2" fill="#fff" opacity=".55"/>`);
+  for(let i=0;i<34;i++){ const yy=60+((i*53)%210), half=(yy-40)*0.42, x=120+(((i*37)%100)/100*2-1)*half*0.85; const c=COLORS[i%5];
+    s+=`<circle class="tl" cx="${x.toFixed(1)}" cy="${yy}" r="2.6" fill="${c}" style="animation-delay:${((i*0.29)%1.9).toFixed(2)}s;filter:drop-shadow(0 0 4px ${c})"/>`; }
+  return s+`<g class="star"><path d="M120 8l5.9 12 13.2 1.9-9.6 9.3 2.3 13.1L120 38l-11.8 6.3 2.3-13.1-9.6-9.3 13.2-1.9z" fill="#ffd66b"/></g></svg>`; }
+const GIFTS=`<svg class="gifts" viewBox="0 0 110 70" aria-hidden="true"><ellipse cx="55" cy="66" rx="52" ry="4" fill="rgba(0,0,0,.35)"/><rect x="6" y="30" width="44" height="36" rx="2" fill="#c0392b"/><rect x="24" y="30" width="8" height="36" fill="#f3d9a4"/><path d="M28 30c-10-12-20-4-10 0m10 0c10-12 20-4 10 0" fill="none" stroke="#f3d9a4" stroke-width="3"/><rect x="56" y="44" width="46" height="22" rx="2" fill="#2f6f8f"/><rect x="74" y="44" width="8" height="22" fill="#ffd66b"/><rect x="40" y="52" width="24" height="14" rx="2" fill="#e9c46a"/><rect x="50" y="52" width="4" height="14" fill="#c0392b"/></svg>`;
+function deco(){ const d=el('div',{class:'deco'}); d.innerHTML=garland(28,1100)+[18,48,74].map(p=>`<div class="lamp" style="left:${p}%"><i></i><b></b><em></em></div>`).join('')+'<div class="treeglow"></div>'+tree()+GIFTS; return d; }
 function render(){ chips(); const m=$('#main');
   const groups = cats.filter(k=>!cat||k===cat).map(k=>[k, books.filter(b=>b.category===k)]).filter(([,l])=>l.length);
   const sec = ([k,l]) => el('section',{class:'sec',style:`--dot:${l[0].color||'#ccc'}`}, el('h2',{class:'sech'}, k, el('span',{}, l.length+' เล่ม'), V==='b' ? el('span',{class:'bars'}, l.map(b=>el('i',{style:`background:${b.color||'#ddd'}`}))) : null), V==='a' ? shelfA(l) : listB(l));
   if (V==='a'){
     const b = books.find(x=>x.id===open && groups.some(([k])=>k===x.category));
-    m.replaceChildren(el('div',{class:'case'}, groups.map(sec)),
+    m.replaceChildren(el('div',{class:'case'}, deco(), groups.map(sec)),
       b ? el('section',{class:'panel',id:'panel'}, el('img',{src:b.image,alt:''}), el('div',{}, el('div',{class:'pcat'}, b.category), details(b))) : el('p',{class:'lede',style:'padding:32px 0 20px'},'แตะที่สันหนังสือเพื่อเปิดอ่านโน้ต'));
-  } else m.replaceChildren(...groups.map(sec));
+  } else { const bn=el('div',{class:'banner'}); bn.innerHTML=garland(11,360)+tree()+'<div class="bt"><b>sheis bookshop</b>'+books.length+' เล่ม · '+groups.length+' หมวด</div>'; m.replaceChildren(bn, ...groups.map(sec)); }
 }
 fetch('bookshelf/books.json',{cache:'no-cache'}).then(r=>r.json()).then(d=>{ books=(d.books||[]).slice().sort((a,b)=>(b.date||'').localeCompare(a.date||'')); cats=d.categories||[...new Set(books.map(b=>b.category))]; books.forEach(b=>{ if(!b.category){ b.category='อื่นๆ'; if(!cats.includes('อื่นๆ')) cats.push('อื่นๆ'); } }); $('#n').textContent=books.length; if(d.updated) $('#upd').textContent='อัปเดต '+new Date(d.updated+'T00:00').toLocaleDateString('th-TH',{day:'numeric',month:'short',year:'numeric'}); if(V==='a') open=books[0]?.id; render(); });
 mq.addEventListener('change',()=>{ setV(); if(V==='a' && !open) open=books[0]?.id; render(); });
