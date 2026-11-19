@@ -152,14 +152,19 @@ h1{margin:6px 0 8px;font-size:42px;font-weight:700;line-height:1.25;letter-spaci
 .kr{display:flex;align-items:center;gap:16px}
 .kr .n{font-family:Montserrat,sans-serif;font-size:18px;font-weight:700}
 .kr .n small{color:var(--mute);font-weight:600}
-.minibars{display:flex;align-items:flex-end;justify-content:center;gap:4px;height:84px;padding-top:4px;border-top:1px dashed var(--line)}
-.minibars .mb{flex:1;max-width:36px;min-width:0;height:100%;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;gap:3px}
+.minibars{display:flex;align-items:flex-end;justify-content:center;gap:4px;padding-top:6px;border-top:1px dashed var(--line)}
+.minibars .mb{flex:1;max-width:36px;min-width:0;display:flex;flex-direction:column;align-items:center;gap:3px}
 .minibars .mb b{font-size:10px;font-weight:700;line-height:1;color:#5E7A0E;white-space:nowrap}
-.minibars .mb i{display:block;width:100%;max-width:24px;border-radius:6px 6px 3px 3px;background:#D5E6A6;min-height:3px}
-.minibars .mb.last i{background:#7FA314}
-.minibars .mb.na i{background:#efece4}
+.minibars .mb .tr{display:block;position:relative;width:100%;max-width:24px;height:48px;border-radius:6px 6px 3px 3px;background:#F3F1EA;overflow:hidden}
+.minibars .mb .tr i{position:absolute;left:0;right:0;bottom:0;display:block;border-radius:6px 6px 3px 3px;background:#9DBE3C;min-height:3px}
+.minibars .mb.low b{color:#C2612B}
+.minibars .mb.low .tr i{background:#F2A36B}
 .minibars .mb.na b{color:var(--mute);font-weight:400}
+.minibars .mb.na .tr i{background:transparent}
 .minibars .mb small{font-size:10px;line-height:1;color:var(--mute);white-space:nowrap}
+.minibars .mb small.n{font-size:9px;color:#b3afa5}
+.mbnote{display:flex;gap:10px;justify-content:flex-end;font-size:10px;color:var(--mute);margin-top:4px}
+.mbnote span::before{content:'';display:inline-block;width:8px;height:8px;border-radius:2px;margin-right:4px;vertical-align:-1px;background:var(--c)}
 .row2{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
 .hb{display:grid;grid-template-columns:78px minmax(0,1fr) 40px;align-items:center;gap:8px;font-size:12px}
 .hb i{height:12px;border-radius:6px;display:block}
@@ -707,11 +712,13 @@ function monLab(k) { const m = /^(\d{4})-(\d{2})/.exec(k || ''); return m ? TH_M
 function renderReport(r) {
   const s = r.summary, md = r.mdReview || {}, cn = r.counseling || { total: 0, byType: {} }, mon = r.monthly || [];
   const kpi = (icon, bg, title, sub, p, n, d, key) => {
-    const bars = mon.map((m, i) => { const v = m[key], na = v === null || v === undefined;
-      return `<div class="mb${i === mon.length - 1 ? ' last' : ''}${na ? ' na' : ''}" title="${monLab(m.month)} ${pctTxt(v)}"><b>${na ? '–' : Math.round(v)}</b><i style="height:${na ? 3 : Math.max(3, v * 0.48)}px"></i><small>${monLab(m.month).split(' ')[0]}</small></div>`; }).join('');
+    const nKey = { coveragePct: 'need', in8hPct: 'inN', out24hPct: 'outN' }[key];
+    // เป้า KPI = 100% → แท่ง = ระยะจากเป้า (พื้นเทา = ส่วนที่ยังขาด) · < 90% = สีส้ม (เดือนที่ควรดู)
+    const bars = mon.map((m) => { const v = m[key], na = v === null || v === undefined, n = nKey ? (m[nKey] || 0) : null;
+      return `<div class="mb${na ? ' na' : (v < 90 ? ' low' : '')}" title="${monLab(m.month)} · ${pctTxt(v)}${n !== null ? ' · n=' + n : ''}"><b>${na ? '–' : Math.round(v)}</b><span class="tr"><i style="height:${na ? 0 : Math.max(3, v)}%"></i></span><small>${monLab(m.month).split(' ')[0]}</small>${n !== null ? `<small class="n">${n}</small>` : ''}</div>`; }).join('');
     return `<div class="kpi"><div class="kh"><span class="ib" style="background:${bg}">${du(icon, 26)}</span><div><b>${title}</b><small>${sub}</small></div></div>
       <div class="kr">${ring(p, 108, 12, '#7FA314', `<span class="mont" style="font-size:24px;font-weight:800;line-height:1">${p === null || p === undefined ? '—' : Math.round(p * 10) / 10}<span style="font-size:13px">%</span></span>`)}<span class="n">${(n || 0).toLocaleString()}<small> / ${(d || 0).toLocaleString()}</small><br><small style="font-size:12px;font-weight:400">ราย</small></span></div>
-      ${mon.length > 1 ? `<div class="minibars">${bars}</div>` : ''}</div>`;
+      ${mon.length > 1 ? `<div class="minibars">${bars}</div><div class="mbnote"><span style="--c:#9DBE3C">≥ 90%</span><span style="--c:#F2A36B">< 90%</span><span style="--c:#F3F1EA">ขาดจากเป้า 100%</span></div>` : ''}</div>`;
   };
   const elig = md.eligible || 0, pS = elig ? md.same / elig * 100 : 0, p1 = elig ? (md.le1 - md.same) / elig * 100 : 0, pL = elig ? 100 - pS - p1 - (md.pending || 0) / elig * 100 : 0;
   const devs = COUN.map(c => `<div class="devc">${du(c[1], 30)}<b>${cn.byType[c[0]] || 0}</b><span>${c[2]}</span></div>`).join('');
