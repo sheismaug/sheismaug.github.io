@@ -36,33 +36,44 @@ h1{font-size:clamp(40px,7vw,64px);font-weight:500;letter-spacing:-0.035em;line-h
 .chip[aria-pressed="true"]{background:var(--ink);border-color:var(--ink);color:#fff}
 .tag{font-size:12px;color:var(--lab)}
 .chip .cn{margin-left:6px;font-size:11px;opacity:.55;font-variant-numeric:tabular-nums}
-.sec{padding-top:44px}
 .sech{font-size:13px;font-weight:600;letter-spacing:.02em;display:flex;align-items:baseline;gap:10px}
 .sech span{font-size:12px;font-weight:400;color:var(--faint)}
-.v-a .case{display:flex;flex-wrap:wrap;gap:0 56px;align-items:flex-start}
-.v-a .case .sec{flex:0 1 auto}
-.v-a .case .shelf{padding:22px 0 0;min-height:272px;align-content:flex-end;border-bottom:2px solid var(--ink);min-width:140px;gap:6px}
 .pcat{font-size:11px;letter-spacing:.12em;color:var(--lab);margin-bottom:10px}
 .v-b .sec{padding-top:32px}
-.v-b .sech{padding-bottom:4px;border-bottom:1px solid var(--line)}
+.v-b .sech{padding-bottom:10px;border-bottom:1px solid var(--line);font-size:14px}
 .stars{font-size:12px;letter-spacing:2px;color:var(--ink)}
 footer{padding:48px 0 40px;font-size:12px;color:var(--faint);display:flex;justify-content:space-between}
 
 /* ── A: shelf of spines ── */
-.v-a .shelf{padding:44px 0 8px;display:flex;flex-wrap:wrap;align-items:flex-end;gap:6px 6px;position:relative}
-.v-a .row-line{flex-basis:100%;height:0;border-bottom:2px solid var(--ink);margin:0 0 40px}
-.spine{width:52px;border-radius:5px 5px 2px 2px;display:flex;align-items:center;justify-content:center;padding:14px 0;position:relative;transition:transform .2s;box-shadow:inset -3px 0 0 rgba(0,0,0,.08),inset 2px 0 0 rgba(255,255,255,.25)}
-.spine:hover,.spine[aria-expanded="true"]{transform:translateY(-14px)}
-.spine span{writing-mode:vertical-rl;font-size:13px;font-weight:600;letter-spacing:.01em;max-height:100%;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
-.spine::after{content:"";position:absolute;left:8px;right:8px;bottom:12px;height:1.5px;background:currentColor;opacity:.35}
-.v-a .panel{display:grid;grid-template-columns:200px minmax(0,1fr);gap:32px;padding:32px 0 8px;border-top:1px solid var(--line);margin-top:48px}
-.v-a .panel img{width:100%;border-radius:12px;display:block;box-shadow:0 10px 30px rgba(0,0,0,.08)}
 .ptitle{font-size:28px;font-weight:500;letter-spacing:-0.02em;line-height:1.2;text-wrap:balance}
 .pauthor{color:var(--muted);font-size:14px;margin-top:6px}
 .pq{margin-top:20px;font-size:18px;line-height:1.6;font-weight:500;padding-left:16px;border-left:2px solid var(--lab);max-width:52ch}
 .pl{margin-top:20px;font-size:14px;line-height:1.8;color:#3c4046;max-width:60ch}
 .plbl{font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--faint);margin-top:22px}
 .ptags{display:flex;gap:10px;margin-top:18px;flex-wrap:wrap}
+
+
+/* ── A: bookcase ── */
+.v-a .case{margin-top:40px;background:linear-gradient(#faf8f5,#f4f1ec);border-radius:22px;padding:30px 30px 0;display:flex;flex-wrap:wrap;gap:0;box-shadow:inset 0 0 0 1px #ece7df}
+.v-a .case .sec{padding:0 26px 30px;flex:0 1 auto;position:relative}
+.v-a .sech{display:inline-flex;align-items:center;gap:8px;font-size:12.5px;font-weight:600;color:#4a4740;background:#fff;border:1px solid #ebe5dc;border-radius:99px;padding:5px 12px 5px 10px;box-shadow:0 1px 2px rgba(60,50,30,.04)}
+.v-a .sech::before{content:"";width:6px;height:6px;border-radius:50%;background:var(--dot,#c9c2b6)}
+.v-a .sech span{font-size:11.5px;color:#a8a196;font-weight:500}
+.v-a .shelf{display:flex;align-items:flex-end;gap:3px;min-height:268px;padding:22px 6px 0;position:relative;min-width:120px}
+.v-a .shelf::after{content:"";position:absolute;left:-10px;right:-10px;bottom:-12px;height:12px;border-radius:3px;background:linear-gradient(#e7dfd2,#d9cfbf);box-shadow:0 8px 14px -6px rgba(90,70,40,.28),inset 0 1px 0 rgba(255,255,255,.7)}
+.spine{--w:48px;width:var(--w);border-radius:4px 4px 1px 1px;position:relative;display:flex;flex-direction:column;align-items:center;justify-content:space-between;padding:14px 0 12px;transition:transform .25s cubic-bezier(.3,.7,.4,1),box-shadow .25s;box-shadow:0 1px 0 rgba(0,0,0,.08),2px 0 4px -2px rgba(0,0,0,.18);background-image:linear-gradient(90deg,rgba(0,0,0,.14),rgba(255,255,255,.16) 18%,rgba(255,255,255,0) 45%,rgba(0,0,0,.06) 80%,rgba(0,0,0,.16))}
+.spine::before,.spine::after{content:"";position:absolute;left:5px;right:5px;height:2px;border-top:1px solid currentColor;border-bottom:1px solid currentColor;opacity:.28}
+.spine::before{top:7px} .spine::after{bottom:7px}
+.spine:hover{transform:translateY(-8px)}
+.spine[aria-expanded="true"]{transform:translateY(-16px);box-shadow:0 14px 22px -10px rgba(0,0,0,.35)}
+.spine .st{writing-mode:vertical-rl;font-size:12px;font-weight:600;line-height:1.25;letter-spacing:.01em;max-height:calc(100% - 34px);overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;text-align:center;padding:4px 0}
+.spine .sa{font-size:9px;font-weight:600;letter-spacing:.06em;opacity:.7;text-transform:uppercase;writing-mode:horizontal-tb;max-width:calc(var(--w) - 8px);overflow:hidden;white-space:nowrap;text-overflow:clip}
+.spine.lean{transform:rotate(4deg);transform-origin:bottom left;margin-left:6px}
+.spine.lean:hover{transform:rotate(4deg) translateY(-8px)} .spine.lean[aria-expanded="true"]{transform:rotate(0) translateY(-16px)}
+.v-a .panel{display:grid;grid-template-columns:220px minmax(0,1fr);gap:40px;padding:36px;margin-top:28px;border-radius:22px;background:#fff;border:1px solid var(--line);box-shadow:0 18px 50px -20px rgba(30,25,15,.18);scroll-margin:24px}
+.v-a .panel img{width:100%;border-radius:14px;display:block;box-shadow:0 12px 30px -8px rgba(0,0,0,.25)}
+.v-b .sech .bars{display:inline-flex;gap:2px;margin-left:auto;align-self:center}
+.v-b .sech .bars i{width:5px;height:14px;border-radius:1.5px}
 
 /* ── B: index list ── */
 .v-b .list{list-style:none}
@@ -83,8 +94,6 @@ footer{padding:48px 0 40px;font-size:12px;color:var(--faint);display:flex;justif
   .wrap{padding:0 20px}
   .head{padding:28px 0 24px}
   .v-a .panel{grid-template-columns:1fr}
-  .v-a .panel img{max-width:220px}
-  .spine{width:40px} .spine span{font-size:11.5px}
   .v-b .rowb{grid-template-columns:52px minmax(0,1fr);gap:16px}
   .v-b .thumb{width:52px;height:68px}
   .v-b .num,.v-b .meta{display:none}
@@ -128,10 +137,12 @@ function chips(){ const c=new Map(); books.forEach(b=>c.set(b.category,(c.get(b.
   $('#chips').replaceChildren(el('button',{class:'chip','aria-pressed':String(!cat),onclick:()=>{cat=null;render()}},'ทั้งหมด'), ...cats.filter(k=>c.has(k)).map(k=>el('button',{class:'chip','aria-pressed':String(cat===k),onclick:()=>{cat=cat===k?null:k;render()}},k,el('span',{class:'cn'},c.get(k)))));
 }
 const toggle = id => { open = open===id ? null : id; render(); };
+const initials = a => (a||'').replace(/\(.*?\)/g,'').trim().split(/\s+/).pop().slice(0,7);
 function shelfA(list){
   const shelf=el('div',{class:'shelf'});
-  list.forEach(b=>{ const h = 170 + (b.title.length*7)%80; const c=b.color||'#ddd';
-    shelf.append(el('button',{class:'spine','aria-expanded':String(open===b.id),'aria-label':b.title,style:`height:${h}px;background:${c};color:${lum(c)>.6?'#111214':'#fff'}`,onclick:()=>{ toggle(b.id); if(open) $('#panel')?.scrollIntoView({behavior:'smooth',block:'nearest'}); }}, el('span',{},shortTitle(b.title))));
+  list.forEach((b,i)=>{ const t=shortTitle(b.title); const h = 196 + (t.length*11)%62; const w = 40 + Math.min(18, Math.round(t.length/2)); const c=b.color||'#ddd';
+    const lean = list.length>1 && i===list.length-1 && i%2===0;
+    shelf.append(el('button',{class:'spine'+(lean?' lean':''),'aria-expanded':String(open===b.id),'aria-label':b.title,title:b.title,style:`--w:${w}px;height:${h}px;background-color:${c};color:${lum(c)>.6?'#1b1a17':'#fff'}`,onclick:()=>{ toggle(b.id); if(open) $('#panel')?.scrollIntoView({behavior:'smooth',block:'nearest'}); }}, el('span',{class:'st'},t), el('span',{class:'sa'},initials(b.author))));
   });
   return shelf;
 }
@@ -145,7 +156,7 @@ function listB(list){
 }
 function render(){ chips(); const m=$('#main');
   const groups = cats.filter(k=>!cat||k===cat).map(k=>[k, books.filter(b=>b.category===k)]).filter(([,l])=>l.length);
-  const sec = ([k,l]) => el('section',{class:'sec'}, el('h2',{class:'sech'}, k, el('span',{}, l.length+' เล่ม')), V==='a' ? shelfA(l) : listB(l));
+  const sec = ([k,l]) => el('section',{class:'sec',style:`--dot:${l[0].color||'#ccc'}`}, el('h2',{class:'sech'}, k, el('span',{}, l.length+' เล่ม'), V==='b' ? el('span',{class:'bars'}, l.map(b=>el('i',{style:`background:${b.color||'#ddd'}`}))) : null), V==='a' ? shelfA(l) : listB(l));
   if (V==='a'){
     const b = books.find(x=>x.id===open && groups.some(([k])=>k===x.category));
     m.replaceChildren(el('div',{class:'case'}, groups.map(sec)),
