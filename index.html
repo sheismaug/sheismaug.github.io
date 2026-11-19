@@ -548,6 +548,7 @@ body{
   <span class="filter-lbl">หมวดหมู่</span>
   <div class="chip active" data-filter-lab="all">ทั้งหมด</div>
   <div class="chip" data-filter-lab="environment"><span class="dot-chip dot-purple"></span>Environment</div>
+  <div class="chip" data-filter-lab="reading"><span class="dot-chip dot-purple"></span>Reading</div>
 </div>
 
 <div class="grid-area">
@@ -563,6 +564,14 @@ body{
       <span class="ctag" style="color:#a855f7;">Environment · Gym</span>
       <div class="cname">Gym Springer</div>
       <div class="cdesc">ติดตาม trend อุณหภูมิและความชื้นในยิม เปรียบเทียบก่อน-หลังใช้ springer บนหลังคา</div>
+      <div class="cfoot"><div></div><div class="carr" style="border-color:#c4b5fd;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg></div></div>
+    </a>
+    <a class="card card-lab" href="bookshelf.html" data-lab-cat="reading">
+      <div class="cnum">L02</div>
+      <div class="cico" style="background:#ede9fe;color:#7c3aed;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 016.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 014 19.5v-15A2.5 2.5 0 016.5 2z"/></svg></div>
+      <span class="ctag" style="color:#a855f7;">Reading · Life</span>
+      <div class="cname">Bookshelf</div>
+      <div class="cdesc">บันทึกหลังอ่านหนังสือจบ ชอบตรงไหน ประโยคไหนที่ยังจำได้ พร้อม story ต้นฉบับ</div>
       <div class="cfoot"><div></div><div class="carr" style="border-color:#c4b5fd;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg></div></div>
     </a>
     <div class="card" style="border:1.5px dashed #E0E0E0;background:#FAFAFA;justify-content:center;align-items:center;min-height:210px;cursor:default;">
@@ -640,6 +649,8 @@ document.querySelectorAll('.tab-btn').forEach(btn => {
     document.getElementById('pane-' + btn.dataset.tab).classList.add('active');
   });
 });
+// open the sheislab tab when linked as index.html#lab
+if (location.hash === '#lab') document.querySelector('.tab-btn[data-tab="lab"]')?.click();
 
 /* ── PHARMACY FILTER CHIPS ── */
 const chips = document.querySelectorAll('.chip[data-filter]');
