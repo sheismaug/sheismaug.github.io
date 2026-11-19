@@ -143,11 +143,12 @@ dialog.sheet{border:0;padding:0;margin:auto;width:min(1080px,calc(100vw - 48px))
 dialog.sheet::backdrop{background:rgba(12,7,3,.62);backdrop-filter:blur(8px)}
 dialog.sheet[open]{animation:pop .32s cubic-bezier(.2,.8,.3,1)}
 @keyframes pop{from{opacity:0;transform:translateY(16px) scale(.98)}}
-.sh{display:grid;grid-template-columns:330px minmax(0,1fr);max-height:calc(100vh - 48px)}
-.sh-img{background:#2a1b10;position:relative;overflow:auto;scrollbar-width:thin}
-.sh-img img{width:100%;display:block}
+.sh{display:grid;grid-template-columns:330px minmax(0,1fr);grid-template-rows:minmax(0,1fr);height:calc(100vh - 48px);max-height:calc(100vh - 48px)}
+.sh-body,.sh-img{min-height:0}
+.sh-img{background:#f1e9dc;position:relative;overflow:auto;scrollbar-width:thin;padding:22px}
+.sh-img img{width:100%;display:block;border-radius:12px;box-shadow:0 14px 30px -14px rgba(60,35,10,.45)}
 .sh-body{overflow:auto;padding:46px 56px 56px;position:relative}
-.sh-top{position:sticky;top:-46px;margin:-46px -56px 0;padding:18px 20px 0;display:flex;justify-content:flex-end;gap:6px;z-index:2}
+.sh-top{position:sticky;top:-46px;margin:-46px -56px 0;padding:18px 20px 14px;background:linear-gradient(var(--paper) 75%,rgba(251,248,243,0));display:flex;justify-content:flex-end;gap:6px;z-index:2}
 .ib{width:38px;height:38px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;background:rgba(255,255,255,.9);border:1px solid #e8e3da;color:var(--ink2);font-size:18px;backdrop-filter:blur(6px);transition:.2s}
 .ib:hover{background:var(--ink);color:#fff;border-color:var(--ink)}
 .ib:disabled{opacity:.3;pointer-events:none}
@@ -177,7 +178,8 @@ dialog.sheet[open]{animation:pop .32s cubic-bezier(.2,.8,.3,1)}
   .srch input{width:110px}
   footer{padding:0 18px 28px}
   dialog.sheet{width:100vw;max-width:100vw;height:100dvh;max-height:100dvh;border-radius:0;margin:0}
-  .sh{grid-template-columns:1fr;max-height:100dvh;height:100dvh;overflow:auto}
+  .sh{grid-template-columns:1fr;grid-template-rows:none;max-height:100dvh;height:100dvh;overflow:auto}
+  .sh-body,.sh-img{min-height:auto}
   .sh-img{order:2;overflow:visible;padding:0 18px 40px;background:none}
   .sh-img img{border-radius:14px}
   .sh-body{overflow:visible;padding:0 22px 26px}
