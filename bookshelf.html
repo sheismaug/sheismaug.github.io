@@ -236,7 +236,7 @@ function listB(list){
     open===b.id ? el('div',{class:'more'}, el('div',{}, b.quote?el('blockquote',{class:'pq'},b.quote):null, b.liked?el('p',{class:'pl'},b.liked):null, (b.tags||[]).length?el('div',{class:'ptags'},b.tags.map(t=>el('span',{class:'tag'},'#'+t))):null, el('img',{src:b.image,alt:'Instagram story ของ '+b.title}))) : null)));
 }
 
-const COLORS=['#ffcf6b','#ff7a6b','#8fd3ff','#b6f09c','#ffd9f2'];
+const COLORS=['#ffd27a','#ffbe5c','#ffe3a8','#ffae45','#fff1cc'];
 function garland(n,W){ const y=x=>10+34*Math.abs(Math.sin(Math.PI*x/(W/4)));
   let d='M0 '+y(0); for(let x=4;x<=W;x+=4) d+=' L'+x+' '+y(x).toFixed(1);
   let s=`<svg class="garland" viewBox="0 0 ${W} 70" preserveAspectRatio="xMidYMin slice" aria-hidden="true"><path d="${d}" fill="none" stroke="#1f3a26" stroke-width="2.5"/>`;
@@ -251,7 +251,7 @@ function tree(){ let s=`<svg class="tree" viewBox="0 0 240 330" aria-hidden="tru
   <path d="M120 96 46 214h148z" fill="#23653f"/><path d="M120 96 46 214h74z" fill="#2a7748"/>
   <path d="M120 40 62 150h116z" fill="#287045"/><path d="M120 40 62 150h58z" fill="#30844f"/>
   <path d="M58 250q62 24 128-22M70 186q50 20 104-18M84 128q36 14 74-14" fill="none" stroke="#e9c46a" stroke-width="2.5" stroke-linecap="round" opacity=".9"/>`;
-  const orn=[[96,232,'#c0392b'],[150,252,'#e9c46a'],[120,198,'#8fd3ff'],[82,262,'#e9c46a'],[168,224,'#c0392b'],[104,160,'#e9c46a'],[142,176,'#c0392b'],[118,120,'#8fd3ff']];
+  const orn=[[96,232,'#c0392b'],[150,252,'#e9c46a'],[120,198,'#f3e3c0'],[82,262,'#e9c46a'],[168,224,'#c0392b'],[104,160,'#e9c46a'],[142,176,'#c0392b'],[118,120,'#f3e3c0']];
   orn.forEach(([x,y,c])=>s+=`<circle cx="${x}" cy="${y}" r="6.5" fill="${c}"/><circle cx="${x-2}" cy="${y-2}" r="2" fill="#fff" opacity=".55"/>`);
   for(let i=0;i<34;i++){ const yy=60+((i*53)%210), half=(yy-40)*0.42, x=120+(((i*37)%100)/100*2-1)*half*0.85; const c=COLORS[i%5];
     s+=`<circle class="tl" cx="${x.toFixed(1)}" cy="${yy}" r="2.6" fill="${c}" style="animation-delay:${((i*0.29)%1.9).toFixed(2)}s;filter:drop-shadow(0 0 4px ${c})"/>`; }
@@ -273,7 +273,7 @@ function render(){ chips(); const m=$('#main');
     const b = books.find(x=>x.id===open && groups.some(([k])=>k===x.category));
     m.replaceChildren(el('div',{class:'case'}, deco(), groups.map(sec)),
       b ? el('section',{class:'panel',id:'panel'}, el('img',{src:b.image,alt:''}), el('div',{}, el('div',{class:'pcat'}, b.category), details(b))) : el('p',{class:'lede',style:'padding:32px 0 20px'},'แตะที่สันหนังสือเพื่อเปิดอ่านโน้ต'));
-  } else { const bn=el('div',{class:'banner'}); bn.innerHTML=tree()+'<div class="bt"><b>sheis bookshop</b>'+books.length+' เล่ม · '+groups.length+' หมวด</div>'; m.replaceChildren(bn, ...groups.map(sec)); }
+  } else { const bn=el('div',{class:'banner'}); bn.innerHTML=tree()+'<div class="bt"><b>sheis reading room</b>'+books.length+' เล่ม · '+groups.length+' หมวด</div>'; m.replaceChildren(bn, ...groups.map(sec)); }
 }
 store();
 fetch('bookshelf/books.json',{cache:'no-cache'}).then(r=>r.json()).then(d=>{ books=(d.books||[]).slice().sort((a,b)=>(b.date||'').localeCompare(a.date||'')); cats=d.categories||[...new Set(books.map(b=>b.category))]; books.forEach(b=>{ if(!b.category){ b.category='อื่นๆ'; if(!cats.includes('อื่นๆ')) cats.push('อื่นๆ'); } }); $('#n').textContent=books.length; if(d.updated) $('#upd').textContent='อัปเดต '+new Date(d.updated+'T00:00').toLocaleDateString('th-TH',{day:'numeric',month:'short',year:'numeric'}); if(V==='a') open=books[0]?.id; render(); });
