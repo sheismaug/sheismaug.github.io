@@ -85,13 +85,10 @@ h1{font-size:clamp(46px,8vw,84px);font-weight:500;letter-spacing:-.04em;line-hei
     linear-gradient(90deg,var(--wood2),var(--wood1) 35%,#523420 60%,var(--wood1) 85%,var(--wood2));
   box-shadow:0 60px 80px -40px rgba(0,0,0,.9),0 0 0 1px rgba(0,0,0,.4),inset 0 1px 0 rgba(255,220,170,.12)}
 .bay{display:flex;flex-direction:column;min-width:0;scroll-margin-top:84px;border-radius:4px;transition:box-shadow .5s}
-.plate{display:flex;align-items:center;gap:12px;padding:0 2px 14px;margin:0}
-.brass{position:relative;display:inline-flex;white-space:nowrap;align-items:center;padding:6px 22px 6px;border-radius:3px;font-size:12.5px;font-weight:700;letter-spacing:.1em;color:#3b2810;
-  background:linear-gradient(180deg,#fbeac2 0%,#e3bd78 38%,#c39448 52%,#d9b06a 70%,#f0d49a 100%);
-  text-shadow:0 1px 0 rgba(255,244,214,.7),0 -1px 0 rgba(90,55,15,.25);
-  box-shadow:0 3px 6px -1px rgba(0,0,0,.55),0 1px 1px rgba(0,0,0,.4),inset 0 0 0 1px rgba(110,70,25,.45),inset 0 1px 0 rgba(255,255,255,.7)}
-.brass::before,.brass::after{content:"";position:absolute;top:50%;width:5px;height:5px;margin-top:-2.5px;border-radius:50%;background:radial-gradient(circle at 35% 35%,#fff3d0,#a77a3a 60%,#6b4a1f);box-shadow:inset 0 0 0 .5px rgba(60,35,10,.6)}
-.brass::before{left:7px}.brass::after{right:7px}
+.plate{display:flex;align-items:baseline;gap:12px;padding:2px 4px 14px;margin:0}
+.sign{display:inline-flex;align-items:center;gap:10px;white-space:nowrap;font-size:13.5px;font-weight:600;letter-spacing:.2em;text-transform:uppercase;color:#ffeccb;
+  text-shadow:0 0 6px rgba(255,200,120,.75),0 0 18px rgba(255,170,80,.45),0 0 40px rgba(255,160,70,.25)}
+.sign::before{content:"";width:7px;height:7px;border-radius:50%;background:#ffe2a8;box-shadow:0 0 6px 2px rgba(255,200,120,.8),0 0 16px 4px rgba(255,170,80,.4)}
 .plate .cnt{white-space:nowrap;font-size:12px;font-weight:500;color:#d7b98e;letter-spacing:.02em;text-shadow:0 1px 0 rgba(0,0,0,.5)}
 .plate .all{margin-left:auto;font-size:12.5px;font-weight:600;color:#f2dcb4;padding:4px 10px;border-radius:99px;border:1px solid rgba(255,225,180,.25);background:rgba(0,0,0,.15)}
 .plate .all:hover{background:#f2dcb4;color:#3b2810}
@@ -175,7 +172,8 @@ dialog.sheet[open]{animation:pop .32s cubic-bezier(.2,.8,.3,1)}
   .bay{flex-basis:100%!important}
   .cubbies{flex-wrap:wrap;gap:10px}
   .cubby{flex:0 1 calc(50% - 5px);min-width:0;height:244px;padding:0 14px 26px}
-  .plate{padding:2px 0 10px}
+  .plate{padding:2px 0 10px;flex-wrap:wrap;row-gap:4px}
+  .sign{font-size:12.5px;letter-spacing:.14em}
   .focus .cubbies{grid-template-columns:1fr 1fr}
   .srch input{width:110px}
   footer{padding:0 18px 28px}
@@ -225,6 +223,8 @@ const sheet = $('#sheet');
 
 const MAX = 4;
 let mode = null, q = '';
+const EN = { 'จิตวิทยา': 'Psychology', 'พัฒนาตนเอง': 'Self-Growth', 'ศาสนาและปรัชญา': 'Philosophy & Religion', 'บริหารและกลยุทธ์': 'Business & Strategy', 'ออกแบบ': 'Design', 'ประวัติศาสตร์และสังคม': 'History & Society', 'วรรณกรรม': 'Literature', 'อื่นๆ': 'Others' };
+const sign = (k, n) => [el('span', { class: 'sign' }, EN[k] || k), el('span', { class: 'cnt' }, (EN[k] ? k + ' · ' : '') + n + ' เล่ม')];
 const norm = t => (t || '').toLowerCase();
 const top = () => $('#cats').scrollIntoView({ behavior: 'smooth', block: 'start' });
 const go = m => { mode = m; q = ''; $('#q').value = ''; render(); top(); };
@@ -241,15 +241,15 @@ function render(){
   if (q) {
     const hit = order.filter(b => [b.title, b.author, b.category, ...(b.tags || [])].some(t => norm(t).includes(norm(q))));
     wall.className = 'wall focus';
-    wall.replaceChildren(hit.length ? el('section', { class: 'bay' }, el('h2', { class: 'plate' }, el('span', { class: 'brass' }, 'ผลการค้นหา'), el('span', { class: 'cnt' }, hit.length + ' เล่ม')), el('div', { class: 'cubbies' }, hit.map(cubby)))
+    wall.replaceChildren(hit.length ? el('section', { class: 'bay' }, el('h2', { class: 'plate' }, el('span', { class: 'sign' }, 'Search'), el('span', { class: 'cnt' }, 'ผลการค้นหา · ' + hit.length + ' เล่ม')), el('div', { class: 'cubbies' }, hit.map(cubby)))
       : el('p', { class: 'empty' }, 'ไม่เจอเล่มที่ค้นหา ลองคำอื่นดูนะ'));
     return;
   }
   const groups = mode ? all.filter(([k]) => k === mode) : all;
   wall.className = 'wall' + (mode ? ' focus' : '');
   wall.replaceChildren(...groups.map(([k, l]) => { const over = !mode && l.length > MAX; const show = over ? l.slice(0, MAX - 1) : l; const slots = Math.min(l.length, MAX);
-    return el('section', { class: 'bay', style: `flex:${slots} ${slots} ${slots * 190}px` },
-      el('h2', { class: 'plate' }, el('span', { class: 'brass' }, k), el('span', { class: 'cnt' }, l.length + ' เล่ม'),
+    return el('section', { class: 'bay', style: `flex:${slots} ${slots} ${Math.max(slots * 190, 400)}px` },
+      el('h2', { class: 'plate' }, ...sign(k, l.length),
         mode ? el('button', { class: 'all', onclick: () => go(null) }, '← ทุกหมวด') : over ? el('button', { class: 'all', onclick: () => go(k) }, 'ดูทั้งหมด →') : null),
       el('div', { class: 'cubbies' }, show.map(cubby),
         over ? el('button', { class: 'cubby more', 'aria-label': 'ดูทั้งหมดในหมวด ' + k, onclick: () => go(k) },
