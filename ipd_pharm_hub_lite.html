@@ -721,7 +721,9 @@ function renderReport(r) {
       ${mon.length > 1 ? `<div class="minibars">${bars}</div><div class="mbnote"><span style="--c:#9DBE3C">≥ 90%</span><span style="--c:#F2A36B">< 90%</span><span style="--c:#F3F1EA">ขาดจากเป้า 100%</span></div>` : ''}</div>`;
   };
   const elig = md.eligible || 0, pS = elig ? md.same / elig * 100 : 0, p1 = elig ? (md.le1 - md.same) / elig * 100 : 0, pL = elig ? 100 - pS - p1 - (md.pending || 0) / elig * 100 : 0;
-  const devs = COUN.map(c => `<div class="devc">${du(c[1], 30)}<b>${cn.byType[c[0]] || 0}</b><span>${c[2]}</span></div>`).join('');
+  // อื่นๆ = ทั้งหมด − 4 อุปกรณ์หลัก (type ที่สะกดต่างจากปุ่ม เช่น ข้อมูลเก่า จะไม่หายจากการ์ด)
+  const known = COUN.slice(0, 4).reduce((t, c) => t + (cn.byType[c[0]] || 0), 0);
+  const devs = COUN.map((c, i) => `<div class="devc">${du(c[1], 30)}<b>${i === 4 ? Math.max(0, (cn.total || 0) - known) : (cn.byType[c[0]] || 0)}</b><span>${c[2]}</span></div>`).join('');
   let h = `<div style="display:flex;align-items:center;gap:16px;padding:16px 22px;border-radius:24px;background:var(--limec);box-shadow:0 5px 0 var(--limee)">${mascot(60)}<div><b style="font-size:20px">ทำ MR ไปแล้ว ${(s.done + s.nomed).toLocaleString()} ราย</b><div style="font-size:13px;color:var(--mute)">admit ${thd(r.from, 'full')} – ${thd(r.to, 'full')} · สอนยา ${cn.total} ครั้ง</div></div></div>
     <div class="kpis">${kpi('clip', '#FFF6CC', 'ความครอบคลุม MR', 'ทำ MR / ผู้ป่วยที่มียาเดิม', s.coveragePct, s.done, s.need, 'coveragePct')}
       ${kpi('hosp', '#E8F0FF', 'ใน รพ. ภายใน 8 ชม.', 'รับยา รพ.ห้วยผึ้งที่เดียว', s.in8hPct, s.inPass, s.inN, 'in8hPct')}
