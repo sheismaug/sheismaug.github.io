@@ -50,6 +50,8 @@ footer{padding:48px 0 40px;font-size:12px;color:var(--faint);display:flex;justif
 .pq{margin-top:20px;font-size:18px;line-height:1.6;font-weight:500;padding-left:16px;border-left:2px solid var(--lab);max-width:52ch}
 .pl{margin-top:20px;font-size:14px;line-height:1.8;color:#3c4046;max-width:60ch}
 .plbl{font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--faint);margin-top:22px}
+.rv{margin-top:14px;max-width:62ch}.rv p{font-size:14.5px;line-height:1.9;color:#3c4046;margin-top:12px;white-space:pre-line}
+.v-b .rv p{color:#e0d0b5}
 .ptags{display:flex;gap:10px;margin-top:18px;flex-wrap:wrap}
 
 
@@ -127,7 +129,9 @@ body{background:#24180f;color:#f6ead6}
 .store .bc.r{right:0;border-radius:10px 0 0 0}
 .store .row{display:flex;align-items:flex-end;gap:2px;height:150px;padding:0 18px;border-bottom:12px solid #6e4527;box-shadow:0 10px 14px -8px rgba(0,0,0,.7)}
 .store .row i{display:block;border-radius:2px 2px 0 0;background-image:linear-gradient(90deg,rgba(0,0,0,.18),rgba(255,255,255,.12) 20%,transparent 50%,rgba(0,0,0,.18))}
-.store .garland{top:0;height:80px}
+.topg{position:absolute;left:0;right:0;top:0;height:80px;overflow:hidden;pointer-events:none;z-index:0}
+.topg .garland{top:0;height:80px}
+body{position:relative}
 .store .lamp{z-index:1}
 .store .tree{right:auto;bottom:40px;width:300px;filter:none}
 .store .treeglow{right:auto;bottom:0}
@@ -210,7 +214,7 @@ function lum(hex){ const n = parseInt(hex.slice(1), 16); const r=(n>>16)&255,g=(
 function details(b){ return [
   el('div',{class:'ptitle'}, b.title), b.author ? el('div',{class:'pauthor'}, b.author, b.rating ? '  ·  ' + stars(b.rating) : '') : null,
   b.quote ? el('blockquote',{class:'pq'}, b.quote) : null,
-  b.liked ? [el('div',{class:'plbl'},'ชอบตรงไหน'), el('p',{class:'pl'}, b.liked)] : null,
+  b.review ? [el('div',{class:'plbl'},'รีวิวเต็ม'), el('div',{class:'rv'}, b.review.split(/\n{2,}/).map(t=>el('p',{},t)))] : b.liked ? [el('div',{class:'plbl'},'ชอบตรงไหน'), el('p',{class:'pl'}, b.liked)] : null,
   (b.tags||[]).length ? el('div',{class:'ptags'}, b.tags.map(t=>el('span',{class:'tag'},'#'+t))) : null ]; }
 
 function chips(){ const c=new Map(); books.forEach(b=>c.set(b.category,(c.get(b.category)||0)+1));
@@ -233,7 +237,7 @@ function listB(list){
       el('span',{class:'num'},String(books.indexOf(b)+1).padStart(2,'0')), el('img',{class:'thumb',src:b.image,alt:'',loading:'lazy'}),
       el('div',{}, el('div',{class:'t'},b.title), el('div',{class:'a'},b.author||'')),
       el('div',{class:'meta'}, b.rating?el('span',{class:'stars'},stars(b.rating)):null, el('span',{class:'tag'},(b.tags||[]).slice(0,2).map(t=>'#'+t).join('  ')))),
-    open===b.id ? el('div',{class:'more'}, el('div',{}, b.quote?el('blockquote',{class:'pq'},b.quote):null, b.liked?el('p',{class:'pl'},b.liked):null, (b.tags||[]).length?el('div',{class:'ptags'},b.tags.map(t=>el('span',{class:'tag'},'#'+t))):null, el('img',{src:b.image,alt:'Instagram story ของ '+b.title}))) : null)));
+    open===b.id ? el('div',{class:'more'}, el('div',{}, b.quote?el('blockquote',{class:'pq'},b.quote):null, b.review?el('div',{class:'rv'}, b.review.split(/\n{2,}/).map(t=>el('p',{},t))):b.liked?el('p',{class:'pl'},b.liked):null, (b.tags||[]).length?el('div',{class:'ptags'},b.tags.map(t=>el('span',{class:'tag'},'#'+t))):null, el('img',{src:b.image,alt:'Instagram story ของ '+b.title}))) : null)));
 }
 
 const COLORS=['#ffd27a','#ffbe5c','#ffe3a8','#ffae45','#fff1cc'];
@@ -263,9 +267,9 @@ function store(){ const s=el('div',{class:'store','aria-hidden':'true'}); const 
   let seed=7; const rnd=()=>(seed=(seed*9301+49297)%233280)/233280;
   const bc=cls=>{ let x=`<div class="bc ${cls}">`; for(let r=0;r<6;r++){ x+='<div class="row">'; for(let k=0;k<26;k++){ if(rnd()<.06){ x+='<i style="width:14px;height:0"></i>'; continue; } x+=`<i style="width:${10+Math.round(rnd()*12)}px;height:${92+Math.round(rnd()*44)}px;background-color:${pal[Math.floor(rnd()*pal.length)]}"></i>`; } x+='</div>'; } return x+'</div>'; };
   const side=`calc((100vw - 1120px)/4 - 130px)`;
-  s.innerHTML=bc('l')+bc('r')+'<div class="floor"></div>'+garland(36,1600)+[6,94].map(p=>`<div class="lamp" style="left:${p}%"><i></i><b></b><em></em></div>`).join('')
+  s.innerHTML=bc('l')+bc('r')+'<div class="floor"></div>'+[6,94].map(p=>`<div class="lamp" style="left:${p}%"><i></i><b></b><em></em></div>`).join('')
     +`<div class="treeglow" style="right:${side.replace('130px','220px')}"></div>`+tree().replace('class="tree"',`class="tree" style="right:${side}"`)+GIFTS.replace('class="gifts"',`class="gifts" style="right:calc((100vw - 1120px)/4 + 120px)"`)+'<div class="vig"></div>';
-  document.body.prepend(s); }
+  document.body.prepend(s); const g=el('div',{class:'topg','aria-hidden':'true'}); g.innerHTML=garland(36,1600); document.body.prepend(g); }
 function render(){ chips(); const m=$('#main');
   const groups = cats.filter(k=>!cat||k===cat).map(k=>[k, books.filter(b=>b.category===k)]).filter(([,l])=>l.length);
   const sec = ([k,l]) => el('section',{class:'sec',style:`--dot:${l[0].color||'#ccc'}`}, el('h2',{class:'sech'}, k, el('span',{}, l.length+' เล่ม'), V==='b' ? el('span',{class:'bars'}, l.map(b=>el('i',{style:`background:${b.color||'#ddd'}`}))) : null), V==='a' ? shelfA(l) : listB(l));
