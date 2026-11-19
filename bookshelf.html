@@ -7,162 +7,278 @@
 <meta name="description" content="บันทึกหลังอ่านหนังสือจบของ sheismaug">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@700;800;900&family=Google+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Google+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
-*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
-:root{--ink:#0D0D0D;--muted:#777;--line:#E8E8E8;--soft:#F5F5F5;--lab:#a855f7;--lab-deep:#7c3aed;--lab-soft:#ede9fe;--sun:#F5C800;}
-body{font-family:'Google Sans',sans-serif;background:#fff;color:var(--ink);min-height:100vh;display:flex;flex-direction:column;}
-a{color:inherit}
-:focus-visible{outline:2px solid var(--lab);outline-offset:2px}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{--ink:#111214;--muted:#80858c;--faint:#b9bdc3;--line:#ececee;--soft:#f6f6f7;--lab:#8b5cf6;--lab-soft:#f1ecfe}
+html{-webkit-text-size-adjust:100%}
+body{font-family:'Google Sans',system-ui,sans-serif;background:#fff;color:var(--ink);min-height:100vh}
+button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
+:focus-visible{outline:2px solid var(--lab);outline-offset:3px}
+.wrap{max-width:1120px;margin:0 auto;padding:0 32px}
 
-.topbar{background:var(--ink);padding:13px 32px;display:flex;align-items:center;justify-content:space-between;gap:12px}
-.logo{font-family:'Montserrat','Google Sans',sans-serif;font-size:18px;font-weight:900;color:#fff;letter-spacing:-0.03em;display:inline-flex;align-items:baseline;line-height:1;text-decoration:none}
-.logo-dot{display:inline-block;width:0.42em;height:0.42em;border-radius:50%;background:#fff;position:relative;top:-0.06em}
-.logo-dot::after{content:'';position:absolute;bottom:-0.28em;left:50%;transform:translateX(-50%);width:100%;height:2.5px;background:var(--sun);border-radius:1px}
-.back{font-size:11px;color:rgba(255,255,255,.55);text-decoration:none;letter-spacing:.08em;text-transform:uppercase;display:inline-flex;gap:6px;align-items:center}
-.back:hover{color:#c084fc}
+/* shared header */
+.nav{display:flex;align-items:center;justify-content:space-between;padding:22px 0}
+.crumb{font-size:13px;color:var(--muted);text-decoration:none;display:flex;gap:8px;align-items:center}
+.crumb b{color:var(--ink);font-weight:600}
+.crumb i{width:6px;height:6px;border-radius:50%;background:var(--lab)}
+.navr{font-size:12px;color:var(--faint);font-variant-numeric:tabular-nums}
+.head{padding:56px 0 36px;display:flex;align-items:flex-end;justify-content:space-between;gap:24px;flex-wrap:wrap}
+h1{font-size:clamp(40px,7vw,64px);font-weight:500;letter-spacing:-0.035em;line-height:1}
+.lede{margin-top:14px;font-size:15px;color:var(--muted);line-height:1.7;max-width:46ch}
+.stat{display:flex;gap:28px}
+.stat div{display:flex;flex-direction:column;gap:2px}
+.stat b{font-size:28px;font-weight:500;letter-spacing:-0.02em;font-variant-numeric:tabular-nums}
+.stat span{font-size:12px;color:var(--muted)}
+.chips{display:flex;gap:6px;flex-wrap:wrap;padding-bottom:28px;border-bottom:1px solid var(--line)}
+.chip{padding:6px 13px;border-radius:99px;font-size:13px;color:var(--muted);border:1px solid var(--line)}
+.chip:hover{color:var(--ink);border-color:#d6d8db}
+.chip[aria-pressed="true"]{background:var(--ink);border-color:var(--ink);color:#fff}
+.tag{font-size:12px;color:var(--lab)}
+.chip .cn{margin-left:6px;font-size:11px;opacity:.55;font-variant-numeric:tabular-nums}
+.sech{font-size:13px;font-weight:600;letter-spacing:.02em;display:flex;align-items:baseline;gap:10px}
+.sech span{font-size:12px;font-weight:400;color:var(--faint)}
+.pcat{font-size:11px;letter-spacing:.12em;color:var(--lab);margin-bottom:10px}
+.v-b .sec{padding-top:32px}
+.v-b .sech{padding-bottom:10px;border-bottom:1px solid var(--line);font-size:14px}
+.stars{font-size:12px;letter-spacing:2px;color:var(--ink)}
+footer{padding:48px 0 40px;font-size:12px;color:var(--faint);display:flex;justify-content:space-between}
 
-.hero{padding:36px 32px 22px;max-width:1200px;width:100%;margin:0 auto}
-.eyebrow{display:inline-flex;align-items:center;gap:8px;background:var(--soft);border-radius:99px;padding:6px 14px;font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-bottom:14px}
-.eyebrow i{width:6px;height:6px;border-radius:50%;background:var(--lab)}
-h1{font-family:'Montserrat','Google Sans',sans-serif;font-size:clamp(38px,8vw,60px);font-weight:900;line-height:.92;letter-spacing:-0.035em}
-.sub{font-family:'Montserrat','Google Sans',sans-serif;font-size:13px;font-weight:700;color:#aaa;margin-top:12px;letter-spacing:.02em}
-.sub b{color:var(--lab-deep);font-weight:800}
-.intro{max-width:60ch;margin-top:14px;font-size:14px;line-height:1.7;color:#555}
+/* ── A: shelf of spines ── */
+.ptitle{font-size:28px;font-weight:500;letter-spacing:-0.02em;line-height:1.2;text-wrap:balance}
+.pauthor{color:var(--muted);font-size:14px;margin-top:6px}
+.pq{margin-top:20px;font-size:18px;line-height:1.6;font-weight:500;padding-left:16px;border-left:2px solid var(--lab);max-width:52ch}
+.pl{margin-top:20px;font-size:14px;line-height:1.8;color:#3c4046;max-width:60ch}
+.plbl{font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--faint);margin-top:22px}
+.ptags{display:flex;gap:10px;margin-top:18px;flex-wrap:wrap}
 
-.filters{padding:0 32px 18px;max-width:1200px;width:100%;margin:0 auto;display:flex;gap:8px;flex-wrap:wrap;align-items:center}
-.flbl{font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:#aaa;margin-right:4px}
-.chip{border:1.5px solid var(--line);background:#fff;border-radius:99px;padding:5px 12px;font:600 12px 'Google Sans',sans-serif;color:#666;cursor:pointer}
-.chip:hover{border-color:#ccc;color:#333}
-.chip[aria-pressed="true"]{background:var(--ink);border-color:var(--ink);color:#c084fc}
-.chip span{color:#bbb;font-weight:500;margin-left:4px}
 
-main{flex:1;padding:0 32px 48px;max-width:1200px;width:100%;margin:0 auto}
-.shelf{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:16px}
-.book{background:#fff;border:1.5px solid var(--lab);border-radius:20px;overflow:hidden;display:flex;flex-direction:column;cursor:pointer;text-align:left;font:inherit;color:inherit;padding:0;transition:transform .18s,box-shadow .18s}
-.book:hover{transform:translateY(-4px);box-shadow:0 12px 32px rgba(0,0,0,.10)}
-.cover{aspect-ratio:4/3;width:100%;object-fit:cover;object-position:top;background:var(--soft);display:block;border-bottom:1.5px solid var(--lab-soft)}
-.bbody{padding:16px 18px 18px;display:flex;flex-direction:column;gap:6px;flex:1}
-.bnum{font-size:10px;font-weight:700;color:#ccc;letter-spacing:.14em}
-.btitle{font-family:'Montserrat','Google Sans',sans-serif;font-size:16px;font-weight:800;line-height:1.25;letter-spacing:-0.01em}
-.bauthor{font-size:12px;color:var(--muted)}
-.stars{color:var(--lab-deep);letter-spacing:2px;font-size:13px}
-.bliked{font-size:12.5px;line-height:1.65;color:#555;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
-.btags{display:flex;flex-wrap:wrap;gap:5px;margin-top:auto;padding-top:8px}
-.tag{font-size:10.5px;font-weight:600;padding:2px 9px;border-radius:99px;background:var(--lab-soft);color:var(--lab-deep)}
-.empty{border:1.5px dashed var(--line);border-radius:20px;padding:40px;text-align:center;color:#aaa;font-size:13px}
+/* ── A: bookcase ── */
+.v-a .sech{display:inline-flex;align-items:center;gap:8px;font-size:12.5px;font-weight:600;color:#4a4740;background:#fff;border:1px solid #ebe5dc;border-radius:99px;padding:5px 12px 5px 10px;box-shadow:0 1px 2px rgba(60,50,30,.04)}
+.v-a .sech::before{content:"";width:6px;height:6px;border-radius:50%;background:var(--dot,#c9c2b6)}
+.v-a .sech span{font-size:11.5px;color:#a8a196;font-weight:500}
+.v-a .shelf{display:flex;align-items:flex-end;gap:3px;min-height:268px;padding:22px 6px 0;position:relative;min-width:120px}
+.v-a .shelf::after{content:"";position:absolute;left:-10px;right:-10px;bottom:-12px;height:12px;border-radius:3px;background:linear-gradient(#e7dfd2,#d9cfbf);box-shadow:0 8px 14px -6px rgba(90,70,40,.28),inset 0 1px 0 rgba(255,255,255,.7)}
+.spine{--w:48px;width:var(--w);border-radius:4px 4px 1px 1px;position:relative;display:flex;flex-direction:column;align-items:center;justify-content:space-between;padding:14px 0 12px;transition:transform .25s cubic-bezier(.3,.7,.4,1),box-shadow .25s;box-shadow:0 1px 0 rgba(0,0,0,.08),2px 0 4px -2px rgba(0,0,0,.18);background-image:linear-gradient(90deg,rgba(0,0,0,.14),rgba(255,255,255,.16) 18%,rgba(255,255,255,0) 45%,rgba(0,0,0,.06) 80%,rgba(0,0,0,.16))}
+.spine::before,.spine::after{content:"";position:absolute;left:5px;right:5px;height:2px;border-top:1px solid currentColor;border-bottom:1px solid currentColor;opacity:.28}
+.spine::before{top:7px} .spine::after{bottom:7px}
+.spine:hover{transform:translateY(-8px)}
+.spine[aria-expanded="true"]{transform:translateY(-16px);box-shadow:0 14px 22px -10px rgba(0,0,0,.35)}
+.spine .st{writing-mode:vertical-rl;font-size:12px;font-weight:600;line-height:1.25;letter-spacing:.01em;max-height:calc(100% - 34px);overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;text-align:center;padding:4px 0}
+.spine .sa{font-size:9px;font-weight:600;letter-spacing:.06em;opacity:.7;text-transform:uppercase;writing-mode:horizontal-tb;max-width:calc(var(--w) - 8px);overflow:hidden;white-space:nowrap;text-overflow:clip}
+.spine.lean{transform:rotate(4deg);transform-origin:bottom left;margin-left:6px}
+.spine.lean:hover{transform:rotate(4deg) translateY(-8px)} .spine.lean[aria-expanded="true"]{transform:rotate(0) translateY(-16px)}
+.v-a .panel{display:grid;grid-template-columns:220px minmax(0,1fr);gap:40px;padding:36px;margin-top:28px;border-radius:22px;background:#fff;border:1px solid var(--line);box-shadow:0 18px 50px -20px rgba(30,25,15,.18);scroll-margin:24px}
+.v-a .panel img{width:100%;border-radius:14px;display:block;box-shadow:0 12px 30px -8px rgba(0,0,0,.25)}
+.v-b .sech .bars{display:inline-flex;gap:2px;margin-left:auto;align-self:center}
+.v-b .sech .bars i{width:5px;height:14px;border-radius:1.5px}
 
-dialog{border:0;border-radius:24px;padding:0;width:min(920px,calc(100% - 32px));max-height:calc(100% - 32px);margin:auto;box-shadow:0 30px 80px rgba(0,0,0,.25)}
-dialog::backdrop{background:rgba(13,13,13,.55)}
-.dwrap{display:grid;grid-template-columns:minmax(0,340px) minmax(0,1fr);max-height:calc(100vh - 32px)}
-.dimg{background:var(--ink);overflow:auto}
-.dimg img{width:100%;display:block}
-.dtext{padding:28px 28px 24px;overflow:auto;display:flex;flex-direction:column;gap:14px}
-.dtitle{font-family:'Montserrat','Google Sans',sans-serif;font-size:24px;font-weight:900;line-height:1.15;letter-spacing:-0.02em;text-wrap:balance}
-.dlbl{font-size:10px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:#aaa;margin-bottom:4px}
-.dval{font-size:14px;line-height:1.75;color:#333;white-space:pre-line}
-blockquote{border-left:3px solid var(--lab);padding:4px 0 4px 14px;font-size:15px;line-height:1.7;color:var(--ink);font-weight:500}
-.close{align-self:flex-end;border:1.5px solid var(--line);background:#fff;border-radius:99px;padding:5px 14px;font:600 12px 'Google Sans',sans-serif;cursor:pointer;margin-top:auto}
 
-.foot-bar{background:var(--ink);padding:16px 32px;display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
-.flogo{font-family:'Montserrat','Google Sans',sans-serif;font-size:16px;font-weight:900;color:#fff;letter-spacing:-0.03em;text-decoration:none}
-.fright{font-size:10px;color:rgba(255,255,255,.3);letter-spacing:.06em}
+/* ── cozy bookstore scene ── */
+.v-a .case{display:flex;flex-wrap:wrap;align-items:flex-start;position:relative;overflow:hidden;isolation:isolate;margin-top:40px;border-radius:24px;padding:104px 300px 64px 34px;background:
+  radial-gradient(60% 50% at 30% 18%,rgba(255,196,120,.22),transparent 70%),
+  radial-gradient(40% 40% at 70% 22%,rgba(255,190,110,.16),transparent 70%),
+  repeating-linear-gradient(90deg,rgba(255,255,255,.025) 0 2px,transparent 2px 86px),
+  linear-gradient(#3a271b,#2a1c13 70%,#22170f);box-shadow:0 30px 60px -30px rgba(40,25,10,.55),inset 0 0 0 1px rgba(255,220,170,.08);gap:6px 0}
+.v-a .case::after{content:"";position:absolute;left:0;right:0;bottom:0;height:46px;z-index:-1;background:repeating-linear-gradient(90deg,#5a3b25 0 120px,#523521 120px 240px);box-shadow:inset 0 10px 18px -8px rgba(0,0,0,.6)}
+.v-a .case .sec{padding:0 24px 34px;z-index:1}
+.v-a .sech{background:linear-gradient(#f3d9a4,#cfa45c);border:0;color:#3d2a12;box-shadow:0 2px 6px rgba(0,0,0,.35),inset 0 1px 0 rgba(255,255,255,.6);border-radius:6px;padding:5px 12px}
+.v-a .sech::before{background:#3d2a12;opacity:.55;width:5px;height:5px}
+.v-a .sech span{color:#6b4d22}
+.v-a .shelf::after{background:linear-gradient(#a26c41,#6e4527 60%,#563419);box-shadow:0 14px 18px -8px rgba(0,0,0,.65),inset 0 1px 0 rgba(255,215,160,.45)}
+.v-a .shelf::before{content:"";position:absolute;left:-30px;right:-30px;top:-40px;bottom:-12px;z-index:-1;background:radial-gradient(55% 60% at 50% 0%,rgba(255,200,130,.20),transparent 75%);pointer-events:none}
+.spine{box-shadow:0 1px 0 rgba(0,0,0,.25),3px 0 6px -2px rgba(0,0,0,.45)}
+.deco{position:absolute;inset:0;pointer-events:none;z-index:0}
+.lamp{position:absolute;top:0;width:2px;height:34px;background:#1a110b}
+.lamp i{position:absolute;left:50%;top:34px;transform:translateX(-50%);width:46px;height:22px;border-radius:46px 46px 6px 6px;background:linear-gradient(#2c2a27,#14120f);box-shadow:0 1px 0 rgba(255,255,255,.08)}
+.lamp b{position:absolute;left:50%;top:54px;transform:translateX(-50%);width:16px;height:7px;border-radius:0 0 10px 10px;background:#ffe2a8;box-shadow:0 0 14px 4px rgba(255,210,140,.75)}
+.lamp em{position:absolute;left:50%;top:58px;transform:translateX(-50%);width:420px;height:340px;background:radial-gradient(50% 55% at 50% 0%,rgba(255,206,140,.26),rgba(255,206,140,.08) 45%,transparent 72%);clip-path:polygon(44% 0,56% 0,100% 100%,0 100%)}
+.garland{position:absolute;left:0;right:0;top:6px;width:100%;height:70px}
+.bulb{animation:tw 2.6s ease-in-out infinite}
+.tree{position:absolute;right:26px;bottom:20px;width:270px;height:auto}
+.treeglow{position:absolute;right:-40px;bottom:0;width:440px;height:560px;background:radial-gradient(50% 50% at 50% 60%,rgba(255,200,120,.22),transparent 70%)}
+.gifts{position:absolute;right:236px;bottom:22px;width:110px}
+.tree .tl{animation:tw 1.9s ease-in-out infinite}
+.star{transform-origin:120px 22px;animation:glow 3s ease-in-out infinite}
+@keyframes tw{0%,100%{opacity:1}50%{opacity:.35}}
+@keyframes glow{0%,100%{filter:drop-shadow(0 0 6px rgba(255,214,120,.9))}50%{filter:drop-shadow(0 0 14px rgba(255,214,120,1))}}
+.banner{display:none}
+@media(max-width:700px){
+  .banner{display:block;position:relative;overflow:hidden;height:150px;border-radius:18px;margin-top:20px;background:radial-gradient(70% 80% at 30% 0%,rgba(255,196,120,.25),transparent 70%),linear-gradient(#3a271b,#22170f)}
+  .banner .tree{width:110px;right:14px;bottom:-6px}
+  .banner .garland{height:50px}
+  .banner .bt{position:absolute;left:18px;bottom:18px;color:#f6e3c1;font-size:13px;line-height:1.5}
+  .banner .bt b{display:block;font-size:20px;font-weight:500;color:#fff4de}
+}
+@media(prefers-reduced-motion:reduce){.bulb,.tree .tl,.star{animation:none}}
+
+
+/* ── whole page = bookstore ── */
+body{background:#24180f;color:#f6ead6}
+.store{position:fixed;inset:0;z-index:-1;pointer-events:none;overflow:hidden;background:
+  radial-gradient(40% 50% at 50% 0%,rgba(255,196,120,.18),transparent 70%),
+  radial-gradient(30% 40% at 8% 10%,rgba(255,190,110,.14),transparent 70%),
+  radial-gradient(30% 40% at 92% 10%,rgba(255,190,110,.14),transparent 70%),
+  repeating-linear-gradient(90deg,rgba(255,255,255,.02) 0 2px,transparent 2px 96px),
+  linear-gradient(#36251a,#281b12 70%,#1e140d)}
+.store .floor{position:absolute;left:0;right:0;bottom:0;height:64px;background:repeating-linear-gradient(90deg,#4a311f 0 140px,#432c1b 140px 280px);box-shadow:inset 0 14px 22px -10px rgba(0,0,0,.7)}
+.store .bc{position:absolute;top:110px;bottom:64px;width:calc((100vw - 1120px)/2 - 10px);max-width:420px;min-width:0;overflow:hidden;filter:brightness(.62) saturate(.8) blur(.6px);background:linear-gradient(#2e1f15,#24180f);box-shadow:inset 0 0 0 10px #4b3120,inset 0 0 40px rgba(0,0,0,.6)}
+.store .bc.l{left:0;border-radius:0 10px 0 0}
+.store .bc.r{right:0;border-radius:10px 0 0 0}
+.store .row{display:flex;align-items:flex-end;gap:2px;height:150px;padding:0 18px;border-bottom:12px solid #6e4527;box-shadow:0 10px 14px -8px rgba(0,0,0,.7)}
+.store .row i{display:block;border-radius:2px 2px 0 0;background-image:linear-gradient(90deg,rgba(0,0,0,.18),rgba(255,255,255,.12) 20%,transparent 50%,rgba(0,0,0,.18))}
+.store .garland{top:0;height:80px}
+.store .lamp{z-index:1}
+.store .tree{right:auto;bottom:40px;width:300px;filter:none}
+.store .treeglow{right:auto;bottom:0}
+.store .gifts{right:auto;bottom:44px;width:120px}
+.store .vig{position:absolute;inset:0;background:radial-gradient(120% 90% at 50% 40%,transparent 55%,rgba(0,0,0,.45))}
+.crumb{color:#c9b18c}.crumb b{color:#fff4de}.navr{color:#9c8667}
+h1{color:#fff4de;text-shadow:0 2px 30px rgba(255,190,110,.25)}
+.lede{color:#cdb99a}.stat b{color:#fff4de}.stat span{color:#b9a283}
+.chips{border-bottom-color:rgba(255,225,180,.12)}
+.chip{color:#d9c7a8;border-color:rgba(255,225,180,.2);background:rgba(20,12,6,.25);backdrop-filter:blur(4px)}
+.chip:hover{color:#fff4de;border-color:rgba(255,225,180,.45)}
+.chip[aria-pressed="true"]{background:#f3d9a4;border-color:#f3d9a4;color:#2a1c13}
+footer{color:#8d7859}
+.v-a .case{background:
+  radial-gradient(60% 50% at 30% 18%,rgba(255,196,120,.2),transparent 70%),
+  linear-gradient(#45301f,#33231a 70%,#2b1d14);box-shadow:0 40px 80px -30px rgba(0,0,0,.8),inset 0 0 0 10px #5a3b25,inset 0 0 0 11px rgba(255,220,170,.15)}
+.v-a .case::after{display:none}
+.v-a .case{padding-bottom:40px}
+.v-a .panel{color:var(--ink)}
+.v-b .sech{color:#fff4de;border-bottom-color:rgba(255,225,180,.15)} .v-b .sech span{color:#9c8667}
+.v-b li{border-bottom-color:rgba(255,225,180,.1)}
+.v-b .t{color:#fff4de}.v-b .a{color:#b9a283}.v-b .pl{color:#e0d0b5}.v-b .pq{color:#fff4de}
+@media(min-width:1500px){ .v-a .case .tree,.v-a .case .gifts,.v-a .case .treeglow{display:none} .v-a .case{padding-right:34px} }
+@media(max-width:1499px){ .store .tree,.store .gifts,.store .treeglow{display:none} }
+@media(max-width:700px){ .store .bc,.store .lamp,.store .floor{display:none} }
+.wrap>.nav{padding-top:78px}
+@media(max-width:700px){ .wrap>.nav{padding-top:64px} }
+
+/* ── B: index list ── */
+.v-b .list{list-style:none}
+.v-b li{border-bottom:1px solid var(--line)}
+.v-b .rowb{width:100%;display:grid;grid-template-columns:40px 56px minmax(0,1fr) auto;gap:20px;align-items:center;padding:18px 0;text-align:left}
+.v-b .num{font-size:12px;color:var(--faint);font-variant-numeric:tabular-nums}
+.v-b .thumb{width:56px;height:74px;border-radius:6px;object-fit:cover;object-position:top;background:var(--soft)}
+.v-b .t{font-size:20px;font-weight:500;letter-spacing:-0.015em;line-height:1.3}
+.v-b .a{font-size:13px;color:var(--muted);margin-top:3px}
+.v-b .meta{display:flex;flex-direction:column;align-items:flex-end;gap:6px;text-align:right}
+.v-b .rowb:hover .t{color:var(--lab)}
+.v-b .more{display:grid;grid-template-columns:40px 56px minmax(0,1fr);gap:20px;padding:0 0 26px}
+.v-b .more>div{grid-column:3}
+.v-b .more .pq{margin-top:0}
+.v-b .more img{width:180px;border-radius:10px;margin-top:18px;display:block}
 
 @media(max-width:700px){
-  .dwrap{grid-template-columns:1fr}
-  .dimg{max-height:45vh}
-}
-@media(max-width:600px){
-  .hero,.filters,main,.topbar,.foot-bar{padding-left:20px;padding-right:20px}
-  .shelf{grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:12px}
-  .bliked{display:none}
+  .wrap{padding:0 20px}
+  .head{padding:28px 0 24px}
+  .v-a .panel{grid-template-columns:1fr}
+  .v-b .rowb{grid-template-columns:52px minmax(0,1fr);gap:16px}
+  .v-b .thumb{width:52px;height:68px}
+  .v-b .num,.v-b .meta{display:none}
+  .v-b .t{font-size:16px}
+  .v-b .more{grid-template-columns:1fr}.v-b .more>div{grid-column:1}
 }
 @media(prefers-reduced-motion:reduce){*{transition:none!important}}
 </style>
 </head>
 <body>
-
-<div class="topbar">
-  <a class="logo" href="index.html">sheis<span class="logo-dot"></span>phere</a>
-  <a class="back" href="index.html#lab">← sheislab</a>
+<div class="wrap">
+  <nav class="nav"><a class="crumb" href="index.html#lab"><i></i>sheislab <span>/</span> <b>bookshelf</b></a><span class="navr" id="upd"></span></nav>
+  <header class="head">
+    <div><h1>bookshelf</h1><p class="lede">บันทึกหลังอ่านหนังสือจบ ชอบตรงไหน ประโยคไหนที่ยังจำได้</p></div>
+    <div class="stat"><div><b id="n">0</b><span>เล่มที่อ่านจบ</span></div><div><b id="nt">0</b><span>หมวด</span></div></div>
+  </header>
+  <div class="chips" id="chips"></div>
+  <main id="main"></main>
+  <footer><span>sheislab · reading log</span><span>sheismaug.github.io</span></footer>
 </div>
-
-<section class="hero">
-  <div class="eyebrow"><i></i>reading log</div>
-  <h1>bookshelf</h1>
-  <div class="sub"><b id="count">0</b> เล่มที่อ่านจบ<span style="color:#ddd;margin:0 6px">/</span>บันทึกหลังอ่าน</div>
-  <p class="intro">โน้ตสั้นๆ หลังอ่านหนังสือแต่ละเล่มจบ ชอบตรงไหน ประโยคไหนที่ยังจำได้ แตะที่เล่มเพื่อดู story ต้นฉบับ</p>
-</section>
-
-<div class="filters" id="filters" role="group" aria-label="กรองตามธีม"></div>
-
-<main>
-  <div class="shelf" id="shelf"><div class="empty">กำลังโหลดชั้นหนังสือ…</div></div>
-</main>
-
-<dialog id="detail" aria-label="รายละเอียดหนังสือ"></dialog>
-
-<div class="foot-bar">
-  <a class="flogo" href="index.html">sheislab</a>
-  <div class="fright" id="updated"></div>
-</div>
-
 <script>
 (() => {
-  const $ = s => document.querySelector(s);
-  const el = (t, a = {}, ...k) => { const e = document.createElement(t); for (const [n, v] of Object.entries(a)) { if (v == null || v === false) continue; if (n === 'class') e.className = v; else if (n.startsWith('on')) e.addEventListener(n.slice(2), v); else e.setAttribute(n, v); } e.append(...k.flat().filter(x => x != null && x !== false)); return e; };
-  const stars = n => n ? '★'.repeat(n) + '☆'.repeat(5 - n) : null;
-  let books = [], tag = null;
+const mq = matchMedia('(min-width:701px)'); let V;
+const setV = () => { V = mq.matches ? 'a' : 'b'; document.body.classList.remove('v-a','v-b'); document.body.classList.add('v-' + V); };
+setV();
+const $ = s => document.querySelector(s);
+const el = (t, a = {}, ...k) => { const e = document.createElement(t); for (const [n, v] of Object.entries(a)) { if (v == null || v === false) continue; if (n === 'class') e.className = v; else if (n === 'style') e.style.cssText = v; else if (n.startsWith('on')) e.addEventListener(n.slice(2), v); else e.setAttribute(n, v); } e.append(...k.flat(2).filter(x => x != null && x !== false)); return e; };
+const stars = n => n ? '★'.repeat(n) + '☆'.repeat(5 - n) : '';
+const shortTitle = t => t.replace(/\s*\(.*\)$/, '').replace(/:.*$/, '');
+let books = [], cats = [], cat = null, open = null;
 
-  function filters() {
-    const counts = new Map();
-    books.forEach(b => (b.tags || []).forEach(t => counts.set(t, (counts.get(t) || 0) + 1)));
-    const top = [...counts].filter(([, n]) => n > 1).sort((a, b) => b[1] - a[1]);
-    $('#filters').replaceChildren(
-      el('span', { class: 'flbl' }, 'ธีม'),
-      el('button', { class: 'chip', 'aria-pressed': String(!tag), onclick: () => { tag = null; render(); } }, 'ทั้งหมด'),
-      ...top.map(([t, n]) => el('button', { class: 'chip', 'aria-pressed': String(tag === t), onclick: () => { tag = tag === t ? null : t; render(); } }, '#' + t, el('span', {}, String(n))))
-    );
-  }
+function lum(hex){ const n = parseInt(hex.slice(1), 16); const r=(n>>16)&255,g=(n>>8)&255,b=n&255; return (0.299*r+0.587*g+0.114*b)/255; }
+function details(b){ return [
+  el('div',{class:'ptitle'}, b.title), b.author ? el('div',{class:'pauthor'}, b.author, b.rating ? '  ·  ' + stars(b.rating) : '') : null,
+  b.quote ? el('blockquote',{class:'pq'}, b.quote) : null,
+  b.liked ? [el('div',{class:'plbl'},'ชอบตรงไหน'), el('p',{class:'pl'}, b.liked)] : null,
+  (b.tags||[]).length ? el('div',{class:'ptags'}, b.tags.map(t=>el('span',{class:'tag'},'#'+t))) : null ]; }
 
-  function open(b) {
-    const d = $('#detail');
-    d.replaceChildren(el('div', { class: 'dwrap' },
-      el('div', { class: 'dimg' }, el('img', { src: b.image, alt: 'Instagram story ของ ' + b.title })),
-      el('div', { class: 'dtext' },
-        el('div', { class: 'dtitle' }, b.title),
-        b.author ? el('div', { class: 'bauthor' }, b.author) : null,
-        b.rating ? el('div', { class: 'stars', 'aria-label': b.rating + ' จาก 5 ดาว' }, stars(b.rating)) : null,
-        b.quote ? el('blockquote', {}, b.quote) : null,
-        b.liked ? el('div', {}, el('div', { class: 'dlbl' }, 'ชอบตรงไหน'), el('div', { class: 'dval' }, b.liked)) : null,
-        (b.tags || []).length ? el('div', { class: 'btags' }, b.tags.map(t => el('span', { class: 'tag' }, '#' + t))) : null,
-        el('button', { class: 'close', onclick: () => d.close() }, 'ปิด'))));
-    d.showModal();
-  }
-  $('#detail').addEventListener('click', e => { if (e.target.id === 'detail') e.target.close(); });
+function chips(){ const c=new Map(); books.forEach(b=>c.set(b.category,(c.get(b.category)||0)+1));
+  $('#nt').textContent=cats.filter(k=>c.has(k)).length;
+  $('#chips').replaceChildren(el('button',{class:'chip','aria-pressed':String(!cat),onclick:()=>{cat=null;render()}},'ทั้งหมด'), ...cats.filter(k=>c.has(k)).map(k=>el('button',{class:'chip','aria-pressed':String(cat===k),onclick:()=>{cat=cat===k?null:k;render()}},k,el('span',{class:'cn'},c.get(k)))));
+}
+const toggle = id => { open = open===id ? null : id; render(); };
+const initials = a => (a||'').replace(/\(.*?\)/g,'').trim().split(/\s+/).pop().slice(0,7);
+function shelfA(list){
+  const shelf=el('div',{class:'shelf'});
+  list.forEach((b,i)=>{ const t=shortTitle(b.title); const h = 196 + (t.length*11)%62; const w = 40 + Math.min(18, Math.round(t.length/2)); const c=b.color||'#ddd';
+    const lean = list.length>1 && i===list.length-1 && i%2===0;
+    shelf.append(el('button',{class:'spine'+(lean?' lean':''),'aria-expanded':String(open===b.id),'aria-label':b.title,title:b.title,style:`--w:${w}px;height:${h}px;background-color:${c};color:${lum(c)>.6?'#1b1a17':'#fff'}`,onclick:()=>{ toggle(b.id); if(open) $('#panel')?.scrollIntoView({behavior:'smooth',block:'nearest'}); }}, el('span',{class:'st'},t), el('span',{class:'sa'},initials(b.author))));
+  });
+  return shelf;
+}
+function listB(list){
+  return el('ol',{class:'list'}, list.map(b=>el('li',{},
+    el('button',{class:'rowb','aria-expanded':String(open===b.id),onclick:()=>toggle(b.id)},
+      el('span',{class:'num'},String(books.indexOf(b)+1).padStart(2,'0')), el('img',{class:'thumb',src:b.image,alt:'',loading:'lazy'}),
+      el('div',{}, el('div',{class:'t'},b.title), el('div',{class:'a'},b.author||'')),
+      el('div',{class:'meta'}, b.rating?el('span',{class:'stars'},stars(b.rating)):null, el('span',{class:'tag'},(b.tags||[]).slice(0,2).map(t=>'#'+t).join('  ')))),
+    open===b.id ? el('div',{class:'more'}, el('div',{}, b.quote?el('blockquote',{class:'pq'},b.quote):null, b.liked?el('p',{class:'pl'},b.liked):null, (b.tags||[]).length?el('div',{class:'ptags'},b.tags.map(t=>el('span',{class:'tag'},'#'+t))):null, el('img',{src:b.image,alt:'Instagram story ของ '+b.title}))) : null)));
+}
 
-  function render() {
-    filters();
-    const list = tag ? books.filter(b => (b.tags || []).includes(tag)) : books;
-    $('#shelf').replaceChildren(...(list.length ? list.map((b, i) =>
-      el('button', { class: 'book', onclick: () => open(b), 'aria-label': b.title },
-        el('img', { class: 'cover', src: b.image, alt: '', loading: 'lazy' }),
-        el('div', { class: 'bbody' },
-          el('div', { class: 'bnum' }, 'B' + String(books.indexOf(b) + 1).padStart(2, '0')),
-          el('div', { class: 'btitle' }, b.title),
-          b.author ? el('div', { class: 'bauthor' }, b.author) : null,
-          b.rating ? el('div', { class: 'stars', 'aria-label': b.rating + ' จาก 5 ดาว' }, stars(b.rating)) : null,
-          b.liked ? el('div', { class: 'bliked' }, b.liked) : null,
-          (b.tags || []).length ? el('div', { class: 'btags' }, b.tags.slice(0, 3).map(t => el('span', { class: 'tag' }, '#' + t))) : null))
-    ) : [el('div', { class: 'empty' }, 'ยังไม่มีหนังสือบนชั้น')]));
-  }
+const COLORS=['#ffd27a','#ffbe5c','#ffe3a8','#ffae45','#fff1cc'];
+function garland(n,W){ const y=x=>10+34*Math.abs(Math.sin(Math.PI*x/(W/4)));
+  let d='M0 '+y(0); for(let x=4;x<=W;x+=4) d+=' L'+x+' '+y(x).toFixed(1);
+  let s=`<svg class="garland" viewBox="0 0 ${W} 70" preserveAspectRatio="xMidYMin slice" aria-hidden="true"><path d="${d}" fill="none" stroke="#1f3a26" stroke-width="2.5"/>`;
+  for(let i=0;i<n;i++){ const x=(i+.5)/n*W, c=COLORS[i%5];
+    s+=`<line x1="${x}" y1="${y(x)}" x2="${x}" y2="${y(x)+5}" stroke="#1f3a26" stroke-width="2"/><ellipse class="bulb" cx="${x}" cy="${y(x)+10}" rx="4" ry="5.5" fill="${c}" style="animation-delay:${((i*0.37)%2.6).toFixed(2)}s;filter:drop-shadow(0 0 5px ${c})"/>`; }
+  return s+'</svg>'; }
+function tree(){ let s=`<svg class="tree" viewBox="0 0 240 330" aria-hidden="true">
+  <ellipse cx="120" cy="318" rx="92" ry="10" fill="rgba(0,0,0,.35)"/>
+  <rect x="108" y="270" width="24" height="26" fill="#5b3a22"/>
+  <path d="M84 292h72l-8 30H92z" fill="#b8473a"/><path d="M84 292h72v6H84z" fill="#d9644f"/>
+  <path d="M120 150 30 280h180z" fill="#1f5a3a"/><path d="M120 150 30 280h90z" fill="#24683f"/>
+  <path d="M120 96 46 214h148z" fill="#23653f"/><path d="M120 96 46 214h74z" fill="#2a7748"/>
+  <path d="M120 40 62 150h116z" fill="#287045"/><path d="M120 40 62 150h58z" fill="#30844f"/>
+  <path d="M58 250q62 24 128-22M70 186q50 20 104-18M84 128q36 14 74-14" fill="none" stroke="#e9c46a" stroke-width="2.5" stroke-linecap="round" opacity=".9"/>`;
+  const orn=[[96,232,'#c0392b'],[150,252,'#e9c46a'],[120,198,'#f3e3c0'],[82,262,'#e9c46a'],[168,224,'#c0392b'],[104,160,'#e9c46a'],[142,176,'#c0392b'],[118,120,'#f3e3c0']];
+  orn.forEach(([x,y,c])=>s+=`<circle cx="${x}" cy="${y}" r="6.5" fill="${c}"/><circle cx="${x-2}" cy="${y-2}" r="2" fill="#fff" opacity=".55"/>`);
+  for(let i=0;i<34;i++){ const yy=60+((i*53)%210), half=(yy-40)*0.42, x=120+(((i*37)%100)/100*2-1)*half*0.85; const c=COLORS[i%5];
+    s+=`<circle class="tl" cx="${x.toFixed(1)}" cy="${yy}" r="2.6" fill="${c}" style="animation-delay:${((i*0.29)%1.9).toFixed(2)}s;filter:drop-shadow(0 0 4px ${c})"/>`; }
+  return s+`<g class="star"><path d="M120 8l5.9 12 13.2 1.9-9.6 9.3 2.3 13.1L120 38l-11.8 6.3 2.3-13.1-9.6-9.3 13.2-1.9z" fill="#ffd66b"/></g></svg>`; }
+const GIFTS=`<svg class="gifts" viewBox="0 0 110 70" aria-hidden="true"><ellipse cx="55" cy="66" rx="52" ry="4" fill="rgba(0,0,0,.35)"/><rect x="6" y="30" width="44" height="36" rx="2" fill="#c0392b"/><rect x="24" y="30" width="8" height="36" fill="#f3d9a4"/><path d="M28 30c-10-12-20-4-10 0m10 0c10-12 20-4 10 0" fill="none" stroke="#f3d9a4" stroke-width="3"/><rect x="56" y="44" width="46" height="22" rx="2" fill="#2f6f8f"/><rect x="74" y="44" width="8" height="22" fill="#ffd66b"/><rect x="40" y="52" width="24" height="14" rx="2" fill="#e9c46a"/><rect x="50" y="52" width="4" height="14" fill="#c0392b"/></svg>`;
+function deco(){ const d=el('div',{class:'deco'}); d.innerHTML=[18,48,74].map(p=>`<div class="lamp" style="left:${p}%"><i></i><b></b><em></em></div>`).join('')+'<div class="treeglow"></div>'+tree()+GIFTS; return d; }
 
-  fetch('bookshelf/books.json', { cache: 'no-cache' }).then(r => r.json()).then(data => {
-    books = (data.books || []).slice().sort((a, b) => (b.date || '').localeCompare(a.date || ''));
-    $('#count').textContent = books.length;
-    if (data.updated) $('#updated').textContent = 'อัปเดต ' + new Date(data.updated + 'T00:00').toLocaleDateString('th-TH', { day: 'numeric', month: 'short', year: 'numeric' });
-    render();
-  }).catch(() => { $('#shelf').replaceChildren(el('div', { class: 'empty' }, 'โหลดชั้นหนังสือไม่สำเร็จ ลองรีเฟรชอีกครั้ง')); });
+function store(){ const s=el('div',{class:'store','aria-hidden':'true'}); const pal=['#7a2e2a','#b5853f','#3f5d4a','#556a7d','#8c6a52','#c9b48a','#4b3f5c','#9a4b33','#6d7a5a','#d6c4a0','#2f4a5e','#a8796a'];
+  let seed=7; const rnd=()=>(seed=(seed*9301+49297)%233280)/233280;
+  const bc=cls=>{ let x=`<div class="bc ${cls}">`; for(let r=0;r<6;r++){ x+='<div class="row">'; for(let k=0;k<26;k++){ if(rnd()<.06){ x+='<i style="width:14px;height:0"></i>'; continue; } x+=`<i style="width:${10+Math.round(rnd()*12)}px;height:${92+Math.round(rnd()*44)}px;background-color:${pal[Math.floor(rnd()*pal.length)]}"></i>`; } x+='</div>'; } return x+'</div>'; };
+  const side=`calc((100vw - 1120px)/4 - 130px)`;
+  s.innerHTML=bc('l')+bc('r')+'<div class="floor"></div>'+garland(36,1600)+[6,94].map(p=>`<div class="lamp" style="left:${p}%"><i></i><b></b><em></em></div>`).join('')
+    +`<div class="treeglow" style="right:${side.replace('130px','220px')}"></div>`+tree().replace('class="tree"',`class="tree" style="right:${side}"`)+GIFTS.replace('class="gifts"',`class="gifts" style="right:calc((100vw - 1120px)/4 + 120px)"`)+'<div class="vig"></div>';
+  document.body.prepend(s); }
+function render(){ chips(); const m=$('#main');
+  const groups = cats.filter(k=>!cat||k===cat).map(k=>[k, books.filter(b=>b.category===k)]).filter(([,l])=>l.length);
+  const sec = ([k,l]) => el('section',{class:'sec',style:`--dot:${l[0].color||'#ccc'}`}, el('h2',{class:'sech'}, k, el('span',{}, l.length+' เล่ม'), V==='b' ? el('span',{class:'bars'}, l.map(b=>el('i',{style:`background:${b.color||'#ddd'}`}))) : null), V==='a' ? shelfA(l) : listB(l));
+  if (V==='a'){
+    const b = books.find(x=>x.id===open && groups.some(([k])=>k===x.category));
+    m.replaceChildren(el('div',{class:'case'}, deco(), groups.map(sec)),
+      b ? el('section',{class:'panel',id:'panel'}, el('img',{src:b.image,alt:''}), el('div',{}, el('div',{class:'pcat'}, b.category), details(b))) : el('p',{class:'lede',style:'padding:32px 0 20px'},'แตะที่สันหนังสือเพื่อเปิดอ่านโน้ต'));
+  } else { const bn=el('div',{class:'banner'}); bn.innerHTML=tree()+'<div class="bt"><b>sheis reading room</b>'+books.length+' เล่ม · '+groups.length+' หมวด</div>'; m.replaceChildren(bn, ...groups.map(sec)); }
+}
+store();
+fetch('bookshelf/books.json',{cache:'no-cache'}).then(r=>r.json()).then(d=>{ books=(d.books||[]).slice().sort((a,b)=>(b.date||'').localeCompare(a.date||'')); cats=d.categories||[...new Set(books.map(b=>b.category))]; books.forEach(b=>{ if(!b.category){ b.category='อื่นๆ'; if(!cats.includes('อื่นๆ')) cats.push('อื่นๆ'); } }); $('#n').textContent=books.length; if(d.updated) $('#upd').textContent='อัปเดต '+new Date(d.updated+'T00:00').toLocaleDateString('th-TH',{day:'numeric',month:'short',year:'numeric'}); if(V==='a') open=books[0]?.id; render(); });
+mq.addEventListener('change',()=>{ setV(); if(V==='a' && !open) open=books[0]?.id; render(); });
+let rt; addEventListener('resize',()=>{ clearTimeout(rt); rt=setTimeout(()=>{ if(V==='a') render(); },120); });
 })();
 </script>
 </body>
