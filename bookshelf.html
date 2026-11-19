@@ -8,7 +8,7 @@
 <meta name="theme-color" content="#140d08">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Google+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Google+Sans:wght@400;500;600;700&family=Noto+Serif+Thai:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 :root{
@@ -162,6 +162,7 @@ dialog.sheet[open]{animation:pop .32s cubic-bezier(.2,.8,.3,1)}
 .ptags{display:flex;gap:12px;margin-top:26px;flex-wrap:wrap}
 .tag{font-size:14px;color:#a8671f}
 
+
 @media(max-width:820px){
   .wrap{padding:0 18px}
   .cats{margin:0 -18px;padding:12px 18px}
@@ -191,6 +192,52 @@ dialog.sheet[open]{animation:pop .32s cubic-bezier(.2,.8,.3,1)}
   .cove.c1{width:260vw;height:420px;top:-402px}.cove.c2{width:190vw;height:360px;top:-240px}.cove.c3{display:none}
 }
 @media(prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}html{scroll-behavior:auto}}
+
+/* ── open-book review ── */
+:root{--pg:#fbf5e9;--pg2:#f4ead8}
+dialog.sheet{width:min(1120px,calc(100vw - 48px));border-radius:6px 6px 6px 6px;background:#3a2414;padding:10px;box-shadow:0 50px 120px rgba(0,0,0,.7),inset 0 0 0 1px rgba(255,220,170,.12)}
+.sh{grid-template-columns:minmax(0,.82fr) minmax(0,1.18fr);max-height:calc(100vh - 68px);border-radius:3px;overflow:hidden;
+  background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='220' height='220'%3E%3Cfilter id='p'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.7' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .45 0 0 0 0 .35 0 0 0 0 .2 0 0 0 .07 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23p)'/%3E%3C/svg%3E"),var(--pg)}
+.sh-img{background:linear-gradient(90deg,rgba(120,80,30,.06),transparent 30%,transparent 80%,rgba(90,55,20,.16)),var(--pg2);overflow:auto;padding:56px 40px 40px;display:flex;flex-direction:column;align-items:center;text-align:center;position:relative;box-shadow:inset -18px 0 30px -18px rgba(80,45,10,.35)}
+.sh-body{padding:56px 60px 64px;background:linear-gradient(90deg,rgba(90,55,20,.14),transparent 9%)}
+.sh-top{top:-56px;margin:-56px -60px 0;padding:16px 18px 0}
+.ib{background:rgba(251,245,233,.9);border-color:#e6d9c3}
+.cover{width:min(78%,250px);aspect-ratio:.72;border-radius:2px 5px 5px 2px;overflow:hidden;position:relative;box-shadow:0 26px 36px -16px rgba(60,30,5,.55),0 4px 8px rgba(60,30,5,.25);transform:rotate(-1.5deg)}
+.cover img{width:100%;height:100%;object-fit:cover;object-position:50% 0;display:block}
+.cover::after{content:"";position:absolute;inset:0;background:linear-gradient(90deg,rgba(0,0,0,.28),rgba(255,255,255,.2) 3%,transparent 10%),linear-gradient(160deg,rgba(255,245,225,.25),transparent 45%)}
+.lp-cat{margin-top:34px;font-size:12px;font-weight:600;letter-spacing:.2em;text-transform:uppercase;color:#a8671f}
+.lp-th{margin-top:4px;font-size:13px;color:#9a8670}
+.lp-stars{margin-top:14px;font-size:18px;letter-spacing:4px;color:#c98a2e}
+.lp-tags{margin-top:18px;display:flex;flex-wrap:wrap;justify-content:center;gap:6px 12px}
+.lp-tags span{font-size:13.5px;color:#8a6a45}
+.lp-link{margin-top:22px;font-size:13px;color:#6e5a44;text-decoration:underline;text-underline-offset:3px;text-decoration-color:#d6c2a2}
+.ptitle{font-family:'Noto Serif Thai','Google Sans',serif;font-weight:500;font-size:36px;letter-spacing:-.01em;color:#2a1d12;margin-top:4px}
+.pauthor{font-size:15px;color:#8a7660;margin-top:10px;letter-spacing:.02em}
+.pq{font-family:'Noto Serif Thai',serif;font-weight:500;font-size:23px;line-height:1.75;color:#3b2a18;border:0;padding:26px 0 22px;margin-top:26px;position:relative;border-top:1px solid #e6d7bd;border-bottom:1px solid #e6d7bd;max-width:none}
+.pq::before{content:"“";position:absolute;left:-6px;top:-8px;font-size:64px;line-height:1;color:#e2b26a;font-family:Georgia,serif}
+.plbl{display:none}
+.rv{max-width:34em;margin-top:8px}
+.rv p{font-family:'Noto Serif Thai',serif;font-size:17.5px;line-height:2.05;color:#3a3027;margin-top:20px}
+.orn{margin:44px 0 0;text-align:center;color:#c8a46e;letter-spacing:12px;font-size:14px}
+.story{margin-top:28px;display:flex;flex-direction:column;align-items:center;gap:12px}
+.story small{font-size:12px;letter-spacing:.18em;text-transform:uppercase;color:#a08a6c}
+.story img{width:min(100%,300px);border-radius:10px;padding:8px;background:#fff;box-shadow:0 16px 30px -14px rgba(60,30,5,.45);transform:rotate(1.2deg)}
+.ptags,.pcat{display:none}
+@media(max-width:820px){
+  dialog.sheet{padding:0;background:var(--pg);border-radius:0;width:100vw;max-width:100vw;height:100dvh;max-height:100dvh;margin:0}
+  .sh{grid-template-columns:1fr;max-height:100dvh;height:100dvh;overflow:auto;border-radius:0}
+  .sh-img{order:0;overflow:visible;padding:64px 24px 8px;box-shadow:none;background:none}
+  .sh-body{order:1;overflow:visible;padding:0 24px 40px;background:none}
+  .sh-top{position:fixed;top:0;left:0;right:0;margin:0;padding:12px 14px;background:linear-gradient(var(--pg) 70%,rgba(251,245,233,0));z-index:3}
+  .cover{width:150px}
+  .lp-cat{margin-top:22px}
+  .lp-link{display:none}
+  .ptitle{font-size:28px;text-align:center;margin-top:18px}
+  .pauthor{text-align:center}
+  .pq{font-size:20px}
+  .rv p{font-size:17px}
+}
+
 </style>
 </head>
 <body>
@@ -257,19 +304,24 @@ function render(){
 }
 function openBook(i){
   cur = i; const b = order[i]; if (!b) return;
-  $('#shimg').replaceChildren(el('img', { src: b.image, alt: 'Instagram story ของ ' + b.title }));
+  const EN2 = typeof EN !== 'undefined' ? EN : {};
+  $('#shimg').replaceChildren(...[
+    el('div', { class: 'cover' }, el('img', { src: b.face || b.image, alt: 'ปก ' + b.title })),
+    el('div', { class: 'lp-cat' }, EN2[b.category] || b.category), EN2[b.category] ? el('div', { class: 'lp-th' }, b.category) : null,
+    b.rating ? el('div', { class: 'lp-stars', 'aria-label': b.rating + ' ดาว' }, stars(b.rating)) : null,
+    (b.tags || []).length ? el('div', { class: 'lp-tags' }, b.tags.map(t => el('span', {}, '#' + t))) : null,
+    b.image ? el('a', { class: 'lp-link', href: '#story', onclick: e => { e.preventDefault(); $('#story')?.scrollIntoView({ behavior: 'smooth' }); } }, 'ดูสตอรี่ต้นฉบับ ↓') : null].filter(Boolean));
   $('#shbody').replaceChildren(...[
     el('div', { class: 'sh-top' },
       el('button', { class: 'ib', 'aria-label': 'เล่มก่อนหน้า', disabled: i === 0 || null, onclick: () => openBook(i - 1) }, '‹'),
       el('button', { class: 'ib', 'aria-label': 'เล่มถัดไป', disabled: i === order.length - 1 || null, onclick: () => openBook(i + 1) }, '›'),
       el('button', { class: 'ib', 'aria-label': 'ปิด', onclick: close }, '✕')),
-    el('div', { class: 'pcat' }, b.category),
     el('h2', { class: 'ptitle' }, b.title),
-    b.author ? el('div', { class: 'pauthor' }, b.author, b.rating ? el('span', { class: 'stars' }, stars(b.rating)) : null) : null,
+    b.author ? el('div', { class: 'pauthor' }, b.author) : null,
     b.quote ? el('blockquote', { class: 'pq' }, b.quote) : null,
-    b.review ? [el('div', { class: 'plbl' }, 'รีวิวเต็ม'), el('div', { class: 'rv' }, b.review.split(/\n{2,}/).map(t => el('p', {}, t)))]
-      : b.liked ? [el('div', { class: 'plbl' }, 'ชอบตรงไหน'), el('div', { class: 'rv' }, el('p', {}, b.liked))] : null,
-    (b.tags || []).length ? el('div', { class: 'ptags' }, b.tags.map(t => el('span', { class: 'tag' }, '#' + t))) : null].flat(2).filter(Boolean));
+    b.review ? el('div', { class: 'rv' }, b.review.split(/\n{2,}/).map(t => el('p', {}, t)))
+      : b.liked ? el('div', { class: 'rv' }, el('p', {}, b.liked)) : null,
+    b.image ? [el('div', { class: 'orn', 'aria-hidden': 'true' }, '· · ·'), el('div', { class: 'story', id: 'story' }, el('small', {}, 'สตอรี่ต้นฉบับ'), el('img', { src: b.image, alt: 'Instagram story ของ ' + b.title, loading: 'lazy' }))] : null].flat(2).filter(Boolean));
   $('#shbody').scrollTop = 0; $('#shimg').scrollTop = 0; $('.sh').scrollTop = 0;
   if (!sheet.open) { sheet.showModal(); document.body.style.overflow = 'hidden'; }
   history.replaceState(null, '', '#' + b.id);
