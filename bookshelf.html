@@ -58,6 +58,17 @@ h1{font-size:clamp(46px,8vw,84px);font-weight:500;letter-spacing:-.04em;line-hei
 .stat b{font-size:34px;font-weight:500;letter-spacing:-.02em;font-variant-numeric:tabular-nums;color:var(--cream)}
 .stat span{font-size:13.5px;color:var(--dim)}
 
+
+/* christmas tree: needle-textured tiers + soft fairy lights */
+.head{position:relative}
+.xmas{position:absolute;right:250px;bottom:-34px;width:230px;height:360px;pointer-events:none}
+.xmas svg{width:100%;height:100%;overflow:visible}
+.xmas .fl{animation:tw 2.8s ease-in-out infinite}
+.xmas .star{animation:glow 3.4s ease-in-out infinite;transform-origin:120px 26px}
+@keyframes tw{0%,100%{opacity:1}50%{opacity:.35}}
+@keyframes glow{0%,100%{opacity:.85;transform:scale(1)}50%{opacity:1;transform:scale(1.15)}}
+@media(max-width:1100px){.xmas{right:220px;width:190px;height:300px}}
+
 /* category bar */
 .cats{position:sticky;top:0;z-index:5;margin:0 -32px;padding:14px 32px;display:flex;gap:6px;overflow-x:auto;scrollbar-width:none;background:linear-gradient(var(--bg) 70%,rgba(20,13,8,0));}
 .cats::-webkit-scrollbar{display:none}
@@ -149,6 +160,8 @@ dialog.sheet[open]{animation:pop .32s cubic-bezier(.2,.8,.3,1)}
   .sh-img img{border-radius:14px}
   .sh-body{overflow:visible;padding:0 22px 26px}
   .sh-top{position:sticky;top:0;margin:0 -22px;padding:12px 14px;background:linear-gradient(var(--paper) 75%,rgba(251,248,243,0))}
+  .xmas{right:-4px;top:-14px;bottom:auto;width:118px;height:184px}
+  .lede{max-width:calc(100% - 118px)}
   .ptitle{font-size:28px}
   #upd{display:none}
   .pq{font-size:19px}
@@ -164,6 +177,7 @@ dialog.sheet[open]{animation:pop .32s cubic-bezier(.2,.8,.3,1)}
   <nav class="nav"><a class="crumb" href="index.html#lab"><i></i>sheislab <span>/</span> <b>bookshelf</b></a><span class="navr"><span id="upd"></span><a class="social" href="https://www.facebook.com/sheis.park" target="_blank" rel="noopener" aria-label="Facebook"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M13.5 21v-7.5h2.6l.4-3h-3V8.6c0-.9.3-1.5 1.5-1.5h1.6V4.4c-.3 0-1.2-.1-2.3-.1-2.3 0-3.9 1.4-3.9 4v2.2H7.8v3h2.6V21z"/></svg></a><a class="social" href="https://www.instagram.com/sheismaug/" target="_blank" rel="noopener" aria-label="Instagram"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r="1" fill="currentColor" stroke="none"/></svg></a></span></nav>
   <header class="head">
     <div><p class="kick">sheis reading room</p><h1>bookshelf</h1><p class="lede">บันทึกหลังอ่านหนังสือจบ ชอบตรงไหน ประโยคไหนที่ยังจำได้</p></div>
+    <div class="xmas" id="xmas" aria-hidden="true"></div>
     <div class="stat"><div><b id="n">0</b><span>เล่มที่อ่านจบ</span></div><div><b id="nt">0</b><span>หมวด</span></div></div>
   </header>
   <nav class="cats" id="cats" aria-label="หมวดหนังสือ"></nav>
@@ -222,6 +236,34 @@ function close(){ sheet.close(); }
 sheet.addEventListener('close', () => { document.body.style.overflow = ''; cur = -1; history.replaceState(null, '', location.pathname); });
 sheet.addEventListener('click', e => { if (e.target === sheet) close(); });
 addEventListener('keydown', e => { if (!sheet.open) return; if (e.key === 'ArrowRight' && cur < order.length - 1) openBook(cur + 1); if (e.key === 'ArrowLeft' && cur > 0) openBook(cur - 1); });
+
+
+function xmasTree(){
+  let seed=11; const r=()=>(seed=(seed*9301+49297)%233280)/233280;
+  // tiers: drooping branch layers, widest at the bottom
+  const tiers=[[52,40,96],[84,62,130],[118,80,166],[152,96,204],[188,108,244],[226,116,286]];
+  let t='';
+  tiers.forEach(([top,hw,bot],k)=>{ let d=`M120 ${top-28}`; const n=12+k*4;
+    d+=` C${120+hw*.35} ${top+(bot-top)*.35} ${120+hw*.8} ${bot-18} ${120+hw} ${bot}`;
+    for(let i=n;i>=0;i--){ const x=120-hw+2*hw*i/n; const y=bot-((i%2)?7:0)+r()*5; d+=` L${x.toFixed(1)} ${y.toFixed(1)}`; }
+    d+=` C${120-hw*.8} ${bot-18} ${120-hw*.35} ${top+(bot-top)*.35} 120 ${top-28}Z`;
+    t+=`<path d="${d}" fill="url(#tg)" filter="url(#needle)"/><path d="${d}" fill="url(#tl)" filter="url(#needle)" opacity=".9"/>`; });
+  let lights='';
+  for(let i=0;i<100;i++){ const y=40+r()*240; const hw=(y-20)*0.40; const x=120+(r()*2-1)*hw*0.92; const big=r()<.25;
+    lights+=`<g class="fl" style="animation-delay:${(r()*2.8).toFixed(2)}s"><circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="${big?7:5}" fill="rgba(255,190,100,.35)" filter="url(#bl)"/><circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="${big?1.9:1.3}" fill="#fff4d8"/></g>`; }
+  return `<svg viewBox="0 0 240 360"><defs>
+    <filter id="needle" x="-10%" y="-10%" width="120%" height="120%"><feTurbulence type="fractalNoise" baseFrequency="1.3" numOctaves="2" seed="4"/><feDisplacementMap in="SourceGraphic" scale="6"/></filter>
+    <filter id="bl"><feGaussianBlur stdDeviation="2.4"/></filter><filter id="bg" x="-100%" y="-100%" width="300%" height="300%"><feGaussianBlur stdDeviation="30"/></filter><filter id="bb" x="-200%" y="-200%" width="500%" height="500%"><feGaussianBlur stdDeviation="8"/></filter>
+    <linearGradient id="tg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#2c4a30"/><stop offset=".55" stop-color="#173020"/><stop offset="1" stop-color="#0b1810"/></linearGradient>
+    <radialGradient id="tl" cx=".5" cy=".55" r=".6"><stop offset="0" stop-color="rgba(255,180,90,.28)"/><stop offset="1" stop-color="rgba(255,180,90,0)"/></radialGradient>
+    <linearGradient id="pot" x1="0" x2="1"><stop offset="0" stop-color="#2a1a10"/><stop offset=".45" stop-color="#6a4a32"/><stop offset="1" stop-color="#22140b"/></linearGradient></defs>
+    <ellipse cx="120" cy="190" rx="150" ry="190" fill="rgba(255,190,110,.13)" filter="url(#bg)"/><ellipse cx="120" cy="348" rx="96" ry="9" fill="rgba(0,0,0,.55)" filter="url(#bl)"/>
+    <rect x="113" y="280" width="14" height="30" fill="#3a2414"/>
+    <path d="M92 300h56l-5 46q-23 6-46 0z" fill="url(#pot)"/><path d="M90 297q30 6 60 0v6q-30 6-60 0z" fill="#8a6644"/>
+    ${t}${lights}
+    <g class="star"><circle cx="120" cy="26" r="14" fill="rgba(255,214,150,.55)" filter="url(#bb)"/><path d="M120 12 L122 24 L134 26 L122 28 L120 40 L118 28 L106 26 L118 24Z" fill="#fff3d6"/><circle cx="120" cy="26" r="2.4" fill="#fff"/></g></svg>`;
+}
+$('#xmas').innerHTML = xmasTree();
 
 fetch('bookshelf/books.json', { cache: 'no-cache' }).then(r => r.json()).then(d => {
   books = (d.books || []).slice().sort((a, b) => (b.date || '').localeCompare(a.date || ''));
