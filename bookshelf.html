@@ -75,7 +75,7 @@ footer{padding:48px 0 40px;font-size:12px;color:var(--faint);display:flex;justif
 
 
 /* ── cozy bookstore scene ── */
-.v-a .case{display:flex;flex-wrap:wrap;align-items:flex-start;position:relative;overflow:hidden;isolation:isolate;margin-top:40px;border-radius:24px;padding:118px 300px 64px 34px;background:
+.v-a .case{display:flex;flex-wrap:wrap;align-items:flex-start;position:relative;overflow:hidden;isolation:isolate;margin-top:40px;border-radius:24px;padding:104px 300px 64px 34px;background:
   radial-gradient(60% 50% at 30% 18%,rgba(255,196,120,.22),transparent 70%),
   radial-gradient(40% 40% at 70% 22%,rgba(255,190,110,.16),transparent 70%),
   repeating-linear-gradient(90deg,rgba(255,255,255,.025) 0 2px,transparent 2px 86px),
@@ -111,6 +111,50 @@ footer{padding:48px 0 40px;font-size:12px;color:var(--faint);display:flex;justif
   .banner .bt b{display:block;font-size:20px;font-weight:500;color:#fff4de}
 }
 @media(prefers-reduced-motion:reduce){.bulb,.tree .tl,.star{animation:none}}
+
+
+/* ── whole page = bookstore ── */
+body{background:#24180f;color:#f6ead6}
+.store{position:fixed;inset:0;z-index:-1;pointer-events:none;overflow:hidden;background:
+  radial-gradient(40% 50% at 50% 0%,rgba(255,196,120,.18),transparent 70%),
+  radial-gradient(30% 40% at 8% 10%,rgba(255,190,110,.14),transparent 70%),
+  radial-gradient(30% 40% at 92% 10%,rgba(255,190,110,.14),transparent 70%),
+  repeating-linear-gradient(90deg,rgba(255,255,255,.02) 0 2px,transparent 2px 96px),
+  linear-gradient(#36251a,#281b12 70%,#1e140d)}
+.store .floor{position:absolute;left:0;right:0;bottom:0;height:64px;background:repeating-linear-gradient(90deg,#4a311f 0 140px,#432c1b 140px 280px);box-shadow:inset 0 14px 22px -10px rgba(0,0,0,.7)}
+.store .bc{position:absolute;top:110px;bottom:64px;width:calc((100vw - 1120px)/2 - 10px);max-width:420px;min-width:0;overflow:hidden;filter:brightness(.62) saturate(.8) blur(.6px);background:linear-gradient(#2e1f15,#24180f);box-shadow:inset 0 0 0 10px #4b3120,inset 0 0 40px rgba(0,0,0,.6)}
+.store .bc.l{left:0;border-radius:0 10px 0 0}
+.store .bc.r{right:0;border-radius:10px 0 0 0}
+.store .row{display:flex;align-items:flex-end;gap:2px;height:150px;padding:0 18px;border-bottom:12px solid #6e4527;box-shadow:0 10px 14px -8px rgba(0,0,0,.7)}
+.store .row i{display:block;border-radius:2px 2px 0 0;background-image:linear-gradient(90deg,rgba(0,0,0,.18),rgba(255,255,255,.12) 20%,transparent 50%,rgba(0,0,0,.18))}
+.store .garland{top:0;height:80px}
+.store .lamp{z-index:1}
+.store .tree{right:auto;bottom:40px;width:300px;filter:none}
+.store .treeglow{right:auto;bottom:0}
+.store .gifts{right:auto;bottom:44px;width:120px}
+.store .vig{position:absolute;inset:0;background:radial-gradient(120% 90% at 50% 40%,transparent 55%,rgba(0,0,0,.45))}
+.crumb{color:#c9b18c}.crumb b{color:#fff4de}.navr{color:#9c8667}
+h1{color:#fff4de;text-shadow:0 2px 30px rgba(255,190,110,.25)}
+.lede{color:#cdb99a}.stat b{color:#fff4de}.stat span{color:#b9a283}
+.chips{border-bottom-color:rgba(255,225,180,.12)}
+.chip{color:#d9c7a8;border-color:rgba(255,225,180,.2);background:rgba(20,12,6,.25);backdrop-filter:blur(4px)}
+.chip:hover{color:#fff4de;border-color:rgba(255,225,180,.45)}
+.chip[aria-pressed="true"]{background:#f3d9a4;border-color:#f3d9a4;color:#2a1c13}
+footer{color:#8d7859}
+.v-a .case{background:
+  radial-gradient(60% 50% at 30% 18%,rgba(255,196,120,.2),transparent 70%),
+  linear-gradient(#45301f,#33231a 70%,#2b1d14);box-shadow:0 40px 80px -30px rgba(0,0,0,.8),inset 0 0 0 10px #5a3b25,inset 0 0 0 11px rgba(255,220,170,.15)}
+.v-a .case::after{display:none}
+.v-a .case{padding-bottom:40px}
+.v-a .panel{color:var(--ink)}
+.v-b .sech{color:#fff4de;border-bottom-color:rgba(255,225,180,.15)} .v-b .sech span{color:#9c8667}
+.v-b li{border-bottom-color:rgba(255,225,180,.1)}
+.v-b .t{color:#fff4de}.v-b .a{color:#b9a283}.v-b .pl{color:#e0d0b5}.v-b .pq{color:#fff4de}
+@media(min-width:1500px){ .v-a .case .tree,.v-a .case .gifts,.v-a .case .treeglow{display:none} .v-a .case{padding-right:34px} }
+@media(max-width:1499px){ .store .tree,.store .gifts,.store .treeglow{display:none} }
+@media(max-width:700px){ .store .bc,.store .lamp,.store .floor{display:none} }
+.wrap>.nav{padding-top:78px}
+@media(max-width:700px){ .wrap>.nav{padding-top:64px} }
 
 /* ── B: index list ── */
 .v-b .list{list-style:none}
@@ -213,7 +257,15 @@ function tree(){ let s=`<svg class="tree" viewBox="0 0 240 330" aria-hidden="tru
     s+=`<circle class="tl" cx="${x.toFixed(1)}" cy="${yy}" r="2.6" fill="${c}" style="animation-delay:${((i*0.29)%1.9).toFixed(2)}s;filter:drop-shadow(0 0 4px ${c})"/>`; }
   return s+`<g class="star"><path d="M120 8l5.9 12 13.2 1.9-9.6 9.3 2.3 13.1L120 38l-11.8 6.3 2.3-13.1-9.6-9.3 13.2-1.9z" fill="#ffd66b"/></g></svg>`; }
 const GIFTS=`<svg class="gifts" viewBox="0 0 110 70" aria-hidden="true"><ellipse cx="55" cy="66" rx="52" ry="4" fill="rgba(0,0,0,.35)"/><rect x="6" y="30" width="44" height="36" rx="2" fill="#c0392b"/><rect x="24" y="30" width="8" height="36" fill="#f3d9a4"/><path d="M28 30c-10-12-20-4-10 0m10 0c10-12 20-4 10 0" fill="none" stroke="#f3d9a4" stroke-width="3"/><rect x="56" y="44" width="46" height="22" rx="2" fill="#2f6f8f"/><rect x="74" y="44" width="8" height="22" fill="#ffd66b"/><rect x="40" y="52" width="24" height="14" rx="2" fill="#e9c46a"/><rect x="50" y="52" width="4" height="14" fill="#c0392b"/></svg>`;
-function deco(){ const d=el('div',{class:'deco'}); d.innerHTML=garland(28,1100)+[18,48,74].map(p=>`<div class="lamp" style="left:${p}%"><i></i><b></b><em></em></div>`).join('')+'<div class="treeglow"></div>'+tree()+GIFTS; return d; }
+function deco(){ const d=el('div',{class:'deco'}); d.innerHTML=[18,48,74].map(p=>`<div class="lamp" style="left:${p}%"><i></i><b></b><em></em></div>`).join('')+'<div class="treeglow"></div>'+tree()+GIFTS; return d; }
+
+function store(){ const s=el('div',{class:'store','aria-hidden':'true'}); const pal=['#7a2e2a','#b5853f','#3f5d4a','#556a7d','#8c6a52','#c9b48a','#4b3f5c','#9a4b33','#6d7a5a','#d6c4a0','#2f4a5e','#a8796a'];
+  let seed=7; const rnd=()=>(seed=(seed*9301+49297)%233280)/233280;
+  const bc=cls=>{ let x=`<div class="bc ${cls}">`; for(let r=0;r<6;r++){ x+='<div class="row">'; for(let k=0;k<26;k++){ if(rnd()<.06){ x+='<i style="width:14px;height:0"></i>'; continue; } x+=`<i style="width:${10+Math.round(rnd()*12)}px;height:${92+Math.round(rnd()*44)}px;background-color:${pal[Math.floor(rnd()*pal.length)]}"></i>`; } x+='</div>'; } return x+'</div>'; };
+  const side=`calc((100vw - 1120px)/4 - 130px)`;
+  s.innerHTML=bc('l')+bc('r')+'<div class="floor"></div>'+garland(36,1600)+[6,94].map(p=>`<div class="lamp" style="left:${p}%"><i></i><b></b><em></em></div>`).join('')
+    +`<div class="treeglow" style="right:${side.replace('130px','220px')}"></div>`+tree().replace('class="tree"',`class="tree" style="right:${side}"`)+GIFTS.replace('class="gifts"',`class="gifts" style="right:calc((100vw - 1120px)/4 + 120px)"`)+'<div class="vig"></div>';
+  document.body.prepend(s); }
 function render(){ chips(); const m=$('#main');
   const groups = cats.filter(k=>!cat||k===cat).map(k=>[k, books.filter(b=>b.category===k)]).filter(([,l])=>l.length);
   const sec = ([k,l]) => el('section',{class:'sec',style:`--dot:${l[0].color||'#ccc'}`}, el('h2',{class:'sech'}, k, el('span',{}, l.length+' เล่ม'), V==='b' ? el('span',{class:'bars'}, l.map(b=>el('i',{style:`background:${b.color||'#ddd'}`}))) : null), V==='a' ? shelfA(l) : listB(l));
@@ -221,8 +273,9 @@ function render(){ chips(); const m=$('#main');
     const b = books.find(x=>x.id===open && groups.some(([k])=>k===x.category));
     m.replaceChildren(el('div',{class:'case'}, deco(), groups.map(sec)),
       b ? el('section',{class:'panel',id:'panel'}, el('img',{src:b.image,alt:''}), el('div',{}, el('div',{class:'pcat'}, b.category), details(b))) : el('p',{class:'lede',style:'padding:32px 0 20px'},'แตะที่สันหนังสือเพื่อเปิดอ่านโน้ต'));
-  } else { const bn=el('div',{class:'banner'}); bn.innerHTML=garland(11,360)+tree()+'<div class="bt"><b>sheis bookshop</b>'+books.length+' เล่ม · '+groups.length+' หมวด</div>'; m.replaceChildren(bn, ...groups.map(sec)); }
+  } else { const bn=el('div',{class:'banner'}); bn.innerHTML=tree()+'<div class="bt"><b>sheis bookshop</b>'+books.length+' เล่ม · '+groups.length+' หมวด</div>'; m.replaceChildren(bn, ...groups.map(sec)); }
 }
+store();
 fetch('bookshelf/books.json',{cache:'no-cache'}).then(r=>r.json()).then(d=>{ books=(d.books||[]).slice().sort((a,b)=>(b.date||'').localeCompare(a.date||'')); cats=d.categories||[...new Set(books.map(b=>b.category))]; books.forEach(b=>{ if(!b.category){ b.category='อื่นๆ'; if(!cats.includes('อื่นๆ')) cats.push('อื่นๆ'); } }); $('#n').textContent=books.length; if(d.updated) $('#upd').textContent='อัปเดต '+new Date(d.updated+'T00:00').toLocaleDateString('th-TH',{day:'numeric',month:'short',year:'numeric'}); if(V==='a') open=books[0]?.id; render(); });
 mq.addEventListener('change',()=>{ setV(); if(V==='a' && !open) open=books[0]?.id; render(); });
 let rt; addEventListener('resize',()=>{ clearTimeout(rt); rt=setTimeout(()=>{ if(V==='a') render(); },120); });
