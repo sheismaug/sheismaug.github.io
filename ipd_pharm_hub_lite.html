@@ -152,9 +152,14 @@ h1{margin:6px 0 8px;font-size:42px;font-weight:700;line-height:1.25;letter-spaci
 .kr{display:flex;align-items:center;gap:16px}
 .kr .n{font-family:Montserrat,sans-serif;font-size:18px;font-weight:700}
 .kr .n small{color:var(--mute);font-weight:600}
-.minibars{display:flex;align-items:flex-end;gap:4px;height:44px}
-.minibars span{flex:1;border-radius:4px;background:#e6efcf;min-height:2px}
-.minibars span.last{background:var(--ink)}
+.minibars{display:flex;align-items:flex-end;justify-content:center;gap:4px;height:84px;padding-top:4px;border-top:1px dashed var(--line)}
+.minibars .mb{flex:1;max-width:36px;min-width:0;height:100%;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;gap:3px}
+.minibars .mb b{font-size:10px;font-weight:700;line-height:1;color:#5E7A0E;white-space:nowrap}
+.minibars .mb i{display:block;width:100%;max-width:24px;border-radius:6px 6px 3px 3px;background:#D5E6A6;min-height:3px}
+.minibars .mb.last i{background:#7FA314}
+.minibars .mb.na i{background:#efece4}
+.minibars .mb.na b{color:var(--mute);font-weight:400}
+.minibars .mb small{font-size:10px;line-height:1;color:var(--mute);white-space:nowrap}
 .row2{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
 .hb{display:grid;grid-template-columns:78px minmax(0,1fr) 40px;align-items:center;gap:8px;font-size:12px}
 .hb i{height:12px;border-radius:6px;display:block}
@@ -702,7 +707,8 @@ function monLab(k) { const m = /^(\d{4})-(\d{2})/.exec(k || ''); return m ? TH_M
 function renderReport(r) {
   const s = r.summary, md = r.mdReview || {}, cn = r.counseling || { total: 0, byType: {} }, mon = r.monthly || [];
   const kpi = (icon, bg, title, sub, p, n, d, key) => {
-    const bars = mon.map((m, i) => `<span class="${i === mon.length - 1 ? 'last' : ''}" style="height:${Math.max(4, m[key] || 0)}%" title="${monLab(m.month)} ${pctTxt(m[key])}"></span>`).join('');
+    const bars = mon.map((m, i) => { const v = m[key], na = v === null || v === undefined;
+      return `<div class="mb${i === mon.length - 1 ? ' last' : ''}${na ? ' na' : ''}" title="${monLab(m.month)} ${pctTxt(v)}"><b>${na ? '–' : Math.round(v)}</b><i style="height:${na ? 3 : Math.max(3, v * 0.48)}px"></i><small>${monLab(m.month).split(' ')[0]}</small></div>`; }).join('');
     return `<div class="kpi"><div class="kh"><span class="ib" style="background:${bg}">${du(icon, 26)}</span><div><b>${title}</b><small>${sub}</small></div></div>
       <div class="kr">${ring(p, 108, 12, '#7FA314', `<span class="mont" style="font-size:24px;font-weight:800;line-height:1">${p === null || p === undefined ? '—' : Math.round(p * 10) / 10}<span style="font-size:13px">%</span></span>`)}<span class="n">${(n || 0).toLocaleString()}<small> / ${(d || 0).toLocaleString()}</small><br><small style="font-size:12px;font-weight:400">ราย</small></span></div>
       ${mon.length > 1 ? `<div class="minibars">${bars}</div>` : ''}</div>`;
