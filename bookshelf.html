@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>bookshelf — sheislab</title>
+<meta name="description" content="บันทึกหลังอ่านหนังสือจบของ sheismaug">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@700;800;900&family=Google+Sans:wght@400;500;700&family=Noto+Sans+Thai:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+:root{--ink:#0D0D0D;--muted:#777;--line:#E8E8E8;--soft:#F5F5F5;--lab:#a855f7;--lab-deep:#7c3aed;--lab-soft:#ede9fe;--sun:#F5C800;}
+body{font-family:'Google Sans','Noto Sans Thai',sans-serif;background:#fff;color:var(--ink);min-height:100vh;display:flex;flex-direction:column;}
+a{color:inherit}
+:focus-visible{outline:2px solid var(--lab);outline-offset:2px}
+
+.topbar{background:var(--ink);padding:13px 32px;display:flex;align-items:center;justify-content:space-between;gap:12px}
+.logo{font-family:'Montserrat',sans-serif;font-size:18px;font-weight:900;color:#fff;letter-spacing:-0.03em;display:inline-flex;align-items:baseline;line-height:1;text-decoration:none}
+.logo-dot{display:inline-block;width:0.42em;height:0.42em;border-radius:50%;background:#fff;position:relative;top:-0.06em}
+.logo-dot::after{content:'';position:absolute;bottom:-0.28em;left:50%;transform:translateX(-50%);width:100%;height:2.5px;background:var(--sun);border-radius:1px}
+.back{font-size:11px;color:rgba(255,255,255,.55);text-decoration:none;letter-spacing:.08em;text-transform:uppercase;display:inline-flex;gap:6px;align-items:center}
+.back:hover{color:#c084fc}
+
+.hero{padding:36px 32px 22px;max-width:1200px;width:100%;margin:0 auto}
+.eyebrow{display:inline-flex;align-items:center;gap:8px;background:var(--soft);border-radius:99px;padding:6px 14px;font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-bottom:14px}
+.eyebrow i{width:6px;height:6px;border-radius:50%;background:var(--lab)}
+h1{font-family:'Montserrat',sans-serif;font-size:clamp(38px,8vw,60px);font-weight:900;line-height:.92;letter-spacing:-0.035em}
+.sub{font-family:'Montserrat',sans-serif;font-size:13px;font-weight:700;color:#aaa;margin-top:12px;letter-spacing:.02em}
+.sub b{color:var(--lab-deep);font-weight:800}
+.intro{max-width:60ch;margin-top:14px;font-size:14px;line-height:1.7;color:#555}
+
+.filters{padding:0 32px 18px;max-width:1200px;width:100%;margin:0 auto;display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.flbl{font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:#aaa;margin-right:4px}
+.chip{border:1.5px solid var(--line);background:#fff;border-radius:99px;padding:5px 12px;font:600 12px 'Google Sans','Noto Sans Thai',sans-serif;color:#666;cursor:pointer}
+.chip:hover{border-color:#ccc;color:#333}
+.chip[aria-pressed="true"]{background:var(--ink);border-color:var(--ink);color:#c084fc}
+.chip span{color:#bbb;font-weight:500;margin-left:4px}
+
+main{flex:1;padding:0 32px 48px;max-width:1200px;width:100%;margin:0 auto}
+.shelf{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:16px}
+.book{background:#fff;border:1.5px solid var(--lab);border-radius:20px;overflow:hidden;display:flex;flex-direction:column;cursor:pointer;text-align:left;font:inherit;color:inherit;padding:0;transition:transform .18s,box-shadow .18s}
+.book:hover{transform:translateY(-4px);box-shadow:0 12px 32px rgba(0,0,0,.10)}
+.cover{aspect-ratio:4/3;width:100%;object-fit:cover;object-position:top;background:var(--soft);display:block;border-bottom:1.5px solid var(--lab-soft)}
+.bbody{padding:16px 18px 18px;display:flex;flex-direction:column;gap:6px;flex:1}
+.bnum{font-size:10px;font-weight:700;color:#ccc;letter-spacing:.14em}
+.btitle{font-family:'Montserrat','Noto Sans Thai',sans-serif;font-size:16px;font-weight:800;line-height:1.25;letter-spacing:-0.01em}
+.bauthor{font-size:12px;color:var(--muted)}
+.stars{color:var(--lab-deep);letter-spacing:2px;font-size:13px}
+.bliked{font-size:12.5px;line-height:1.65;color:#555;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
+.btags{display:flex;flex-wrap:wrap;gap:5px;margin-top:auto;padding-top:8px}
+.tag{font-size:10.5px;font-weight:600;padding:2px 9px;border-radius:99px;background:var(--lab-soft);color:var(--lab-deep)}
+.empty{border:1.5px dashed var(--line);border-radius:20px;padding:40px;text-align:center;color:#aaa;font-size:13px}
+
+dialog{border:0;border-radius:24px;padding:0;width:min(920px,calc(100% - 32px));max-height:calc(100% - 32px);margin:auto;box-shadow:0 30px 80px rgba(0,0,0,.25)}
+dialog::backdrop{background:rgba(13,13,13,.55)}
+.dwrap{display:grid;grid-template-columns:minmax(0,340px) minmax(0,1fr);max-height:calc(100vh - 32px)}
+.dimg{background:var(--ink);overflow:auto}
+.dimg img{width:100%;display:block}
+.dtext{padding:28px 28px 24px;overflow:auto;display:flex;flex-direction:column;gap:14px}
+.dtitle{font-family:'Montserrat','Noto Sans Thai',sans-serif;font-size:24px;font-weight:900;line-height:1.15;letter-spacing:-0.02em;text-wrap:balance}
+.dlbl{font-size:10px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:#aaa;margin-bottom:4px}
+.dval{font-size:14px;line-height:1.75;color:#333;white-space:pre-line}
+blockquote{border-left:3px solid var(--lab);padding:4px 0 4px 14px;font-size:15px;line-height:1.7;color:var(--ink);font-weight:500}
+.close{align-self:flex-end;border:1.5px solid var(--line);background:#fff;border-radius:99px;padding:5px 14px;font:600 12px 'Google Sans',sans-serif;cursor:pointer;margin-top:auto}
+
+.foot-bar{background:var(--ink);padding:16px 32px;display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.flogo{font-family:'Montserrat',sans-serif;font-size:16px;font-weight:900;color:#fff;letter-spacing:-0.03em;text-decoration:none}
+.fright{font-size:10px;color:rgba(255,255,255,.3);letter-spacing:.06em}
+
+@media(max-width:700px){
+  .dwrap{grid-template-columns:1fr}
+  .dimg{max-height:45vh}
+}
+@media(max-width:600px){
+  .hero,.filters,main,.topbar,.foot-bar{padding-left:20px;padding-right:20px}
+  .shelf{grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:12px}
+  .bliked{display:none}
+}
+@media(prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <a class="logo" href="index.html">sheis<span class="logo-dot"></span>phere</a>
+  <a class="back" href="index.html#lab">← sheislab</a>
+</div>
+
+<section class="hero">
+  <div class="eyebrow"><i></i>reading log</div>
+  <h1>bookshelf</h1>
+  <div class="sub"><b id="count">0</b> เล่มที่อ่านจบ<span style="color:#ddd;margin:0 6px">/</span>บันทึกหลังอ่าน</div>
+  <p class="intro">โน้ตสั้นๆ หลังอ่านหนังสือแต่ละเล่มจบ ชอบตรงไหน ประโยคไหนที่ยังจำได้ แตะที่เล่มเพื่อดู story ต้นฉบับ</p>
+</section>
+
+<div class="filters" id="filters" role="group" aria-label="กรองตามธีม"></div>
+
+<main>
+  <div class="shelf" id="shelf"><div class="empty">กำลังโหลดชั้นหนังสือ…</div></div>
+</main>
+
+<dialog id="detail" aria-label="รายละเอียดหนังสือ"></dialog>
+
+<div class="foot-bar">
+  <a class="flogo" href="index.html">sheislab</a>
+  <div class="fright" id="updated"></div>
+</div>
+
+<script>
+(() => {
+  const $ = s => document.querySelector(s);
+  const el = (t, a = {}, ...k) => { const e = document.createElement(t); for (const [n, v] of Object.entries(a)) { if (v == null || v === false) continue; if (n === 'class') e.className = v; else if (n.startsWith('on')) e.addEventListener(n.slice(2), v); else e.setAttribute(n, v); } e.append(...k.flat().filter(x => x != null && x !== false)); return e; };
+  const stars = n => n ? '★'.repeat(n) + '☆'.repeat(5 - n) : null;
+  let books = [], tag = null;
+
+  function filters() {
+    const counts = new Map();
+    books.forEach(b => (b.tags || []).forEach(t => counts.set(t, (counts.get(t) || 0) + 1)));
+    const top = [...counts].filter(([, n]) => n > 1).sort((a, b) => b[1] - a[1]);
+    $('#filters').replaceChildren(
+      el('span', { class: 'flbl' }, 'ธีม'),
+      el('button', { class: 'chip', 'aria-pressed': String(!tag), onclick: () => { tag = null; render(); } }, 'ทั้งหมด'),
+      ...top.map(([t, n]) => el('button', { class: 'chip', 'aria-pressed': String(tag === t), onclick: () => { tag = tag === t ? null : t; render(); } }, '#' + t, el('span', {}, String(n))))
+    );
+  }
+
+  function open(b) {
+    const d = $('#detail');
+    d.replaceChildren(el('div', { class: 'dwrap' },
+      el('div', { class: 'dimg' }, el('img', { src: b.image, alt: 'Instagram story ของ ' + b.title })),
+      el('div', { class: 'dtext' },
+        el('div', { class: 'dtitle' }, b.title),
+        b.author ? el('div', { class: 'bauthor' }, b.author) : null,
+        b.rating ? el('div', { class: 'stars', 'aria-label': b.rating + ' จาก 5 ดาว' }, stars(b.rating)) : null,
+        b.quote ? el('blockquote', {}, b.quote) : null,
+        b.liked ? el('div', {}, el('div', { class: 'dlbl' }, 'ชอบตรงไหน'), el('div', { class: 'dval' }, b.liked)) : null,
+        (b.tags || []).length ? el('div', { class: 'btags' }, b.tags.map(t => el('span', { class: 'tag' }, '#' + t))) : null,
+        el('button', { class: 'close', onclick: () => d.close() }, 'ปิด'))));
+    d.showModal();
+  }
+  $('#detail').addEventListener('click', e => { if (e.target.id === 'detail') e.target.close(); });
+
+  function render() {
+    filters();
+    const list = tag ? books.filter(b => (b.tags || []).includes(tag)) : books;
+    $('#shelf').replaceChildren(...(list.length ? list.map((b, i) =>
+      el('button', { class: 'book', onclick: () => open(b), 'aria-label': b.title },
+        el('img', { class: 'cover', src: b.image, alt: '', loading: 'lazy' }),
+        el('div', { class: 'bbody' },
+          el('div', { class: 'bnum' }, 'B' + String(books.indexOf(b) + 1).padStart(2, '0')),
+          el('div', { class: 'btitle' }, b.title),
+          b.author ? el('div', { class: 'bauthor' }, b.author) : null,
+          b.rating ? el('div', { class: 'stars', 'aria-label': b.rating + ' จาก 5 ดาว' }, stars(b.rating)) : null,
+          b.liked ? el('div', { class: 'bliked' }, b.liked) : null,
+          (b.tags || []).length ? el('div', { class: 'btags' }, b.tags.slice(0, 3).map(t => el('span', { class: 'tag' }, '#' + t))) : null))
+    ) : [el('div', { class: 'empty' }, 'ยังไม่มีหนังสือบนชั้น')]));
+  }
+
+  fetch('bookshelf/books.json', { cache: 'no-cache' }).then(r => r.json()).then(data => {
+    books = (data.books || []).slice().sort((a, b) => (b.date || '').localeCompare(a.date || ''));
+    $('#count').textContent = books.length;
+    if (data.updated) $('#updated').textContent = 'อัปเดต ' + new Date(data.updated + 'T00:00').toLocaleDateString('th-TH', { day: 'numeric', month: 'short', year: 'numeric' });
+    render();
+  }).catch(() => { $('#shelf').replaceChildren(el('div', { class: 'empty' }, 'โหลดชั้นหนังสือไม่สำเร็จ ลองรีเฟรชอีกครั้ง')); });
+})();
+</script>
+</body>
+</html>
