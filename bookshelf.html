@@ -7,162 +7,138 @@
 <meta name="description" content="บันทึกหลังอ่านหนังสือจบของ sheismaug">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@700;800;900&family=Google+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Google+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
-*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
-:root{--ink:#0D0D0D;--muted:#777;--line:#E8E8E8;--soft:#F5F5F5;--lab:#a855f7;--lab-deep:#7c3aed;--lab-soft:#ede9fe;--sun:#F5C800;}
-body{font-family:'Google Sans',sans-serif;background:#fff;color:var(--ink);min-height:100vh;display:flex;flex-direction:column;}
-a{color:inherit}
-:focus-visible{outline:2px solid var(--lab);outline-offset:2px}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{--ink:#111214;--muted:#80858c;--faint:#b9bdc3;--line:#ececee;--soft:#f6f6f7;--lab:#8b5cf6;--lab-soft:#f1ecfe}
+html{-webkit-text-size-adjust:100%}
+body{font-family:'Google Sans',system-ui,sans-serif;background:#fff;color:var(--ink);min-height:100vh}
+button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
+:focus-visible{outline:2px solid var(--lab);outline-offset:3px}
+.wrap{max-width:1120px;margin:0 auto;padding:0 32px}
 
-.topbar{background:var(--ink);padding:13px 32px;display:flex;align-items:center;justify-content:space-between;gap:12px}
-.logo{font-family:'Montserrat','Google Sans',sans-serif;font-size:18px;font-weight:900;color:#fff;letter-spacing:-0.03em;display:inline-flex;align-items:baseline;line-height:1;text-decoration:none}
-.logo-dot{display:inline-block;width:0.42em;height:0.42em;border-radius:50%;background:#fff;position:relative;top:-0.06em}
-.logo-dot::after{content:'';position:absolute;bottom:-0.28em;left:50%;transform:translateX(-50%);width:100%;height:2.5px;background:var(--sun);border-radius:1px}
-.back{font-size:11px;color:rgba(255,255,255,.55);text-decoration:none;letter-spacing:.08em;text-transform:uppercase;display:inline-flex;gap:6px;align-items:center}
-.back:hover{color:#c084fc}
+/* shared header */
+.nav{display:flex;align-items:center;justify-content:space-between;padding:22px 0}
+.crumb{font-size:13px;color:var(--muted);text-decoration:none;display:flex;gap:8px;align-items:center}
+.crumb b{color:var(--ink);font-weight:600}
+.crumb i{width:6px;height:6px;border-radius:50%;background:var(--lab)}
+.navr{font-size:12px;color:var(--faint);font-variant-numeric:tabular-nums}
+.head{padding:56px 0 36px;display:flex;align-items:flex-end;justify-content:space-between;gap:24px;flex-wrap:wrap}
+h1{font-size:clamp(40px,7vw,64px);font-weight:500;letter-spacing:-0.035em;line-height:1}
+.lede{margin-top:14px;font-size:15px;color:var(--muted);line-height:1.7;max-width:46ch}
+.stat{display:flex;gap:28px}
+.stat div{display:flex;flex-direction:column;gap:2px}
+.stat b{font-size:28px;font-weight:500;letter-spacing:-0.02em;font-variant-numeric:tabular-nums}
+.stat span{font-size:12px;color:var(--muted)}
+.chips{display:flex;gap:6px;flex-wrap:wrap;padding-bottom:28px;border-bottom:1px solid var(--line)}
+.chip{padding:6px 13px;border-radius:99px;font-size:13px;color:var(--muted);border:1px solid var(--line)}
+.chip:hover{color:var(--ink);border-color:#d6d8db}
+.chip[aria-pressed="true"]{background:var(--ink);border-color:var(--ink);color:#fff}
+.tag{font-size:12px;color:var(--lab)}
+.stars{font-size:12px;letter-spacing:2px;color:var(--ink)}
+footer{padding:48px 0 40px;font-size:12px;color:var(--faint);display:flex;justify-content:space-between}
 
-.hero{padding:36px 32px 22px;max-width:1200px;width:100%;margin:0 auto}
-.eyebrow{display:inline-flex;align-items:center;gap:8px;background:var(--soft);border-radius:99px;padding:6px 14px;font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-bottom:14px}
-.eyebrow i{width:6px;height:6px;border-radius:50%;background:var(--lab)}
-h1{font-family:'Montserrat','Google Sans',sans-serif;font-size:clamp(38px,8vw,60px);font-weight:900;line-height:.92;letter-spacing:-0.035em}
-.sub{font-family:'Montserrat','Google Sans',sans-serif;font-size:13px;font-weight:700;color:#aaa;margin-top:12px;letter-spacing:.02em}
-.sub b{color:var(--lab-deep);font-weight:800}
-.intro{max-width:60ch;margin-top:14px;font-size:14px;line-height:1.7;color:#555}
+/* ── A: shelf of spines ── */
+.v-a .shelf{padding:44px 0 8px;display:flex;flex-wrap:wrap;align-items:flex-end;gap:6px 6px;position:relative}
+.v-a .row-line{flex-basis:100%;height:0;border-bottom:2px solid var(--ink);margin:0 0 40px}
+.spine{width:52px;border-radius:5px 5px 2px 2px;display:flex;align-items:center;justify-content:center;padding:14px 0;position:relative;transition:transform .2s;box-shadow:inset -3px 0 0 rgba(0,0,0,.08),inset 2px 0 0 rgba(255,255,255,.25)}
+.spine:hover,.spine[aria-expanded="true"]{transform:translateY(-14px)}
+.spine span{writing-mode:vertical-rl;font-size:13px;font-weight:600;letter-spacing:.01em;max-height:100%;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
+.spine::after{content:"";position:absolute;left:8px;right:8px;bottom:12px;height:1.5px;background:currentColor;opacity:.35}
+.v-a .panel{display:grid;grid-template-columns:200px minmax(0,1fr);gap:32px;padding:32px 0 8px;border-top:1px solid var(--line);margin-top:8px}
+.v-a .panel img{width:100%;border-radius:12px;display:block;box-shadow:0 10px 30px rgba(0,0,0,.08)}
+.ptitle{font-size:28px;font-weight:500;letter-spacing:-0.02em;line-height:1.2;text-wrap:balance}
+.pauthor{color:var(--muted);font-size:14px;margin-top:6px}
+.pq{margin-top:20px;font-size:18px;line-height:1.6;font-weight:500;padding-left:16px;border-left:2px solid var(--lab);max-width:52ch}
+.pl{margin-top:20px;font-size:14px;line-height:1.8;color:#3c4046;max-width:60ch}
+.plbl{font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--faint);margin-top:22px}
+.ptags{display:flex;gap:10px;margin-top:18px;flex-wrap:wrap}
 
-.filters{padding:0 32px 18px;max-width:1200px;width:100%;margin:0 auto;display:flex;gap:8px;flex-wrap:wrap;align-items:center}
-.flbl{font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:#aaa;margin-right:4px}
-.chip{border:1.5px solid var(--line);background:#fff;border-radius:99px;padding:5px 12px;font:600 12px 'Google Sans',sans-serif;color:#666;cursor:pointer}
-.chip:hover{border-color:#ccc;color:#333}
-.chip[aria-pressed="true"]{background:var(--ink);border-color:var(--ink);color:#c084fc}
-.chip span{color:#bbb;font-weight:500;margin-left:4px}
-
-main{flex:1;padding:0 32px 48px;max-width:1200px;width:100%;margin:0 auto}
-.shelf{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:16px}
-.book{background:#fff;border:1.5px solid var(--lab);border-radius:20px;overflow:hidden;display:flex;flex-direction:column;cursor:pointer;text-align:left;font:inherit;color:inherit;padding:0;transition:transform .18s,box-shadow .18s}
-.book:hover{transform:translateY(-4px);box-shadow:0 12px 32px rgba(0,0,0,.10)}
-.cover{aspect-ratio:4/3;width:100%;object-fit:cover;object-position:top;background:var(--soft);display:block;border-bottom:1.5px solid var(--lab-soft)}
-.bbody{padding:16px 18px 18px;display:flex;flex-direction:column;gap:6px;flex:1}
-.bnum{font-size:10px;font-weight:700;color:#ccc;letter-spacing:.14em}
-.btitle{font-family:'Montserrat','Google Sans',sans-serif;font-size:16px;font-weight:800;line-height:1.25;letter-spacing:-0.01em}
-.bauthor{font-size:12px;color:var(--muted)}
-.stars{color:var(--lab-deep);letter-spacing:2px;font-size:13px}
-.bliked{font-size:12.5px;line-height:1.65;color:#555;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
-.btags{display:flex;flex-wrap:wrap;gap:5px;margin-top:auto;padding-top:8px}
-.tag{font-size:10.5px;font-weight:600;padding:2px 9px;border-radius:99px;background:var(--lab-soft);color:var(--lab-deep)}
-.empty{border:1.5px dashed var(--line);border-radius:20px;padding:40px;text-align:center;color:#aaa;font-size:13px}
-
-dialog{border:0;border-radius:24px;padding:0;width:min(920px,calc(100% - 32px));max-height:calc(100% - 32px);margin:auto;box-shadow:0 30px 80px rgba(0,0,0,.25)}
-dialog::backdrop{background:rgba(13,13,13,.55)}
-.dwrap{display:grid;grid-template-columns:minmax(0,340px) minmax(0,1fr);max-height:calc(100vh - 32px)}
-.dimg{background:var(--ink);overflow:auto}
-.dimg img{width:100%;display:block}
-.dtext{padding:28px 28px 24px;overflow:auto;display:flex;flex-direction:column;gap:14px}
-.dtitle{font-family:'Montserrat','Google Sans',sans-serif;font-size:24px;font-weight:900;line-height:1.15;letter-spacing:-0.02em;text-wrap:balance}
-.dlbl{font-size:10px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:#aaa;margin-bottom:4px}
-.dval{font-size:14px;line-height:1.75;color:#333;white-space:pre-line}
-blockquote{border-left:3px solid var(--lab);padding:4px 0 4px 14px;font-size:15px;line-height:1.7;color:var(--ink);font-weight:500}
-.close{align-self:flex-end;border:1.5px solid var(--line);background:#fff;border-radius:99px;padding:5px 14px;font:600 12px 'Google Sans',sans-serif;cursor:pointer;margin-top:auto}
-
-.foot-bar{background:var(--ink);padding:16px 32px;display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
-.flogo{font-family:'Montserrat','Google Sans',sans-serif;font-size:16px;font-weight:900;color:#fff;letter-spacing:-0.03em;text-decoration:none}
-.fright{font-size:10px;color:rgba(255,255,255,.3);letter-spacing:.06em}
+/* ── B: index list ── */
+.v-b .list{list-style:none}
+.v-b li{border-bottom:1px solid var(--line)}
+.v-b .rowb{width:100%;display:grid;grid-template-columns:40px 56px minmax(0,1fr) auto;gap:20px;align-items:center;padding:18px 0;text-align:left}
+.v-b .num{font-size:12px;color:var(--faint);font-variant-numeric:tabular-nums}
+.v-b .thumb{width:56px;height:74px;border-radius:6px;object-fit:cover;object-position:top;background:var(--soft)}
+.v-b .t{font-size:20px;font-weight:500;letter-spacing:-0.015em;line-height:1.3}
+.v-b .a{font-size:13px;color:var(--muted);margin-top:3px}
+.v-b .meta{display:flex;flex-direction:column;align-items:flex-end;gap:6px;text-align:right}
+.v-b .rowb:hover .t{color:var(--lab)}
+.v-b .more{display:grid;grid-template-columns:40px 56px minmax(0,1fr);gap:20px;padding:0 0 26px}
+.v-b .more>div{grid-column:3}
+.v-b .more .pq{margin-top:0}
+.v-b .more img{width:180px;border-radius:10px;margin-top:18px;display:block}
 
 @media(max-width:700px){
-  .dwrap{grid-template-columns:1fr}
-  .dimg{max-height:45vh}
-}
-@media(max-width:600px){
-  .hero,.filters,main,.topbar,.foot-bar{padding-left:20px;padding-right:20px}
-  .shelf{grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:12px}
-  .bliked{display:none}
+  .wrap{padding:0 20px}
+  .head{padding:28px 0 24px}
+  .v-a .panel{grid-template-columns:1fr}
+  .v-a .panel img{max-width:220px}
+  .spine{width:40px} .spine span{font-size:11.5px}
+  .v-b .rowb{grid-template-columns:52px minmax(0,1fr);gap:16px}
+  .v-b .thumb{width:52px;height:68px}
+  .v-b .num,.v-b .meta{display:none}
+  .v-b .t{font-size:16px}
+  .v-b .more{grid-template-columns:1fr}.v-b .more>div{grid-column:1}
 }
 @media(prefers-reduced-motion:reduce){*{transition:none!important}}
 </style>
 </head>
 <body>
-
-<div class="topbar">
-  <a class="logo" href="index.html">sheis<span class="logo-dot"></span>phere</a>
-  <a class="back" href="index.html#lab">← sheislab</a>
+<div class="wrap">
+  <nav class="nav"><a class="crumb" href="index.html#lab"><i></i>sheislab <span>/</span> <b>bookshelf</b></a><span class="navr" id="upd"></span></nav>
+  <header class="head">
+    <div><h1>bookshelf</h1><p class="lede">บันทึกหลังอ่านหนังสือจบ ชอบตรงไหน ประโยคไหนที่ยังจำได้</p></div>
+    <div class="stat"><div><b id="n">0</b><span>เล่มที่อ่านจบ</span></div><div><b id="nt">0</b><span>ธีมชีวิต</span></div></div>
+  </header>
+  <div class="chips" id="chips"></div>
+  <main id="main"></main>
+  <footer><span>sheislab · reading log</span><span>sheismaug.github.io</span></footer>
 </div>
-
-<section class="hero">
-  <div class="eyebrow"><i></i>reading log</div>
-  <h1>bookshelf</h1>
-  <div class="sub"><b id="count">0</b> เล่มที่อ่านจบ<span style="color:#ddd;margin:0 6px">/</span>บันทึกหลังอ่าน</div>
-  <p class="intro">โน้ตสั้นๆ หลังอ่านหนังสือแต่ละเล่มจบ ชอบตรงไหน ประโยคไหนที่ยังจำได้ แตะที่เล่มเพื่อดู story ต้นฉบับ</p>
-</section>
-
-<div class="filters" id="filters" role="group" aria-label="กรองตามธีม"></div>
-
-<main>
-  <div class="shelf" id="shelf"><div class="empty">กำลังโหลดชั้นหนังสือ…</div></div>
-</main>
-
-<dialog id="detail" aria-label="รายละเอียดหนังสือ"></dialog>
-
-<div class="foot-bar">
-  <a class="flogo" href="index.html">sheislab</a>
-  <div class="fright" id="updated"></div>
-</div>
-
 <script>
 (() => {
-  const $ = s => document.querySelector(s);
-  const el = (t, a = {}, ...k) => { const e = document.createElement(t); for (const [n, v] of Object.entries(a)) { if (v == null || v === false) continue; if (n === 'class') e.className = v; else if (n.startsWith('on')) e.addEventListener(n.slice(2), v); else e.setAttribute(n, v); } e.append(...k.flat().filter(x => x != null && x !== false)); return e; };
-  const stars = n => n ? '★'.repeat(n) + '☆'.repeat(5 - n) : null;
-  let books = [], tag = null;
+const mq = matchMedia('(min-width:701px)'); let V;
+const setV = () => { V = mq.matches ? 'a' : 'b'; document.body.classList.remove('v-a','v-b'); document.body.classList.add('v-' + V); };
+setV();
+const $ = s => document.querySelector(s);
+const el = (t, a = {}, ...k) => { const e = document.createElement(t); for (const [n, v] of Object.entries(a)) { if (v == null || v === false) continue; if (n === 'class') e.className = v; else if (n === 'style') e.style.cssText = v; else if (n.startsWith('on')) e.addEventListener(n.slice(2), v); else e.setAttribute(n, v); } e.append(...k.flat(2).filter(x => x != null && x !== false)); return e; };
+const stars = n => n ? '★'.repeat(n) + '☆'.repeat(5 - n) : '';
+const shortTitle = t => t.replace(/\s*\(.*\)$/, '').replace(/:.*$/, '');
+let books = [], tag = null, open = null;
 
-  function filters() {
-    const counts = new Map();
-    books.forEach(b => (b.tags || []).forEach(t => counts.set(t, (counts.get(t) || 0) + 1)));
-    const top = [...counts].filter(([, n]) => n > 1).sort((a, b) => b[1] - a[1]);
-    $('#filters').replaceChildren(
-      el('span', { class: 'flbl' }, 'ธีม'),
-      el('button', { class: 'chip', 'aria-pressed': String(!tag), onclick: () => { tag = null; render(); } }, 'ทั้งหมด'),
-      ...top.map(([t, n]) => el('button', { class: 'chip', 'aria-pressed': String(tag === t), onclick: () => { tag = tag === t ? null : t; render(); } }, '#' + t, el('span', {}, String(n))))
-    );
+function lum(hex){ const n = parseInt(hex.slice(1), 16); const r=(n>>16)&255,g=(n>>8)&255,b=n&255; return (0.299*r+0.587*g+0.114*b)/255; }
+function details(b){ return [
+  el('div',{class:'ptitle'}, b.title), b.author ? el('div',{class:'pauthor'}, b.author, b.rating ? '  ·  ' + stars(b.rating) : '') : null,
+  b.quote ? el('blockquote',{class:'pq'}, b.quote) : null,
+  b.liked ? [el('div',{class:'plbl'},'ชอบตรงไหน'), el('p',{class:'pl'}, b.liked)] : null,
+  (b.tags||[]).length ? el('div',{class:'ptags'}, b.tags.map(t=>el('span',{class:'tag'},'#'+t))) : null ]; }
+
+function chips(){ const c=new Map(); books.forEach(b=>(b.tags||[]).forEach(t=>c.set(t,(c.get(t)||0)+1)));
+  $('#nt').textContent=c.size;
+  const top=[...c].filter(([,n])=>n>1).sort((a,b)=>b[1]-a[1]);
+  $('#chips').replaceChildren(el('button',{class:'chip','aria-pressed':String(!tag),onclick:()=>{tag=null;render()}},'ทั้งหมด'), ...top.map(([t,n])=>el('button',{class:'chip','aria-pressed':String(tag===t),onclick:()=>{tag=tag===t?null:t;open=null;render()}},'#'+t)));
+}
+function render(){ chips(); const list = tag ? books.filter(b=>(b.tags||[]).includes(tag)) : books; const m=$('#main');
+  if (V==='a'){
+    const per = Math.max(6, Math.floor((m.clientWidth + 6) / 58)); const shelf=el('div',{class:'shelf'});
+    list.forEach((b,i)=>{ const h = 210 + (b.title.length*7)%90; const c=b.color||'#ddd';
+      shelf.append(el('button',{class:'spine','aria-expanded':String(open===b.id),'aria-label':b.title,style:`height:${h}px;background:${c};color:${lum(c)>.6?'#111214':'#fff'}`,onclick:()=>{open=open===b.id?null:b.id;render()}}, el('span',{},shortTitle(b.title))));
+      if ((i+1)%per===0 || i===list.length-1) shelf.append(el('div',{class:'row-line'}));
+    });
+    const b = books.find(x=>x.id===open) ;
+    m.replaceChildren(shelf, b ? el('section',{class:'panel'}, el('img',{src:b.image,alt:''}), el('div',{}, details(b))) : el('p',{class:'lede',style:'padding-bottom:20px'},'แตะที่สันหนังสือเพื่อเปิดอ่านโน้ต'));
+  } else if (V==='b'){
+    m.replaceChildren(el('ol',{class:'list'}, list.map((b,i)=>el('li',{},
+      el('button',{class:'rowb','aria-expanded':String(open===b.id),onclick:()=>{open=open===b.id?null:b.id;render()}},
+        el('span',{class:'num'},String(books.indexOf(b)+1).padStart(2,'0')), el('img',{class:'thumb',src:b.image,alt:'',loading:'lazy'}),
+        el('div',{}, el('div',{class:'t'},b.title), el('div',{class:'a'},b.author||'')),
+        el('div',{class:'meta'}, b.rating?el('span',{class:'stars'},stars(b.rating)):null, el('span',{class:'tag'},(b.tags||[]).slice(0,2).map(t=>'#'+t).join('  ')))),
+      open===b.id ? el('div',{class:'more'}, el('div',{}, b.quote?el('blockquote',{class:'pq'},b.quote):null, b.liked?el('p',{class:'pl'},b.liked):null, el('img',{src:b.image,alt:'Instagram story ของ '+b.title}))) : null))));
   }
-
-  function open(b) {
-    const d = $('#detail');
-    d.replaceChildren(el('div', { class: 'dwrap' },
-      el('div', { class: 'dimg' }, el('img', { src: b.image, alt: 'Instagram story ของ ' + b.title })),
-      el('div', { class: 'dtext' },
-        el('div', { class: 'dtitle' }, b.title),
-        b.author ? el('div', { class: 'bauthor' }, b.author) : null,
-        b.rating ? el('div', { class: 'stars', 'aria-label': b.rating + ' จาก 5 ดาว' }, stars(b.rating)) : null,
-        b.quote ? el('blockquote', {}, b.quote) : null,
-        b.liked ? el('div', {}, el('div', { class: 'dlbl' }, 'ชอบตรงไหน'), el('div', { class: 'dval' }, b.liked)) : null,
-        (b.tags || []).length ? el('div', { class: 'btags' }, b.tags.map(t => el('span', { class: 'tag' }, '#' + t))) : null,
-        el('button', { class: 'close', onclick: () => d.close() }, 'ปิด'))));
-    d.showModal();
-  }
-  $('#detail').addEventListener('click', e => { if (e.target.id === 'detail') e.target.close(); });
-
-  function render() {
-    filters();
-    const list = tag ? books.filter(b => (b.tags || []).includes(tag)) : books;
-    $('#shelf').replaceChildren(...(list.length ? list.map((b, i) =>
-      el('button', { class: 'book', onclick: () => open(b), 'aria-label': b.title },
-        el('img', { class: 'cover', src: b.image, alt: '', loading: 'lazy' }),
-        el('div', { class: 'bbody' },
-          el('div', { class: 'bnum' }, 'B' + String(books.indexOf(b) + 1).padStart(2, '0')),
-          el('div', { class: 'btitle' }, b.title),
-          b.author ? el('div', { class: 'bauthor' }, b.author) : null,
-          b.rating ? el('div', { class: 'stars', 'aria-label': b.rating + ' จาก 5 ดาว' }, stars(b.rating)) : null,
-          b.liked ? el('div', { class: 'bliked' }, b.liked) : null,
-          (b.tags || []).length ? el('div', { class: 'btags' }, b.tags.slice(0, 3).map(t => el('span', { class: 'tag' }, '#' + t))) : null))
-    ) : [el('div', { class: 'empty' }, 'ยังไม่มีหนังสือบนชั้น')]));
-  }
-
-  fetch('bookshelf/books.json', { cache: 'no-cache' }).then(r => r.json()).then(data => {
-    books = (data.books || []).slice().sort((a, b) => (b.date || '').localeCompare(a.date || ''));
-    $('#count').textContent = books.length;
-    if (data.updated) $('#updated').textContent = 'อัปเดต ' + new Date(data.updated + 'T00:00').toLocaleDateString('th-TH', { day: 'numeric', month: 'short', year: 'numeric' });
-    render();
-  }).catch(() => { $('#shelf').replaceChildren(el('div', { class: 'empty' }, 'โหลดชั้นหนังสือไม่สำเร็จ ลองรีเฟรชอีกครั้ง')); });
+}
+fetch('bookshelf/books.json',{cache:'no-cache'}).then(r=>r.json()).then(d=>{ books=(d.books||[]).slice().sort((a,b)=>(b.date||'').localeCompare(a.date||'')); $('#n').textContent=books.length; if(d.updated) $('#upd').textContent='อัปเดต '+new Date(d.updated+'T00:00').toLocaleDateString('th-TH',{day:'numeric',month:'short',year:'numeric'}); if(V==='a') open=books[0]?.id; render(); });
+mq.addEventListener('change',()=>{ setV(); if(V==='a' && !open) open=books[0]?.id; render(); });
+let rt; addEventListener('resize',()=>{ clearTimeout(rt); rt=setTimeout(()=>{ if(V==='a') render(); },120); });
 })();
 </script>
 </body>
