@@ -35,6 +35,16 @@ h1{font-size:clamp(40px,7vw,64px);font-weight:500;letter-spacing:-0.035em;line-h
 .chip:hover{color:var(--ink);border-color:#d6d8db}
 .chip[aria-pressed="true"]{background:var(--ink);border-color:var(--ink);color:#fff}
 .tag{font-size:12px;color:var(--lab)}
+.chip .cn{margin-left:6px;font-size:11px;opacity:.55;font-variant-numeric:tabular-nums}
+.sec{padding-top:44px}
+.sech{font-size:13px;font-weight:600;letter-spacing:.02em;display:flex;align-items:baseline;gap:10px}
+.sech span{font-size:12px;font-weight:400;color:var(--faint)}
+.v-a .case{display:flex;flex-wrap:wrap;gap:0 56px;align-items:flex-start}
+.v-a .case .sec{flex:0 1 auto}
+.v-a .case .shelf{padding:22px 0 0;min-height:272px;align-content:flex-end;border-bottom:2px solid var(--ink);min-width:140px;gap:6px}
+.pcat{font-size:11px;letter-spacing:.12em;color:var(--lab);margin-bottom:10px}
+.v-b .sec{padding-top:32px}
+.v-b .sech{padding-bottom:4px;border-bottom:1px solid var(--line)}
 .stars{font-size:12px;letter-spacing:2px;color:var(--ink)}
 footer{padding:48px 0 40px;font-size:12px;color:var(--faint);display:flex;justify-content:space-between}
 
@@ -45,7 +55,7 @@ footer{padding:48px 0 40px;font-size:12px;color:var(--faint);display:flex;justif
 .spine:hover,.spine[aria-expanded="true"]{transform:translateY(-14px)}
 .spine span{writing-mode:vertical-rl;font-size:13px;font-weight:600;letter-spacing:.01em;max-height:100%;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
 .spine::after{content:"";position:absolute;left:8px;right:8px;bottom:12px;height:1.5px;background:currentColor;opacity:.35}
-.v-a .panel{display:grid;grid-template-columns:200px minmax(0,1fr);gap:32px;padding:32px 0 8px;border-top:1px solid var(--line);margin-top:8px}
+.v-a .panel{display:grid;grid-template-columns:200px minmax(0,1fr);gap:32px;padding:32px 0 8px;border-top:1px solid var(--line);margin-top:48px}
 .v-a .panel img{width:100%;border-radius:12px;display:block;box-shadow:0 10px 30px rgba(0,0,0,.08)}
 .ptitle{font-size:28px;font-weight:500;letter-spacing:-0.02em;line-height:1.2;text-wrap:balance}
 .pauthor{color:var(--muted);font-size:14px;margin-top:6px}
@@ -89,7 +99,7 @@ footer{padding:48px 0 40px;font-size:12px;color:var(--faint);display:flex;justif
   <nav class="nav"><a class="crumb" href="index.html#lab"><i></i>sheislab <span>/</span> <b>bookshelf</b></a><span class="navr" id="upd"></span></nav>
   <header class="head">
     <div><h1>bookshelf</h1><p class="lede">บันทึกหลังอ่านหนังสือจบ ชอบตรงไหน ประโยคไหนที่ยังจำได้</p></div>
-    <div class="stat"><div><b id="n">0</b><span>เล่มที่อ่านจบ</span></div><div><b id="nt">0</b><span>ธีมชีวิต</span></div></div>
+    <div class="stat"><div><b id="n">0</b><span>เล่มที่อ่านจบ</span></div><div><b id="nt">0</b><span>หมวด</span></div></div>
   </header>
   <div class="chips" id="chips"></div>
   <main id="main"></main>
@@ -104,7 +114,7 @@ const $ = s => document.querySelector(s);
 const el = (t, a = {}, ...k) => { const e = document.createElement(t); for (const [n, v] of Object.entries(a)) { if (v == null || v === false) continue; if (n === 'class') e.className = v; else if (n === 'style') e.style.cssText = v; else if (n.startsWith('on')) e.addEventListener(n.slice(2), v); else e.setAttribute(n, v); } e.append(...k.flat(2).filter(x => x != null && x !== false)); return e; };
 const stars = n => n ? '★'.repeat(n) + '☆'.repeat(5 - n) : '';
 const shortTitle = t => t.replace(/\s*\(.*\)$/, '').replace(/:.*$/, '');
-let books = [], tag = null, open = null;
+let books = [], cats = [], cat = null, open = null;
 
 function lum(hex){ const n = parseInt(hex.slice(1), 16); const r=(n>>16)&255,g=(n>>8)&255,b=n&255; return (0.299*r+0.587*g+0.114*b)/255; }
 function details(b){ return [
@@ -113,30 +123,36 @@ function details(b){ return [
   b.liked ? [el('div',{class:'plbl'},'ชอบตรงไหน'), el('p',{class:'pl'}, b.liked)] : null,
   (b.tags||[]).length ? el('div',{class:'ptags'}, b.tags.map(t=>el('span',{class:'tag'},'#'+t))) : null ]; }
 
-function chips(){ const c=new Map(); books.forEach(b=>(b.tags||[]).forEach(t=>c.set(t,(c.get(t)||0)+1)));
-  $('#nt').textContent=c.size;
-  const top=[...c].filter(([,n])=>n>1).sort((a,b)=>b[1]-a[1]);
-  $('#chips').replaceChildren(el('button',{class:'chip','aria-pressed':String(!tag),onclick:()=>{tag=null;render()}},'ทั้งหมด'), ...top.map(([t,n])=>el('button',{class:'chip','aria-pressed':String(tag===t),onclick:()=>{tag=tag===t?null:t;open=null;render()}},'#'+t)));
+function chips(){ const c=new Map(); books.forEach(b=>c.set(b.category,(c.get(b.category)||0)+1));
+  $('#nt').textContent=cats.filter(k=>c.has(k)).length;
+  $('#chips').replaceChildren(el('button',{class:'chip','aria-pressed':String(!cat),onclick:()=>{cat=null;render()}},'ทั้งหมด'), ...cats.filter(k=>c.has(k)).map(k=>el('button',{class:'chip','aria-pressed':String(cat===k),onclick:()=>{cat=cat===k?null:k;render()}},k,el('span',{class:'cn'},c.get(k)))));
 }
-function render(){ chips(); const list = tag ? books.filter(b=>(b.tags||[]).includes(tag)) : books; const m=$('#main');
+const toggle = id => { open = open===id ? null : id; render(); };
+function shelfA(list){
+  const shelf=el('div',{class:'shelf'});
+  list.forEach(b=>{ const h = 170 + (b.title.length*7)%80; const c=b.color||'#ddd';
+    shelf.append(el('button',{class:'spine','aria-expanded':String(open===b.id),'aria-label':b.title,style:`height:${h}px;background:${c};color:${lum(c)>.6?'#111214':'#fff'}`,onclick:()=>{ toggle(b.id); if(open) $('#panel')?.scrollIntoView({behavior:'smooth',block:'nearest'}); }}, el('span',{},shortTitle(b.title))));
+  });
+  return shelf;
+}
+function listB(list){
+  return el('ol',{class:'list'}, list.map(b=>el('li',{},
+    el('button',{class:'rowb','aria-expanded':String(open===b.id),onclick:()=>toggle(b.id)},
+      el('span',{class:'num'},String(books.indexOf(b)+1).padStart(2,'0')), el('img',{class:'thumb',src:b.image,alt:'',loading:'lazy'}),
+      el('div',{}, el('div',{class:'t'},b.title), el('div',{class:'a'},b.author||'')),
+      el('div',{class:'meta'}, b.rating?el('span',{class:'stars'},stars(b.rating)):null, el('span',{class:'tag'},(b.tags||[]).slice(0,2).map(t=>'#'+t).join('  ')))),
+    open===b.id ? el('div',{class:'more'}, el('div',{}, b.quote?el('blockquote',{class:'pq'},b.quote):null, b.liked?el('p',{class:'pl'},b.liked):null, (b.tags||[]).length?el('div',{class:'ptags'},b.tags.map(t=>el('span',{class:'tag'},'#'+t))):null, el('img',{src:b.image,alt:'Instagram story ของ '+b.title}))) : null)));
+}
+function render(){ chips(); const m=$('#main');
+  const groups = cats.filter(k=>!cat||k===cat).map(k=>[k, books.filter(b=>b.category===k)]).filter(([,l])=>l.length);
+  const sec = ([k,l]) => el('section',{class:'sec'}, el('h2',{class:'sech'}, k, el('span',{}, l.length+' เล่ม')), V==='a' ? shelfA(l) : listB(l));
   if (V==='a'){
-    const per = Math.max(6, Math.floor((m.clientWidth + 6) / 58)); const shelf=el('div',{class:'shelf'});
-    list.forEach((b,i)=>{ const h = 210 + (b.title.length*7)%90; const c=b.color||'#ddd';
-      shelf.append(el('button',{class:'spine','aria-expanded':String(open===b.id),'aria-label':b.title,style:`height:${h}px;background:${c};color:${lum(c)>.6?'#111214':'#fff'}`,onclick:()=>{open=open===b.id?null:b.id;render()}}, el('span',{},shortTitle(b.title))));
-      if ((i+1)%per===0 || i===list.length-1) shelf.append(el('div',{class:'row-line'}));
-    });
-    const b = books.find(x=>x.id===open) ;
-    m.replaceChildren(shelf, b ? el('section',{class:'panel'}, el('img',{src:b.image,alt:''}), el('div',{}, details(b))) : el('p',{class:'lede',style:'padding-bottom:20px'},'แตะที่สันหนังสือเพื่อเปิดอ่านโน้ต'));
-  } else if (V==='b'){
-    m.replaceChildren(el('ol',{class:'list'}, list.map((b,i)=>el('li',{},
-      el('button',{class:'rowb','aria-expanded':String(open===b.id),onclick:()=>{open=open===b.id?null:b.id;render()}},
-        el('span',{class:'num'},String(books.indexOf(b)+1).padStart(2,'0')), el('img',{class:'thumb',src:b.image,alt:'',loading:'lazy'}),
-        el('div',{}, el('div',{class:'t'},b.title), el('div',{class:'a'},b.author||'')),
-        el('div',{class:'meta'}, b.rating?el('span',{class:'stars'},stars(b.rating)):null, el('span',{class:'tag'},(b.tags||[]).slice(0,2).map(t=>'#'+t).join('  ')))),
-      open===b.id ? el('div',{class:'more'}, el('div',{}, b.quote?el('blockquote',{class:'pq'},b.quote):null, b.liked?el('p',{class:'pl'},b.liked):null, el('img',{src:b.image,alt:'Instagram story ของ '+b.title}))) : null))));
-  }
+    const b = books.find(x=>x.id===open && groups.some(([k])=>k===x.category));
+    m.replaceChildren(el('div',{class:'case'}, groups.map(sec)),
+      b ? el('section',{class:'panel',id:'panel'}, el('img',{src:b.image,alt:''}), el('div',{}, el('div',{class:'pcat'}, b.category), details(b))) : el('p',{class:'lede',style:'padding:32px 0 20px'},'แตะที่สันหนังสือเพื่อเปิดอ่านโน้ต'));
+  } else m.replaceChildren(...groups.map(sec));
 }
-fetch('bookshelf/books.json',{cache:'no-cache'}).then(r=>r.json()).then(d=>{ books=(d.books||[]).slice().sort((a,b)=>(b.date||'').localeCompare(a.date||'')); $('#n').textContent=books.length; if(d.updated) $('#upd').textContent='อัปเดต '+new Date(d.updated+'T00:00').toLocaleDateString('th-TH',{day:'numeric',month:'short',year:'numeric'}); if(V==='a') open=books[0]?.id; render(); });
+fetch('bookshelf/books.json',{cache:'no-cache'}).then(r=>r.json()).then(d=>{ books=(d.books||[]).slice().sort((a,b)=>(b.date||'').localeCompare(a.date||'')); cats=d.categories||[...new Set(books.map(b=>b.category))]; books.forEach(b=>{ if(!b.category){ b.category='อื่นๆ'; if(!cats.includes('อื่นๆ')) cats.push('อื่นๆ'); } }); $('#n').textContent=books.length; if(d.updated) $('#upd').textContent='อัปเดต '+new Date(d.updated+'T00:00').toLocaleDateString('th-TH',{day:'numeric',month:'short',year:'numeric'}); if(V==='a') open=books[0]?.id; render(); });
 mq.addEventListener('change',()=>{ setV(); if(V==='a' && !open) open=books[0]?.id; render(); });
 let rt; addEventListener('resize',()=>{ clearTimeout(rt); rt=setTimeout(()=>{ if(V==='a') render(); },120); });
 })();

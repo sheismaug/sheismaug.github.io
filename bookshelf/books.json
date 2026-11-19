@@ -1,5 +1,14 @@
 {
   "updated": "2026-11-19",
+  "categories": [
+    "จิตวิทยา",
+    "พัฒนาตนเอง",
+    "ศาสนาและปรัชญา",
+    "บริหารและกลยุทธ์",
+    "ออกแบบ",
+    "ประวัติศาสตร์และสังคม",
+    "วรรณกรรม"
+  ],
   "books": [
     {
       "id": "ig01",
@@ -13,7 +22,8 @@
       ],
       "image": "bookshelf/covers/ig01.jpg",
       "type": "book",
-      "color": "#e6d734"
+      "color": "#e6d734",
+      "category": "จิตวิทยา"
     },
     {
       "id": "ig02",
@@ -28,7 +38,8 @@
       ],
       "image": "bookshelf/covers/ig02.jpg",
       "type": "book",
-      "color": "#d3b292"
+      "color": "#d3b292",
+      "category": "พัฒนาตนเอง"
     },
     {
       "id": "ig03",
@@ -41,7 +52,8 @@
       ],
       "image": "bookshelf/covers/ig03.jpg",
       "type": "book",
-      "color": "#747571"
+      "color": "#747571",
+      "category": "วรรณกรรม"
     },
     {
       "id": "ig04",
@@ -57,7 +69,8 @@
       ],
       "image": "bookshelf/covers/ig04.jpg",
       "type": "book",
-      "color": "#7b191c"
+      "color": "#7b191c",
+      "category": "ออกแบบ"
     },
     {
       "id": "ig05",
@@ -72,7 +85,8 @@
       ],
       "image": "bookshelf/covers/ig05.jpg",
       "type": "book",
-      "color": "#bbb9b0"
+      "color": "#bbb9b0",
+      "category": "จิตวิทยา"
     },
     {
       "id": "ig06",
@@ -86,7 +100,8 @@
       ],
       "image": "bookshelf/covers/ig06.jpg",
       "type": "book",
-      "color": "#80a4bb"
+      "color": "#80a4bb",
+      "category": "จิตวิทยา"
     },
     {
       "id": "ig07",
@@ -98,7 +113,8 @@
       ],
       "image": "bookshelf/covers/ig07.jpg",
       "type": "book",
-      "color": "#939486"
+      "color": "#939486",
+      "category": "บริหารและกลยุทธ์"
     },
     {
       "id": "ig08",
@@ -113,7 +129,8 @@
       ],
       "image": "bookshelf/covers/ig08.jpg",
       "type": "book",
-      "color": "#a1cfa5"
+      "color": "#a1cfa5",
+      "category": "ศาสนาและปรัชญา"
     },
     {
       "id": "ig09",
@@ -128,7 +145,8 @@
       ],
       "image": "bookshelf/covers/ig09.jpg",
       "type": "book",
-      "color": "#a7a7aa"
+      "color": "#a7a7aa",
+      "category": "พัฒนาตนเอง"
     },
     {
       "id": "ig10",
@@ -143,7 +161,8 @@
       ],
       "image": "bookshelf/covers/ig10.jpg",
       "type": "book",
-      "color": "#b8b8b8"
+      "color": "#b8b8b8",
+      "category": "ศาสนาและปรัชญา"
     },
     {
       "id": "ig11",
@@ -157,7 +176,8 @@
       ],
       "image": "bookshelf/covers/ig11.jpg",
       "type": "book",
-      "color": "#bfb1a7"
+      "color": "#bfb1a7",
+      "category": "วรรณกรรม"
     },
     {
       "id": "ig12",
@@ -172,7 +192,8 @@
       ],
       "image": "bookshelf/covers/ig12.jpg",
       "type": "book",
-      "color": "#6a6c60"
+      "color": "#6a6c60",
+      "category": "ประวัติศาสตร์และสังคม"
     },
     {
       "id": "ig13",
@@ -188,7 +209,8 @@
       ],
       "image": "bookshelf/covers/ig13.jpg",
       "type": "book",
-      "color": "#e3d693"
+      "color": "#e3d693",
+      "category": "ออกแบบ"
     },
     {
       "id": "ig14",
@@ -202,7 +224,8 @@
       ],
       "image": "bookshelf/covers/ig14.jpg",
       "type": "book",
-      "color": "#be663e"
+      "color": "#be663e",
+      "category": "บริหารและกลยุทธ์"
     }
   ]
 }
