@@ -172,6 +172,16 @@ h1{margin:6px 0 8px;font-size:42px;font-weight:700;line-height:1.25;letter-spaci
 .devc{flex:1 1 90px;display:flex;flex-direction:column;align-items:center;gap:8px;padding:14px 8px;border-radius:18px;background:#f8f6f0}
 .devc b{font-family:Montserrat,sans-serif;font-size:24px;font-weight:800;line-height:1}
 .devc span{font-size:12px;color:var(--mute)}
+button.devc{border:0;font:inherit;color:inherit;cursor:default}
+button.devc.tap{cursor:pointer;box-shadow:0 3px 0 #e6e2d6;transition:transform .1s}
+button.devc.tap:active{transform:translateY(2px);box-shadow:0 1px 0 #e6e2d6}
+button.devc.on{background:#EFEAFB;box-shadow:0 3px 0 #DCD3F5}
+.cother{display:none;flex-direction:column;gap:6px;margin-top:12px;padding-top:12px;border-top:1px dashed var(--line)}
+.cother.open{display:flex}
+.corow{display:flex;align-items:center;gap:10px;padding:8px 12px;border-radius:14px;background:#f8f6f0;font-size:13px}
+.corow b{flex:1;min-width:0;font-weight:600}
+.corow span{font-size:12px;color:var(--mute)}
+.corow em{font-style:normal;font-size:12px;color:var(--mute)}
 table.mon{border-collapse:collapse;font-size:12px;margin-top:8px;background:#fff;border-radius:12px;overflow:hidden}
 table.mon th,table.mon td{padding:6px 12px;border-bottom:1px solid var(--line);text-align:right;white-space:nowrap}
 table.mon th:first-child,table.mon td:first-child{text-align:left}
@@ -723,7 +733,13 @@ function renderReport(r) {
   const elig = md.eligible || 0, pS = elig ? md.same / elig * 100 : 0, p1 = elig ? (md.le1 - md.same) / elig * 100 : 0, pL = elig ? 100 - pS - p1 - (md.pending || 0) / elig * 100 : 0;
   // อื่นๆ = ทั้งหมด − 4 อุปกรณ์หลัก (type ที่สะกดต่างจากปุ่ม เช่น ข้อมูลเก่า จะไม่หายจากการ์ด)
   const known = COUN.slice(0, 4).reduce((t, c) => t + (cn.byType[c[0]] || 0), 0);
-  const devs = COUN.map((c, i) => `<div class="devc">${du(c[1], 30)}<b>${i === 4 ? Math.max(0, (cn.total || 0) - known) : (cn.byType[c[0]] || 0)}</b><span>${c[2]}</span></div>`).join('');
+  const oth = cn.other || [], othN = Math.max(0, (cn.total || 0) - known);
+  const devs = COUN.map((c, i) => i === 4
+    ? `<button class="devc${othN ? ' tap' : ''}" ${othN ? `onclick="$('counOther').classList.toggle('open');this.classList.toggle('on')"` : 'disabled'}>${du(c[1], 30)}<b>${othN}</b><span>${c[2]}${othN ? ' ▾' : ''}</span></button>`
+    : `<div class="devc">${du(c[1], 30)}<b>${cn.byType[c[0]] || 0}</b><span>${c[2]}</span></div>`).join('');
+  const othList = othN ? `<div id="counOther" class="cother">${oth.length
+    ? oth.map(o => `<div class="corow">${du('dots', 20)}<b>${esc(o.text || (o.type !== 'อื่นๆ' ? o.type : 'ไม่ได้ระบุ'))}</b><span>HN ${esc(o.hn)}</span><em>${thd(o.date)}</em></div>`).join('')
+    : '<div class="corow"><span>ยังไม่ได้ deploy Edge Function เวอร์ชันใหม่ — ยังดูรายละเอียดไม่ได้</span></div>'}</div>` : '';
   let h = `<div style="display:flex;align-items:center;gap:16px;padding:16px 22px;border-radius:24px;background:var(--limec);box-shadow:0 5px 0 var(--limee)">${mascot(60)}<div><b style="font-size:20px">ทำ MR ไปแล้ว ${(s.done + s.nomed).toLocaleString()} ราย</b><div style="font-size:13px;color:var(--mute)">admit ${thd(r.from, 'full')} – ${thd(r.to, 'full')} · สอนยา ${cn.total} ครั้ง</div></div></div>
     <div class="kpis">${kpi('clip', '#FFF6CC', 'ความครอบคลุม MR', 'ทำ MR / ผู้ป่วยที่มียาเดิม', s.coveragePct, s.done, s.need, 'coveragePct')}
       ${kpi('hosp', '#E8F0FF', 'ใน รพ. ภายใน 8 ชม.', 'รับยา รพ.ห้วยผึ้งที่เดียว', s.in8hPct, s.inPass, s.inN, 'in8hPct')}
@@ -737,7 +753,7 @@ function renderReport(r) {
             <div class="hb"><span>นานกว่า/ไม่สั่ง</span><i style="background:#ddd8cc;width:${Math.max(0, pL)}%"></i><b>${pctTxt(Math.max(0, pL))}</b></div>
           </div></div>
         <div style="display:flex;gap:8px;font-size:12px;color:var(--mute);border-top:1px dashed var(--line);padding-top:10px">${li('clock', 14)}ยังรอแพทย์ ${md.pending || 0} ราย · หมอไม่ได้สั่ง ${md.none || 0} ราย<span style="margin-left:auto">ตัวหาร ${elig}</span></div></div>
-      <div class="kpi"><div class="kh"><span class="ib" style="background:#E3F4FF">${du('mdi', 26)}</span><div><b>สอนยาเทคนิคพิเศษ</b><small>ตามวันที่สอน</small></div><span class="mont" style="margin-left:auto;font-size:24px;font-weight:800">${cn.total}</span><span style="font-size:12px;color:var(--mute)">ครั้ง</span></div><div class="devgrid">${devs}</div></div>
+      <div class="kpi"><div class="kh"><span class="ib" style="background:#E3F4FF">${du('mdi', 26)}</span><div><b>สอนยาเทคนิคพิเศษ</b><small>ตามวันที่สอน</small></div><span class="mont" style="margin-left:auto;font-size:24px;font-weight:800">${cn.total}</span><span style="font-size:12px;color:var(--mute)">ครั้ง</span></div><div class="devgrid">${devs}</div>${othList}</div>
     </div>`;
   if (mon.length) h += `<details><summary>รายเดือน & นิยาม</summary><table class="mon"><tr><th>เดือน</th><th>Admit</th><th>ครอบคลุม</th><th>ใน รพ. ≤8 ชม.</th><th>นอก รพ. ≤24 ชม.</th></tr>${mon.map(m => `<tr><td>${monLab(m.month)}</td><td>${m.total}</td><td title="${m.done}/${m.need}">${pctTxt(m.coveragePct)}</td><td title="${m.inPass}/${m.inN}">${pctTxt(m.in8hPct)}</td><td title="${m.outPass}/${m.outN}">${pctTxt(m.out24hPct)}</td></tr>`).join('')}</table>
     <p style="font-size:12px;color:var(--mute);line-height:1.7">ครอบคลุม = มีรายการ MR / (admit − ไม่พบยาเดิม) · ใน/นอก รพ. = ผ่านเกณฑ์เวลา / กลุ่มนั้น · ไม่ได้ทำ MR / ติดตามไม่ได้ / ไม่ได้ลงเวร = ไม่ทันเวลา · ตัด record ซ้ำ ${r.duplicatesRemoved || 0} แถว</p></details>`;
