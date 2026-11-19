@@ -144,17 +144,26 @@ h1{font-size:clamp(46px,8vw,84px);font-weight:500;letter-spacing:-.04em;line-hei
 .pop{position:absolute;z-index:2;left:50%;bottom:4px;transform:translateX(-50%);max-width:calc(100% - 20px);padding:3px 9px;border-radius:2px;background:#fbf5ea;color:#3b2a1a;font-size:11px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;box-shadow:0 2px 4px rgba(0,0,0,.35)}
 .pop i{font-style:normal;color:#b4762e;margin-right:4px}
 
-/* dark wood floor + cream rug */
-.floor{position:relative;z-index:1;margin-top:-1px;height:170px;overflow:hidden;background:
-  repeating-linear-gradient(90deg,transparent 0 179px,rgba(0,0,0,.35) 179px 181px),
-  repeating-linear-gradient(90deg,rgba(255,255,255,.025) 0 2px,transparent 2px 7px,rgba(0,0,0,.05) 7px 8px,transparent 8px 13px),
-  linear-gradient(#3b3530,#2b2622 60%,#24201d)}
-.floor::before{content:"";position:absolute;left:0;right:0;top:0;height:14px;background:linear-gradient(#f4ede4,#e3d8ca);box-shadow:0 4px 10px rgba(0,0,0,.35)}
-.floor::after{content:"";position:absolute;left:50%;top:58px;width:min(900px,86vw);height:140px;transform:translateX(-50%);
-  clip-path:polygon(12% 0,88% 0,100% 100%,0 100%);
-  background:repeating-radial-gradient(ellipse 60% 120% at 50% 130%,#f3ece2 0 12px,#e6dccf 12px 14px);filter:drop-shadow(0 -4px 10px rgba(0,0,0,.4))}
-footer{position:relative;z-index:2;max-width:1180px;margin:-40px auto 0;padding:0 32px 16px;font-size:12px;color:#a8998a;display:flex;justify-content:space-between}
-.hint{margin:26px 0 40px;font-size:14px;color:var(--dim);text-align:center}
+/* light wood floor, round fluffy rug, fairy lights */
+.floor{position:relative;z-index:1;margin-top:-1px;height:190px;background:
+  repeating-linear-gradient(90deg,transparent 0 158px,rgba(150,105,60,.22) 158px 160px),
+  repeating-linear-gradient(90deg,rgba(255,255,255,.08) 0 2px,transparent 2px 9px,rgba(160,110,60,.06) 9px 10px,transparent 10px 17px),
+  linear-gradient(#e2c49e,#d9b88f 60%,#cfac82)}
+.floor::before{content:"";position:absolute;left:0;right:0;top:0;height:12px;background:linear-gradient(#fbf6ef,#efe5d8);box-shadow:0 3px 8px rgba(140,100,60,.25)}
+.floor::after{content:"";position:absolute;left:50%;top:44px;width:min(620px,84vw);height:118px;transform:translateX(-50%);border-radius:50%;
+  background:radial-gradient(closest-side,#fffaf4 0 50%,#f9f1e7 62%,#fffaf4 74%,#f6ede2 92%,#efe3d4);
+  box-shadow:0 0 0 5px rgba(255,250,244,.75),0 0 0 10px rgba(255,250,244,.35),0 16px 26px -10px rgba(140,95,50,.35);filter:blur(.4px)}
+.lights{position:absolute;left:0;right:0;top:-80px;height:52px;z-index:2;pointer-events:none;overflow:hidden;
+  background:
+    radial-gradient(circle at 50% 62%,#ffb3c1 0 5px,rgba(255,170,190,.5) 6px,transparent 14px) -126px 5px/336px 40px repeat-x,
+    radial-gradient(circle at 50% 62%,#ffe08a 0 5px,rgba(255,214,120,.55) 6px,transparent 14px) -42px 5px/336px 40px repeat-x,
+    radial-gradient(circle at 50% 62%,#b9ead4 0 5px,rgba(170,230,200,.5) 6px,transparent 14px) 42px 5px/336px 40px repeat-x,
+    radial-gradient(circle at 50% 62%,#ffcf9e 0 5px,rgba(255,200,150,.55) 6px,transparent 14px) 126px 5px/336px 40px repeat-x,
+    radial-gradient(ellipse 50% 80% at 50% 0,transparent 93%,rgba(130,100,70,.5) 94.5% 98%,transparent 99.5%) 0 0/84px 34px repeat-x}
+.lights{animation:twinkle 2.6s ease-in-out infinite alternate}
+@keyframes twinkle{from{opacity:.75}to{opacity:1}}
+footer{position:relative;z-index:2;max-width:1180px;margin:-40px auto 0;padding:0 32px 16px;font-size:12px;color:#8b6d4c;display:flex;justify-content:space-between}
+.hint{margin:26px 0 100px;font-size:14px;color:var(--dim);text-align:center}
 
 /* ── detail sheet ── */
 dialog.sheet{border:0;padding:0;margin:auto;width:min(1080px,calc(100vw - 48px));max-height:calc(100vh - 48px);border-radius:22px;background:var(--paper);color:var(--ink);overflow:hidden;box-shadow:0 40px 120px rgba(0,0,0,.6)}
@@ -229,7 +238,7 @@ dialog.sheet[open]{animation:pop .32s cubic-bezier(.2,.8,.3,1)}
   <main class="wall" id="wall"></main>
   <p class="hint">แตะที่หนังสือเพื่อเปิดอ่านโน้ต</p>
 </div>
-<div class="floor" aria-hidden="true"></div>
+<div class="floor" aria-hidden="true"><i class="lights"></i></div>
 <footer><span>sheislab · reading log</span><span>sheismaug.github.io</span></footer>
 
 <dialog class="sheet" id="sheet" aria-label="โน้ตหนังสือ"><div class="sh"><div class="sh-img" id="shimg"></div><div class="sh-body" id="shbody"></div></div></dialog>
