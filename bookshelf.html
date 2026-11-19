@@ -71,6 +71,7 @@ h1{font-size:clamp(46px,8vw,84px);font-weight:500;letter-spacing:-.04em;line-hei
 .cats{position:sticky;top:0;z-index:5;margin:0 -32px;padding:14px 32px;display:flex;gap:6px;overflow-x:auto;scrollbar-width:none;transition:background .2s}
 .cats.stuck{background:linear-gradient(var(--bg) 70%,rgba(20,13,8,0))}
 .cats::-webkit-scrollbar{display:none}
+@media(min-width:821px){.cats{flex-wrap:wrap;overflow:visible;row-gap:8px}}
 .cat{flex:none;padding:8px 15px;border-radius:99px;font-size:14.5px;color:var(--sand);border:1px solid rgba(255,225,180,.16);background:rgba(255,240,220,.03);transition:.2s;white-space:nowrap}
 .cat:hover{color:var(--cream);border-color:rgba(255,225,180,.4)}
 .cat[aria-current="true"]{background:var(--cream);border-color:var(--cream);color:var(--bg)}
