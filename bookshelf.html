@@ -144,15 +144,12 @@ h1{font-size:clamp(46px,8vw,84px);font-weight:500;letter-spacing:-.04em;line-hei
 .pop{position:absolute;z-index:2;left:50%;bottom:4px;transform:translateX(-50%);max-width:calc(100% - 20px);padding:3px 9px;border-radius:2px;background:#fbf5ea;color:#3b2a1a;font-size:11px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;box-shadow:0 2px 4px rgba(0,0,0,.35)}
 .pop i{font-style:normal;color:#b4762e;margin-right:4px}
 
-/* light wood floor, round fluffy rug, fairy lights */
+/* light wood floor + fairy lights */
 .floor{position:relative;z-index:1;margin-top:-1px;height:190px;background:
   repeating-linear-gradient(90deg,transparent 0 158px,rgba(150,105,60,.22) 158px 160px),
   repeating-linear-gradient(90deg,rgba(255,255,255,.08) 0 2px,transparent 2px 9px,rgba(160,110,60,.06) 9px 10px,transparent 10px 17px),
   linear-gradient(#e2c49e,#d9b88f 60%,#cfac82)}
 .floor::before{content:"";position:absolute;left:0;right:0;top:0;height:12px;background:linear-gradient(#fbf6ef,#efe5d8);box-shadow:0 3px 8px rgba(140,100,60,.25)}
-.floor::after{content:"";position:absolute;left:50%;top:44px;width:min(620px,84vw);height:118px;transform:translateX(-50%);border-radius:50%;
-  background:radial-gradient(closest-side,#fffaf4 0 50%,#f9f1e7 62%,#fffaf4 74%,#f6ede2 92%,#efe3d4);
-  box-shadow:0 0 0 5px rgba(255,250,244,.75),0 0 0 10px rgba(255,250,244,.35),0 16px 26px -10px rgba(140,95,50,.35);filter:blur(.4px)}
 .lights{position:absolute;left:0;right:0;top:-80px;height:52px;z-index:2;pointer-events:none;overflow:hidden;
   background:
     radial-gradient(circle at 50% 62%,#ffb3c1 0 5px,rgba(255,170,190,.5) 6px,transparent 14px) -126px 5px/336px 40px repeat-x,
