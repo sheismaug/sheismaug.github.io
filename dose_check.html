@@ -1273,7 +1273,7 @@ function render() {
   else if (S.tab === 'tb') m.innerHTML = tbHTML();
   else if (S.tab === 'warfarin') m.innerHTML = '<div id="wf"><div class="cols"><div class="card c1" id="wf_c1"></div><div class="card c2" id="wf_c2"></div><div class="res" id="wf_res"></div></div></div>';
   else m.innerHTML = doseHTML(S.tab);
-  $('#foot').textContent = S.tab === 'warfarin' ? 'ตารางที่ 3 แนวทางการปรับขนาดยาเพื่อให้ได้ INR เป้าหมาย 2.0–3.0 (แหล่งอ้างอิง: รอระบุ) · ปรับไม่เกิน 20%/ครั้ง · เม็ด 2/3/5 mg หักครึ่งได้ · ใช้ประกอบการตรวจสอบ ต้อง double check ก่อนจ่ายยาทุกครั้ง' : S.tab === 'had' ? 'ข้อมูลจาก HAD_DB (ipd_pharm_hub) · HAD รพ.ห้วยผึ้ง' : S.tab === 'tb' ? 'แนวทางการควบคุมวัณโรคประเทศไทย พ.ศ. 2564 (ตาราง 5.1, 7.1) · max/day: Guideline TB 2556 / WHO 2014 · ไต: ATS/CDC/IDSA 2016 · Amikacin weight: UpToDate 2024 · ร่าง · รอตรวจทานก่อนใช้จริง · ใช้ประกอบการตรวจสอบ ไม่แทนดุลยพินิจทางคลินิก' : 'ข้อมูลขนาดยา: Lexicomp/เอกสารกำกับยา · ตรวจทานโดย ภญ.กรรณิกา สันติพาณิชย์วงศ์ 11 พ.ย. 2569 · ใช้ประกอบการตรวจสอบ ไม่แทนดุลยพินิจทางคลินิก';
+  $('#foot').textContent = S.tab === 'warfarin' ? 'ตารางที่ 3 แนวทางการปรับขนาดยาเพื่อให้ได้ INR เป้าหมาย 2.0–3.0 (แหล่งอ้างอิง: รอระบุ) · ปรับไม่เกิน 20%/ครั้ง · เม็ด 2/3/5 mg หักครึ่งได้ · ใช้ประกอบการตรวจสอบ ต้อง double check ก่อนจ่ายยาทุกครั้ง' : S.tab === 'had' ? 'ข้อมูลจาก HAD_DB (ipd_pharm_hub) · HAD รพ.ห้วยผึ้ง' : S.tab === 'tb' ? 'แนวทางการควบคุมวัณโรคประเทศไทย พ.ศ. 2564 (ตาราง 5.1, 7.1) · max/day: ตาราง 5.1 (E 1,200) / Guideline TB 2556 · ไต: ATS/CDC/IDSA 2016 · Amikacin weight: UpToDate 2024 · ร่าง · รอตรวจทานก่อนใช้จริง · ใช้ประกอบการตรวจสอบ ไม่แทนดุลยพินิจทางคลินิก' : 'ข้อมูลขนาดยา: Lexicomp/เอกสารกำกับยา · ตรวจทานโดย ภญ.กรรณิกา สันติพาณิชย์วงศ์ 11 พ.ย. 2569 · ใช้ประกอบการตรวจสอบ ไม่แทนดุลยพินิจทางคลินิก';
   refresh();
 }
 function refresh() {
@@ -1597,14 +1597,14 @@ const TB_DRUG = {
 // ผู้ใหญ่ ≥15 ปี: ตาราง 5.1 NTP 2564 · max/day: Guideline TB 2556 (2013) / WHO 2014
 const TB_AD = {
   H: { lo: 4, hi: 6, max: 300 }, R: { lo: 8, hi: 12, max: 600 }, Z: { lo: 20, hi: 30, max: 2000 },
-  E: { lo: 15, hi: 20, max: 1600 }, L: { lo: 10, hi: 15, max: 1000 }, Am: { lo: 15, hi: 15, max: 1000 }
+  E: { lo: 15, hi: 20, max: 1200 }, L: { lo: 10, hi: 15, max: 1000 }, Am: { lo: 15, hi: 15, max: 1000 }
 };
 // เด็ก <15 ปี: ตาราง 7.1 NTP 2564
 const TB_PD = {
   H: { lo: 10, hi: 15, t: 10, max: 300 }, R: { lo: 10, hi: 20, t: 15, max: 600 }, Z: { lo: 30, hi: 40, t: 35, max: 2000 },
   E: { lo: 15, hi: 25, t: 20, max: 1200 }
 };
-const TB_BAND = [[35, 50, '35–49', { H: 300, R: 450, Z: 1000, E: 800 }], [50, 70, '50–69', { H: 300, R: 600, Z: 1500, E: 1000 }], [70, 999, '≥ 70*', { H: 300, R: 600, Z: 2000, E: 1200 }]];
+const TB_BAND = [[35, 50, '35–49', { H: 300, R: 450, Z: 1000, E: 800 }], [50, 70, '50–69', { H: 300, R: 600, Z: 1500, E: 1000 }], [70, 999, '≥ 70', { H: 300, R: 600, Z: 2000, E: 1200 }]];
 const TB_LBAND = [[30, 46, '30–45', 750], [46, 999, '≥ 46', 1000]];   // WHO weight-based (Lfx)
 const TB_REG = [
   ['hrze', '2HRZE / 4HR', ['H', 'R', 'Z', 'E'], ['H', 'R']],
@@ -1697,8 +1697,8 @@ function tbCalc(k) {
   if (ad && band && band.mg && band.mg <= P.max) {
     const bm = band.mg / w;
     const inR = bm >= P.lo - 0.05 && bm <= P.hi + 0.05;
-    // ตาราง 5.1 ช่วง 35–69 kg: ใช้ขนาดตามตารางเป็นหลักเสมอ (> 70 kg ใช้ตารางเฉพาะเมื่ออยู่ในช่วง mg/kg) · Lfx: ตาราง WHO เมื่อไม่ปรับตามไต
-    if (k === 'L' ? !ren : (!band.star || inR)) {
+    // ตาราง 5.1 ทุกช่วงน้ำหนัก ≥ 35 kg: ใช้ขนาดตามตารางเป็นหลักเสมอ · Lfx: ตาราง WHO เมื่อไม่ปรับตามไต
+    if (k === 'L' ? !ren : true) {   // ≥ 70 kg ใช้ตารางไทยด้วย (E 1200)
       const bp = tbPick(D.str, band.mg, band.mg, band.mg, P.max);
       if (bp && Math.abs(bp.mg - band.mg) < 1) { cpk = pk; pk = bp; useBand = true; }
     }
@@ -1774,8 +1774,8 @@ function tbCard(k) {
   } else if (c.pk && c.pk.fit) {
     main = `${fmt(c.pk.mg, 0)} <small>mg${c.perDay === 2 ? '/ครั้ง' : ''}</small>`;
     sub = `${tbTabTxt(k, c.pk.parts)} · ${c.freq}`;
-    const bm = c.pk.mg / c.w, out = bm > c.P.hi + 0.05 || bm < c.P.lo - 0.05;
-    minor = c.useBand ? `<b>ตามตาราง guideline (${c.band.lbl} kg)</b> = ${fmt(bm, 1)} mg/kg/วัน${out ? ` <b style="color:#9A5B00">· ${bm > c.P.hi ? 'สูงกว่า' : 'ต่ำกว่า'}ช่วง ${fmt(c.P.lo, 0)}–${fmt(c.P.hi, 0)} mg/kg</b>` : ''}` : `= ${fmt(c.pk.mg * c.perDay / c.w, 1)} mg/kg/วัน · ช่วงที่คำนวณได้ ${fmt(c.lo, 0)}–${fmt(c.hi, 0)} mg${c.perDay === 2 ? '/ครั้ง' : ''}`;
+    const bm = c.pk.mg / c.w, atMax = c.pk.mg >= c.P.max - 0.5, out = bm > c.P.hi + 0.05 || (bm < c.P.lo - 0.05 && !atMax);
+    minor = c.useBand ? `<b>ตามตาราง guideline (${c.band.lbl} kg)</b> = ${fmt(bm, 1)} mg/kg/วัน${atMax && bm < c.P.lo - 0.05 ? ' · ขนาดสูงสุด (max)' : ''}${out ? ` <b style="color:#9A5B00">· ${bm > c.P.hi ? 'สูงกว่า' : 'ต่ำกว่า'}ช่วง ${fmt(c.P.lo, 0)}–${fmt(c.P.hi, 0)} mg/kg</b>` : ''}` : `= ${fmt(c.pk.mg * c.perDay / c.w, 1)} mg/kg/วัน · ช่วงที่คำนวณได้ ${fmt(c.lo, 0)}–${fmt(c.hi, 0)} mg${c.perDay === 2 ? '/ครั้ง' : ''}`;
   } else {
     main = `${fmt(c.tgt, 0)} <small>mg${c.perDay === 2 ? '/ครั้ง' : ''}</small>`;
     sub = `${c.freq} · ไม่มีเม็ดที่ลงตัว`;
@@ -1787,7 +1787,7 @@ function tbCard(k) {
     if (alt && !same) band = `<div class="box"><img src="${I('scale')}" alt=""><span class="k">ทางเลือก: คำนวณตามน้ำหนักจริง</span><span class="v">${fmt(alt.mg, 0)}</span><span class="k">mg</span><div class="calc">${tbTabTxt(k, alt.parts)} · ${fmt(alt.mg / c.w, 1)} mg/kg · ช่วง ${fmt(c.lo, 0)}–${fmt(c.hi, 0)} mg</div></div>`;
   } else if (c.band) {
     if (c.band.mg == null) band = `<div class="box"><img src="${I('clipboard')}" alt=""><div class="calc"><b>ตาราง: น้ำหนัก ${c.band.lbl} kg ไม่มีในตาราง</b> · ให้คำนวณตามน้ำหนักตัว</div></div>`;
-    else { const j = tbJudge(c, c.band.mg); band = `<div class="box"><img src="${I('clipboard')}" alt=""><span class="k">ตาราง ${c.band.lbl} kg</span><span class="v">${fmt(c.band.mg, 0)}</span><span class="k">mg</span>${tbTag(j)}${c.band.star ? '<div class="calc">* > 70 kg guideline ให้คำนวณตามน้ำหนักตัว</div>' : ''}${k === 'L' ? '<div class="calc">ตาราง WHO · guideline ไทยให้ใช้ 10–15 mg/kg หรือตามตารางนี้ก็ได้</div>' : ''}</div>`; }
+    else { const j = tbJudge(c, c.band.mg); band = `<div class="box"><img src="${I('clipboard')}" alt=""><span class="k">ตาราง ${c.band.lbl} kg</span><span class="v">${fmt(c.band.mg, 0)}</span><span class="k">mg</span>${tbTag(j)}${k === 'L' ? '<div class="calc">ตาราง WHO · guideline ไทยให้ใช้ 10–15 mg/kg หรือตามตารางนี้ก็ได้</div>' : ''}</div>`; }
   }
   const ren = c.ren ? `<div style="margin:0 20px 16px" class="dangerbox"><img src="${I('droplet')}" alt=""><div><b>ไต (CrCl < 30 / HD): ${esc(TB_RENAL[k])}</b>${S.tb.hd === 'yes' ? '<div style="font-size:13px">วันฟอกไต ให้ยาหลังฟอก</div>' : ''}</div></div>`
     : (tbRenal() && (k === 'H' || k === 'R') ? `<div class="minor" style="margin:0 20px 12px">ไต: ไม่ต้องปรับขนาด</div>` : '');
