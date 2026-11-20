@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>life canvas</title>
+<meta name="robots" content="noindex">
+<meta name="apple-mobile-web-app-title" content="life canvas">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black">
+<meta name="theme-color" content="#0d0d0d">
+<link rel="apple-touch-icon" href="icon-180.png">
+<link rel="icon" type="image/png" sizes="32x32" href="icon-32.png">
+<link rel="manifest" href="manifest.webmanifest">
+<style>
+html,body{height:100%;margin:0}
+body{background:#0d0d0d;color:#fff;font-family:system-ui,-apple-system,sans-serif;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:18px;text-align:center;padding:24px;box-sizing:border-box}
+img{width:96px;height:96px;border-radius:22px}
+a{color:#f5c800;font-size:17px}
+p{margin:0;color:#aaa;font-size:14px;line-height:1.6}
+</style>
+</head>
+<body>
+<img src="icon-180.png" alt="">
+<a id="go" href="https://claude.ai/artifact/CU57HszrKsUdybTXTFRkXM">เปิด life canvas</a>
+<p>กดแชร์ แล้ว "เพิ่มไปยังหน้าจอโฮม" เพื่อเก็บไว้ในมือถือ</p>
+<script>
+// Open the app right away, except in a normal browser tab the first time, so the
+// visitor can still add this page to the home screen with its own icon.
+var standalone = navigator.standalone || matchMedia('(display-mode: standalone)').matches;
+if (standalone || location.hash === '#go') location.replace(document.getElementById('go').href);
+</script>
+</body>
+</html>
