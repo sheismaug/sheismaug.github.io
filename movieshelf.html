@@ -61,6 +61,8 @@ h1 span{display:inline-block;width:.2em;height:.2em;border-radius:50%;background
 .tile:hover .pic,.tile:focus-visible .pic{transform:translateY(-4px);box-shadow:0 16px 30px -14px rgba(0,0,0,.35)}
 .score{position:absolute;top:10px;left:10px;padding:4px 9px 4px 7px;border-radius:99px;background:var(--ink);color:var(--pop);font-size:13px;font-weight:600;font-variant-numeric:tabular-nums;box-shadow:0 2px 8px rgba(0,0,0,.25)}
 .score.top{background:var(--pop);color:var(--ink)}
+.ph{position:absolute;inset:0;display:flex;align-items:flex-end;padding:16px;background:var(--ink);color:var(--pop);font-size:19px;font-weight:600;line-height:1.25;text-align:left;overflow-wrap:anywhere}
+.ph.big{position:relative;aspect-ratio:4/5;border-radius:12px;font-size:26px;padding:22px}
 .tt{font-size:15.5px;font-weight:600;line-height:1.3;overflow-wrap:anywhere}
 .tt small{display:block;font-size:13px;font-weight:400;color:var(--mut);margin-top:3px}
 .empty{padding:60px 0;text-align:center;color:var(--mut)}
@@ -139,12 +141,13 @@ let movies = [], groups = [], order = [], cur = -1, filt = null, sort = 'new';
 const sheet = $('#sheet');
 
 function tile(m){
-  return el('button', { class: 'tile', 'aria-label': m.title + ' ' + num(m.cheese) + ' ชีส', onclick: () => open(order.indexOf(m)) },
-    el('span', { class: 'pic' }, el('span', { class: 'blur', style: `background-image:url(${m.image})` }), el('img', { src: m.image, alt: '', loading: 'lazy' }),
-      el('span', { class: 'score' + (m.cheese >= 9 ? ' top' : '') }, '🧀 ' + num(m.cheese))),
+  const has = m.cheese != null;
+  return el('button', { class: 'tile', 'aria-label': m.title + (has ? ' ' + num(m.cheese) + ' ชีส' : ''), onclick: () => open(order.indexOf(m)) },
+    el('span', { class: 'pic' }, m.image ? [el('span', { class: 'blur', style: `background-image:url(${m.image})` }), el('img', { src: m.image, alt: '', loading: 'lazy' })] : el('span', { class: 'ph' }, main(m.title)),
+      has ? el('span', { class: 'score' + (m.cheese >= 9 ? ' top' : '') }, '🧀 ' + num(m.cheese)) : null),
     el('span', { class: 'tt' }, main(m.title), sub(m.title) ? el('small', {}, sub(m.title)) : el('small', {}, fmt(m.date))));
 }
-function sorted(l){ return l.slice().sort(sort === 'top' ? (a, b) => b.cheese - a.cheese || b.date.localeCompare(a.date) : (a, b) => b.date.localeCompare(a.date)); }
+function sorted(l){ return l.slice().sort(sort === 'top' ? (a, b) => (b.cheese ?? -1) - (a.cheese ?? -1) || b.date.localeCompare(a.date) : (a, b) => b.date.localeCompare(a.date)); }
 function render(){
   const all = groups.map(g => [g, sorted(movies.filter(m => m.group === g))]).filter(([, l]) => l.length);
   const chip = (label, n, on, fn) => el('button', { class: 'chip', 'aria-pressed': String(on), onclick: fn }, label, n != null ? el('small', {}, n) : null);
@@ -162,7 +165,7 @@ function render(){
 }
 function open(i){
   cur = i; const m = order[i]; if (!m) return;
-  $('#shimg').replaceChildren(el('img', { src: m.image, alt: 'โปสเตอร์ ' + m.title }));
+  $('#shimg').replaceChildren(m.image ? el('img', { src: m.image, alt: 'โปสเตอร์ ' + m.title }) : el('div', { class: 'ph big' }, main(m.title)));
   $('#shbody').replaceChildren(
     el('div', { class: 'sh-top' },
       el('button', { class: 'ib', 'aria-label': 'เรื่องก่อนหน้า', disabled: i === 0 || null, onclick: () => open(i - 1) }, '‹'),
@@ -170,9 +173,9 @@ function open(i){
       el('button', { class: 'ib', 'aria-label': 'ปิด', onclick: () => sheet.close() }, '✕')),
     el('div', { class: 'pgroup' }, m.group),
     el('h2', { class: 'ptitle' }, m.title),
-    el('div', { class: 'pline' }, el('span', { class: 'pscore' }, '🧀 ' + num(m.cheese), el('small', {}, '/10')), el('span', {}, 'โพสต์เมื่อ ' + fmt(m.date))),
+    el('div', { class: 'pline' }, m.cheese != null ? el('span', { class: 'pscore' }, '🧀 ' + num(m.cheese), el('small', {}, '/10')) : null, el('span', {}, 'โพสต์เมื่อ ' + fmt(m.date))),
     el('div', { class: 'rv' }, m.review.split(/\n{2,}/).map(t => el('p', {}, t))),
-    el('span', { class: 'src' }, 'โพสต์ใน Facebook ', el('b', {}, '#sheisbingewatchin')));
+    el('span', { class: 'src' }, 'โพสต์ใน Facebook', m.tag ? [' ', el('b', {}, '#sheisbingewatchin')] : null));
   $('#shbody').scrollTop = 0; $('#shimg').scrollTop = 0; $('.sh').scrollTop = 0;
   if (!sheet.open) { sheet.showModal(); document.body.style.overflow = 'hidden'; }
   history.replaceState(null, '', '#' + m.id);
