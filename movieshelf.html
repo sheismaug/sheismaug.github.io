@@ -57,6 +57,11 @@ h1 span{display:inline-block;width:.2em;height:.2em;border-radius:50%;background
 .chip{flex:none;padding:8px 15px;border-radius:99px;font-size:14.5px;color:var(--mut);border:1px solid var(--line);transition:.2s;white-space:nowrap}
 .chip:hover{color:var(--ink);border-color:#cfcfcf}
 .chip[aria-pressed="true"]{background:var(--ink);border-color:var(--ink);color:var(--pop);font-weight:600}
+.chip.sel{display:inline-flex;align-items:center;gap:4px;color:var(--ink2);cursor:pointer;position:relative}
+.chip.sel b{font-weight:600;color:var(--ink)}
+.chip.sel select{position:absolute;inset:0;width:100%;opacity:0;cursor:pointer;font-size:16px}
+.chip.sel span{font-size:10px;color:var(--mut)}
+.chip.sel:focus-within{border-color:var(--ink)}
 .chip small{margin-left:6px;font-size:11px;opacity:.7;font-variant-numeric:tabular-nums}
 .sep{flex:none;width:1px;background:var(--line);margin:6px 4px}
 .srch{flex:none;display:flex;align-items:center;gap:8px;padding:0 14px;border-radius:99px;border:1px solid var(--line);color:var(--mut)}
@@ -129,7 +134,8 @@ dialog.sheet[open]{animation:pop .3s cubic-bezier(.2,.8,.3,1)}
   .rail{margin:0 -18px;padding:4px 18px 12px;gap:12px;scroll-padding:0 18px}
   .rail .tile{flex-basis:138px}
   .bar{flex-wrap:wrap;row-gap:8px}
-  .srch{order:-1;flex:1 1 100%}
+  .srch{order:-2;flex:1 1 calc(100% - 150px)}
+  .chip.sel{order:-1}
   .srch input{width:100%}
   .grow{display:none}
   .sep{display:none}
@@ -194,7 +200,8 @@ const fmt = d => new Date(d + 'T00:00').toLocaleDateString('th-TH', { day: 'nume
 const main = t => t.replace(/\s*\((?!\d{4}\)).*\)$/, '');
 const sub = t => (t.match(/\(([^)]*[^\d)][^)]*)\)$/) || [])[1] || '';
 const num = c => Number.isInteger(c) ? String(c) : c.toFixed(1);
-let movies = [], groups = [], order = [], cur = -1, filt = null, sort = 'new', kind = 'all', q = '';
+let movies = [], groups = [], genres = [], by = 'group', order = [], cur = -1, filt = null, sort = 'new', kind = 'all', q = '';
+const BY = { group: 'หมวด', genre: 'genre', year: 'ปี' };
 const isSeries = m => m.group.startsWith('ซีรีส์');
 const norm = t => (t || '').toLowerCase();
 const top = () => { const y = $('#sent').getBoundingClientRect().top + scrollY; if (scrollY > y) scrollTo({ top: y, behavior: 'smooth' }); };
@@ -219,7 +226,9 @@ function railEl(l){
 }
 function render(keepBar){
   const pool = movies.filter(m => kind === 'all' || (kind === 'series') === isSeries(m));
-  const all = groups.map(g => [g, sorted(pool.filter(m => m.group === g))]).filter(([, l]) => l.length);
+  const keyOf = m => by === 'genre' ? m.genre : by === 'year' ? String(m.year) : m.group;
+  const keys = by === 'genre' ? genres : by === 'year' ? [...new Set(movies.map(m => String(m.year)))].sort((a, b) => b - a) : groups;
+  const all = keys.map(g => [g, sorted(pool.filter(m => keyOf(m) === g))]).filter(([, l]) => l.length);
   const chip = (label, n, on, fn) => el('button', { class: 'chip', 'aria-pressed': String(on), onclick: fn }, label, n != null ? el('small', {}, n) : null);
   const setKind = k => () => { kind = k; filt = null; render(); top(); };
   const sr = $('#q') || el('input', { id: 'q', type: 'search', placeholder: 'หาเรื่อง', 'aria-label': 'ค้นหาเรื่อง', oninput: e => { q = e.target.value.trim(); render(true); } });
@@ -229,10 +238,13 @@ function render(keepBar){
     chip('ซีรีส์', movies.filter(isSeries).length, kind === 'series', setKind('series')),
     el('span', { class: 'sep' }),
     el('button', { class: 'chip', 'aria-label': 'เปลี่ยนการเรียง', onclick: () => { sort = sort === 'new' ? 'top' : 'new'; render(); } }, '⇅ ', sort === 'new' ? 'ล่าสุด' : '🧀 สูงสุด'),
+    el('label', { class: 'chip sel' }, 'จัดตาม ', el('b', { id: 'byl' }, BY[by]), el('span', { 'aria-hidden': 'true' }, '▾'),
+      el('select', { 'aria-label': 'จัดกลุ่มตาม', onchange: e => { by = e.target.value; $('#byl').textContent = BY[by]; filt = null; render(true); top(); } },
+        Object.entries(BY).map(([v, t]) => el('option', { value: v, selected: by === v || null }, t)))),
     el('span', { class: 'grow' }),
     el('label', { class: 'srch' }, el('span', { 'aria-hidden': 'true' }, '⌕'), sr));
   if (q) {
-    const hit = sorted(movies.filter(m => [m.title, m.group].some(t => norm(t).includes(norm(q)))));
+    const hit = sorted(movies.filter(m => [m.title, m.group, m.genre, String(m.year)].some(t => norm(t).includes(norm(q)))));
     order = hit;
     $('#main').replaceChildren(hit.length ? el('section', { class: 'row' }, el('div', { class: 'rh' }, el('h2', {}, 'ผลการค้นหา'), el('small', {}, hit.length + ' เรื่อง')), el('div', { class: 'grid' }, hit.map(tile)))
       : el('p', { class: 'empty' }, 'ไม่เจอเรื่องที่ค้นหา ลองคำอื่นดูนะ'));
@@ -254,7 +266,7 @@ function open(i){
       el('button', { class: 'ib', 'aria-label': 'เรื่องก่อนหน้า', disabled: i === 0 || null, onclick: () => open(i - 1) }, '‹'),
       el('button', { class: 'ib', 'aria-label': 'เรื่องถัดไป', disabled: i === order.length - 1 || null, onclick: () => open(i + 1) }, '›'),
       el('button', { class: 'ib', 'aria-label': 'ปิด', onclick: () => sheet.close() }, '✕')),
-    el('div', { class: 'pgroup' }, m.group),
+    el('div', { class: 'pgroup' }, [m.group, m.genre, m.year].filter(Boolean).join(' · ')),
     el('h2', { class: 'ptitle' }, m.title),
     el('div', { class: 'pline' }, m.cheese != null ? el('span', { class: 'pscore' }, '🧀 ' + num(m.cheese), el('small', {}, '/10')) : null, el('span', {}, 'โพสต์เมื่อ ' + fmt(m.date))),
     el('div', { class: 'rv' }, m.review.split(/\n{2,}/).map(t => el('p', {}, t))),
@@ -271,6 +283,7 @@ fetch('movieshelf/movies.json', { cache: 'no-cache' }).then(r => r.json()).then(
   movies = d.movies || [];
   groups = d.groups || [...new Set(movies.map(m => m.group))];
   movies.forEach(m => { if (!groups.includes(m.group)) groups.push(m.group); });
+  genres = d.genres || []; movies.forEach(m => { if (m.genre && !genres.includes(m.genre)) genres.push(m.genre); });
   $('#n').textContent = movies.length; $('#nm').textContent = movies.filter(m => !isSeries(m)).length; $('#ns').textContent = movies.filter(isSeries).length;
   if (d.updated) $('#upd').textContent = 'อัปเดต ' + fmt(d.updated);
   render();
