@@ -151,12 +151,20 @@ dialog.sheet[open]{animation:pop .3s cubic-bezier(.2,.8,.3,1)}
   .popcorn{width:78px;right:0;bottom:auto;top:22px}
   .grid{grid-template-columns:1fr;gap:20px}
   .rail{margin:0 -18px;padding:4px 18px 12px;gap:12px;scroll-padding:0 18px}
-  .rail .tile{flex-basis:210px}
-  .t3{display:flex;overflow-x:auto;scroll-snap-type:x mandatory;scrollbar-width:none;margin:0 -18px;padding:4px 18px 12px;gap:12px;scroll-padding:0 18px}
-  .t3::-webkit-scrollbar{display:none}
-  .t3c{flex:0 0 82%;scroll-snap-align:start}
-  .t3c .rk{font-size:76px}
-  .t3c .bd{padding-left:64px}
+  .t3{display:flex;flex-direction:column;gap:8px}
+  .t3c{flex-direction:row;align-items:center;gap:12px;padding:8px 12px 8px 8px;border-radius:14px;background:var(--soft);color:var(--ink)}
+  .t3c:hover{transform:none;box-shadow:none}
+  .t3c .im{flex:0 0 96px;aspect-ratio:16/10;border-radius:9px;order:1}
+  .t3c .im::after{display:none}
+  .t3c .rk{position:static;order:0;flex:0 0 22px;font-size:30px;text-align:center;color:var(--ink);-webkit-text-stroke:0}
+  .t3c .bd{order:2;flex:1;min-width:0;padding:0;min-height:0;gap:2px}
+  .t3c .nm{font-size:15px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .t3c .mt{color:var(--mut);font-size:12.5px}
+  .t3c .sc{position:static;order:3;flex:none;font-size:13px;padding:4px 9px}
+  .rail .tile{flex-basis:168px}
+  .row{margin-top:28px}
+  .rh h2{font-size:18px}
+  .tt{font-size:14.5px}
   .bar{flex-wrap:wrap;row-gap:8px}
   .bar{gap:6px}
   .seg button{padding:6px 11px;font-size:14px}
