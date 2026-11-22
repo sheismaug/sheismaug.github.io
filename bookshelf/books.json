@@ -1,5 +1,5 @@
 {
-  "updated": "2026-11-19",
+  "updated": "2026-11-22",
   "categories": [
     "จิตวิทยา",
     "พัฒนาตนเอง",
@@ -323,6 +323,78 @@
         "#f2eee5",
         "#0d0d0d",
         "#e0763a"
+      ]
+    },
+    {
+      "id": "busfgwy862z283rrlc9j",
+      "type": "book",
+      "tags": [],
+      "title": "Co-existence: The Next Phase of AI",
+      "author": "Ethan Mollick",
+      "category": "พัฒนาตนเอง",
+      "date": "2026-11-16",
+      "status": "reading",
+      "start": "2026-11-16",
+      "page": 128,
+      "image": "bookshelf/covers/busfgwy862z283rrlc9j.jpg",
+      "face": "bookshelf/face/busfgwy862z283rrlc9j.jpg",
+      "color": "#89bc8f",
+      "spine": [
+        "#89bc8f",
+        "#0d0d0d",
+        "#0d0d0d"
+      ]
+    },
+    {
+      "id": "menkr639z1hw1rjh4etu",
+      "type": "book",
+      "tags": [],
+      "title": "วิหารที่ว่างเปล่า",
+      "author": "เสกสรรค์ ประเสริฐกุล",
+      "category": "ศาสนาและปรัชญา",
+      "date": "2026-11-22",
+      "status": "reading",
+      "start": "2026-11-22",
+      "page": 121,
+      "pages": [
+        {
+          "img": "bookshelf/pages/menkr639z1hw1rjh4etu-178d28db.jpg",
+          "d": "2026-11-22",
+          "p": 60,
+          "t": "- เรื่องร้ายมักเกิดตอนที่เราวางใจนี่ใช่เลย 555555"
+        },
+        {
+          "img": "bookshelf/pages/menkr639z1hw1rjh4etu-3475dc81.jpg",
+          "d": "2026-11-22",
+          "p": 67,
+          "t": "เป็นหน้าที่รวมทั้งความตลกและความซึ้งจนอยากจะร้องไห้ไว้ในหน้าเดียว อาจารย์เก่งจัง"
+        },
+        {
+          "img": "bookshelf/pages/menkr639z1hw1rjh4etu-aa80cab5.jpg",
+          "d": "2026-11-22",
+          "p": 68,
+          "t": "ท่านโอโชล้ำลึกมาก"
+        },
+        {
+          "img": "bookshelf/pages/menkr639z1hw1rjh4etu-a32b5211.jpg",
+          "d": "2026-11-22",
+          "p": 80,
+          "t": "ทุกเวลานาทีก็พาสิ่งที่เราคาดไม่ถึงมาให้เสมอ บ่อยครั้งก็มีบทลงโทษสำหรับผู้ที่ไม่ยอมตื่นรู้"
+        },
+        {
+          "img": "bookshelf/pages/menkr639z1hw1rjh4etu-b43d0efe.jpg",
+          "d": "2026-11-22",
+          "p": 121,
+          "t": "ความงามของชีวิตจะปรากฏขึ้นทันทีเมื่อเราพร้อมจะเผชิญกับสภาวะทุกอย่างที่ไม่เป็นไปตามฝัน"
+        }
+      ],
+      "image": "bookshelf/covers/menkr639z1hw1rjh4etu.jpg",
+      "face": "bookshelf/face/menkr639z1hw1rjh4etu.jpg",
+      "color": "#626265",
+      "spine": [
+        "#626265",
+        "#ffffff",
+        "#ffffff"
       ]
     }
   ]
