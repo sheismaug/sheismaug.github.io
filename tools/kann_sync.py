@@ -4,7 +4,8 @@
 Usage: python3 tools/kann_sync.py NOTES_DIR ASSETS_DIR [--date YYYY-MM-DD]
   NOTES_DIR  : one JSON file per KANN note (<noteid>.json, from the artifact db "notes" collection)
   ASSETS_DIR : downloaded KANN assets, each file named by its asset id (any extension)
-Exit codes: 0 = done (prints CHANGED or NOCHANGE), 3 = assets missing (prints NEED <id> lines).
+Exit codes: 0 = done (prints CHANGED or NOCHANGE), 3 = assets missing (prints NEED <id> lines),
+  4 = export looks incomplete (no public books or no public screen notes while the shelf has some); nothing written.
 Only notes with public:true, type book, status done/reading (or no status) are published.
 Pages marked hide are never published. Journal entries / treadmill data are never published.
 Movies/series: public screen notes, status done/reading. Existing movieshelf entries keep their curated
@@ -185,6 +186,12 @@ if missing:
     for m in sorted(missing): print('NEED', m)
     sys.exit(3)
 
+# guard: an empty or partial export must never wipe a live shelf
+if data['books'] and not out:
+    print('ERROR no public book notes found but books.json has %d books; export looks incomplete, nothing written' % len(data['books'])); sys.exit(4)
+if mdata['movies'] and not mout:
+    print('ERROR no public screen notes found but movies.json has %d titles; export looks incomplete, nothing written' % len(mdata['movies'])); sys.exit(4)
+
 changed = []
 order = {b['id']: i for i, b in enumerate(data['books'])}
 out.sort(key=lambda b: (order.get(b['id'], 1e9), b.get('date', '')))
@@ -201,7 +208,7 @@ if out != data['books']:
 
 morder = {m['id']: i for i, m in enumerate(mdata['movies'])}
 mout.sort(key=lambda m: (morder.get(m['id'], 1e9), m.get('date', '')))
-if mout and mout != mdata['movies']:
+if mout != mdata['movies']:
     mdata['movies'] = mout
     if TODAY: mdata['updated'] = TODAY
     for m in mout:
