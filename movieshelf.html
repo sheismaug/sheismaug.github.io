@@ -45,12 +45,10 @@ h1 span{display:inline-block;width:.2em;height:.2em;border-radius:50%;background
 .pc-fly .k2{animation:pcpop 3.6s ease-in-out 1.8s infinite}
 .pc-fly .spark{transform-box:fill-box;transform-origin:center;animation:pctw 2.8s ease-in-out infinite}
 .pc-fly .s2{animation-delay:1.4s}
-.eyes circle{transform-box:fill-box;transform-origin:center;animation:pcblink 5s infinite}
 @keyframes pcbob{0%,100%{transform:translateY(0) rotate(-2deg)}50%{transform:translateY(-4px) rotate(2deg)}}
 @keyframes pcwig{0%,100%{transform:rotate(0)}25%{transform:rotate(-6deg)}75%{transform:rotate(6deg)}}
 @keyframes pcpop{0%,100%{transform:translateY(0)}50%{transform:translateY(-8px)}}
 @keyframes pctw{0%,100%{transform:scale(.6);opacity:.5}50%{transform:scale(1.1);opacity:1}}
-@keyframes pcblink{0%,92%,100%{transform:scaleY(1)}95%{transform:scaleY(.1)}}
 
 /* chips */
 .bar{position:sticky;top:0;z-index:5;margin:0 -32px;padding:14px 32px;display:flex;gap:6px;overflow-x:auto;scrollbar-width:none;background:rgba(255,255,255,.94);backdrop-filter:blur(6px)}
@@ -160,29 +158,24 @@ dialog.sheet[open]{animation:pop .3s cubic-bezier(.2,.8,.3,1)}
     <h1>movieshelf<span></span></h1>
     <p class="meta"><span><b id="n">0</b> เรื่อง</span><span>หนัง <b id="nm">0</b></span><span>ซีรีส์ <b id="ns">0</b></span></p>
     <svg class="popcorn" viewBox="0 0 160 210" aria-hidden="true">
-      <defs><clipPath id="pcb"><path d="M18 80H142L127 192Q80 200 33 192Z"/></clipPath></defs>
+      <defs><clipPath id="pcb"><path d="M20 82H140L128 194H32Z"/></clipPath></defs>
       <g class="pc-fly">
-        <g class="k1"><circle cx="20" cy="30" r="7" fill="#0d0d0d"/><circle cx="20" cy="30" r="4.6" fill="#fffaf0"/></g>
-        <g class="k2"><circle cx="146" cy="22" r="6" fill="#0d0d0d"/><circle cx="146" cy="22" r="3.8" fill="#fffaf0"/></g>
-        <path class="spark" d="M140 102l2.2 5.8 5.8 2.2-5.8 2.2-2.2 5.8-2.2-5.8-5.8-2.2 5.8-2.2z" fill="#f5c800"/>
-        <path class="spark s2" d="M10 54l1.6 4 4 1.6-4 1.6-1.6 4-1.6-4-4-1.6 4-1.6z" fill="#f5c800"/>
+        <g class="k1"><circle cx="20" cy="30" r="6" fill="#ffd23f"/><circle cx="18" cy="28" r="2.4" fill="#ffe98a"/></g>
+        <g class="k2"><circle cx="146" cy="22" r="5" fill="#ffd23f"/><circle cx="144.5" cy="20.5" r="2" fill="#ffe98a"/></g>
+        <path class="spark" d="M150 104l2.2 5.8 5.8 2.2-5.8 2.2-2.2 5.8-2.2-5.8-5.8-2.2 5.8-2.2z" fill="#f5c800"/>
+        <path class="spark s2" d="M8 54l1.6 4 4 1.6-4 1.6-1.6 4-1.6-4-4-1.6 4-1.6z" fill="#f5c800"/>
       </g>
       <g class="pc-body">
-        <g fill="#0d0d0d" stroke="#0d0d0d" stroke-width="7"><circle cx="30" cy="78" r="13"/><circle cx="46" cy="64" r="17"/><circle cx="68" cy="50" r="19"/><circle cx="92" cy="44" r="20"/><circle cx="116" cy="52" r="18"/><circle cx="132" cy="70" r="14"/><circle cx="58" cy="72" r="15"/><circle cx="82" cy="66" r="17"/><circle cx="106" cy="70" r="16"/><circle cx="122" cy="82" r="10"/><circle cx="38" cy="84" r="10"/></g>
-        <g fill="#fffaf0"><circle cx="30" cy="78" r="13"/><circle cx="46" cy="64" r="17"/><circle cx="68" cy="50" r="19"/><circle cx="92" cy="44" r="20"/><circle cx="116" cy="52" r="18"/><circle cx="132" cy="70" r="14"/><circle cx="58" cy="72" r="15"/><circle cx="82" cy="66" r="17"/><circle cx="106" cy="70" r="16"/><circle cx="122" cy="82" r="10"/><circle cx="38" cy="84" r="10"/></g>
-        <g fill="none" stroke="#0d0d0d" stroke-width="2.4" stroke-linecap="round" opacity=".55">
-          <path d="M60 46q6-5 12 0"/><path d="M88 38q6-5 12 0"/><path d="M110 48q5-4 10 0"/><path d="M40 60q5-4 10 0"/><path d="M76 62q5-4 10 0"/><path d="M100 66q5-4 10 0"/>
+        <g fill="#e89a00"><circle cx="26" cy="76" r="13"/><circle cx="44" cy="64" r="16"/><circle cx="64" cy="54" r="18"/><circle cx="86" cy="48" r="19"/><circle cx="108" cy="52" r="18"/><circle cx="128" cy="62" r="16"/><circle cx="142" cy="76" r="12"/><circle cx="76" cy="36" r="13"/><circle cx="100" cy="34" r="12"/></g><g fill="#ffc61a"><circle cx="24" cy="72" r="13"/><circle cx="42" cy="60" r="16"/><circle cx="62" cy="50" r="18"/><circle cx="84" cy="44" r="19"/><circle cx="106" cy="48" r="18"/><circle cx="126" cy="58" r="16"/><circle cx="140" cy="72" r="12"/><circle cx="74" cy="32" r="13"/><circle cx="98" cy="30" r="12"/></g><g fill="#f0a500"><circle cx="19.5" cy="83.5" r="10"/><circle cx="35.5" cy="77.5" r="13"/><circle cx="55.5" cy="73.5" r="14"/><circle cx="75.5" cy="67.5" r="15"/><circle cx="97.5" cy="67.5" r="15"/><circle cx="117.5" cy="73.5" r="14"/><circle cx="137.5" cy="81.5" r="11"/><circle cx="49.5" cy="57.5" r="12"/><circle cx="89.5" cy="53.5" r="13"/><circle cx="113.5" cy="55.5" r="11"/><circle cx="67.5" cy="49.5" r="10"/></g><g fill="#ffd84a"><circle cx="18" cy="80" r="10"/><circle cx="34" cy="74" r="13"/><circle cx="54" cy="70" r="14"/><circle cx="74" cy="64" r="15"/><circle cx="96" cy="64" r="15"/><circle cx="116" cy="70" r="14"/><circle cx="136" cy="78" r="11"/><circle cx="48" cy="54" r="12"/><circle cx="88" cy="50" r="13"/><circle cx="112" cy="52" r="11"/><circle cx="66" cy="46" r="10"/></g><g fill="#ffe68a"><circle cx="15.0" cy="76.2" r="5.0"/><circle cx="30.1" cy="69.06" r="6.5"/><circle cx="49.8" cy="64.68" r="7.0"/><circle cx="69.5" cy="58.3" r="7.5"/><circle cx="91.5" cy="58.3" r="7.5"/><circle cx="111.8" cy="64.68" r="7.0"/><circle cx="132.7" cy="73.82" r="5.5"/><circle cx="44.4" cy="49.44" r="6.0"/><circle cx="84.1" cy="45.06" r="6.5"/><circle cx="108.7" cy="47.82" r="5.5"/><circle cx="63.0" cy="42.2" r="5.0"/></g>
+        <path d="M20 82H140L128 194H32Z" fill="#f4f4f4"/>
+        <g clip-path="url(#pcb)">
+          <g fill="#e3262d"><path d="M20.0 82L37.1 82L45.7 194L32.0 194Z"/><path d="M54.3 82L71.4 82L73.1 194L59.4 194Z"/><path d="M88.6 82L105.7 82L100.6 194L86.9 194Z"/><path d="M122.9 82L140.0 82L128.0 194L114.3 194Z"/></g>
+          <path d="M20 82H140L139 92Q80 104 21 92Z" fill="#000" opacity=".12"/>
+          <path d="M120 82H140L128 194H110Z" fill="#000" opacity=".1"/>
+          <path d="M34 92Q36 140 42 184" fill="none" stroke="#fff" stroke-width="5" stroke-linecap="round" opacity=".55"/>
         </g>
-        <g fill="#f5c800"><circle cx="96" cy="52" r="3.2"/><circle cx="52" cy="70" r="2.6"/><circle cx="124" cy="62" r="2.6"/><circle cx="70" cy="40" r="2.2"/></g>
-        <path d="M18 80H142L127 192Q80 200 33 192Z" fill="#fff"/>
-        <g clip-path="url(#pcb)" fill="#0d0d0d"><path d="M35.7 80L53.4 80L60.3 196L47.1 196Z"/><path d="M71.1 80L88.9 80L86.6 196L73.4 196Z"/><path d="M106.6 80L124.3 80L112.9 196L99.7 196Z"/></g>
-        <path d="M18 80H142L127 192Q80 200 33 192Z" fill="none" stroke="#0d0d0d" stroke-width="4" stroke-linejoin="round"/>
-        <rect x="12" y="72" width="136" height="16" rx="8" fill="#fff" stroke="#0d0d0d" stroke-width="4"/>
-        <rect x="52" y="118" width="56" height="44" rx="18" fill="#fff" stroke="#0d0d0d" stroke-width="3.5"/>
-        <g class="eyes" fill="#0d0d0d"><circle cx="70" cy="136" r="4.2"/><circle cx="90" cy="136" r="4.2"/></g>
-        <circle cx="71.4" cy="134.6" r="1.3" fill="#fff"/><circle cx="91.4" cy="134.6" r="1.3" fill="#fff"/>
-        <ellipse cx="62" cy="145" rx="4.2" ry="2.6" fill="#f5c800" opacity=".55"/><ellipse cx="98" cy="145" rx="4.2" ry="2.6" fill="#f5c800" opacity=".55"/>
-        <path d="M75 145q5 5 10 0" fill="none" stroke="#0d0d0d" stroke-width="2.6" stroke-linecap="round"/>
+        <rect x="14" y="74" width="132" height="11" rx="2.5" fill="#e3262d"/>
+        <rect x="14" y="81" width="132" height="4" rx="1.5" fill="#b3161d"/>
       </g>
     </svg>
   </header>
