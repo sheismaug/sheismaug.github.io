@@ -141,8 +141,12 @@ dialog.sheet[open]{animation:pop .32s cubic-bezier(.2,.8,.3,1)}
 .endc{margin-top:18px;max-width:36em;padding:22px 24px;border-radius:16px;background:var(--soft)}
 .endc p{font-size:17.5px;line-height:1.95;color:var(--ink2);white-space:pre-line}
 .endc p+p{margin-top:14px}
-.zoom{position:fixed;inset:0;z-index:20;background:rgba(0,0,0,.9);display:grid;place-items:center;cursor:zoom-out;padding:16px}
-.zoom img{max-width:100%;max-height:100%;object-fit:contain}
+.pz{position:fixed;inset:0;z-index:60;background:rgba(0,0,0,.92);display:grid;place-items:center;overflow:hidden;touch-action:none;padding:16px;cursor:zoom-out}
+.pz img{max-width:100%;max-height:100%;object-fit:contain;transform-origin:50% 50%;user-select:none;-webkit-user-drag:none;cursor:zoom-in;will-change:transform}
+.pz.zin img{cursor:grab}.pz.zin.drag img{cursor:grabbing}
+.pz .pzx{position:absolute;top:calc(12px + env(safe-area-inset-top,0px));right:12px;width:40px;height:40px;border-radius:50%;border:0;background:rgba(255,255,255,.16);color:#fff;font-size:22px;line-height:40px;cursor:pointer}
+.pz .pzh{position:absolute;bottom:calc(14px + env(safe-area-inset-bottom,0px));left:0;right:0;text-align:center;color:rgba(255,255,255,.7);font-size:13px;pointer-events:none;transition:opacity .3s}
+.pz.zin .pzh{opacity:0}
 /* journal books on wide screens: one column, photo and caption side by side like a notebook spread */
 @media(min-width:821px){
   .sh.jbook{grid-template-columns:minmax(0,1fr)}
@@ -329,7 +333,56 @@ function render(){
   if (!picked || !vis.includes(picked)) pick(vis.includes(books[0]) ? books[0] : vis[0], true);
 }
 const thDate = d => { try { return new Date(d + 'T00:00').toLocaleDateString('th-TH', { day: 'numeric', month: 'short', year: 'numeric' }); } catch (e) { return d; } };
-function zoom(src){ const z = el('div', { class: 'zoom', onclick: () => z.remove() }, el('img', { src, alt: '' })); sheet.append(z); }
+function photoZoom(src, host = document.body) {
+  const z = document.createElement('div'); z.className = 'pz';
+  const img = new Image(); img.src = src; img.alt = ''; img.draggable = false;
+  const x = document.createElement('button'); x.className = 'pzx'; x.type = 'button'; x.setAttribute('aria-label', 'ปิด'); x.textContent = '×';
+  const h = document.createElement('div'); h.className = 'pzh'; h.textContent = 'แตะรูปเพื่อซูม ถ่างนิ้วก็ได้ แล้วลากเลื่อนดู';
+  z.append(img, x, h); host.append(z);
+  let s = 1, tx = 0, ty = 0, pinch = null, moved = false, downImg = false;
+  const pts = new Map();
+  const close = () => { z.remove(); removeEventListener('keydown', onKey, true); };
+  const onKey = e => { if (e.key === 'Escape') { e.preventDefault(); e.stopImmediatePropagation(); close(); } };
+  addEventListener('keydown', onKey, true);
+  const apply = () => {
+    const r = z.getBoundingClientRect();
+    const mx = Math.max(0, (img.offsetWidth * s - r.width) / 2), my = Math.max(0, (img.offsetHeight * s - r.height) / 2);
+    tx = Math.min(mx, Math.max(-mx, tx)); ty = Math.min(my, Math.max(-my, ty));
+    img.style.transform = `translate(${tx}px,${ty}px) scale(${s})`;
+    z.classList.toggle('zin', s > 1.01);
+  };
+  const zoomAt = (ns, cx, cy) => {
+    ns = Math.min(5, Math.max(1, ns)); const r = z.getBoundingClientRect();
+    const px = cx - r.left - r.width / 2, py = cy - r.top - r.height / 2;
+    tx = px - (px - tx) * ns / s; ty = py - (py - ty) * ns / s; s = ns; apply();
+  };
+  x.addEventListener('click', e => { e.stopPropagation(); close(); });
+  z.addEventListener('wheel', e => { e.preventDefault(); zoomAt(s * Math.exp(-e.deltaY * 0.002), e.clientX, e.clientY); }, { passive: false });
+  z.addEventListener('pointerdown', e => {
+    if (e.target === x) return;
+    z.setPointerCapture(e.pointerId); pts.set(e.pointerId, { x: e.clientX, y: e.clientY });
+    if (pts.size === 1) { moved = false; downImg = e.target === img; }
+    if (pts.size === 2) { const [a, b] = [...pts.values()]; pinch = { d: Math.hypot(a.x - b.x, a.y - b.y) || 1, s }; moved = true; }
+  });
+  z.addEventListener('pointermove', e => {
+    const p = pts.get(e.pointerId); if (!p) return;
+    const dx = e.clientX - p.x, dy = e.clientY - p.y; p.x = e.clientX; p.y = e.clientY;
+    if (pinch && pts.size === 2) { const [a, b] = [...pts.values()]; zoomAt(pinch.s * Math.hypot(a.x - b.x, a.y - b.y) / pinch.d, (a.x + b.x) / 2, (a.y + b.y) / 2); }
+    else if (pts.size === 1 && s > 1.01) { if (Math.abs(dx) + Math.abs(dy) > 0) { tx += dx; ty += dy; apply(); } }
+    if (Math.abs(dx) + Math.abs(dy) > 2) moved = true;
+    z.classList.toggle('drag', pts.size === 1 && s > 1.01);
+  });
+  const up = e => {
+    if (!pts.has(e.pointerId)) return;
+    pts.delete(e.pointerId); if (pts.size < 2) pinch = null; z.classList.remove('drag');
+    if (pts.size || moved) return;
+    if (s > 1.01) { s = 1; tx = ty = 0; apply(); }
+    else if (downImg) zoomAt(2.5, e.clientX, e.clientY);
+    else close();
+  };
+  z.addEventListener('pointerup', up); z.addEventListener('pointercancel', up);
+}
+const zoom = src => photoZoom(src, sheet);
 function openBook(i){
   cur = i; const b = order[i]; if (!b) return;
   $('#shimg').replaceChildren(el('img', { src: b.image, alt: 'Instagram story ของ ' + b.title }));
