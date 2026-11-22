@@ -143,6 +143,62 @@ dialog.sheet[open]{animation:pop .3s cubic-bezier(.2,.8,.3,1)}
 .src{display:inline-block;margin-top:30px;font-size:13.5px;color:var(--mut)}
 .src b{color:var(--ink);font-weight:600}
 
+.pq{margin-top:26px;font-size:21px;line-height:1.6;font-weight:500;padding-left:18px;border-left:3px solid var(--pop);max-width:30em}
+.plbl{font-size:13px;font-weight:600;letter-spacing:.06em;color:#9a9a9a;margin-top:34px}
+.jr{list-style:none;margin:22px 0 0;padding:0 0 0 22px;border-left:2px dashed var(--line);display:grid;gap:36px;max-width:36em}
+.jr li{position:relative}
+.jr li::before{content:"";position:absolute;left:-29px;top:4px;width:12px;height:12px;border-radius:50%;background:var(--pop);box-shadow:0 0 0 3px #fff}
+.jr .jm{font-size:13px;color:var(--mut);font-weight:500}
+.jr figure{position:relative;margin:14px 0 0;max-width:380px;transform:rotate(-1.2deg)}
+.jr li:nth-child(even) figure{transform:rotate(1deg)}
+.jr figure img{display:block;width:100%;border-radius:4px;box-shadow:0 10px 24px -10px rgba(0,0,0,.35);cursor:zoom-in}
+.jr figure::before{content:"";position:absolute;width:74px;height:20px;background:rgba(245,200,0,.55);top:-9px;left:50%;margin-left:-37px;transform:rotate(3deg);z-index:1}
+.jr p{font-size:17.5px;line-height:1.9;color:var(--ink2);margin-top:16px;white-space:pre-line}
+.endc{margin-top:18px;max-width:36em;padding:22px 24px;border-radius:16px;background:var(--soft)}
+.endc p{font-size:17.5px;line-height:1.95;color:var(--ink2);white-space:pre-line}
+.endc p+p{margin-top:14px}
+.notyet{margin-top:18px;max-width:36em;padding:18px 22px;border-radius:16px;border:1.5px dashed var(--line);color:var(--mut);font-size:15px}
+.pnow{display:inline-flex;align-items:center;gap:8px;margin-top:14px;font-size:13.5px;color:var(--ink2);padding:6px 12px;border-radius:99px;background:var(--soft)}
+.pnow i{width:7px;height:7px;border-radius:50%;background:var(--pop)}
+.pz{position:fixed;inset:0;z-index:60;background:rgba(0,0,0,.92);display:grid;place-items:center;overflow:hidden;touch-action:none;padding:16px;cursor:zoom-out}
+.pz img{max-width:100%;max-height:100%;object-fit:contain;transform-origin:50% 50%;user-select:none;-webkit-user-drag:none;cursor:zoom-in;will-change:transform}
+.pz.zin img{cursor:grab}.pz.zin.drag img{cursor:grabbing}
+.pz .pzx{position:absolute;top:calc(12px + env(safe-area-inset-top,0px));right:12px;width:40px;height:40px;border-radius:50%;border:0;background:rgba(255,255,255,.16);color:#fff;font-size:22px;line-height:40px;cursor:pointer}
+.pz .pzh{position:absolute;bottom:calc(14px + env(safe-area-inset-bottom,0px));left:0;right:0;text-align:center;color:rgba(255,255,255,.7);font-size:13px;pointer-events:none;transition:opacity .3s}
+.pz.zin .pzh{opacity:0}
+/* watching now */
+.now{margin-top:30px}
+.nowh{font-size:20px;font-weight:600;display:flex;align-items:center;gap:10px;margin-bottom:14px}
+.nowh i{width:8px;height:8px;border-radius:50%;background:var(--pop);box-shadow:0 0 0 0 rgba(245,200,0,.6);animation:pulse 2s ease-out infinite}
+@keyframes pulse{70%{box-shadow:0 0 0 9px rgba(245,200,0,0)}100%{box-shadow:0 0 0 0 rgba(245,200,0,0)}}
+.nowl{display:flex;gap:14px;overflow-x:auto;scrollbar-width:none;padding:2px 2px 6px;margin:0 -2px}
+.nowl::-webkit-scrollbar{display:none}
+.nb{flex:0 0 auto;width:min(460px,86vw);display:flex;gap:16px;padding:14px;border:1px solid var(--line);border-radius:20px;text-align:left;transition:border-color .2s,box-shadow .2s}
+.nb:hover{border-color:#d6d6d6;box-shadow:0 14px 30px -20px rgba(0,0,0,.3)}
+.nb>img,.nb>.ph{position:relative;flex:none;width:150px;aspect-ratio:16/10;object-fit:cover;border-radius:10px;background:var(--soft)}
+.nb .bd{min-width:0;display:flex;flex-direction:column}
+.nb .t{font-size:17px;font-weight:600;line-height:1.3}
+.nb .m{font-size:13px;color:var(--ink2);margin-top:6px;font-variant-numeric:tabular-nums}
+.nb .pg{margin-top:auto;padding-top:10px;display:flex;align-items:center;gap:6px;font-size:12.5px;color:var(--mut)}
+.nb .pg img{width:40px;height:26px;object-fit:cover;border-radius:3px;border:1px solid var(--line)}
+@media(max-width:820px){.nb>img,.nb>.ph{width:112px}.pq{font-size:19px}}
+@media(min-width:821px){
+  .sh.jbook{grid-template-columns:minmax(0,1fr)}
+  .sh.jbook .sh-img{display:none}
+  .sh.jbook .sh-body{padding:46px 64px 64px}
+  .sh.jbook .sh-body>*:not(.sh-top){max-width:820px;margin-left:auto;margin-right:auto}
+  .jhead{display:flex;gap:22px;align-items:flex-end}
+  .jhead>img{width:180px;aspect-ratio:16/10;object-fit:cover;border-radius:10px;box-shadow:0 10px 24px -12px rgba(0,0,0,.4);flex:none}
+  .sh.jbook .jr{max-width:none;padding-left:30px}
+  .sh.jbook .jr li{display:grid;grid-template-columns:320px minmax(0,1fr);grid-template-rows:auto 1fr;gap:10px 36px;align-items:start}
+  .sh.jbook .jr li::before{left:-37px}
+  .sh.jbook .jr .jm{grid-column:2;grid-row:1;margin-top:6px}
+  .sh.jbook .jr figure{grid-column:1;grid-row:1 / span 2;margin:0}
+  .sh.jbook .jr p{grid-column:2;grid-row:2;margin-top:0;font-size:18px;max-width:28em}
+  .sh.jbook .endc,.sh.jbook .rv{max-width:none}
+  .sh.jbook .src{display:block}
+}
+@media(max-width:820px){.jhead>img{display:none}}
 @media(max-width:820px){
   .wrap{padding:0 18px}
   .bar{margin:0 -18px;padding:12px 18px}
@@ -244,6 +300,60 @@ const norm = t => (t || '').toLowerCase();
 const top = () => { const y = $('#sent').getBoundingClientRect().top + scrollY; if (scrollY > y) scrollTo({ top: y, behavior: 'smooth' }); };
 const sheet = $('#sheet');
 
+function photoZoom(src, host = document.body) {
+  const z = document.createElement('div'); z.className = 'pz';
+  const img = new Image(); img.src = src; img.alt = ''; img.draggable = false;
+  const x = document.createElement('button'); x.className = 'pzx'; x.type = 'button'; x.setAttribute('aria-label', 'ปิด'); x.textContent = '×';
+  const h = document.createElement('div'); h.className = 'pzh'; h.textContent = 'แตะรูปเพื่อซูม ถ่างนิ้วก็ได้ แล้วลากเลื่อนดู';
+  z.append(img, x, h); host.append(z);
+  let s = 1, tx = 0, ty = 0, pinch = null, moved = false, downImg = false;
+  const pts = new Map();
+  const close = () => { z.remove(); removeEventListener('keydown', onKey, true); };
+  const onKey = e => { if (e.key === 'Escape') { e.preventDefault(); e.stopImmediatePropagation(); close(); } };
+  addEventListener('keydown', onKey, true);
+  const apply = () => {
+    const r = z.getBoundingClientRect();
+    const mx = Math.max(0, (img.offsetWidth * s - r.width) / 2), my = Math.max(0, (img.offsetHeight * s - r.height) / 2);
+    tx = Math.min(mx, Math.max(-mx, tx)); ty = Math.min(my, Math.max(-my, ty));
+    img.style.transform = `translate(${tx}px,${ty}px) scale(${s})`;
+    z.classList.toggle('zin', s > 1.01);
+  };
+  const zoomAt = (ns, cx, cy) => {
+    ns = Math.min(5, Math.max(1, ns)); const r = z.getBoundingClientRect();
+    const px = cx - r.left - r.width / 2, py = cy - r.top - r.height / 2;
+    tx = px - (px - tx) * ns / s; ty = py - (py - ty) * ns / s; s = ns; apply();
+  };
+  x.addEventListener('click', e => { e.stopPropagation(); close(); });
+  z.addEventListener('wheel', e => { e.preventDefault(); zoomAt(s * Math.exp(-e.deltaY * 0.002), e.clientX, e.clientY); }, { passive: false });
+  z.addEventListener('pointerdown', e => {
+    if (e.target === x) return;
+    z.setPointerCapture(e.pointerId); pts.set(e.pointerId, { x: e.clientX, y: e.clientY });
+    if (pts.size === 1) { moved = false; downImg = e.target === img; }
+    if (pts.size === 2) { const [a, b] = [...pts.values()]; pinch = { d: Math.hypot(a.x - b.x, a.y - b.y) || 1, s }; moved = true; }
+  });
+  z.addEventListener('pointermove', e => {
+    const p = pts.get(e.pointerId); if (!p) return;
+    const dx = e.clientX - p.x, dy = e.clientY - p.y; p.x = e.clientX; p.y = e.clientY;
+    if (pinch && pts.size === 2) { const [a, b] = [...pts.values()]; zoomAt(pinch.s * Math.hypot(a.x - b.x, a.y - b.y) / pinch.d, (a.x + b.x) / 2, (a.y + b.y) / 2); }
+    else if (pts.size === 1 && s > 1.01) { if (Math.abs(dx) + Math.abs(dy) > 0) { tx += dx; ty += dy; apply(); } }
+    if (Math.abs(dx) + Math.abs(dy) > 2) moved = true;
+    z.classList.toggle('drag', pts.size === 1 && s > 1.01);
+  });
+  const up = e => {
+    if (!pts.has(e.pointerId)) return;
+    pts.delete(e.pointerId); if (pts.size < 2) pinch = null; z.classList.remove('drag');
+    if (pts.size || moved) return;
+    if (s > 1.01) { s = 1; tx = ty = 0; apply(); }
+    else if (downImg) zoomAt(2.5, e.clientX, e.clientY);
+    else close();
+  };
+  z.addEventListener('pointerup', up); z.addEventListener('pointercancel', up);
+}
+const zoom = src => photoZoom(src, sheet);
+const thDate = d => new Date(d + 'T00:00').toLocaleDateString('th-TH', { day: 'numeric', month: 'short', year: '2-digit' });
+const dayN = d => Math.round((new Date(new Date().toDateString()) - new Date(d + 'T00:00')) / 864e5) + 1;
+const nowLine = m => [m.ep ? 'ถึง EP ' + m.ep : '', m.start ? 'เริ่ม ' + thDate(m.start) : '', m.start ? 'วันที่ ' + dayN(m.start) : ''].filter(Boolean).join(' · ');
+const paras = t => String(t || '').split(/\n{2,}/).map(x => el('p', {}, x));
 function tile(m){
   const has = m.cheese != null;
   return el('button', { class: 'tile', 'aria-label': m.title + (has ? ' ' + num(m.cheese) + ' ชีส' : ''), onclick: () => open(order.indexOf(m)) },
@@ -262,7 +372,9 @@ function railEl(l){
   return w;
 }
 function render(keepBar){
-  const pool = movies.filter(m => kind === 'all' || (kind === 'series') === isSeries(m));
+  const okKind = m => kind === 'all' || (kind === 'series') === isSeries(m);
+  const now = movies.filter(m => m.status === 'reading' && okKind(m));
+  const pool = movies.filter(m => m.status !== 'reading' && okKind(m));
   const keyOf = m => by === 'genre' ? (small.has(m.genre) ? 'อื่นๆ' : m.genre) : by === 'year' ? String(m.year) : m.group;
   const keys = by === 'genre' ? [...genres.filter(g => !small.has(g)), 'อื่นๆ'] : by === 'year' ? [...new Set(movies.map(m => String(m.year)))].sort((a, b) => b - a) : groups;
   const flat = by === 'top' || by === 'new';
@@ -287,10 +399,16 @@ function render(keepBar){
   }
   const show = filt ? all.filter(([g]) => g === filt) : all;
   const best = flat || filt ? [] : pool.filter(m => m.cheese != null).sort((a, b) => b.cheese - a.cheese || b.date.localeCompare(a.date)).slice(0, 3);
-  order = [...best, ...show.flatMap(([, l]) => l)];
-  $('#main').replaceChildren(best.length ? el('section', { class: 'top3' },
+  const showNow = !filt && now.length;
+  order = [...(showNow ? now : []), ...best, ...show.flatMap(([, l]) => l)];
+  $('#main').replaceChildren(showNow ? el('section', { class: 'now' }, el('h2', { class: 'nowh' }, el('i'), 'กำลังดู', el('small', { style: 'font-size:13px;font-weight:400;color:var(--mut)' }, now.length + ' เรื่อง')),
+    el('div', { class: 'nowl' }, now.map((m, i) => el('button', { class: 'nb', onclick: () => open(i), 'aria-label': 'เปิด journal ของ ' + m.title },
+      m.image ? el('img', { src: m.image, alt: '' }) : el('span', { class: 'ph' }, main(m.title)),
+      el('div', { class: 'bd' }, el('div', { class: 't' }, main(m.title)), el('div', { class: 'm' }, nowLine(m) || 'เพิ่งเริ่มดู'),
+        el('div', { class: 'pg' }, (m.pages || []).slice(-3).map(x => el('img', { src: x.img, alt: '' })), el('span', {}, (m.pages || []).length ? 'ฉากที่ชอบ ' + m.pages.length + ' ฉาก ›' : 'เปิดดู ›'))))))) : '',
+    best.length ? el('section', { class: 'top3' },
     el('div', { class: 'rh' }, el('h2', {}, 'Top 3'), el('small', {}, 'ให้ชีสเยอะสุด')),
-    el('div', { class: 't3' }, best.map((m, i) => el('button', { class: 't3c', 'aria-label': `อันดับ ${i + 1} ${m.title} ${num(m.cheese)} ชีส`, onclick: () => open(i) },
+    el('div', { class: 't3' }, best.map((m, i) => el('button', { class: 't3c', 'aria-label': `อันดับ ${i + 1} ${m.title} ${num(m.cheese)} ชีส`, onclick: () => open(order.indexOf(m)) },
       el('span', { class: 'im' }, m.image ? el('img', { src: m.image, alt: '', class: m.tall ? 'tall' : null }) : el('span', { class: 'ph' }, main(m.title))),
       el('span', { class: 'rk' }, i + 1),
       el('span', { class: 'sc' }, '🧀 ' + num(m.cheese)),
@@ -303,17 +421,29 @@ function render(keepBar){
 }
 function open(i){
   cur = i; const m = order[i]; if (!m) return;
+  const jb = !!(m.pages || []).length || m.status === 'reading' || !!m.ending;
   $('#shimg').replaceChildren(m.image ? el('img', { src: m.image, alt: 'โปสเตอร์ ' + m.title }) : el('div', { class: 'ph big' }, main(m.title)));
-  $('#shbody').replaceChildren(
+  $('#shbody').replaceChildren(...[
     el('div', { class: 'sh-top' },
       el('button', { class: 'ib', 'aria-label': 'เรื่องก่อนหน้า', disabled: i === 0 || null, onclick: () => open(i - 1) }, '‹'),
       el('button', { class: 'ib', 'aria-label': 'เรื่องถัดไป', disabled: i === order.length - 1 || null, onclick: () => open(i + 1) }, '›'),
       el('button', { class: 'ib', 'aria-label': 'ปิด', onclick: () => sheet.close() }, '✕')),
-    el('div', { class: 'pgroup' }, [m.group, m.genre, m.year].filter(Boolean).join(' · ')),
-    el('h2', { class: 'ptitle' }, m.title),
-    el('div', { class: 'pline' }, m.cheese != null ? el('span', { class: 'pscore' }, '🧀 ' + num(m.cheese), el('small', {}, '/10')) : null, el('span', {}, 'โพสต์เมื่อ ' + fmt(m.date))),
-    el('div', { class: 'rv' }, m.review.split(/\n{2,}/).map(t => el('p', {}, t))),
-    el('span', { class: 'src' }, 'โพสต์ใน Facebook', m.tag ? [' ', el('b', {}, '#sheisbingewatchin')] : null));
+    el('div', { class: 'jhead' }, jb && m.image ? el('img', { src: m.image, alt: '' }) : null, el('div', {},
+      el('div', { class: 'pgroup' }, [m.group, m.genre, m.year].filter(Boolean).join(' · ')),
+      el('h2', { class: 'ptitle' }, m.title),
+      m.status === 'reading' ? el('div', { class: 'pnow' }, el('i'), 'กำลังดู' + (nowLine(m) ? ' · ' + nowLine(m) : ''))
+        : el('div', { class: 'pline' }, m.cheese != null ? el('span', { class: 'pscore' }, '🧀 ' + num(m.cheese), el('small', {}, '/10')) : null, el('span', {}, (m.start && m.start !== m.date ? 'ดู ' + (Math.round((new Date(m.date + 'T00:00') - new Date(m.start + 'T00:00')) / 864e5) + 1) + ' วัน · จบ ' : 'โพสต์เมื่อ ') + fmt(m.date))))),
+    m.quote ? el('blockquote', { class: 'pq' }, m.quote) : null,
+    (m.pages || []).length ? [el('div', { class: 'plbl' }, 'ระหว่างดู · ' + m.pages.length + ' ฉากที่ชอบ'),
+      el('ol', { class: 'jr' }, m.pages.map(x => el('li', {},
+        el('div', { class: 'jm' }, [x.p ? 'EP ' + x.p : '', x.d ? thDate(x.d) : ''].filter(Boolean).join(' · ')),
+        el('figure', {}, el('img', { src: x.img, alt: 'ฉากจาก ' + m.title + (x.p ? ' EP ' + x.p : ''), loading: 'lazy', onclick: () => zoom(x.img) })),
+        x.t ? el('p', {}, x.t) : null)))] : null,
+    m.ending ? [el('div', { class: 'plbl' }, 'ดูจบแล้ว'), el('div', { class: 'endc' }, paras(m.ending))] : null,
+    m.status === 'reading' && !m.ending ? el('p', { class: 'notyet' }, (m.pages || []).length ? 'ยังดูอยู่ ดูจบแล้วจะมาเขียนตรงนี้' : 'ยังไม่ได้เก็บฉากที่ชอบ เจอเมื่อไรจะขึ้นตรงนี้') : null,
+    m.review ? [jb ? el('div', { class: 'plbl' }, 'รีวิว') : null, el('div', { class: 'rv' }, paras(m.review))] : null,
+    el('span', { class: 'src' }, m.source === 'kann' ? 'จดใน KANN' : 'โพสต์ใน Facebook', m.tag ? [' ', el('b', {}, '#sheisbingewatchin')] : null)].flat(2).filter(Boolean));
+  $('.sh').classList.toggle('jbook', jb);
   $('#shbody').scrollTop = 0; $('#shimg').scrollTop = 0; $('.sh').scrollTop = 0;
   if (!sheet.open) { sheet.showModal(); document.body.style.overflow = 'hidden'; }
   history.replaceState(null, '', '#' + m.id);
