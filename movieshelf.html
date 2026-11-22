@@ -84,6 +84,20 @@ h1 span{display:inline-block;width:.2em;height:.2em;border-radius:50%;background
 .rh .all{margin-left:auto;font-size:13.5px;font-weight:600;color:var(--ink);padding:5px 12px;border-radius:99px;border:1px solid var(--line)}
 .rh .all:hover{background:var(--ink);color:var(--pop);border-color:var(--ink)}
 
+/* top 3 */
+.top3{margin-top:30px}
+.t3{display:grid;grid-template-columns:repeat(3,1fr);gap:18px}
+.t3c{position:relative;display:flex;flex-direction:column;text-align:left;border-radius:18px;overflow:hidden;background:var(--ink);color:#fff;min-width:0;transition:transform .3s cubic-bezier(.3,.7,.4,1),box-shadow .3s}
+.t3c:hover{transform:translateY(-4px);box-shadow:0 20px 40px -18px rgba(0,0,0,.5)}
+.t3c .im{position:relative;aspect-ratio:16/10;overflow:hidden}
+.t3c .im img{width:100%;height:100%;object-fit:cover;display:block}
+.t3c .im img.tall{object-position:center 22%}
+.t3c .im::after{content:"";position:absolute;inset:0;background:linear-gradient(transparent 45%,rgba(13,13,13,.92))}
+.t3c .rk{position:absolute;left:16px;bottom:-14px;z-index:1;font-size:92px;font-weight:700;line-height:1;letter-spacing:-.05em;color:var(--pop)}
+.t3c .bd{padding:4px 18px 18px 74px;display:flex;flex-direction:column;gap:4px;min-height:84px}
+.t3c .nm{font-size:17px;font-weight:600;line-height:1.3}
+.t3c .mt{font-size:13px;color:rgba(255,255,255,.6)}
+.t3c .sc{position:absolute;top:12px;right:12px;padding:5px 11px;border-radius:99px;background:var(--pop);color:var(--ink);font-size:14px;font-weight:700;font-variant-numeric:tabular-nums}
 /* rows */
 .row{margin-top:34px}
 .rh{display:flex;align-items:baseline;gap:10px;margin-bottom:14px}
@@ -138,6 +152,11 @@ dialog.sheet[open]{animation:pop .3s cubic-bezier(.2,.8,.3,1)}
   .grid{grid-template-columns:1fr;gap:20px}
   .rail{margin:0 -18px;padding:4px 18px 12px;gap:12px;scroll-padding:0 18px}
   .rail .tile{flex-basis:210px}
+  .t3{display:flex;overflow-x:auto;scroll-snap-type:x mandatory;scrollbar-width:none;margin:0 -18px;padding:4px 18px 12px;gap:12px;scroll-padding:0 18px}
+  .t3::-webkit-scrollbar{display:none}
+  .t3c{flex:0 0 82%;scroll-snap-align:start}
+  .t3c .rk{font-size:76px}
+  .t3c .bd{padding-left:64px}
   .bar{flex-wrap:wrap;row-gap:8px}
   .bar{gap:6px}
   .seg button{padding:6px 11px;font-size:14px}
@@ -259,8 +278,16 @@ function render(keepBar){
     return;
   }
   const show = filt ? all.filter(([g]) => g === filt) : all;
-  order = show.flatMap(([, l]) => l);
-  $('#main').replaceChildren(...show.map(([g, l]) => el('section', { class: 'row' },
+  const best = flat || filt ? [] : pool.filter(m => m.cheese != null).sort((a, b) => b.cheese - a.cheese || b.date.localeCompare(a.date)).slice(0, 3);
+  order = [...best, ...show.flatMap(([, l]) => l)];
+  $('#main').replaceChildren(best.length ? el('section', { class: 'top3' },
+    el('div', { class: 'rh' }, el('h2', {}, 'Top 3'), el('small', {}, 'ให้ชีสเยอะสุด')),
+    el('div', { class: 't3' }, best.map((m, i) => el('button', { class: 't3c', 'aria-label': `อันดับ ${i + 1} ${m.title} ${num(m.cheese)} ชีส`, onclick: () => open(i) },
+      el('span', { class: 'im' }, m.image ? el('img', { src: m.image, alt: '', class: m.tall ? 'tall' : null }) : el('span', { class: 'ph' }, main(m.title))),
+      el('span', { class: 'rk' }, i + 1),
+      el('span', { class: 'sc' }, '🧀 ' + num(m.cheese)),
+      el('span', { class: 'bd' }, el('span', { class: 'nm' }, main(m.title)), el('span', { class: 'mt' }, [m.year, m.genre].filter(Boolean).join(' · '))))))) : '',
+    ...show.map(([g, l]) => el('section', { class: 'row' },
     el('div', { class: 'rh' }, el('h2', {}, g), el('small', {}, l.length + ' เรื่อง'),
       flat ? null : filt ? el('button', { class: 'all', onclick: () => { filt = null; render(); top(); } }, '← กลับ')
         : l.length > 4 ? el('button', { class: 'all', onclick: () => { filt = g; render(); top(); } }, 'ดูทั้งหมด →') : null),
