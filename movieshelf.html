@@ -47,6 +47,21 @@ h1 span{display:inline-block;width:.2em;height:.2em;border-radius:50%;background
 .chip[aria-pressed="true"]{background:var(--ink);border-color:var(--ink);color:var(--pop);font-weight:600}
 .chip small{margin-left:6px;font-size:11px;opacity:.7;font-variant-numeric:tabular-nums}
 .sep{flex:none;width:1px;background:var(--line);margin:6px 4px}
+.srch{flex:none;display:flex;align-items:center;gap:8px;padding:0 14px;border-radius:99px;border:1px solid var(--line);color:var(--mut)}
+.srch input{width:150px;padding:8px 0;border:0;background:none;font:inherit;font-size:14.5px;color:var(--ink);outline:none}
+.srch:focus-within{border-color:var(--ink)}
+.grow{flex:1 0 8px}
+/* rails: one scrolling row per group */
+.rail{display:flex;gap:16px;overflow-x:auto;scroll-snap-type:x proximity;scrollbar-width:none;margin:0 -32px;padding:4px 32px 12px;scroll-padding:0 32px}
+.rail::-webkit-scrollbar{display:none}
+.rail .tile{flex:0 0 172px;scroll-snap-align:start}
+.railwrap{position:relative}
+.rbtn{position:absolute;top:calc(50% - 36px);width:40px;height:40px;border-radius:50%;background:#fff;border:1px solid var(--line);box-shadow:0 4px 14px rgba(0,0,0,.12);font-size:20px;color:var(--ink);z-index:2;display:none}
+.rbtn:hover{background:var(--ink);color:var(--pop)}
+.rbtn.l{left:-14px}.rbtn.r{right:-14px}
+@media(hover:hover) and (min-width:821px){.railwrap.can-l .rbtn.l,.railwrap.can-r .rbtn.r{display:block}}
+.rh .all{margin-left:auto;font-size:13.5px;font-weight:600;color:var(--ink);padding:5px 12px;border-radius:99px;border:1px solid var(--line)}
+.rh .all:hover{background:var(--ink);color:var(--pop);border-color:var(--ink)}
 
 /* rows */
 .row{margin-top:34px}
@@ -98,6 +113,14 @@ dialog.sheet[open]{animation:pop .3s cubic-bezier(.2,.8,.3,1)}
   .nav{padding-top:28px}
   .head{padding:36px 0 26px}
   .grid{grid-template-columns:1fr 1fr;gap:18px 12px}
+  .rail{margin:0 -18px;padding:4px 18px 12px;gap:12px;scroll-padding:0 18px}
+  .rail .tile{flex-basis:138px}
+  .bar{flex-wrap:wrap;row-gap:8px}
+  .srch{order:-1;flex:1 1 100%}
+  .srch input{width:100%}
+  .grow{display:none}
+  .sep{display:none}
+  .chip{padding:7px 13px;font-size:14px}
   .tt{font-size:14.5px}
   footer{padding:20px 18px 30px}
   #upd{display:none}
@@ -120,7 +143,7 @@ dialog.sheet[open]{animation:pop .3s cubic-bezier(.2,.8,.3,1)}
   <header class="head">
     <p class="kick">sheis binge-watchin</p>
     <h1>movieshelf<span></span></h1>
-    <p class="meta"><span><b id="n">0</b> เรื่อง</span><span>เต็ม 10 🧀</span></p>
+    <p class="meta"><span><b id="n">0</b> เรื่อง</span><span>หนัง <b id="nm">0</b></span><span>ซีรีส์ <b id="ns">0</b></span></p>
   </header>
   <div id="sent" style="height:1px"></div>
   <nav class="bar" id="bar" aria-label="กรองหนัง"></nav>
@@ -137,7 +160,10 @@ const fmt = d => new Date(d + 'T00:00').toLocaleDateString('th-TH', { day: 'nume
 const main = t => t.replace(/\s*\((?!\d{4}\)).*\)$/, '');
 const sub = t => (t.match(/\(([^)]*[^\d)][^)]*)\)$/) || [])[1] || '';
 const num = c => Number.isInteger(c) ? String(c) : c.toFixed(1);
-let movies = [], groups = [], order = [], cur = -1, filt = null, sort = 'new';
+let movies = [], groups = [], order = [], cur = -1, filt = null, sort = 'new', kind = 'all', q = '';
+const isSeries = m => m.group.startsWith('ซีรีส์');
+const norm = t => (t || '').toLowerCase();
+const top = () => { const y = $('#sent').getBoundingClientRect().top + scrollY; if (scrollY > y) scrollTo({ top: y, behavior: 'smooth' }); };
 const sheet = $('#sheet');
 
 function tile(m){
@@ -148,20 +174,43 @@ function tile(m){
     el('span', { class: 'tt' }, main(m.title), sub(m.title) ? el('small', {}, sub(m.title)) : el('small', {}, fmt(m.date))));
 }
 function sorted(l){ return l.slice().sort(sort === 'top' ? (a, b) => (b.cheese ?? -1) - (a.cheese ?? -1) || b.date.localeCompare(a.date) : (a, b) => b.date.localeCompare(a.date)); }
-function render(){
-  const all = groups.map(g => [g, sorted(movies.filter(m => m.group === g))]).filter(([, l]) => l.length);
+function railEl(l){
+  const r = el('div', { class: 'rail' }, l.map(tile));
+  const w = el('div', { class: 'railwrap' },
+    el('button', { class: 'rbtn l', 'aria-label': 'เลื่อนซ้าย', onclick: () => r.scrollBy({ left: -r.clientWidth * .8, behavior: 'smooth' }) }, '‹'), r,
+    el('button', { class: 'rbtn r', 'aria-label': 'เลื่อนขวา', onclick: () => r.scrollBy({ left: r.clientWidth * .8, behavior: 'smooth' }) }, '›'));
+  const upd = () => { w.classList.toggle('can-l', r.scrollLeft > 4); w.classList.toggle('can-r', r.scrollLeft + r.clientWidth < r.scrollWidth - 4); };
+  r.addEventListener('scroll', upd, { passive: true }); requestAnimationFrame(upd);
+  return w;
+}
+function render(keepBar){
+  const pool = movies.filter(m => kind === 'all' || (kind === 'series') === isSeries(m));
+  const all = groups.map(g => [g, sorted(pool.filter(m => m.group === g))]).filter(([, l]) => l.length);
   const chip = (label, n, on, fn) => el('button', { class: 'chip', 'aria-pressed': String(on), onclick: fn }, label, n != null ? el('small', {}, n) : null);
-  $('#bar').replaceChildren(
-    chip('ทั้งหมด', movies.length, !filt, () => { filt = null; render(); }),
-    ...all.map(([g, l]) => chip(g, l.length, filt === g, () => { filt = g; render(); })),
+  const setKind = k => () => { kind = k; filt = null; render(); top(); };
+  const sr = $('#q') || el('input', { id: 'q', type: 'search', placeholder: 'หาเรื่อง', 'aria-label': 'ค้นหาเรื่อง', oninput: e => { q = e.target.value.trim(); render(true); } });
+  if (!keepBar) $('#bar').replaceChildren(
+    chip('ทั้งหมด', movies.length, kind === 'all', setKind('all')),
+    chip('หนัง', movies.filter(m => !isSeries(m)).length, kind === 'movie', setKind('movie')),
+    chip('ซีรีส์', movies.filter(isSeries).length, kind === 'series', setKind('series')),
     el('span', { class: 'sep' }),
-    chip('ล่าสุด', null, sort === 'new', () => { sort = 'new'; render(); }),
-    chip('🧀 สูงสุด', null, sort === 'top', () => { sort = 'top'; render(); }));
+    el('button', { class: 'chip', 'aria-label': 'เปลี่ยนการเรียง', onclick: () => { sort = sort === 'new' ? 'top' : 'new'; render(); } }, '⇅ ', sort === 'new' ? 'ล่าสุด' : '🧀 สูงสุด'),
+    el('span', { class: 'grow' }),
+    el('label', { class: 'srch' }, el('span', { 'aria-hidden': 'true' }, '⌕'), sr));
+  if (q) {
+    const hit = sorted(movies.filter(m => [m.title, m.group].some(t => norm(t).includes(norm(q)))));
+    order = hit;
+    $('#main').replaceChildren(hit.length ? el('section', { class: 'row' }, el('div', { class: 'rh' }, el('h2', {}, 'ผลการค้นหา'), el('small', {}, hit.length + ' เรื่อง')), el('div', { class: 'grid' }, hit.map(tile)))
+      : el('p', { class: 'empty' }, 'ไม่เจอเรื่องที่ค้นหา ลองคำอื่นดูนะ'));
+    return;
+  }
   const show = filt ? all.filter(([g]) => g === filt) : all;
   order = show.flatMap(([, l]) => l);
   $('#main').replaceChildren(...show.map(([g, l]) => el('section', { class: 'row' },
-    el('div', { class: 'rh' }, el('h2', {}, g), el('small', {}, l.length + ' เรื่อง')),
-    el('div', { class: 'grid' }, l.map(tile)))));
+    el('div', { class: 'rh' }, el('h2', {}, g), el('small', {}, l.length + ' เรื่อง'),
+      filt ? el('button', { class: 'all', onclick: () => { filt = null; render(); top(); } }, '← ทุกหมวด')
+        : l.length > 4 ? el('button', { class: 'all', onclick: () => { filt = g; render(); top(); } }, 'ดูทั้งหมด →') : null),
+    filt ? el('div', { class: 'grid' }, l.map(tile)) : railEl(l))));
 }
 function open(i){
   cur = i; const m = order[i]; if (!m) return;
@@ -188,7 +237,7 @@ fetch('movieshelf/movies.json', { cache: 'no-cache' }).then(r => r.json()).then(
   movies = d.movies || [];
   groups = d.groups || [...new Set(movies.map(m => m.group))];
   movies.forEach(m => { if (!groups.includes(m.group)) groups.push(m.group); });
-  $('#n').textContent = movies.length;
+  $('#n').textContent = movies.length; $('#nm').textContent = movies.filter(m => !isSeries(m)).length; $('#ns').textContent = movies.filter(isSeries).length;
   if (d.updated) $('#upd').textContent = 'อัปเดต ' + fmt(d.updated);
   render();
   const h = location.hash.slice(1); const i = order.findIndex(m => m.id === h); if (i >= 0) open(i);
