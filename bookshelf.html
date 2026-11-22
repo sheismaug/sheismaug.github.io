@@ -56,10 +56,13 @@ h1 span{display:inline-block;width:.2em;height:.2em;border-radius:50%;background
 .chip[aria-pressed="true"]{background:var(--ink);border-color:var(--ink);color:var(--pop);font-weight:600}
 .chip small{margin-left:6px;font-size:11px;opacity:.7;font-variant-numeric:tabular-nums}
 .grow{flex:1 0 8px}
+@media(min-width:821px){.bar{flex-wrap:wrap;overflow:visible;row-gap:8px}.srch{margin-left:auto}}
 .srch{flex:none;display:flex;align-items:center;gap:8px;padding:0 14px;border-radius:99px;border:1px solid var(--line);color:var(--mut)}
 .srch input{width:150px;padding:8px 0;border:0;background:none;font:inherit;font-size:14.5px;color:var(--ink);outline:none}
 .srch input::-webkit-search-cancel-button{display:none}
 .srch:focus-within{border-color:var(--ink)}
+.srch{cursor:text;height:38px}
+@media(min-width:821px){.srch{padding:0 11px;gap:0}.srch input{width:0;transition:width .25s}.srch:focus-within,.srch.has{padding:0 14px;gap:8px}.srch:focus-within input,.srch.has input{width:150px}}
 
 /* the shelf: one black line, books grouped by category */
 .wall{display:flex;flex-wrap:wrap;align-items:stretch;row-gap:44px;margin-top:34px}
@@ -285,7 +288,7 @@ sheet.addEventListener('close', () => { document.body.style.overflow = ''; cur =
 sheet.addEventListener('click', e => { if (e.target === sheet) close(); });
 addEventListener('keydown', e => { if (!sheet.open) return; if (e.key === 'ArrowRight' && cur < order.length - 1) openBook(cur + 1); if (e.key === 'ArrowLeft' && cur > 0) openBook(cur - 1); });
 new IntersectionObserver(([e]) => $('#bar').classList.toggle('stuck', !e.isIntersecting)).observe($('#barsent'));
-$('#q').addEventListener('input', e => { q = e.target.value.trim(); render(); });
+$('#q').addEventListener('input', e => { q = e.target.value.trim(); $('.srch').classList.toggle('has', !!q); render(); });
 fetch('bookshelf/books.json', { cache: 'no-cache' }).then(r => r.json()).then(d => {
   books = (d.books || []).slice().sort((a, b) => (b.date || '').localeCompare(a.date || ''));
   cats = d.categories || [...new Set(books.map(b => b.category))];
