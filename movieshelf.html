@@ -37,6 +37,20 @@ h1 span{display:inline-block;width:.2em;height:.2em;border-radius:50%;background
 .meta{margin-top:24px;display:flex;gap:8px;flex-wrap:wrap;font-size:14px;color:var(--mut)}
 .meta span{padding:6px 14px;border-radius:99px;border:1px solid var(--line)}
 .meta b{font-weight:600;color:var(--ink);font-variant-numeric:tabular-nums}
+.head{position:relative}
+.popcorn{position:absolute;right:6px;bottom:30px;width:150px;height:auto;overflow:visible}
+.pc-body{transform-origin:80px 196px;animation:pcbob 4.5s ease-in-out infinite}
+.head:hover .pc-body{animation:pcwig .6s ease-in-out 2}
+.pc-fly .k1{animation:pcpop 3.6s ease-in-out infinite}
+.pc-fly .k2{animation:pcpop 3.6s ease-in-out 1.8s infinite}
+.pc-fly .spark{transform-box:fill-box;transform-origin:center;animation:pctw 2.8s ease-in-out infinite}
+.pc-fly .s2{animation-delay:1.4s}
+.eyes circle{transform-box:fill-box;transform-origin:center;animation:pcblink 5s infinite}
+@keyframes pcbob{0%,100%{transform:translateY(0) rotate(-2deg)}50%{transform:translateY(-4px) rotate(2deg)}}
+@keyframes pcwig{0%,100%{transform:rotate(0)}25%{transform:rotate(-6deg)}75%{transform:rotate(6deg)}}
+@keyframes pcpop{0%,100%{transform:translateY(0)}50%{transform:translateY(-8px)}}
+@keyframes pctw{0%,100%{transform:scale(.6);opacity:.5}50%{transform:scale(1.1);opacity:1}}
+@keyframes pcblink{0%,92%,100%{transform:scaleY(1)}95%{transform:scaleY(.1)}}
 
 /* chips */
 .bar{position:sticky;top:0;z-index:5;margin:0 -32px;padding:14px 32px;display:flex;gap:6px;overflow-x:auto;scrollbar-width:none;background:rgba(255,255,255,.94);backdrop-filter:blur(6px)}
@@ -112,6 +126,7 @@ dialog.sheet[open]{animation:pop .3s cubic-bezier(.2,.8,.3,1)}
   .bar{margin:0 -18px;padding:12px 18px}
   .nav{padding-top:28px}
   .head{padding:36px 0 26px}
+  .popcorn{width:78px;right:0;bottom:auto;top:22px}
   .grid{grid-template-columns:1fr 1fr;gap:18px 12px}
   .rail{margin:0 -18px;padding:4px 18px 12px;gap:12px;scroll-padding:0 18px}
   .rail .tile{flex-basis:138px}
@@ -144,6 +159,32 @@ dialog.sheet[open]{animation:pop .3s cubic-bezier(.2,.8,.3,1)}
     <p class="kick">sheis binge-watchin</p>
     <h1>movieshelf<span></span></h1>
     <p class="meta"><span><b id="n">0</b> เรื่อง</span><span>หนัง <b id="nm">0</b></span><span>ซีรีส์ <b id="ns">0</b></span></p>
+    <svg class="popcorn" viewBox="0 0 160 210" aria-hidden="true">
+      <defs><clipPath id="pcb"><path d="M18 80H142L127 192Q80 200 33 192Z"/></clipPath></defs>
+      <g class="pc-fly">
+        <g class="k1"><circle cx="20" cy="30" r="7" fill="#0d0d0d"/><circle cx="20" cy="30" r="4.6" fill="#fffaf0"/></g>
+        <g class="k2"><circle cx="146" cy="22" r="6" fill="#0d0d0d"/><circle cx="146" cy="22" r="3.8" fill="#fffaf0"/></g>
+        <path class="spark" d="M140 102l2.2 5.8 5.8 2.2-5.8 2.2-2.2 5.8-2.2-5.8-5.8-2.2 5.8-2.2z" fill="#f5c800"/>
+        <path class="spark s2" d="M10 54l1.6 4 4 1.6-4 1.6-1.6 4-1.6-4-4-1.6 4-1.6z" fill="#f5c800"/>
+      </g>
+      <g class="pc-body">
+        <g fill="#0d0d0d" stroke="#0d0d0d" stroke-width="7"><circle cx="30" cy="78" r="13"/><circle cx="46" cy="64" r="17"/><circle cx="68" cy="50" r="19"/><circle cx="92" cy="44" r="20"/><circle cx="116" cy="52" r="18"/><circle cx="132" cy="70" r="14"/><circle cx="58" cy="72" r="15"/><circle cx="82" cy="66" r="17"/><circle cx="106" cy="70" r="16"/><circle cx="122" cy="82" r="10"/><circle cx="38" cy="84" r="10"/></g>
+        <g fill="#fffaf0"><circle cx="30" cy="78" r="13"/><circle cx="46" cy="64" r="17"/><circle cx="68" cy="50" r="19"/><circle cx="92" cy="44" r="20"/><circle cx="116" cy="52" r="18"/><circle cx="132" cy="70" r="14"/><circle cx="58" cy="72" r="15"/><circle cx="82" cy="66" r="17"/><circle cx="106" cy="70" r="16"/><circle cx="122" cy="82" r="10"/><circle cx="38" cy="84" r="10"/></g>
+        <g fill="none" stroke="#0d0d0d" stroke-width="2.4" stroke-linecap="round" opacity=".55">
+          <path d="M60 46q6-5 12 0"/><path d="M88 38q6-5 12 0"/><path d="M110 48q5-4 10 0"/><path d="M40 60q5-4 10 0"/><path d="M76 62q5-4 10 0"/><path d="M100 66q5-4 10 0"/>
+        </g>
+        <g fill="#f5c800"><circle cx="96" cy="52" r="3.2"/><circle cx="52" cy="70" r="2.6"/><circle cx="124" cy="62" r="2.6"/><circle cx="70" cy="40" r="2.2"/></g>
+        <path d="M18 80H142L127 192Q80 200 33 192Z" fill="#fff"/>
+        <g clip-path="url(#pcb)" fill="#0d0d0d"><path d="M35.7 80L53.4 80L60.3 196L47.1 196Z"/><path d="M71.1 80L88.9 80L86.6 196L73.4 196Z"/><path d="M106.6 80L124.3 80L112.9 196L99.7 196Z"/></g>
+        <path d="M18 80H142L127 192Q80 200 33 192Z" fill="none" stroke="#0d0d0d" stroke-width="4" stroke-linejoin="round"/>
+        <rect x="12" y="72" width="136" height="16" rx="8" fill="#fff" stroke="#0d0d0d" stroke-width="4"/>
+        <rect x="52" y="118" width="56" height="44" rx="18" fill="#fff" stroke="#0d0d0d" stroke-width="3.5"/>
+        <g class="eyes" fill="#0d0d0d"><circle cx="70" cy="136" r="4.2"/><circle cx="90" cy="136" r="4.2"/></g>
+        <circle cx="71.4" cy="134.6" r="1.3" fill="#fff"/><circle cx="91.4" cy="134.6" r="1.3" fill="#fff"/>
+        <ellipse cx="62" cy="145" rx="4.2" ry="2.6" fill="#f5c800" opacity=".55"/><ellipse cx="98" cy="145" rx="4.2" ry="2.6" fill="#f5c800" opacity=".55"/>
+        <path d="M75 145q5 5 10 0" fill="none" stroke="#0d0d0d" stroke-width="2.6" stroke-linecap="round"/>
+      </g>
+    </svg>
   </header>
   <div id="sent" style="height:1px"></div>
   <nav class="bar" id="bar" aria-label="กรองหนัง"></nav>
