@@ -81,6 +81,8 @@ h1 span{display:inline-block;width:.2em;height:.2em;border-radius:50%;background
 .sp::after{bottom:7px;height:2px;opacity:.5}
 .sp .tt{flex:1 1 auto;min-height:0;font-size:13px;font-weight:600;letter-spacing:.01em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .sp .au{flex:none;font-size:11px;opacity:.72;white-space:nowrap;max-height:42%;overflow:hidden;text-overflow:ellipsis}
+.sp.long .au{display:none}
+.sp.long .tt{white-space:normal;text-overflow:clip;align-self:stretch;line-height:1.15;padding:0 5px;text-wrap:balance}
 .sp:hover{transform:translateY(-8px)}
 .sp[aria-pressed="true"]{transform:translateY(-24px);box-shadow:0 16px 22px -12px rgba(0,0,0,.45),inset 3px 0 0 rgba(255,255,255,.16)}
 .sp.lt[aria-pressed="true"]{box-shadow:0 16px 22px -12px rgba(0,0,0,.35),inset 0 0 0 1.5px #d9d9d9}
@@ -201,6 +203,7 @@ dialog.sheet[open]{animation:pop .32s cubic-bezier(.2,.8,.3,1)}
   .sp{height:calc(var(--hm) * 1px);width:calc(var(--w) * .8);padding:22px 0 12px}
   .sp .tt{font-size:12px}
   .sp .au{display:none}
+  .sp.long{min-width:40px}
   .sp[aria-pressed="true"]{transform:translateY(-16px)}
   .end{display:none}
   /* picked book floats at the bottom on phones */
@@ -315,6 +318,20 @@ function renderNow(){
       el('div', { class: 'bd' }, el('div', { class: 't' }, b.title), b.author ? el('div', { class: 'a' }, b.author) : null, el('div', { class: 'm' }, nowLine(b)),
         el('div', { class: 'pg' }, (b.pages || []).slice(-3).map(x => el('img', { src: x.img, alt: '' })), el('span', {}, (b.pages || []).length ? 'หน้าที่ชอบ ' + b.pages.length + ' หน้า ›' : 'เปิดดู ›')))))));
 }
+function fitSpines(){
+  document.querySelectorAll('.sp').forEach(s => {
+    const tt = s.querySelector('.tt'); s.classList.remove('long'); tt.style.fontSize = '';
+    if (tt.scrollHeight <= tt.clientHeight + 1) return;
+    s.classList.add('long');
+    const base = parseFloat(getComputedStyle(tt).fontSize);
+    for (let f = base; f >= 9; f -= .5) {
+      tt.style.fontSize = f + 'px';
+      if (tt.scrollHeight <= tt.clientHeight + 1 && tt.scrollWidth <= tt.clientWidth + 1) break;
+    }
+  });
+}
+let fitT; addEventListener('resize', () => { clearTimeout(fitT); fitT = setTimeout(fitSpines, 150); });
+document.fonts && document.fonts.ready.then(fitSpines);
 function render(){
   const all = cats.map(k => [k, books.filter(b => b.category === k)]).filter(([, l]) => l.length);
   order = [...now, ...all.flatMap(([, l]) => l)];
@@ -329,6 +346,7 @@ function render(){
   wall.replaceChildren(...groups.map(([k, l], gi) => el('section', { class: 'grp' },
     el('h2', { class: 'gl' }, k, el('small', {}, l.length)),
     el('div', { class: 'gs' }, l.map(spine), gi === groups.length - 1 ? el('i', { class: 'end', 'aria-hidden': 'true' }) : null))));
+  fitSpines();
   const vis = groups.flatMap(([, l]) => l);
   if (!picked || !vis.includes(picked)) pick(vis.includes(books[0]) ? books[0] : vis[0], true);
 }
