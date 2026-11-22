@@ -34,9 +34,18 @@ a{color:inherit}
 .kick::before{content:"";width:22px;height:3px;border-radius:2px;background:var(--pop)}
 h1{font-size:clamp(46px,8vw,84px);font-weight:500;letter-spacing:-.04em;line-height:.95}
 h1 span{display:inline-block;width:.2em;height:.2em;border-radius:50%;background:var(--ink);margin-left:.04em;box-shadow:0 .14em 0 -.04em var(--pop)}
-.meta{margin-top:24px;display:flex;gap:8px;flex-wrap:wrap;font-size:14px;color:var(--mut)}
-.meta span{padding:6px 14px;border-radius:99px;border:1px solid var(--line)}
-.meta b{font-weight:600;color:var(--ink);font-variant-numeric:tabular-nums}
+.head{position:relative}
+.popcorn{position:absolute;right:6px;bottom:22px;width:124px;height:auto;overflow:visible}
+.pc-body{transform-origin:80px 196px;animation:pcbob 4.5s ease-in-out infinite}
+.head:hover .pc-body{animation:pcwig .6s ease-in-out 2}
+.pc-fly .k1{animation:pcpop 3.6s ease-in-out infinite}
+.pc-fly .k2{animation:pcpop 3.6s ease-in-out 1.8s infinite}
+.pc-fly .spark{transform-box:fill-box;transform-origin:center;animation:pctw 2.8s ease-in-out infinite}
+.pc-fly .s2{animation-delay:1.4s}
+@keyframes pcbob{0%,100%{transform:translateY(0) rotate(-2deg)}50%{transform:translateY(-4px) rotate(2deg)}}
+@keyframes pcwig{0%,100%{transform:rotate(0)}25%{transform:rotate(-6deg)}75%{transform:rotate(6deg)}}
+@keyframes pcpop{0%,100%{transform:translateY(0)}50%{transform:translateY(-8px)}}
+@keyframes pctw{0%,100%{transform:scale(.6);opacity:.5}50%{transform:scale(1.1);opacity:1}}
 
 /* chips */
 .bar{position:sticky;top:0;z-index:5;margin:0 -32px;padding:14px 32px;display:flex;gap:6px;overflow-x:auto;scrollbar-width:none;background:rgba(255,255,255,.94);backdrop-filter:blur(6px)}
@@ -45,6 +54,18 @@ h1 span{display:inline-block;width:.2em;height:.2em;border-radius:50%;background
 .chip{flex:none;padding:8px 15px;border-radius:99px;font-size:14.5px;color:var(--mut);border:1px solid var(--line);transition:.2s;white-space:nowrap}
 .chip:hover{color:var(--ink);border-color:#cfcfcf}
 .chip[aria-pressed="true"]{background:var(--ink);border-color:var(--ink);color:var(--pop);font-weight:600}
+.seg{flex:none;display:flex;padding:3px;border-radius:99px;background:var(--soft)}
+.seg button{padding:6px 14px;border-radius:99px;font-size:14.5px;color:var(--mut);white-space:nowrap;transition:.2s}
+.seg button:hover{color:var(--ink)}
+.seg button[aria-pressed="true"]{background:var(--ink);color:var(--pop);font-weight:600}
+.seg small{margin-left:5px;font-size:11px;opacity:.7;font-variant-numeric:tabular-nums}
+.sbtn{flex:none;width:38px;height:38px;border-radius:50%;border:1px solid var(--line);color:var(--ink2);font-size:17px;display:none;align-items:center;justify-content:center}
+.chip.sel{display:inline-flex;align-items:center;gap:4px;color:var(--ink2);cursor:pointer;position:relative}
+.chip.sel b{font-weight:600;color:var(--ink)}
+.chip.sel select{position:absolute;inset:0;width:100%;opacity:0;cursor:pointer;font-size:16px}
+.chip.sel span{font-size:10px;color:var(--mut)}
+.chip.sel .lb{font-size:inherit;color:var(--mut)}
+.chip.sel:focus-within{border-color:var(--ink)}
 .chip small{margin-left:6px;font-size:11px;opacity:.7;font-variant-numeric:tabular-nums}
 .sep{flex:none;width:1px;background:var(--line);margin:6px 4px}
 .srch{flex:none;display:flex;align-items:center;gap:8px;padding:0 14px;border-radius:99px;border:1px solid var(--line);color:var(--mut)}
@@ -54,7 +75,7 @@ h1 span{display:inline-block;width:.2em;height:.2em;border-radius:50%;background
 /* rails: one scrolling row per group */
 .rail{display:flex;gap:16px;overflow-x:auto;scroll-snap-type:x proximity;scrollbar-width:none;margin:0 -32px;padding:4px 32px 12px;scroll-padding:0 32px}
 .rail::-webkit-scrollbar{display:none}
-.rail .tile{flex:0 0 172px;scroll-snap-align:start}
+.rail .tile{flex:0 0 250px;scroll-snap-align:start}
 .railwrap{position:relative}
 .rbtn{position:absolute;top:calc(50% - 36px);width:40px;height:40px;border-radius:50%;background:#fff;border:1px solid var(--line);box-shadow:0 4px 14px rgba(0,0,0,.12);font-size:20px;color:var(--ink);z-index:2;display:none}
 .rbtn:hover{background:var(--ink);color:var(--pop)}
@@ -63,23 +84,38 @@ h1 span{display:inline-block;width:.2em;height:.2em;border-radius:50%;background
 .rh .all{margin-left:auto;font-size:13.5px;font-weight:600;color:var(--ink);padding:5px 12px;border-radius:99px;border:1px solid var(--line)}
 .rh .all:hover{background:var(--ink);color:var(--pop);border-color:var(--ink)}
 
+/* top 3 */
+.top3{margin-top:30px}
+.t3{display:grid;grid-template-columns:repeat(3,1fr);gap:18px}
+.t3c{position:relative;display:flex;flex-direction:column;text-align:left;border-radius:18px;overflow:hidden;background:var(--ink);color:#fff;min-width:0;transition:transform .3s cubic-bezier(.3,.7,.4,1),box-shadow .3s}
+.t3c:hover{transform:translateY(-4px);box-shadow:0 20px 40px -18px rgba(0,0,0,.5)}
+.t3c .im{position:relative;aspect-ratio:16/10;overflow:hidden}
+.t3c .im img{width:100%;height:100%;object-fit:cover;display:block}
+.t3c .im img.tall{object-position:center 22%}
+.t3c .im::after{content:"";position:absolute;inset:0;background:linear-gradient(transparent 45%,rgba(13,13,13,.92))}
+.t3c .rk{position:absolute;left:16px;bottom:-14px;z-index:1;font-size:92px;font-weight:700;line-height:1;letter-spacing:-.05em;color:var(--pop)}
+.t3c .bd{padding:4px 18px 18px 74px;display:flex;flex-direction:column;gap:4px;min-height:84px}
+.t3c .nm{font-size:17px;font-weight:600;line-height:1.3}
+.t3c .mt{font-size:13px;color:rgba(255,255,255,.6)}
+.t3c .sc{position:absolute;top:12px;right:12px;padding:5px 11px;border-radius:99px;background:var(--pop);color:var(--ink);font-size:14px;font-weight:700;font-variant-numeric:tabular-nums}
 /* rows */
 .row{margin-top:34px}
 .rh{display:flex;align-items:baseline;gap:10px;margin-bottom:14px}
 .rh h2{font-size:20px;font-weight:600;letter-spacing:-.01em}
 .rh small{font-size:13px;color:var(--mut)}
-.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:22px 18px}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:22px 18px}
 .tile{display:flex;flex-direction:column;gap:10px;text-align:left;min-width:0}
-.pic{position:relative;aspect-ratio:4/5;border-radius:14px;overflow:hidden;background:var(--soft);isolation:isolate;transition:transform .3s cubic-bezier(.3,.7,.4,1),box-shadow .3s}
+.pic{position:relative;aspect-ratio:16/10;border-radius:14px;overflow:hidden;background:var(--soft);isolation:isolate;transition:transform .3s cubic-bezier(.3,.7,.4,1),box-shadow .3s}
 .pic .blur{position:absolute;inset:-20px;background-size:cover;background-position:center;filter:blur(18px) saturate(1.1);opacity:.55;z-index:-1}
-.pic img{width:100%;height:100%;object-fit:contain;display:block}
+.pic img{width:100%;height:100%;object-fit:cover;display:block}
+.pic img.tall{object-position:center 22%}
 .tile:hover .pic,.tile:focus-visible .pic{transform:translateY(-4px);box-shadow:0 16px 30px -14px rgba(0,0,0,.35)}
 .score{position:absolute;top:10px;left:10px;padding:4px 9px 4px 7px;border-radius:99px;background:var(--ink);color:var(--pop);font-size:13px;font-weight:600;font-variant-numeric:tabular-nums;box-shadow:0 2px 8px rgba(0,0,0,.25)}
 .score.top{background:var(--pop);color:var(--ink)}
 .ph{position:absolute;inset:0;display:flex;align-items:flex-end;padding:16px;background:var(--ink);color:var(--pop);font-size:19px;font-weight:600;line-height:1.25;text-align:left;overflow-wrap:anywhere}
 .ph.big{position:relative;aspect-ratio:4/5;border-radius:12px;font-size:26px;padding:22px}
-.tt{font-size:15.5px;font-weight:600;line-height:1.3;overflow-wrap:anywhere}
-.tt small{display:block;font-size:13px;font-weight:400;color:var(--mut);margin-top:3px}
+.tt{font-size:15.5px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;font-weight:600;line-height:1.3;overflow-wrap:anywhere}
+.tm{font-size:13px;color:var(--mut);margin-top:-6px}
 .empty{padding:60px 0;text-align:center;color:var(--mut)}
 .hint{margin:40px 0 0;font-size:14px;color:var(--mut);text-align:center}
 footer{max-width:1180px;margin:60px auto 0;padding:20px 32px 36px;font-size:12px;color:var(--mut);display:flex;justify-content:space-between;border-top:1px solid var(--line)}
@@ -112,11 +148,32 @@ dialog.sheet[open]{animation:pop .3s cubic-bezier(.2,.8,.3,1)}
   .bar{margin:0 -18px;padding:12px 18px}
   .nav{padding-top:28px}
   .head{padding:36px 0 26px}
-  .grid{grid-template-columns:1fr 1fr;gap:18px 12px}
+  .popcorn{width:78px;right:0;bottom:auto;top:22px}
+  .grid{grid-template-columns:1fr;gap:20px}
   .rail{margin:0 -18px;padding:4px 18px 12px;gap:12px;scroll-padding:0 18px}
-  .rail .tile{flex-basis:138px}
+  .t3{display:flex;flex-direction:column;gap:8px}
+  .t3c{flex-direction:row;align-items:center;gap:12px;padding:8px 12px 8px 8px;border-radius:14px;background:var(--soft);color:var(--ink)}
+  .t3c:hover{transform:none;box-shadow:none}
+  .t3c .im{flex:0 0 96px;aspect-ratio:16/10;border-radius:9px;order:1}
+  .t3c .im::after{display:none}
+  .t3c .rk{position:static;order:0;flex:0 0 22px;font-size:30px;text-align:center;color:var(--ink);-webkit-text-stroke:0}
+  .t3c .bd{order:2;flex:1;min-width:0;padding:0;min-height:0;gap:2px}
+  .t3c .nm{font-size:15px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .t3c .mt{color:var(--mut);font-size:12.5px}
+  .t3c .sc{position:static;order:3;flex:none;font-size:13px;padding:4px 9px}
+  .rail .tile{flex-basis:168px}
+  .row{margin-top:28px}
+  .rh h2{font-size:18px}
+  .tt{font-size:14.5px}
   .bar{flex-wrap:wrap;row-gap:8px}
-  .srch{order:-1;flex:1 1 100%}
+  .bar{gap:6px}
+  .seg button{padding:6px 11px;font-size:14px}
+  .seg small{display:none}
+  .chip.sel .lb{display:none}
+  .sbtn{display:inline-flex;margin-left:auto}
+  .srch{display:none;order:9;flex:1 1 100%}
+  .bar.sopen .srch{display:flex}
+  .bar.sopen .sbtn{background:var(--ink);color:var(--pop);border-color:var(--ink)}
   .srch input{width:100%}
   .grow{display:none}
   .sep{display:none}
@@ -143,7 +200,27 @@ dialog.sheet[open]{animation:pop .3s cubic-bezier(.2,.8,.3,1)}
   <header class="head">
     <p class="kick">sheis binge-watchin</p>
     <h1>movieshelf<span></span></h1>
-    <p class="meta"><span><b id="n">0</b> เรื่อง</span><span>หนัง <b id="nm">0</b></span><span>ซีรีส์ <b id="ns">0</b></span></p>
+    <svg class="popcorn" viewBox="0 0 160 210" aria-hidden="true">
+      <defs><clipPath id="pcb"><path d="M20 82H140L128 194H32Z"/></clipPath></defs>
+      <g class="pc-fly">
+        <g class="k1"><circle cx="20" cy="30" r="6" fill="#ffd23f"/><circle cx="18" cy="28" r="2.4" fill="#ffe98a"/></g>
+        <g class="k2"><circle cx="146" cy="22" r="5" fill="#ffd23f"/><circle cx="144.5" cy="20.5" r="2" fill="#ffe98a"/></g>
+        <path class="spark" d="M150 104l2.2 5.8 5.8 2.2-5.8 2.2-2.2 5.8-2.2-5.8-5.8-2.2 5.8-2.2z" fill="#f5c800"/>
+        <path class="spark s2" d="M8 54l1.6 4 4 1.6-4 1.6-1.6 4-1.6-4-4-1.6 4-1.6z" fill="#f5c800"/>
+      </g>
+      <g class="pc-body">
+        <g fill="#e89a00"><circle cx="26" cy="76" r="13"/><circle cx="44" cy="64" r="16"/><circle cx="64" cy="54" r="18"/><circle cx="86" cy="48" r="19"/><circle cx="108" cy="52" r="18"/><circle cx="128" cy="62" r="16"/><circle cx="142" cy="76" r="12"/><circle cx="76" cy="36" r="13"/><circle cx="100" cy="34" r="12"/></g><g fill="#ffc61a"><circle cx="24" cy="72" r="13"/><circle cx="42" cy="60" r="16"/><circle cx="62" cy="50" r="18"/><circle cx="84" cy="44" r="19"/><circle cx="106" cy="48" r="18"/><circle cx="126" cy="58" r="16"/><circle cx="140" cy="72" r="12"/><circle cx="74" cy="32" r="13"/><circle cx="98" cy="30" r="12"/></g><g fill="#f0a500"><circle cx="19.5" cy="83.5" r="10"/><circle cx="35.5" cy="77.5" r="13"/><circle cx="55.5" cy="73.5" r="14"/><circle cx="75.5" cy="67.5" r="15"/><circle cx="97.5" cy="67.5" r="15"/><circle cx="117.5" cy="73.5" r="14"/><circle cx="137.5" cy="81.5" r="11"/><circle cx="49.5" cy="57.5" r="12"/><circle cx="89.5" cy="53.5" r="13"/><circle cx="113.5" cy="55.5" r="11"/><circle cx="67.5" cy="49.5" r="10"/></g><g fill="#ffd84a"><circle cx="18" cy="80" r="10"/><circle cx="34" cy="74" r="13"/><circle cx="54" cy="70" r="14"/><circle cx="74" cy="64" r="15"/><circle cx="96" cy="64" r="15"/><circle cx="116" cy="70" r="14"/><circle cx="136" cy="78" r="11"/><circle cx="48" cy="54" r="12"/><circle cx="88" cy="50" r="13"/><circle cx="112" cy="52" r="11"/><circle cx="66" cy="46" r="10"/></g><g fill="#ffe68a"><circle cx="15.0" cy="76.2" r="5.0"/><circle cx="30.1" cy="69.06" r="6.5"/><circle cx="49.8" cy="64.68" r="7.0"/><circle cx="69.5" cy="58.3" r="7.5"/><circle cx="91.5" cy="58.3" r="7.5"/><circle cx="111.8" cy="64.68" r="7.0"/><circle cx="132.7" cy="73.82" r="5.5"/><circle cx="44.4" cy="49.44" r="6.0"/><circle cx="84.1" cy="45.06" r="6.5"/><circle cx="108.7" cy="47.82" r="5.5"/><circle cx="63.0" cy="42.2" r="5.0"/></g>
+        <path d="M20 82H140L128 194H32Z" fill="#f4f4f4"/>
+        <g clip-path="url(#pcb)">
+          <g fill="#e3262d"><path d="M20.0 82L37.1 82L45.7 194L32.0 194Z"/><path d="M54.3 82L71.4 82L73.1 194L59.4 194Z"/><path d="M88.6 82L105.7 82L100.6 194L86.9 194Z"/><path d="M122.9 82L140.0 82L128.0 194L114.3 194Z"/></g>
+          <path d="M20 82H140L139 92Q80 104 21 92Z" fill="#000" opacity=".12"/>
+          <path d="M120 82H140L128 194H110Z" fill="#000" opacity=".1"/>
+          <path d="M34 92Q36 140 42 184" fill="none" stroke="#fff" stroke-width="5" stroke-linecap="round" opacity=".55"/>
+        </g>
+        <rect x="14" y="74" width="132" height="11" rx="2.5" fill="#e3262d"/>
+        <rect x="14" y="81" width="132" height="4" rx="1.5" fill="#b3161d"/>
+      </g>
+    </svg>
   </header>
   <div id="sent" style="height:1px"></div>
   <nav class="bar" id="bar" aria-label="กรองหนัง"></nav>
@@ -157,10 +234,11 @@ dialog.sheet[open]{animation:pop .3s cubic-bezier(.2,.8,.3,1)}
 const $ = s => document.querySelector(s);
 const el = (t, a = {}, ...k) => { const e = document.createElement(t); for (const [n, v] of Object.entries(a)) { if (v == null || v === false) continue; if (n === 'class') e.className = v; else if (n === 'style') e.style.cssText = v; else if (n.startsWith('on')) e.addEventListener(n.slice(2), v); else e.setAttribute(n, v); } e.append(...k.flat(2).filter(x => x != null && x !== false)); return e; };
 const fmt = d => new Date(d + 'T00:00').toLocaleDateString('th-TH', { day: 'numeric', month: 'short', year: 'numeric' });
-const main = t => t.replace(/\s*\((?!\d{4}\)).*\)$/, '');
+const main = t => t.replace(/\s*\(.*\)$/, '');
 const sub = t => (t.match(/\(([^)]*[^\d)][^)]*)\)$/) || [])[1] || '';
 const num = c => Number.isInteger(c) ? String(c) : c.toFixed(1);
-let movies = [], groups = [], order = [], cur = -1, filt = null, sort = 'new', kind = 'all', q = '';
+let small = new Set(), movies = [], groups = [], genres = [], by = 'genre', order = [], cur = -1, filt = null, sort = 'new', kind = 'all', q = '';
+const BY = { genre: 'genre', year: 'ปี', group: 'ประเทศ', top: '🧀 สูงสุด', new: 'โพสต์ล่าสุด' };
 const isSeries = m => m.group.startsWith('ซีรีส์');
 const norm = t => (t || '').toLowerCase();
 const top = () => { const y = $('#sent').getBoundingClientRect().top + scrollY; if (scrollY > y) scrollTo({ top: y, behavior: 'smooth' }); };
@@ -169,11 +247,11 @@ const sheet = $('#sheet');
 function tile(m){
   const has = m.cheese != null;
   return el('button', { class: 'tile', 'aria-label': m.title + (has ? ' ' + num(m.cheese) + ' ชีส' : ''), onclick: () => open(order.indexOf(m)) },
-    el('span', { class: 'pic' }, m.image ? [el('span', { class: 'blur', style: `background-image:url(${m.image})` }), el('img', { src: m.image, alt: '', loading: 'lazy' })] : el('span', { class: 'ph' }, main(m.title)),
+    el('span', { class: 'pic' }, m.image ? el('img', { src: m.image, alt: '', loading: 'lazy', class: m.tall ? 'tall' : null, style: m.pos ? 'object-position:' + m.pos : null }) : el('span', { class: 'ph' }, main(m.title)),
       has ? el('span', { class: 'score' + (m.cheese >= 9 ? ' top' : '') }, '🧀 ' + num(m.cheese)) : null),
-    el('span', { class: 'tt' }, main(m.title), sub(m.title) ? el('small', {}, sub(m.title)) : el('small', {}, fmt(m.date))));
+    el('span', { class: 'tt' }, main(m.title)), el('small', { class: 'tm' }, [m.year, m.genre].filter(Boolean).join(' · ')));
 }
-function sorted(l){ return l.slice().sort(sort === 'top' ? (a, b) => (b.cheese ?? -1) - (a.cheese ?? -1) || b.date.localeCompare(a.date) : (a, b) => b.date.localeCompare(a.date)); }
+function sorted(l){ return l.slice().sort(by === 'top' ? (a, b) => (b.cheese ?? -1) - (a.cheese ?? -1) || b.date.localeCompare(a.date) : (a, b) => b.date.localeCompare(a.date)); }
 function railEl(l){
   const r = el('div', { class: 'rail' }, l.map(tile));
   const w = el('div', { class: 'railwrap' },
@@ -185,32 +263,43 @@ function railEl(l){
 }
 function render(keepBar){
   const pool = movies.filter(m => kind === 'all' || (kind === 'series') === isSeries(m));
-  const all = groups.map(g => [g, sorted(pool.filter(m => m.group === g))]).filter(([, l]) => l.length);
-  const chip = (label, n, on, fn) => el('button', { class: 'chip', 'aria-pressed': String(on), onclick: fn }, label, n != null ? el('small', {}, n) : null);
-  const setKind = k => () => { kind = k; filt = null; render(); top(); };
+  const keyOf = m => by === 'genre' ? (small.has(m.genre) ? 'อื่นๆ' : m.genre) : by === 'year' ? String(m.year) : m.group;
+  const keys = by === 'genre' ? [...genres.filter(g => !small.has(g)), 'อื่นๆ'] : by === 'year' ? [...new Set(movies.map(m => String(m.year)))].sort((a, b) => b - a) : groups;
+  const flat = by === 'top' || by === 'new';
+  const all = flat ? [[by === 'top' ? 'ให้ชีสเยอะสุด' : 'โพสต์ล่าสุด', sorted(pool)]] : keys.map(g => [g, sorted(pool.filter(m => keyOf(m) === g))]).filter(([, l]) => l.length);
+  const tab = (label, n, k) => el('button', { 'aria-pressed': String(kind === k), onclick: () => { kind = k; filt = null; render(); top(); } }, label, el('small', {}, n));
   const sr = $('#q') || el('input', { id: 'q', type: 'search', placeholder: 'หาเรื่อง', 'aria-label': 'ค้นหาเรื่อง', oninput: e => { q = e.target.value.trim(); render(true); } });
   if (!keepBar) $('#bar').replaceChildren(
-    chip('ทั้งหมด', movies.length, kind === 'all', setKind('all')),
-    chip('หนัง', movies.filter(m => !isSeries(m)).length, kind === 'movie', setKind('movie')),
-    chip('ซีรีส์', movies.filter(isSeries).length, kind === 'series', setKind('series')),
-    el('span', { class: 'sep' }),
-    el('button', { class: 'chip', 'aria-label': 'เปลี่ยนการเรียง', onclick: () => { sort = sort === 'new' ? 'top' : 'new'; render(); } }, '⇅ ', sort === 'new' ? 'ล่าสุด' : '🧀 สูงสุด'),
+    el('div', { class: 'seg', role: 'group', 'aria-label': 'ประเภท' },
+      tab('ทั้งหมด', movies.length, 'all'), tab('หนัง', movies.filter(m => !isSeries(m)).length, 'movie'), tab('ซีรีส์', movies.filter(isSeries).length, 'series')),
+    el('label', { class: 'chip sel' }, el('span', { class: 'lb' }, 'จัดตาม '), el('b', { id: 'byl' }, BY[by]), el('span', { 'aria-hidden': 'true' }, '▾'),
+      el('select', { 'aria-label': 'จัดตาม', onchange: e => { by = e.target.value; $('#byl').textContent = BY[by]; filt = null; render(true); top(); } },
+        Object.entries(BY).map(([v, t]) => el('option', { value: v, selected: by === v || null }, t)))),
     el('span', { class: 'grow' }),
+    el('button', { class: 'sbtn', 'aria-label': 'ค้นหา', onclick: () => { const b = $('#bar'); b.classList.toggle('sopen'); if (b.classList.contains('sopen')) sr.focus(); else if (q) { sr.value = q = ''; render(true); } } }, '⌕'),
     el('label', { class: 'srch' }, el('span', { 'aria-hidden': 'true' }, '⌕'), sr));
   if (q) {
-    const hit = sorted(movies.filter(m => [m.title, m.group].some(t => norm(t).includes(norm(q)))));
+    const hit = sorted(movies.filter(m => [m.title, m.group, m.genre, String(m.year)].some(t => norm(t).includes(norm(q)))));
     order = hit;
     $('#main').replaceChildren(hit.length ? el('section', { class: 'row' }, el('div', { class: 'rh' }, el('h2', {}, 'ผลการค้นหา'), el('small', {}, hit.length + ' เรื่อง')), el('div', { class: 'grid' }, hit.map(tile)))
       : el('p', { class: 'empty' }, 'ไม่เจอเรื่องที่ค้นหา ลองคำอื่นดูนะ'));
     return;
   }
   const show = filt ? all.filter(([g]) => g === filt) : all;
-  order = show.flatMap(([, l]) => l);
-  $('#main').replaceChildren(...show.map(([g, l]) => el('section', { class: 'row' },
+  const best = flat || filt ? [] : pool.filter(m => m.cheese != null).sort((a, b) => b.cheese - a.cheese || b.date.localeCompare(a.date)).slice(0, 3);
+  order = [...best, ...show.flatMap(([, l]) => l)];
+  $('#main').replaceChildren(best.length ? el('section', { class: 'top3' },
+    el('div', { class: 'rh' }, el('h2', {}, 'Top 3'), el('small', {}, 'ให้ชีสเยอะสุด')),
+    el('div', { class: 't3' }, best.map((m, i) => el('button', { class: 't3c', 'aria-label': `อันดับ ${i + 1} ${m.title} ${num(m.cheese)} ชีส`, onclick: () => open(i) },
+      el('span', { class: 'im' }, m.image ? el('img', { src: m.image, alt: '', class: m.tall ? 'tall' : null }) : el('span', { class: 'ph' }, main(m.title))),
+      el('span', { class: 'rk' }, i + 1),
+      el('span', { class: 'sc' }, '🧀 ' + num(m.cheese)),
+      el('span', { class: 'bd' }, el('span', { class: 'nm' }, main(m.title)), el('span', { class: 'mt' }, [m.year, m.genre].filter(Boolean).join(' · '))))))) : '',
+    ...show.map(([g, l]) => el('section', { class: 'row' },
     el('div', { class: 'rh' }, el('h2', {}, g), el('small', {}, l.length + ' เรื่อง'),
-      filt ? el('button', { class: 'all', onclick: () => { filt = null; render(); top(); } }, '← ทุกหมวด')
+      flat ? null : filt ? el('button', { class: 'all', onclick: () => { filt = null; render(); top(); } }, '← กลับ')
         : l.length > 4 ? el('button', { class: 'all', onclick: () => { filt = g; render(); top(); } }, 'ดูทั้งหมด →') : null),
-    filt ? el('div', { class: 'grid' }, l.map(tile)) : railEl(l))));
+    filt || flat ? el('div', { class: 'grid' }, l.map(tile)) : railEl(l))));
 }
 function open(i){
   cur = i; const m = order[i]; if (!m) return;
@@ -220,7 +309,7 @@ function open(i){
       el('button', { class: 'ib', 'aria-label': 'เรื่องก่อนหน้า', disabled: i === 0 || null, onclick: () => open(i - 1) }, '‹'),
       el('button', { class: 'ib', 'aria-label': 'เรื่องถัดไป', disabled: i === order.length - 1 || null, onclick: () => open(i + 1) }, '›'),
       el('button', { class: 'ib', 'aria-label': 'ปิด', onclick: () => sheet.close() }, '✕')),
-    el('div', { class: 'pgroup' }, m.group),
+    el('div', { class: 'pgroup' }, [m.group, m.genre, m.year].filter(Boolean).join(' · ')),
     el('h2', { class: 'ptitle' }, m.title),
     el('div', { class: 'pline' }, m.cheese != null ? el('span', { class: 'pscore' }, '🧀 ' + num(m.cheese), el('small', {}, '/10')) : null, el('span', {}, 'โพสต์เมื่อ ' + fmt(m.date))),
     el('div', { class: 'rv' }, m.review.split(/\n{2,}/).map(t => el('p', {}, t))),
@@ -237,7 +326,8 @@ fetch('movieshelf/movies.json', { cache: 'no-cache' }).then(r => r.json()).then(
   movies = d.movies || [];
   groups = d.groups || [...new Set(movies.map(m => m.group))];
   movies.forEach(m => { if (!groups.includes(m.group)) groups.push(m.group); });
-  $('#n').textContent = movies.length; $('#nm').textContent = movies.filter(m => !isSeries(m)).length; $('#ns').textContent = movies.filter(isSeries).length;
+  genres = d.genres || []; movies.forEach(m => { if (m.genre && !genres.includes(m.genre)) genres.push(m.genre); });
+  small = new Set(genres.filter(g => movies.filter(m => m.genre === g).length < 3));
   if (d.updated) $('#upd').textContent = 'อัปเดต ' + fmt(d.updated);
   render();
   const h = location.hash.slice(1); const i = order.findIndex(m => m.id === h); if (i >= 0) open(i);
