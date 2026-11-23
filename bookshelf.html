@@ -302,7 +302,11 @@ function richNodes(src) {
   }
   return out;
 }
-const reviewBody = (txt, rich) => rich ? richNodes(new DOMParser().parseFromString(rich, 'text/html').body)
+const wrapLoose = nodes => { const out = []; let run = null;
+  for (const n of nodes) { if (n.nodeType === 1 && /^(P|UL|OL|H2|H3|H4|BLOCKQUOTE|ASIDE)$/.test(n.tagName)) { run = null; out.push(n); continue; }
+    if (!run) { if (n.nodeType === 3 && !n.textContent.trim()) continue; run = document.createElement('p'); out.push(run); } run.append(n); }
+  return out; };
+const reviewBody = (txt, rich) => rich ? wrapLoose(richNodes(new DOMParser().parseFromString(rich, 'text/html').body))
   : txt.split(/\n{2,}/).map(t => t.trim()).filter(Boolean).map(t => el('p', {}, t));
 let books = [], now = [], cats = [], order = [], cur = -1, picked = null, mode = null, q = '';
 const sheet = $('#sheet');
