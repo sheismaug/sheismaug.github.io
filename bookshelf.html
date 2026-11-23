@@ -153,6 +153,8 @@ dialog.sheet[open]{animation:pop .32s cubic-bezier(.2,.8,.3,1)}
 .doc li+li{margin-top:.3em}
 .doc li::marker{color:var(--mut)}
 .doc blockquote{border-left:3px solid var(--pop);padding:2px 0 2px 20px;font-size:17px;line-height:2;color:var(--ink);white-space:pre-line}
+.doc code{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:.88em;background:#f1f1f1;padding:.1em .35em;border-radius:5px}
+.doc a{color:inherit;text-decoration:underline;text-decoration-color:var(--pop);text-decoration-thickness:2px;text-underline-offset:3px}
 .doc aside{background:var(--soft);border-radius:14px;padding:16px 20px;font-size:16.5px;line-height:1.95;color:#262626;white-space:pre-line}
 .pz{position:fixed;inset:0;z-index:60;background:rgba(0,0,0,.92);display:grid;place-items:center;overflow:hidden;touch-action:none;padding:16px;cursor:zoom-out}
 .pz img{max-width:100%;max-height:100%;object-fit:contain;transform-origin:50% 50%;user-select:none;-webkit-user-drag:none;cursor:zoom-in;will-change:transform}
@@ -287,13 +289,15 @@ const hash = s => { let h = 7; for (const c of s) h = (h * 31 + c.charCodeAt(0))
 const lum = c => { const n = parseInt((c || '#888').slice(1), 16); return (n >> 16) * .3 + (n >> 8 & 255) * .59 + (n & 255) * .11; };
 const norm = t => (t || '').toLowerCase();
 // Cheese's review: formatted HTML from KANN (headings, lists, quote, callout) or plain paragraphs, kept exactly as written
-const RICH_TAGS = new Set(['P', 'B', 'I', 'U', 'H2', 'H3', 'H4', 'UL', 'OL', 'LI', 'BLOCKQUOTE', 'ASIDE', 'BR']);
+const RICH_TAGS = new Set(['P', 'B', 'I', 'U', 'H2', 'H3', 'H4', 'UL', 'OL', 'LI', 'BLOCKQUOTE', 'ASIDE', 'BR', 'S', 'CODE', 'A']);
 function richNodes(src) {
   const out = [];
   for (const c of src.childNodes) {
     if (c.nodeType === 3) { out.push(document.createTextNode(c.textContent)); continue; }
     if (c.nodeType !== 1) continue;
     if (!RICH_TAGS.has(c.tagName)) { out.push(...richNodes(c)); continue; }
+    if (c.tagName === 'A') { const h = (c.getAttribute('href') || '').trim(); if (!/^https?:\/\//i.test(h)) { out.push(...richNodes(c)); continue; }
+      const a = el('a', { href: h, target: '_blank', rel: 'noopener noreferrer' }); a.append(...richNodes(c)); out.push(a); continue; }
     const e = document.createElement(c.tagName); e.append(...richNodes(c)); out.push(e);
   }
   return out;
