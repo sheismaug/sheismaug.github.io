@@ -402,7 +402,7 @@ function openBook(i){
         el('div', { class: 'jm' }, [x.p ? 'หน้า ' + x.p : '', x.d ? thDate(x.d) : ''].filter(Boolean).join(' · ')),
         el('figure', {}, el('img', { src: x.img, alt: 'หน้า ' + (x.p || '') + ' ของ ' + b.title, loading: 'lazy', onclick: () => zoom(x.img) })),
         x.t ? el('p', {}, x.t) : null))),
-      b.ending ? [el('div', { class: 'plbl' }, 'อ่านจบแล้ว'), el('div', { class: 'endc' }, b.ending.split(/\n{2,}/).map(t => el('p', {}, t)))]
+      (b.ending || b.review) ? [el('div', { class: 'plbl' }, 'อ่านจบแล้ว'), el('div', { class: 'endc' }, (b.ending || b.review).split(/\n{2,}/).map(t => el('p', {}, t)))]
         : b.status === 'reading' ? el('p', { class: 'notyet' }, 'ยังอ่านอยู่ อ่านจบแล้วจะมาเขียนตรงนี้') : null]
     : b.status === 'reading' ? el('p', { class: 'notyet' }, 'ยังไม่ได้เก็บหน้าที่ชอบ เจอเมื่อไรจะขึ้นตรงนี้')
     : b.review ? [el('div', { class: 'plbl' }, 'รีวิวเต็ม'), el('div', { class: 'rv' }, b.review.split(/\n{2,}/).map(t => el('p', {}, t)))]
