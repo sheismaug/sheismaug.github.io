@@ -53,7 +53,24 @@ def rich_html(s):
     """Sanitised review HTML, or '' when the review has no formatting beyond plain paragraphs."""
     if not s or not re.search(r'<(h[1-6]|ul|ol|blockquote|aside|b|strong|i|em|u|s|strike|del|code|a)\b', s, re.I): return ''
     c = _Clean(); c.feed(s); c.close()
-    return re.sub(r'(<p>(<br>|\s)*</p>)+', '', ''.join(c.out)).strip()
+    return re.sub(r'(<p>(<br>|\s)*</p>)+', '', wrap_loose(''.join(c.out))).strip()
+
+BLOCKS = {'p', 'ul', 'ol', 'li', 'h2', 'h3', 'h4', 'blockquote', 'aside'}
+def wrap_loose(h):
+    """Put text that sits outside any paragraph (KANN's first line often does) into its own <p>."""
+    out, depth, open_p = [], 0, False
+    for tok in re.split(r'(<[^>]+>)', h):
+        if not tok: continue
+        m = re.match(r'<(/?)([a-z0-9]+)', tok)
+        if m and m.group(2) in BLOCKS:
+            if not m.group(1) and depth == 0 and open_p: out.append('</p>'); open_p = False
+            depth += -1 if m.group(1) else 1; depth = max(depth, 0)
+        elif depth == 0 and not open_p and (m or tok.strip()):
+            if m and m.group(1): pass
+            else: out.append('<p>'); open_p = True
+        out.append(tok)
+    if open_p: out.append('</p>')
+    return re.sub(r'<br></p>', '</p>', ''.join(out))
 
 def strip_html(s):
     s = re.sub(r'</p>\s*<p>|<br\s*/?>', '\n', s or '')
