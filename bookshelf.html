@@ -138,9 +138,9 @@ dialog.sheet[open]{animation:pop .32s cubic-bezier(.2,.8,.3,1)}
 .jr figure img{display:block;width:100%;border-radius:4px;box-shadow:0 10px 24px -10px rgba(0,0,0,.35);cursor:zoom-in}
 .jr figure::before{content:"";position:absolute;width:74px;height:20px;background:rgba(245,200,0,.55);top:-9px;left:50%;margin-left:-37px;transform:rotate(3deg);z-index:1}
 .jr p{font-size:17.5px;line-height:1.9;color:var(--ink2);margin-top:16px;white-space:pre-line}
-.endc{margin-top:18px;max-width:36em;padding:22px 24px;border-radius:16px;background:var(--soft)}
-.endc p{font-size:17.5px;line-height:1.95;color:var(--ink2);white-space:pre-line}
-.endc p+p{margin-top:14px}
+.endc{margin-top:20px;padding-left:22px;border-left:3px solid var(--pop)}
+.endc p{max-width:34em;font-size:18px;line-height:2;color:var(--ink2);white-space:pre-line;text-wrap:pretty}
+.endc p+p{margin-top:1.4em}
 .pz{position:fixed;inset:0;z-index:60;background:rgba(0,0,0,.92);display:grid;place-items:center;overflow:hidden;touch-action:none;padding:16px;cursor:zoom-out}
 .pz img{max-width:100%;max-height:100%;object-fit:contain;transform-origin:50% 50%;user-select:none;-webkit-user-drag:none;cursor:zoom-in;will-change:transform}
 .pz.zin img{cursor:grab}.pz.zin.drag img{cursor:grabbing}
@@ -185,7 +185,7 @@ dialog.sheet[open]{animation:pop .32s cubic-bezier(.2,.8,.3,1)}
 .pnow i{width:7px;height:7px;border-radius:50%;background:var(--pop)}
 .sh.rbook .sh-img{display:none}
 .notyet{margin-top:18px;max-width:36em;padding:18px 22px;border-radius:16px;border:1.5px dashed var(--line);color:var(--mut);font-size:15px}
-@media(max-width:820px){.jhead img{display:none}}
+@media(max-width:820px){.jhead img{display:none}.endc{padding-left:14px}.endc p{font-size:17px;line-height:1.9}}
 @media(max-width:820px){
   .wrap{padding:0 16px}
   .bar{margin:0 -16px;padding:12px 16px}
