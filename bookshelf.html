@@ -124,7 +124,7 @@ dialog.sheet[open]{animation:pop .32s cubic-bezier(.2,.8,.3,1)}
 .pq{margin-top:28px;font-size:22px;line-height:1.6;font-weight:500;padding-left:18px;border-left:3px solid var(--pop);max-width:30em}
 .plbl{font-size:13px;font-weight:600;letter-spacing:.06em;color:#9a9a9a;margin-top:36px}
 .rv{max-width:36em}
-.rv p{font-size:17.5px;line-height:1.95;color:var(--ink2);margin-top:18px;white-space:pre-line}
+.rv p{font-size:17.5px;line-height:1.95;color:#262626;margin-top:18px;white-space:pre-line}
 .ptags{display:flex;gap:12px;margin-top:26px;flex-wrap:wrap}
 .tag{font-size:14px;color:var(--mut)}
 
@@ -138,9 +138,22 @@ dialog.sheet[open]{animation:pop .32s cubic-bezier(.2,.8,.3,1)}
 .jr figure img{display:block;width:100%;border-radius:4px;box-shadow:0 10px 24px -10px rgba(0,0,0,.35);cursor:zoom-in}
 .jr figure::before{content:"";position:absolute;width:74px;height:20px;background:rgba(245,200,0,.55);top:-9px;left:50%;margin-left:-37px;transform:rotate(3deg);z-index:1}
 .jr p{font-size:17.5px;line-height:1.9;color:var(--ink2);margin-top:16px;white-space:pre-line}
-.endc{margin-top:22px;padding:4px 0 4px 26px;border-left:2px solid var(--pop)}
-.endc p{max-width:30em;font-size:17px;font-weight:400;line-height:2.05;letter-spacing:.005em;color:#4a4a4a;white-space:pre-line;text-wrap:pretty}
+.endc{margin-top:22px}
+.endc p{max-width:30em;font-size:17px;line-height:2.05;letter-spacing:.005em;color:#262626;white-space:pre-line;text-wrap:pretty}
 .endc p+p{margin-top:1.6em}
+/* formatted review (KANN paragraph styles) */
+.doc>*{max-width:30em}
+.doc>*+*{margin-top:1.1em}
+.doc p+p{margin-top:1.6em}
+.doc h2{font-size:24px;font-weight:600;line-height:1.5;color:var(--ink);margin-top:1.6em}
+.doc h3{font-size:20px;font-weight:600;line-height:1.55;color:var(--ink);margin-top:1.5em}
+.doc h4{font-size:17px;font-weight:600;line-height:1.6;color:var(--ink);margin-top:1.4em}
+.doc>h2:first-child,.doc>h3:first-child,.doc>h4:first-child{margin-top:0}
+.doc ul,.doc ol{padding-left:1.4em;font-size:17px;line-height:2;color:#262626}
+.doc li+li{margin-top:.3em}
+.doc li::marker{color:var(--mut)}
+.doc blockquote{border-left:3px solid var(--pop);padding:2px 0 2px 20px;font-size:17px;line-height:2;color:var(--ink);white-space:pre-line}
+.doc aside{background:var(--soft);border-radius:14px;padding:16px 20px;font-size:16.5px;line-height:1.95;color:#262626;white-space:pre-line}
 .pz{position:fixed;inset:0;z-index:60;background:rgba(0,0,0,.92);display:grid;place-items:center;overflow:hidden;touch-action:none;padding:16px;cursor:zoom-out}
 .pz img{max-width:100%;max-height:100%;object-fit:contain;transform-origin:50% 50%;user-select:none;-webkit-user-drag:none;cursor:zoom-in;will-change:transform}
 .pz.zin img{cursor:grab}.pz.zin.drag img{cursor:grabbing}
@@ -185,7 +198,7 @@ dialog.sheet[open]{animation:pop .32s cubic-bezier(.2,.8,.3,1)}
 .pnow i{width:7px;height:7px;border-radius:50%;background:var(--pop)}
 .sh.rbook .sh-img{display:none}
 .notyet{margin-top:18px;max-width:36em;padding:18px 22px;border-radius:16px;border:1.5px dashed var(--line);color:var(--mut);font-size:15px}
-@media(max-width:820px){.jhead img{display:none}.endc{padding-left:14px}.endc p{font-size:16.5px;line-height:2}}
+@media(max-width:820px){.jhead img{display:none}.endc p{font-size:16.5px;line-height:2}}
 @media(max-width:820px){
   .wrap{padding:0 16px}
   .bar{margin:0 -16px;padding:12px 16px}
@@ -273,6 +286,20 @@ const lastName = a => (a || '').replace(/\s*\(.*\)$/, '').trim().split(/\s+/).po
 const hash = s => { let h = 7; for (const c of s) h = (h * 31 + c.charCodeAt(0)) >>> 0; return h; };
 const lum = c => { const n = parseInt((c || '#888').slice(1), 16); return (n >> 16) * .3 + (n >> 8 & 255) * .59 + (n & 255) * .11; };
 const norm = t => (t || '').toLowerCase();
+// Cheese's review: formatted HTML from KANN (headings, lists, quote, callout) or plain paragraphs, kept exactly as written
+const RICH_TAGS = new Set(['P', 'B', 'I', 'U', 'H2', 'H3', 'H4', 'UL', 'OL', 'LI', 'BLOCKQUOTE', 'ASIDE', 'BR']);
+function richNodes(src) {
+  const out = [];
+  for (const c of src.childNodes) {
+    if (c.nodeType === 3) { out.push(document.createTextNode(c.textContent)); continue; }
+    if (c.nodeType !== 1) continue;
+    if (!RICH_TAGS.has(c.tagName)) { out.push(...richNodes(c)); continue; }
+    const e = document.createElement(c.tagName); e.append(...richNodes(c)); out.push(e);
+  }
+  return out;
+}
+const reviewBody = (txt, rich) => rich ? richNodes(new DOMParser().parseFromString(rich, 'text/html').body)
+  : txt.split(/\n{2,}/).map(t => t.trim()).filter(Boolean).map(t => el('p', {}, t));
 let books = [], now = [], cats = [], order = [], cur = -1, picked = null, mode = null, q = '';
 const sheet = $('#sheet');
 const phone = matchMedia('(max-width:820px)');
@@ -402,10 +429,10 @@ function openBook(i){
         el('div', { class: 'jm' }, [x.p ? 'หน้า ' + x.p : '', x.d ? thDate(x.d) : ''].filter(Boolean).join(' · ')),
         el('figure', {}, el('img', { src: x.img, alt: 'หน้า ' + (x.p || '') + ' ของ ' + b.title, loading: 'lazy', onclick: () => zoom(x.img) })),
         x.t ? el('p', {}, x.t) : null))),
-      (b.ending || b.review) ? [el('div', { class: 'plbl' }, 'อ่านจบแล้ว'), el('div', { class: 'endc' }, (b.ending || b.review).split(/\n{2,}/).map(t => el('p', {}, t.trim())).filter(x => x.textContent))]
+      (b.ending || b.review) ? [el('div', { class: 'plbl' }, 'อ่านจบแล้ว'), el('div', { class: 'endc doc' }, reviewBody(b.ending || b.review, b.ending ? '' : b.review_html))]
         : b.status === 'reading' ? el('p', { class: 'notyet' }, 'ยังอ่านอยู่ อ่านจบแล้วจะมาเขียนตรงนี้') : null]
     : b.status === 'reading' ? el('p', { class: 'notyet' }, 'ยังไม่ได้เก็บหน้าที่ชอบ เจอเมื่อไรจะขึ้นตรงนี้')
-    : b.review ? [el('div', { class: 'plbl' }, 'รีวิวเต็ม'), el('div', { class: 'rv' }, b.review.split(/\n{2,}/).map(t => el('p', {}, t)))]
+    : b.review ? [el('div', { class: 'plbl' }, 'รีวิวเต็ม'), el('div', { class: 'rv doc' }, reviewBody(b.review, b.review_html))]
       : b.liked ? [el('div', { class: 'plbl' }, 'ชอบตรงไหน'), el('div', { class: 'rv' }, el('p', {}, b.liked))] : null,
     (b.tags || []).length ? el('div', { class: 'ptags' }, b.tags.map(t => el('span', { class: 'tag' }, '#' + t))) : null].flat(2).filter(Boolean));
   $('.sh').classList.toggle('jbook', !!(b.pages || []).length || b.status === 'reading');

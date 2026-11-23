@@ -26,6 +26,29 @@ def arr(v):
             except Exception: v = []
     return v if isinstance(v, list) else []
 
+from html.parser import HTMLParser
+RICH = {'p', 'b', 'strong', 'i', 'em', 'u', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'ul', 'ol', 'li', 'blockquote', 'aside', 'br', 'div'}
+RICH_MAP = {'strong': 'b', 'em': 'i', 'h1': 'h2', 'h5': 'h4', 'h6': 'h4', 'div': 'p'}
+
+class _Clean(HTMLParser):
+    """Keep only the simple formatting KANN's review editor makes; drop every attribute."""
+    def __init__(self):
+        super().__init__(convert_charrefs=True); self.out = []; self.skip = 0
+    def handle_starttag(self, t, a):
+        if t in ('script', 'style'): self.skip += 1
+        elif t in RICH and not self.skip: self.out.append('<%s>' % RICH_MAP.get(t, t))
+    def handle_endtag(self, t):
+        if t in ('script', 'style'): self.skip = max(0, self.skip - 1)
+        elif t in RICH and t != 'br' and not self.skip: self.out.append('</%s>' % RICH_MAP.get(t, t))
+    def handle_data(self, d):
+        if not self.skip: self.out.append(html.escape(d, quote=False))
+
+def rich_html(s):
+    """Sanitised review HTML, or '' when the review has no formatting beyond plain paragraphs."""
+    if not s or not re.search(r'<(h[1-6]|ul|ol|blockquote|aside|b|strong|i|em|u)\b', s, re.I): return ''
+    c = _Clean(); c.feed(s); c.close()
+    return re.sub(r'(<p>(<br>|\s)*</p>)+', '', ''.join(c.out)).strip()
+
 def strip_html(s):
     s = re.sub(r'</p>\s*<p>|<br\s*/?>', '\n', s or '')
     return html.unescape(re.sub(r'<[^>]+>', '', s)).strip()
@@ -77,6 +100,9 @@ for nid, n in notes.items():
     if str(fl.get('rating') or '').isdigit(): b['rating'] = int(fl['rating'])
     rv = fl.get('transcript') or strip_html(fl.get('review'))
     if rv: b['review'] = rv
+    rh = '' if fl.get('transcript') else rich_html(fl.get('review'))
+    if rh: b['review_html'] = rh
+    else: b.pop('review_html', None)
     # status
     for k in ('status', 'start', 'page', 'pages', 'ending'): b.pop(k, None)
     if st == 'reading':
