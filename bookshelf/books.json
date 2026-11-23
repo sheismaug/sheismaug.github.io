@@ -1,5 +1,5 @@
 {
-  "updated": "2026-11-23",
+  "updated": "2026-11-24",
   "categories": [
     "จิตวิทยา",
     "พัฒนาตนเอง",
@@ -343,7 +343,21 @@
       ],
       "status": "reading",
       "start": "2026-11-16",
-      "page": 128
+      "page": 160,
+      "pages": [
+        {
+          "img": "bookshelf/pages/busfgwy862z283rrlc9j-a60db9c9.jpg",
+          "d": "2026-11-23",
+          "p": 128,
+          "t": "Try to keep in mind"
+        },
+        {
+          "img": "bookshelf/pages/busfgwy862z283rrlc9j-d767bcb2.jpg",
+          "d": "2026-11-23",
+          "p": 135,
+          "t": "อย่าสู้ในด้านที่ยังไงเราก็ไม่ชนะ สู้ในด้านที่เรา leverage ได้มากกว่า"
+        }
+      ]
     },
     {
       "id": "menkr639z1hw1rjh4etu",
