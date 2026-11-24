@@ -89,7 +89,7 @@ h1 span{display:inline-block;width:.2em;height:.2em;border-radius:50%;background
 /* real cover floats up when the mouse rests on a spine */
 .peek{position:fixed;z-index:9;width:150px;pointer-events:none;opacity:0;transform:translateY(8px) scale(.96);transition:opacity .2s,transform .25s cubic-bezier(.3,.7,.4,1)}
 .peek.on{opacity:1;transform:none}
-.peek img{display:block;width:100%;aspect-ratio:.72;object-fit:cover;object-position:50% 0;border-radius:4px;background:var(--soft);box-shadow:0 2px 4px rgba(0,0,0,.12),0 22px 40px -14px rgba(0,0,0,.45)}
+.peek img{display:block;width:100%;height:auto;border-radius:4px;background:var(--soft);box-shadow:0 2px 4px rgba(0,0,0,.12),0 22px 40px -14px rgba(0,0,0,.45)}
 .sp .tt{flex:1 1 auto;min-height:0;font-size:13px;font-weight:600;letter-spacing:.01em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .sp .au{flex:none;font-size:11px;opacity:.72;white-space:nowrap;max-height:42%;overflow:hidden;text-overflow:ellipsis}
 .sp:hover{transform:translateY(-8px)}
@@ -371,12 +371,17 @@ let peekT = 0;
 function showPeek(b, sp){
   clearTimeout(peekT);
   peekT = setTimeout(() => {
-    const img = peek.firstChild; img.onerror = () => { if (b.image && img.src.indexOf(b.image) < 0) img.src = b.image; };
-    img.src = b.face || b.image;
-    const r = sp.getBoundingClientRect(), w = 150, h = w / .72;
-    let x = r.left + r.width / 2 - w / 2, y = r.top - h - 18;
-    if (y < 8) y = Math.min(innerHeight - h - 8, r.bottom + 18);
-    peek.style.left = Math.max(8, Math.min(innerWidth - w - 8, x)) + 'px'; peek.style.top = y + 'px';
+    // clean cover from the web (bookshelf/real/<id>.jpg) when there is one, else Cheese's own photo
+    const img = peek.firstChild, own = b.face || b.image;
+    img.onerror = () => { img.onerror = null; img.src = own; };
+    img.src = 'bookshelf/real/' + b.id + '.jpg';
+    const place = () => {
+      const r = sp.getBoundingClientRect(), w = 150, h = img.naturalWidth ? w * img.naturalHeight / img.naturalWidth : w / .72;
+      let x = r.left + r.width / 2 - w / 2, y = r.top - h - 18;
+      if (y < 8) y = Math.min(innerHeight - h - 8, r.bottom + 18);
+      peek.style.left = Math.max(8, Math.min(innerWidth - w - 8, x)) + 'px'; peek.style.top = y + 'px';
+    };
+    img.onload = place; place();
     peek.classList.add('on');
   }, 350);
 }
