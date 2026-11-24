@@ -463,6 +463,7 @@ const RENAL = [
  {name:'Co-trimoxazole', r:'both', rt:'กิน/ฉีด', n:['ตามข้อบ่งใช้',''], a:[[15,31,{d:'ลด 50%'}],[0,15,{avoid:'ไม่แนะนำ'}]]},
  {name:'Digoxin', r:'both', rt:'กิน/ฉีด', n:['0.125 – 0.25 mg','วันละครั้ง'], a:[[30,50,{d:'ลดขนาด', x:'ติดตามระดับยา'}],[0,30,{d:'ลดขนาด', f:'ยืดระยะ', x:'ติดตามระดับยา'}]]},
  {name:'Enoxaparin', r:'inj', rt:'ฉีด (รักษา)', n:['1 mg/kg','q 12 h'], a:[[15,30,{f:'q 24 h', x:'ป้องกัน: 30 mg วันละครั้ง'}],[0,15,{avoid:'หลีกเลี่ยง · ใช้ UFH'}]]},
+ {name:'Ethambutol', r:'oral', rt:'กิน · TB', n:['15 – 20 mg/kg','วันละครั้ง'], a:[[0,30,{f:'3 ครั้ง/สัปดาห์ (จ / พ / ศ)', x:'ขนาดต่อครั้งเท่าเดิม · HD: ให้หลังฟอก'}]]},
  {name:'Gabapentin', r:'oral', rt:'กิน', n:['300 – 1,200 mg','วันละ 3 ครั้ง'], a:[[30,60,{d:'200 – 700 mg', f:'วันละ 2 ครั้ง'}],[15,30,{d:'200 – 700 mg', f:'วันละครั้ง'}],[0,15,{d:'100 – 300 mg', f:'วันละครั้ง', x:'HD: ให้เสริมหลังฟอก'}]]},
  {name:'Gentamicin', r:'inj', rt:'ฉีด', n:['5 – 7 mg/kg','q 24 h'], a:[[15,50,{f:'ยืดระยะตาม TDM'}],[0,15,{d:'ตามระดับยา', f:'ตามระดับยา'}]]},
  {name:'Levofloxacin', r:'oral', rt:'กิน (500 mg) · ไม่ใช่ขนาดรักษา TB → ดูแท็บ ยา TB', n:['500 mg','q 24 h'], a:[[20,50,{d:'250 mg', x:'ครั้งแรก 500 mg'}],[10,20,{d:'250 mg', f:'q 48 h', x:'ครั้งแรก 500 mg'}],[0,10,{d:'250 mg', f:'q 48 h', x:'ครั้งแรก 500 mg · HD: ไม่ต้องเสริมหลังฟอก'}]]},
@@ -470,9 +471,10 @@ const RENAL = [
  {name:'Norfloxacin', r:'oral', rt:'กิน (400 mg)', n:['400 mg','q 12 h'], a:[[0,31,{f:'q 24 h'}]]},
  {name:'Ofloxacin', r:'oral', rt:'กิน (200 mg)', n:['200 – 400 mg','q 12 h'], a:[[20,51,{f:'q 24 h'}],[0,20,{d:'100 – 200 mg', f:'q 24 h', x:'50% ของขนาดปกติ'}]]},
  {name:'Oseltamivir', r:'oral', rt:'กิน · รักษา', n:['75 mg','วันละ 2 ครั้ง'], a:[[31,61,{d:'30 mg', x:'ป้องกัน: 30 mg วันละครั้ง'}],[11,31,{d:'30 mg', f:'วันละครั้ง', x:'ป้องกัน: 30 mg วันเว้นวัน'}],[0,11,{d:'HD: 30 mg', f:'หลังฟอกแต่ละครั้ง', x:'ไม่ได้ฟอกไต: ไม่แนะนำ'}]]},
+ {name:'Pyrazinamide', r:'oral', rt:'กิน · TB', n:['20 – 30 mg/kg','วันละครั้ง'], a:[[0,30,{f:'3 ครั้ง/สัปดาห์ (จ / พ / ศ)', x:'ขนาดต่อครั้งเท่าเดิม · HD: ให้หลังฟอก'}]]},
  {name:'Penicillin G sodium', r:'inj', rt:'ฉีด', n:['2 – 4 MU','q 4 – 6 h'], a:[[10,51,{d:'1.5 – 3 MU', x:'75% ของขนาดปกติ'}],[0,10,{d:'0.4 – 2 MU', x:'20 – 50% ของขนาดปกติ'}]]}
 ];
-const RENAL_NOADJ = 'Ceftriaxone · Clindamycin · Cloxacillin · Azithromycin';
+const RENAL_NOADJ = 'Ceftriaxone · Clindamycin · Cloxacillin · Azithromycin · Isoniazid · Rifampicin';
 
 const HAD_DB = {
       ne:        { name:'Norepinephrine', short:'NE', badge:'IV drip', image:'HAD_picture/norepinephrine.png', freq:'ทุก 2-5 นาที (BP/HR)', mode:'rate', inputUnit:'mL/hr', convUnit:'mcg/kg/min', weightBased:true, convFn:function(r,w){return(r*16)/(w*60)}, convFmt:function(v){return v.toFixed(3)}, warnAt:0.4, maxAt:0.5, defaultRate:8,
