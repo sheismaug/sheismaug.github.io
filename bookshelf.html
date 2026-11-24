@@ -123,6 +123,21 @@ dialog.sheet[open]{animation:pop .32s cubic-bezier(.2,.8,.3,1)}
 .stars{color:var(--ink);letter-spacing:2px;margin-left:6px}
 .pq{margin-top:28px;font-size:22px;line-height:1.6;font-weight:500;padding-left:18px;border-left:3px solid var(--pop);max-width:30em}
 .plbl{font-size:13px;font-weight:600;letter-spacing:.06em;color:#9a9a9a;margin-top:36px}
+/* before reading: why this book */
+.pwhy{margin-top:26px;max-width:36em}.pwhy p{font-size:16.5px;line-height:1.9;color:#555;margin-top:8px;white-space:pre-line}
+/* closing card: what I liked + small scores */
+.fcard{margin-top:34px;display:grid;grid-template-columns:minmax(0,1.25fr) minmax(0,1fr);gap:30px;border:1px solid var(--line);border-radius:20px;padding:26px 28px}
+.fcard.one{grid-template-columns:minmax(0,1fr)}
+.fcard .k{font-size:13px;font-weight:600;letter-spacing:.06em;color:#9a9a9a;margin-bottom:10px}
+.fcard .lk{font-size:16.5px;line-height:1.95;color:#262626;white-space:pre-line}
+.fcard .cr{display:grid;gap:15px;align-content:start;border-left:1px solid #efefef;padding-left:28px}
+.fcard.one .cr{border-left:0;padding-left:0}
+.fcard .row{display:flex;align-items:center;gap:12px}.fcard .row span{flex:1;font-size:15px;color:#262626}
+.fcard .bars{display:flex;gap:5px}.fcard .bars i{width:24px;height:6px;border-radius:3px;background:#ececec}.fcard .bars i.on{background:var(--pop)}
+.fcard .row small{width:50px;text-align:right;font-size:13px;color:#8a8a8a}
+.fcard .ft{grid-column:1/-1;border-top:1px solid #f1f1f1;padding-top:15px;display:flex;justify-content:space-between;gap:16px;font-size:14px;color:#8a8a8a}
+.fcard .ft b{color:var(--ink);font-weight:600}.fcard .ft .st{color:var(--pop);letter-spacing:3px;white-space:nowrap}
+@media (max-width:640px){.fcard{grid-template-columns:minmax(0,1fr);padding:20px;gap:22px}.fcard .cr{border-left:0;padding-left:0;border-top:1px solid #efefef;padding-top:20px}}
 .rv{max-width:36em}
 .rv p{font-size:17.5px;line-height:1.95;color:#262626;margin-top:18px;white-space:pre-line}
 .ptags{display:flex;gap:12px;margin-top:26px;flex-wrap:wrap}
@@ -283,6 +298,18 @@ dialog.sheet[open]{animation:pop .32s cubic-bezier(.2,.8,.3,1)}
 const $ = s => document.querySelector(s);
 const el = (t, a = {}, ...k) => { const e = document.createElement(t); for (const [n, v] of Object.entries(a)) { if (v == null || v === false) continue; if (n === 'class') e.className = v; else if (n === 'style') e.style.cssText = v; else if (n.startsWith('on')) e.addEventListener(n.slice(2), v); else e.setAttribute(n, v); } e.append(...k.flat(2).filter(x => x != null && x !== false)); return e; };
 const stars = n => n ? '★'.repeat(n) + '☆'.repeat(5 - n) : '';
+const STAR_MEAN = ['', 'ไม่ใช่สำหรับเรา', 'พอได้ มีบางช่วงที่ชอบ', 'ดี เพลินๆ ไม่เสียเวลา', 'ชอบมาก แนะนำได้เลย', 'เปลี่ยนความคิดเรา อยากให้ทุกคนได้อ่าน'];
+const CRIT = [['enjoy', 'เพลิน วางไม่ลง'], ['gain', 'ได้อะไรกลับมา'], ['stay', 'ติดอยู่ในหัว'], ['craft', 'ภาษา วิธีเล่า']], CRIT_W = ['', 'เฉยๆ', 'ดี', 'ชอบมาก'];
+function closingCard(b, withLiked) {
+  const cr = CRIT.filter(([k]) => b.crit && b.crit[k]), liked = withLiked && b.liked;
+  if (!liked && !cr.length) return null;
+  const mean = STAR_MEAN[b.rating] || '', sp = mean.indexOf(' ');
+  return el('div', { class: 'fcard' + (liked && cr.length ? '' : ' one') },
+    liked ? el('div', {}, el('div', { class: 'k' }, 'ชอบตรงไหน'), el('p', { class: 'lk' }, b.liked)) : null,
+    cr.length ? el('div', { class: 'cr' }, el('div', { class: 'k' }, 'ให้คะแนน'), cr.map(([k, l]) => el('div', { class: 'row' }, el('span', {}, l),
+      el('span', { class: 'bars', 'aria-label': CRIT_W[b.crit[k]] }, [1, 2, 3].map(i => el('i', { class: i <= b.crit[k] ? 'on' : '' }))), el('small', {}, CRIT_W[b.crit[k]])))) : null,
+    b.rating ? el('div', { class: 'ft' }, el('span', {}, sp > 0 ? [el('b', {}, mean.slice(0, sp)), ' ' + mean.slice(sp + 1)] : el('b', {}, mean)), el('span', { class: 'st' }, '★'.repeat(b.rating))) : null);
+}
 const shortTitle = t => t.replace(/\s*\(.*\)$/, '').replace(/:.*$/, '');
 const lastName = a => (a || '').replace(/\s*\(.*\)$/, '').trim().split(/\s+/).pop();
 const hash = s => { let h = 7; for (const c of s) h = (h * 31 + c.charCodeAt(0)) >>> 0; return h; };
@@ -431,17 +458,18 @@ function openBook(i){
     el('h2', { class: 'ptitle' }, b.title),
     b.author ? el('div', { class: 'pauthor' }, b.author, b.rating ? el('span', { class: 'stars' }, stars(b.rating)) : null) : null,
     b.status === 'reading' ? el('div', { class: 'pnow' }, el('i'), 'กำลังอ่าน · ' + nowLine(b)) : null)),
+    b.why ? el('div', { class: 'pwhy' }, el('div', { class: 'plbl', style: 'margin-top:0' }, 'ทำไมถึงอยากอ่าน'), el('p', {}, b.why)) : null,
     b.quote ? el('blockquote', { class: 'pq' }, b.quote) : null,
     (b.pages || []).length ? [el('div', { class: 'plbl' }, 'ระหว่างอ่าน · ' + b.pages.length + ' หน้าที่ชอบ'),
       el('ol', { class: 'jr' }, b.pages.map(x => el('li', {},
         el('div', { class: 'jm' }, [x.p ? 'หน้า ' + x.p : '', x.d ? thDate(x.d) : ''].filter(Boolean).join(' · ')),
         el('figure', {}, el('img', { src: x.img, alt: 'หน้า ' + (x.p || '') + ' ของ ' + b.title, loading: 'lazy', onclick: () => zoom(x.img) })),
         x.t ? el('p', {}, x.t) : null))),
-      (b.ending || b.review) ? [el('div', { class: 'plbl' }, 'อ่านจบแล้ว'), el('div', { class: 'endc doc' }, reviewBody(b.ending || b.review, b.ending ? '' : b.review_html))]
+      (b.ending || b.review) ? [el('div', { class: 'plbl' }, 'อ่านจบแล้ว'), el('div', { class: 'endc doc' }, reviewBody(b.ending || b.review, b.ending ? '' : b.review_html)), closingCard(b, true)]
         : b.status === 'reading' ? el('p', { class: 'notyet' }, 'ยังอ่านอยู่ อ่านจบแล้วจะมาเขียนตรงนี้') : null]
     : b.status === 'reading' ? el('p', { class: 'notyet' }, 'ยังไม่ได้เก็บหน้าที่ชอบ เจอเมื่อไรจะขึ้นตรงนี้')
-    : b.review ? [el('div', { class: 'plbl' }, 'รีวิวเต็ม'), el('div', { class: 'rv doc' }, reviewBody(b.review, b.review_html))]
-      : b.liked ? [el('div', { class: 'plbl' }, 'ชอบตรงไหน'), el('div', { class: 'rv' }, el('p', {}, b.liked))] : null,
+    : b.review ? [el('div', { class: 'plbl' }, 'รีวิวเต็ม'), el('div', { class: 'rv doc' }, reviewBody(b.review, b.review_html)), closingCard(b, true)]
+      : b.liked ? [el('div', { class: 'plbl' }, 'ชอบตรงไหน'), el('div', { class: 'rv' }, el('p', {}, b.liked)), closingCard(b, false)] : null,
     (b.tags || []).length ? el('div', { class: 'ptags' }, b.tags.map(t => el('span', { class: 'tag' }, '#' + t))) : null].flat(2).filter(Boolean));
   $('.sh').classList.toggle('jbook', !!(b.pages || []).length || b.status === 'reading');
   $('.sh').classList.toggle('rbook', b.status === 'reading');

@@ -118,8 +118,14 @@ for nid, n in notes.items():
     if n.get('tags'): b['tags'] = n['tags']
     if st == 'reading': b['date'] = n.get('startDate') or b.get('date', '')
     elif n.get('date'): b['date'] = n['date']
-    for k in ('liked', 'quote'):
+    for k in ('liked', 'quote', 'why'):
         if fl.get(k): b[k] = fl[k]
+        else: b.pop(k, None) if k == 'why' else None
+    # small scores (1-3) shown on the closing card; never fields.life (private)
+    cr = fl.get('crit') if isinstance(fl.get('crit'), dict) else {}
+    cr = {k: int(v) for k, v in cr.items() if k in ('enjoy', 'gain', 'stay', 'craft') and str(v).isdigit() and 1 <= int(v) <= 3}
+    if cr: b['crit'] = cr
+    else: b.pop('crit', None)
     if str(fl.get('rating') or '').isdigit(): b['rating'] = int(fl['rating'])
     rv = fl.get('transcript') or strip_html(fl.get('review'))
     if rv: b['review'] = rv
