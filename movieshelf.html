@@ -145,15 +145,21 @@ dialog.sheet[open]{animation:pop .3s cubic-bezier(.2,.8,.3,1)}
 
 .pq{margin-top:26px;font-size:21px;line-height:1.6;font-weight:500;padding-left:18px;border-left:3px solid var(--pop);max-width:30em}
 .plbl{font-size:13px;font-weight:600;letter-spacing:.06em;color:#9a9a9a;margin-top:34px}
-.jr{list-style:none;margin:22px 0 0;padding:0 0 0 22px;border-left:2px dashed var(--line);display:grid;gap:36px;max-width:36em}
-.jr li{position:relative}
-.jr li::before{content:"";position:absolute;left:-29px;top:4px;width:12px;height:12px;border-radius:50%;background:var(--pop);box-shadow:0 0 0 3px #fff}
+.jr{list-style:none;margin:16px 0 0;padding:12px 2px 18px;display:flex;gap:20px;overflow-x:auto;scroll-snap-type:x mandatory;scroll-behavior:smooth;scrollbar-width:none;overscroll-behavior-x:contain}
+.jr::-webkit-scrollbar{display:none}
+.sh-body{min-width:0}
+.jr li{flex:0 0 min(80%,290px);scroll-snap-align:start;min-width:0}
 .jr .jm{font-size:13px;color:var(--mut);font-weight:500}
-.jr figure{position:relative;margin:14px 0 0;max-width:380px;transform:rotate(-1.2deg)}
+.jr figure{position:relative;margin:14px 0 0;transform:rotate(-1deg)}
 .jr li:nth-child(even) figure{transform:rotate(1deg)}
-.jr figure img{display:block;width:100%;border-radius:4px;box-shadow:0 10px 24px -10px rgba(0,0,0,.35);cursor:zoom-in}
-.jr figure::before{content:"";position:absolute;width:74px;height:20px;background:rgba(245,200,0,.55);top:-9px;left:50%;margin-left:-37px;transform:rotate(3deg);z-index:1}
-.jr p{font-size:17.5px;line-height:1.9;color:var(--ink2);margin-top:16px;white-space:pre-line}
+.jr figure img{display:block;width:100%;aspect-ratio:16 / 10;object-fit:cover;border-radius:4px;box-shadow:0 10px 22px -10px rgba(0,0,0,.35);cursor:zoom-in;background:#f2f2f2}
+.jr figure::before{content:"";position:absolute;width:64px;height:18px;background:rgba(245,200,0,.55);top:-8px;left:50%;margin-left:-32px;transform:rotate(3deg);z-index:1}
+.jr p{font-size:16px;line-height:1.85;color:var(--ink2);margin-top:16px;white-space:pre-line}
+.jrh{display:flex;align-items:center;gap:10px}.jrh>span:first-child{flex:1}
+.jrn{display:none;gap:6px}
+.jrn button{width:34px;height:34px;border-radius:50%;border:1px solid var(--line);background:#fff;color:var(--ink);font-size:17px;line-height:1;cursor:pointer;padding:0}
+.jrn button:disabled{opacity:.3;cursor:default}
+@media (hover:hover){.jrn{display:flex}}
 .endc{margin-top:18px;max-width:36em;padding:22px 24px;border-radius:16px;background:var(--soft)}
 .endc p{font-size:17.5px;line-height:1.95;color:var(--ink2);white-space:pre-line}
 .endc p+p{margin-top:14px}
@@ -191,12 +197,6 @@ dialog.sheet[open]{animation:pop .3s cubic-bezier(.2,.8,.3,1)}
   .sh.jbook .sh-body>*:not(.sh-top){max-width:820px;margin-left:auto;margin-right:auto}
   .jhead{display:flex;gap:22px;align-items:flex-end}
   .jhead>img{width:180px;aspect-ratio:16/10;object-fit:cover;border-radius:10px;box-shadow:0 10px 24px -12px rgba(0,0,0,.4);flex:none}
-  .sh.jbook .jr{max-width:none;padding-left:30px}
-  .sh.jbook .jr li{display:grid;grid-template-columns:320px minmax(0,1fr);grid-template-rows:auto 1fr;gap:10px 36px;align-items:start}
-  .sh.jbook .jr li::before{left:-37px}
-  .sh.jbook .jr .jm{grid-column:2;grid-row:1;margin-top:6px}
-  .sh.jbook .jr figure{grid-column:1;grid-row:1 / span 2;margin:0}
-  .sh.jbook .jr p{grid-column:2;grid-row:2;margin-top:0;font-size:18px;max-width:28em}
   .sh.jbook .endc,.sh.jbook .rv{max-width:none}
   .sh.jbook .src{display:block}
 }
@@ -319,6 +319,15 @@ function hlSvg(hl, fit = 'meet') {
     g.append(pl);
   }
   sv.append(g); return sv;
+}
+function railHead(label) {
+  const nav = el('span', { class: 'jrn' });
+  const rail = () => nav.closest('.jrh')?.nextElementSibling;
+  const sync = () => { const r = rail(); if (!r) return; const [a, b] = nav.children; a.disabled = r.scrollLeft < 4; b.disabled = r.scrollLeft + r.clientWidth > r.scrollWidth - 4; };
+  const go = d => { const r = rail(); if (r) r.scrollBy({ left: d * Math.max(260, r.clientWidth * .8) }); };
+  nav.append(el('button', { type: 'button', 'aria-label': 'ก่อนหน้า', onclick: () => go(-1) }, '‹'), el('button', { type: 'button', 'aria-label': 'ถัดไป', onclick: () => go(1) }, '›'));
+  requestAnimationFrame(() => { const r = rail(); if (r) { r.addEventListener('scroll', sync, { passive: true }); sync(); } });
+  return el('div', { class: 'plbl jrh' }, el('span', {}, label), nav);
 }
 function photoZoom(src, host = document.body, hl = null) {
   const z = document.createElement('div'); z.className = 'pz';
@@ -457,10 +466,10 @@ function open(i){
       m.status === 'reading' ? el('div', { class: 'pnow' }, el('i'), 'กำลังดู' + (nowLine(m) ? ' · ' + nowLine(m) : ''))
         : el('div', { class: 'pline' }, m.cheese != null ? el('span', { class: 'pscore' }, '🧀 ' + num(m.cheese), el('small', {}, '/10')) : null, el('span', {}, (m.start && m.start !== m.date ? 'ดู ' + (Math.round((new Date(m.date + 'T00:00') - new Date(m.start + 'T00:00')) / 864e5) + 1) + ' วัน · จบ ' : 'โพสต์เมื่อ ') + fmt(m.date))))),
     m.quote ? el('blockquote', { class: 'pq' }, m.quote) : null,
-    (m.pages || []).length ? [el('div', { class: 'plbl' }, 'ระหว่างดู · ' + m.pages.length + ' ฉากที่ชอบ'),
+    (m.pages || []).length ? [railHead('ระหว่างดู · ' + m.pages.length + ' ฉากที่ชอบ'),
       el('ol', { class: 'jr' }, m.pages.map(x => el('li', {},
         el('div', { class: 'jm' }, [x.p ? 'EP ' + x.p : '', x.d ? thDate(x.d) : ''].filter(Boolean).join(' · ')),
-        el('figure', {}, el('img', { src: x.img, alt: 'ฉากจาก ' + m.title + (x.p ? ' EP ' + x.p : ''), loading: 'lazy', onclick: () => zoom(x.img, x.hl) }), hlSvg(x.hl)),
+        el('figure', {}, el('img', { src: x.img, alt: 'ฉากจาก ' + m.title + (x.p ? ' EP ' + x.p : ''), loading: 'lazy', onclick: () => zoom(x.img, x.hl) }), hlSvg(x.hl, 'slice')),
         x.t ? el('p', {}, x.t) : null)))] : null,
     m.ending ? [el('div', { class: 'plbl' }, 'ดูจบแล้ว'), el('div', { class: 'endc' }, paras(m.ending))] : null,
     m.status === 'reading' && !m.ending ? el('p', { class: 'notyet' }, (m.pages || []).length ? 'ยังดูอยู่ ดูจบแล้วจะมาเขียนตรงนี้' : 'ยังไม่ได้เก็บฉากที่ชอบ เจอเมื่อไรจะขึ้นตรงนี้') : null,

@@ -169,15 +169,21 @@ dialog.sheet[open]{animation:pop .32s cubic-bezier(.2,.8,.3,1)}
 .tag i{font-style:normal;color:#b0b0b0;margin-right:1px}
 
 /* reading journal: saved pages + ending */
-.jr{list-style:none;margin:22px 0 0;padding:0 0 0 22px;border-left:2px dashed var(--line);display:grid;gap:38px;max-width:36em}
-.jr li{position:relative}
-.jr li::before{content:"";position:absolute;left:-29px;top:4px;width:12px;height:12px;border-radius:50%;background:var(--pop);box-shadow:0 0 0 3px #fff}
+.jr{list-style:none;margin:16px 0 0;padding:12px 2px 18px;display:flex;gap:20px;overflow-x:auto;scroll-snap-type:x mandatory;scroll-behavior:smooth;scrollbar-width:none;overscroll-behavior-x:contain}
+.jr::-webkit-scrollbar{display:none}
+.sh-body{min-width:0}
+.jr li{flex:0 0 min(80%,290px);scroll-snap-align:start;min-width:0}
 .jr .jm{font-size:13px;color:var(--mut);font-weight:500}
-.jr figure{position:relative;margin:14px 0 0;max-width:340px;transform:rotate(-1.2deg)}
+.jr figure{position:relative;margin:14px 0 0;transform:rotate(-1deg)}
 .jr li:nth-child(even) figure{transform:rotate(1deg)}
-.jr figure img{display:block;width:100%;border-radius:4px;box-shadow:0 10px 24px -10px rgba(0,0,0,.35);cursor:zoom-in}
-.jr figure::before{content:"";position:absolute;width:74px;height:20px;background:rgba(245,200,0,.55);top:-9px;left:50%;margin-left:-37px;transform:rotate(3deg);z-index:1}
-.jr p{font-size:17.5px;line-height:1.9;color:var(--ink2);margin-top:16px;white-space:pre-line}
+.jr figure img{display:block;width:100%;aspect-ratio:3 / 4;object-fit:cover;border-radius:4px;box-shadow:0 10px 22px -10px rgba(0,0,0,.35);cursor:zoom-in;background:#f2f2f2}
+.jr figure::before{content:"";position:absolute;width:64px;height:18px;background:rgba(245,200,0,.55);top:-8px;left:50%;margin-left:-32px;transform:rotate(3deg);z-index:1}
+.jr p{font-size:16px;line-height:1.85;color:var(--ink2);margin-top:16px;white-space:pre-line}
+.jrh{display:flex;align-items:center;gap:10px}.jrh>span:first-child{flex:1}
+.jrn{display:none;gap:6px}
+.jrn button{width:34px;height:34px;border-radius:50%;border:1px solid var(--line);background:#fff;color:var(--ink);font-size:17px;line-height:1;cursor:pointer;padding:0}
+.jrn button:disabled{opacity:.3;cursor:default}
+@media (hover:hover){.jrn{display:flex}}
 .endc{margin-top:22px}
 .endc p{font-size:17px;line-height:2.05;letter-spacing:.005em;color:#262626;white-space:pre-line;text-wrap:pretty}
 .endc p+p{margin-top:1.6em}
@@ -213,12 +219,6 @@ dialog.sheet[open]{animation:pop .32s cubic-bezier(.2,.8,.3,1)}
   .sh.jbook .sh-body>.plbl{margin-top:36px}
   .jhead{display:flex;gap:22px;align-items:flex-end}
   .jhead img{width:96px;border-radius:8px;box-shadow:0 10px 24px -12px rgba(0,0,0,.4);flex:none}
-  .sh.jbook .jr{max-width:none;padding-left:30px}
-  .sh.jbook .jr li{display:grid;grid-template-columns:280px minmax(0,1fr);grid-template-rows:auto 1fr;gap:10px 36px;align-items:start}
-  .sh.jbook .jr li::before{left:-37px}
-  .sh.jbook .jr .jm{grid-column:2;grid-row:1;margin-top:6px}
-  .sh.jbook .jr figure{grid-column:1;grid-row:1 / span 2;margin:0}
-  .sh.jbook .jr p{grid-column:2;grid-row:2;margin-top:0;font-size:18px;max-width:28em}
   .sh.jbook .endc{max-width:none}
 }
 /* reading now */
@@ -468,6 +468,15 @@ function hlSvg(hl, fit = 'meet') {
   }
   sv.append(g); return sv;
 }
+function railHead(label) {
+  const nav = el('span', { class: 'jrn' });
+  const rail = () => nav.closest('.jrh')?.nextElementSibling;
+  const sync = () => { const r = rail(); if (!r) return; const [a, b] = nav.children; a.disabled = r.scrollLeft < 4; b.disabled = r.scrollLeft + r.clientWidth > r.scrollWidth - 4; };
+  const go = d => { const r = rail(); if (r) r.scrollBy({ left: d * Math.max(260, r.clientWidth * .8) }); };
+  nav.append(el('button', { type: 'button', 'aria-label': 'ก่อนหน้า', onclick: () => go(-1) }, '‹'), el('button', { type: 'button', 'aria-label': 'ถัดไป', onclick: () => go(1) }, '›'));
+  requestAnimationFrame(() => { const r = rail(); if (r) { r.addEventListener('scroll', sync, { passive: true }); sync(); } });
+  return el('div', { class: 'plbl jrh' }, el('span', {}, label), nav);
+}
 function photoZoom(src, host = document.body, hl = null) {
   const z = document.createElement('div'); z.className = 'pz';
   const img = new Image(); img.src = src; img.alt = ''; img.draggable = false;
@@ -536,10 +545,10 @@ function openBook(i){
     b.status === 'reading' ? el('div', { class: 'pnow' }, el('i'), 'กำลังอ่าน · ' + nowLine(b)) : null)),
     b.why ? el('div', { class: 'pwhy' }, el('div', { class: 'plbl', style: 'margin-top:0' }, 'ทำไมถึงอยากอ่าน'), el('p', {}, b.why)) : null,
     b.quote ? el('blockquote', { class: 'pq' }, b.quote) : null,
-    (b.pages || []).length ? [el('div', { class: 'plbl' }, 'ระหว่างอ่าน · ' + b.pages.length + ' หน้าที่ชอบ'),
+    (b.pages || []).length ? [railHead('ระหว่างอ่าน · ' + b.pages.length + ' หน้าที่ชอบ'),
       el('ol', { class: 'jr' }, b.pages.map(x => el('li', {},
         el('div', { class: 'jm' }, [x.p ? 'หน้า ' + x.p : '', x.d ? thDate(x.d) : ''].filter(Boolean).join(' · ')),
-        el('figure', {}, el('img', { src: x.img, alt: x.q || ('หน้า ' + (x.p || '') + ' ของ ' + b.title), loading: 'lazy', onclick: () => zoom(x.img, x.hl) }), hlSvg(x.hl)),
+        el('figure', {}, el('img', { src: x.img, alt: x.q || ('หน้า ' + (x.p || '') + ' ของ ' + b.title), loading: 'lazy', onclick: () => zoom(x.img, x.hl) }), hlSvg(x.hl, 'slice')),
         x.t ? el('p', {}, x.t) : null))),
       (b.ending || b.review) ? [el('div', { class: 'plbl' }, 'อ่านจบแล้ว'), el('div', { class: 'endc doc' }, reviewBody(b.ending || b.review, b.ending ? '' : b.review_html)), closingCard(b, true)]
         : b.status === 'reading' ? el('p', { class: 'notyet' }, 'ยังอ่านอยู่ อ่านจบแล้วจะมาเขียนตรงนี้') : null]
