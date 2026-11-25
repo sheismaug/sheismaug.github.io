@@ -10,7 +10,7 @@ Only notes with public:true, type book, status done/reading (or no status) are p
 Pages marked hide are never published. Journal entries / treadmill data are never published.
 Movies/series: public screen notes, status done/reading. Existing movieshelf entries keep their curated
 title, group, genre, year, poster and (for Facebook imports) review; KANN adds cheese, quote, favourite
-scenes (n.pages, hide skipped), ending (n.pagesEnd), status/start/EP. Watch-log text is never published.
+scenes (n.pages, hide skipped; highlighter strokes hl + highlighted text q go along as overlay data, photos untouched), ending (n.pagesEnd), status/start/EP. Watch-log text is never published.
 """
 import ast, glob, html, json, os, re, sys
 from PIL import Image
@@ -155,6 +155,9 @@ for nid, n in notes.items():
         e = {'img': dst, 'd': p.get('d', '')}
         if p.get('p'): e['p'] = p['p']
         if p.get('t'): e['t'] = p['t']
+        hl = p.get('hl') or {}
+        if hl.get('s') and hl.get('ar'): e['hl'] = {'ar': hl['ar'], 's': [{'w': k['w'], 'p': k['p']} for k in hl['s'] if k.get('p')]}
+        if hl.get('s') and (p.get('q') or '').strip(): e['q'] = p['q'].strip()
         pages.append(e)
     if pages: b['pages'] = pages
     if (n.get('pagesEnd') or '').strip(): b['ending'] = n['pagesEnd'].strip()
@@ -222,6 +225,9 @@ for nid, n in notes.items():
         e = {'img': dst, 'd': p.get('d', '')}
         if p.get('p'): e['p'] = p['p']
         if p.get('t'): e['t'] = p['t']
+        hl = p.get('hl') or {}
+        if hl.get('s') and hl.get('ar'): e['hl'] = {'ar': hl['ar'], 's': [{'w': k['w'], 'p': k['p']} for k in hl['s'] if k.get('p')]}
+        if hl.get('s') and (p.get('q') or '').strip(): e['q'] = p['q'].strip()
         scenes.append(e)
     if scenes: m['pages'] = scenes
     if (n.get('pagesEnd') or '').strip(): m['ending'] = n['pagesEnd'].strip()

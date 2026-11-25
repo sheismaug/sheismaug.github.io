@@ -196,6 +196,8 @@ dialog.sheet[open]{animation:pop .32s cubic-bezier(.2,.8,.3,1)}
 .doc aside{background:var(--soft);border-radius:14px;padding:16px 20px;font-size:16.5px;line-height:1.95;color:#262626;white-space:pre-line}
 .pz{position:fixed;inset:0;z-index:60;background:rgba(0,0,0,.92);display:grid;place-items:center;overflow:hidden;touch-action:none;padding:16px;cursor:zoom-out}
 .pz img{max-width:100%;max-height:100%;object-fit:contain;transform-origin:50% 50%;user-select:none;-webkit-user-drag:none;cursor:zoom-in;will-change:transform}
+.jr figure .hlsv{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;mix-blend-mode:multiply;border-radius:4px}
+.pz .pzhl{position:absolute;pointer-events:none;mix-blend-mode:multiply;transform-origin:50% 50%;will-change:transform}
 .pz.zin img{cursor:grab}.pz.zin.drag img{cursor:grabbing}
 .pz .pzx{position:absolute;top:calc(12px + env(safe-area-inset-top,0px));right:12px;width:40px;height:40px;border-radius:50%;border:0;background:rgba(255,255,255,.16);color:#fff;font-size:22px;line-height:40px;cursor:pointer}
 .pz .pzh{position:absolute;bottom:calc(14px + env(safe-area-inset-bottom,0px));left:0;right:0;text-align:center;color:rgba(255,255,255,.7);font-size:13px;pointer-events:none;transition:opacity .3s}
@@ -446,12 +448,31 @@ function render(){
   if (!picked || !vis.includes(picked)) pick(vis.includes(books[0]) ? books[0] : vis[0], true);
 }
 const thDate = d => { try { return new Date(d + 'T00:00').toLocaleDateString('th-TH', { day: 'numeric', month: 'short', year: 'numeric' }); } catch (e) { return d; } };
-function photoZoom(src, host = document.body) {
+/* highlighter strokes over a page photo: hl = {ar: H/W, s:[{w, p:[x,y,x,y…]}]} in units where image width = 1000. The photo itself is never changed. */
+const HL_NS = 'http://www.w3.org/2000/svg';
+function hlSvg(hl, fit = 'meet') {
+  if (!hl || !(hl.s||[]).length || !hl.ar) return null;
+  const sv = document.createElementNS(HL_NS, 'svg');
+  sv.setAttribute('class', 'hlsv'); sv.setAttribute('aria-hidden', 'true');
+  sv.setAttribute('viewBox', '0 0 1000 ' + Math.round(1000 * hl.ar));
+  sv.setAttribute('preserveAspectRatio', 'xMidYMid ' + fit);
+  const g = document.createElementNS(HL_NS, 'g'); g.setAttribute('opacity', '.62');
+  for (const k of hl.s) {
+    const pl = document.createElementNS(HL_NS, 'polyline');
+    const p = k.p.length === 2 ? [k.p[0], k.p[1], k.p[0] + .1, k.p[1]] : k.p;
+    pl.setAttribute('points', p.join(' ')); pl.setAttribute('fill', 'none'); pl.setAttribute('stroke', '#ffd83d');
+    pl.setAttribute('stroke-width', k.w); pl.setAttribute('stroke-linecap', 'round'); pl.setAttribute('stroke-linejoin', 'round');
+    g.append(pl);
+  }
+  sv.append(g); return sv;
+}
+function photoZoom(src, host = document.body, hl = null) {
   const z = document.createElement('div'); z.className = 'pz';
   const img = new Image(); img.src = src; img.alt = ''; img.draggable = false;
+  const hsv = hlSvg(hl, 'meet'); if (hsv) hsv.classList.add('pzhl');
   const x = document.createElement('button'); x.className = 'pzx'; x.type = 'button'; x.setAttribute('aria-label', 'ปิด'); x.textContent = '×';
   const h = document.createElement('div'); h.className = 'pzh'; h.textContent = 'แตะรูปเพื่อซูม ถ่างนิ้วก็ได้ แล้วลากเลื่อนดู';
-  z.append(img, x, h); host.append(z);
+  z.append(img, x, h); if (hsv) z.append(hsv); host.append(z);
   let s = 1, tx = 0, ty = 0, pinch = null, moved = false, downImg = false;
   const pts = new Map();
   const close = () => { z.remove(); removeEventListener('keydown', onKey, true); };
@@ -462,6 +483,7 @@ function photoZoom(src, host = document.body) {
     const mx = Math.max(0, (img.offsetWidth * s - r.width) / 2), my = Math.max(0, (img.offsetHeight * s - r.height) / 2);
     tx = Math.min(mx, Math.max(-mx, tx)); ty = Math.min(my, Math.max(-my, ty));
     img.style.transform = `translate(${tx}px,${ty}px) scale(${s})`;
+    if (hsv) Object.assign(hsv.style, { left: img.offsetLeft + 'px', top: img.offsetTop + 'px', width: img.offsetWidth + 'px', height: img.offsetHeight + 'px', transform: img.style.transform });
     z.classList.toggle('zin', s > 1.01);
   };
   const zoomAt = (ns, cx, cy) => {
@@ -469,6 +491,7 @@ function photoZoom(src, host = document.body) {
     const px = cx - r.left - r.width / 2, py = cy - r.top - r.height / 2;
     tx = px - (px - tx) * ns / s; ty = py - (py - ty) * ns / s; s = ns; apply();
   };
+  if (hsv) { if (img.complete) requestAnimationFrame(apply); else img.addEventListener('load', apply); }
   x.addEventListener('click', e => { e.stopPropagation(); close(); });
   z.addEventListener('wheel', e => { e.preventDefault(); zoomAt(s * Math.exp(-e.deltaY * 0.002), e.clientX, e.clientY); }, { passive: false });
   z.addEventListener('pointerdown', e => {
@@ -495,7 +518,7 @@ function photoZoom(src, host = document.body) {
   };
   z.addEventListener('pointerup', up); z.addEventListener('pointercancel', up);
 }
-const zoom = src => photoZoom(src, sheet);
+const zoom = (src, hl) => photoZoom(src, sheet, hl);
 function openBook(i){
   cur = i; const b = order[i]; if (!b) return;
   $('#shimg').replaceChildren(el('img', { src: b.image, alt: 'Instagram story ของ ' + b.title }));
@@ -514,7 +537,7 @@ function openBook(i){
     (b.pages || []).length ? [el('div', { class: 'plbl' }, 'ระหว่างอ่าน · ' + b.pages.length + ' หน้าที่ชอบ'),
       el('ol', { class: 'jr' }, b.pages.map(x => el('li', {},
         el('div', { class: 'jm' }, [x.p ? 'หน้า ' + x.p : '', x.d ? thDate(x.d) : ''].filter(Boolean).join(' · ')),
-        el('figure', {}, el('img', { src: x.img, alt: 'หน้า ' + (x.p || '') + ' ของ ' + b.title, loading: 'lazy', onclick: () => zoom(x.img) })),
+        el('figure', {}, el('img', { src: x.img, alt: x.q || ('หน้า ' + (x.p || '') + ' ของ ' + b.title), loading: 'lazy', onclick: () => zoom(x.img, x.hl) }), hlSvg(x.hl)),
         x.t ? el('p', {}, x.t) : null))),
       (b.ending || b.review) ? [el('div', { class: 'plbl' }, 'อ่านจบแล้ว'), el('div', { class: 'endc doc' }, reviewBody(b.ending || b.review, b.ending ? '' : b.review_html)), closingCard(b, true)]
         : b.status === 'reading' ? el('p', { class: 'notyet' }, 'ยังอ่านอยู่ อ่านจบแล้วจะมาเขียนตรงนี้') : null]
