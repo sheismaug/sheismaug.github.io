@@ -135,7 +135,9 @@ dialog.sheet[open]{animation:pop .32s cubic-bezier(.2,.8,.3,1)}
 .pq{margin-top:28px;font-size:22px;line-height:1.6;font-weight:500;padding-left:18px;border-left:3px solid var(--pop);max-width:30em}
 .plbl{font-size:13px;font-weight:600;letter-spacing:.06em;color:#9a9a9a;margin-top:36px}
 /* before reading: why this book */
-.pwhy{margin-top:26px;max-width:36em}.pwhy p{font-size:16.5px;line-height:1.9;color:#555;margin-top:8px;white-space:pre-line}
+.pwhy{margin-top:26px;max-width:36em;background:#f6f6f4;border-radius:16px;padding:16px 20px 18px;position:relative}
+.pwhy .plbl{color:#0d0d0d;display:flex;align-items:center;gap:8px}.pwhy .plbl::before{content:"";width:8px;height:8px;border-radius:50%;background:var(--pop)}
+.pwhy p{font-size:16.5px;line-height:1.85;color:#333;margin-top:6px;white-space:pre-line}
 /* closing card: what I liked + small scores */
 .fcard{margin-top:38px;display:grid;grid-template-columns:minmax(0,1.3fr) minmax(0,1fr);border:1px solid var(--line);border-radius:22px;overflow:hidden}
 .fcard.one{grid-template-columns:minmax(0,1fr)}
